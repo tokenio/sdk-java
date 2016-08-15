@@ -1,0 +1,106 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+    }
+}
+
+plugins {
+    id 'application'
+    id 'java'
+    id 'idea'
+    id 'maven'
+    id 'maven-publish'
+    id 'net.ltgt.apt' version '0.7'
+    id 'com.jfrog.artifactory' version '4.4.0'
+    id 'com.github.johnrengelman.shadow' version '1.2.3'
+}
+
+group = 'io.token.gateway'
+version = '1.0.0'
+
+ext {
+    ver = [
+        grpc: '0.15.0',
+        tokenProto: '1.0.11-SNAPSHOT',
+        tokenRpc: '1.0.5-SNAPSHOT',
+        tokenService: '1.0.3',
+        tokenSecurity: '1.0.4',
+    ]
+}
+
+mainClassName = 'io.token.gateway.Application'
+
+dependencies {
+    apt 'com.google.auto.value:auto-value:1.2'
+    apt 'com.google.dagger:dagger-compiler:2.6'
+
+    compile 'ch.qos.logback:logback-classic:1.1.7'
+    compile 'com.google.dagger:dagger:2.6'
+    compile 'grpcbridge:grpcbridge:1.0.1'
+    compile 'com.sparkjava:spark-core:2.5'
+    compile 'io.reactivex:rxjava:1.1.6'
+
+    compile group: 'io.token.proto', name: 'external', version: ver.tokenProto
+    compile group: 'io.token.proto', name: 'internal', version: ver.tokenProto
+    compile group: 'io.token.rpc', name: 'lib', version: ver.tokenRpc
+    compile group: 'io.token.service', name: 'lib', version: ver.tokenService
+    compile group: 'io.token.security', name: 'lib', version: ver.tokenSecurity
+    compile group: 'io.grpc', name: 'grpc-netty', version: ver.grpc
+
+    compileOnly 'com.google.auto.value:auto-value:1.2'
+
+    testApt 'com.google.dagger:dagger-compiler:2.6'
+
+    testCompile 'junit:junit:4.12'
+    testCompile 'org.assertj:assertj-core-java8:1.0.0m1'
+    testCompile 'org.apache.httpcomponents:fluent-hc:4.5.2'
+    testCompile group: 'io.token.rpc', name: 'testing', version: ver.tokenRpc
+    testCompile group: 'io.token.testing', name: 'lib', version: '1.0.2'
+}
+
+repositories {
+    mavenLocal()
+    jcenter()
+}
+
+shadowJar {
+    baseName = 'gateway'
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from components.java
+        }
+    }
+}
+
+artifactory {
+    contextUrl = 'https://token.artifactoryonline.com/token/'
+
+    publish {
+        repository {
+            repoKey = 'libs-release-local'       // The Artifactory repository key to publish to
+            username = "${artifactory_user}"     // The publisher user name
+            password = "${artifactory_password}" // The publisher password
+        }
+        defaults {
+            publications('mavenJava')
+        }
+    }
+  resolve {
+      repository {
+          repoKey = 'libs-release-local'       // The Artifactory repository key to publish to
+          username = "${artifactory_user}"     // The publisher user name
+          password = "${artifactory_password}" // The publisher password
+      }
+  }
+}
+
+idea {
+    module {
+        sourceDirs += file("${buildDir}/sources/apt/main");
+        sourceDirs += file("${buildDir}/sources/apt/test");
+    }
+}
