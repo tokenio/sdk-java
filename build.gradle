@@ -23,7 +23,7 @@ ext {
     ver = [
         grpc: '0.15.0',
         tokenProto: '1.0.11-SNAPSHOT',
-        tokenRpc: '1.0.5-SNAPSHOT',
+        tokenRpc: '1.0',
         tokenService: '1.0.3',
         tokenSecurity: '1.0.4',
     ]
@@ -39,7 +39,6 @@ dependencies {
     compile 'com.google.dagger:dagger:2.6'
     compile 'grpcbridge:grpcbridge:1.0.1'
     compile 'com.sparkjava:spark-core:2.5'
-    compile 'io.reactivex:rxjava:1.1.6'
 
     compile group: 'io.token.proto', name: 'external', version: ver.tokenProto
     compile group: 'io.token.proto', name: 'internal', version: ver.tokenProto
