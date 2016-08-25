@@ -1,28 +1,115 @@
 package io.token;
 
-import io.token.security.KeyPair;
+import io.token.proto.common.member.MemberProtos;
+import io.token.rpc.Client;
+import io.token.security.SecretKey;
+import io.token.util.codec.ByteEncoding;
+import rx.Observable;
 
-import static org.apache.commons.lang.builder.ToStringBuilder.reflectionToString;
+import java.util.List;
 
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
+
+/**
+ * Represents a Member in the Token system. Each member has an active secret
+ * and public key pair that is used to perform authentication.
+ */
 public final class Member {
-    private final String memberName;
-    private final String memberId;
-    private final KeyPair keyPair;
-    private final String keyId;
+    private final SecretKey key;
+    private final Client client;
+    private final MemberProtos.Member.Builder member;
 
-    Member(String memberName, String memberId, KeyPair keyPair, String keyId) {
-        this.memberName = memberName;
-        this.memberId = memberId;
-        this.keyPair = keyPair;
-        this.keyId = keyId;
+    /**
+     * @param member internal member representation, fetched from server
+     * @param key secret/public key pair
+     * @param client RPC client used to perform operations against the server
+     */
+    Member(MemberProtos.Member member, SecretKey key, Client client) {
+        this.key = key;
+        this.client = client;
+        this.member = member.toBuilder();
     }
 
-    public String getMemberName() {
-        return memberName;
-    }
-
+    /**
+     * @return a unique ID that identifies the member in the Token system
+     */
     public String getMemberId() {
-        return memberId;
+        return member.getId();
+    }
+
+    /**
+     * @return secret/public keys associated with this member instance
+     */
+    public SecretKey getKey() {
+        return key;
+    }
+
+    /**
+     * @return list of aliases owned by the member
+     */
+    public List<String> getAliases() {
+       return member.getAliasesList();
+    }
+
+    /**
+     * @return list of public keys that are approved for this member
+     */
+    public List<byte[]> getPublicKeys() {
+        return member.getKeysBuilderList()
+                .stream()
+                .map(k -> ByteEncoding.parse(k.getPublicKey()))
+                .collect(toList());
+    }
+
+    /**
+     * Adds a new alias for the member.
+     *
+     * @param alias alias, e.g. 'john', must be unique
+     */
+    public void addAlias(String alias) {
+        addAliasAsync(alias).toBlocking().single();
+    }
+
+    /**
+     * Adds a new alias for the member.
+     *
+     * @param alias alias, e.g. 'john', must be unique
+     */
+    public Observable<Void> addAliasAsync(String alias) {
+        return client
+                .addAlias(member.build(), alias)
+                .map(m -> {
+                    member.clear().mergeFrom(m);
+                    return null;
+                });
+    }
+
+    /**
+     * Approves a public key owned by this member. The key is added to the list
+     * of valid keys for the member.
+     *
+     * @param publicKey public key to add to the approved list
+     * @param level key security level
+     */
+    public void approveKey(byte[] publicKey, int level) {
+        approveKeyAsync(publicKey, level).toBlocking().single();
+    }
+
+    /**
+     * Approves a public key owned by this member. The key is added to the list
+     * of valid keys for the member.
+     *
+     * @param publicKey public key to add to the approved list
+     * @param level key security level
+     */
+    public Observable<Void> approveKeyAsync(byte[] publicKey, int level) {
+        return client
+                .addKey(member.build(), level, publicKey)
+                .map(m -> {
+                    member.clear().mergeFrom(m);
+                    return null;
+                });
     }
 
     @Override
