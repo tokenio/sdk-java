@@ -2,6 +2,7 @@ package io.token.rpc;
 
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Member;
+import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.security.SecurityProtos;
@@ -61,11 +62,26 @@ public final class Client {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .setAddKey(MemberProtos.MemberAddKeyOperation.newBuilder()
+                .setAddKey(MemberAddKeyOperation.newBuilder()
                         .setPublicKey(ByteEncoding.serialize(publicKey))
                         .setLevel(level))
                 .build());
+    }
 
+    /**
+     * Removes a public key from the list of the approved keys.
+     *
+     * @param member member to remove the key for
+     * @param keyId key ID of the key to remove
+     * @return member information
+     */
+    public Observable<Member> removeKey(Member member, String keyId) {
+        return updateMember(MemberUpdate.newBuilder()
+                .setMemberId(member.getId())
+                .setPrevHash(member.getLastHash())
+                .setRemoveKey(MemberProtos.MemberRemoveKeyOperation.newBuilder()
+                        .setKeyId(keyId))
+                .build());
     }
 
     /**
@@ -82,7 +98,22 @@ public final class Client {
                 .setAddAlias(MemberAliasOperation.newBuilder()
                         .setAlias(alias))
                 .build());
+    }
 
+    /**
+     * Removes an existing alias for a given user.
+     *
+     * @param member member to add the key to
+     * @param alias new unique alias to add
+     * @return member information
+     */
+    public Observable<Member> removeAlias(Member member, String alias) {
+        return updateMember(MemberUpdate.newBuilder()
+                .setMemberId(member.getId())
+                .setPrevHash(member.getLastHash())
+                .setRemoveAlias(MemberAliasOperation.newBuilder()
+                        .setAlias(alias))
+                .build());
     }
 
     private Observable<Member> updateMember(MemberUpdate update) {

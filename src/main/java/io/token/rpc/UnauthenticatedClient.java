@@ -57,7 +57,7 @@ public final class UnauthenticatedClient {
         MemberUpdate update = MemberUpdate.newBuilder()
                 .setMemberId(memberId)
                 .setAddKey(MemberAddKeyOperation.newBuilder()
-                        .setLevel(2) // TODO(alexey): This will be enum at some point.
+                        .setLevel(0) // TODO(alexey): This will be enum at some point.
                         .setPublicKey(ByteEncoding.serialize(key.getPublicKey())))
                 .build();
 
