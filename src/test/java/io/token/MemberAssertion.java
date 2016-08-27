@@ -4,6 +4,7 @@ import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
 import java.util.Arrays;
+import java.util.Collection;
 
 public final class MemberAssertion extends AbstractAssert<MemberAssertion, Member> {
     public static MemberAssertion assertThat(Member member) {
@@ -20,7 +21,20 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
     }
 
     public MemberAssertion hasAliases(String ... aliases) {
-        Assertions.assertThat(actual.getAliases()).containsOnlyElementsOf(Arrays.asList(aliases));
+        return hasAliases(Arrays.asList(aliases));
+    }
+
+    public MemberAssertion hasAliases(Collection<String> aliases) {
+        Assertions.assertThat(actual.getAliases()).containsOnlyElementsOf(aliases);
+        return this;
+    }
+
+    public MemberAssertion hasOneAlias() {
+        return hasNAliases(1);
+    }
+
+    public MemberAssertion hasNAliases(int count) {
+        Assertions.assertThat(actual.getAliases()).hasSize(count);
         return this;
     }
 
@@ -32,6 +46,10 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
     public MemberAssertion hasKeys(byte[] ... publicKeys) {
         Assertions.assertThat(actual.getPublicKeys()).containsOnlyElementsOf(Arrays.asList(publicKeys));
         return this;
+    }
+
+    public MemberAssertion hasOneKey() {
+        return hasNKeys(1);
     }
 
     public MemberAssertion hasNKeys(int count) {

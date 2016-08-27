@@ -86,6 +86,29 @@ public final class Member {
     }
 
     /**
+     * Removes an alias for the member.
+     *
+     * @param alias alias, e.g. 'john'
+     */
+    public void removeAlias(String alias) {
+        removeAliasAsync(alias).toBlocking().single();
+    }
+
+    /**
+     * Removes an alias for the member.
+     *
+     * @param alias alias, e.g. 'john'
+     */
+    public Observable<Void> removeAliasAsync(String alias) {
+        return client
+                .removeAlias(member.build(), alias)
+                .map(m -> {
+                    member.clear().mergeFrom(m);
+                    return null;
+                });
+    }
+
+    /**
      * Approves a public key owned by this member. The key is added to the list
      * of valid keys for the member.
      *
@@ -106,6 +129,29 @@ public final class Member {
     public Observable<Void> approveKeyAsync(byte[] publicKey, int level) {
         return client
                 .addKey(member.build(), level, publicKey)
+                .map(m -> {
+                    member.clear().mergeFrom(m);
+                    return null;
+                });
+    }
+
+    /**
+     * Removes a public key owned by this member.
+     *
+     * @param keyId key ID of the key to remove
+     */
+    public void removeKey(String keyId) {
+        removeKeyAsync(keyId).toBlocking().single();
+    }
+
+    /**
+     * Removes a public key owned by this member.
+     *
+     * @param keyId key ID of the key to remove
+     */
+    public Observable<Void> removeKeyAsync(String keyId) {
+        return client
+                .removeKey(member.build(), keyId)
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
