@@ -18,6 +18,11 @@ public class TokenRule extends ExternalResource {
         return token.createMember(alias);
     }
 
+    public Account account() {
+        Member member = member();
+        return member.account();
+    }
+
     @Override
     protected void before() throws Throwable {
         super.before();

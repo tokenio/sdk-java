@@ -5,16 +5,18 @@ import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
-import io.token.proto.common.security.SecurityProtos;
-import io.token.proto.gateway.Gateway.GetMemberRequest;
-import io.token.proto.gateway.Gateway.GetMemberResponse;
-import io.token.proto.gateway.Gateway.UpdateMemberRequest;
-import io.token.proto.gateway.Gateway.UpdateMemberResponse;
+import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.token.TokenProtos.PaymentToken;
+import io.token.proto.common.token.TokenProtos.SignedToken;
+import io.token.proto.gateway.Gateway.*;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.SecretKey;
 import io.token.util.codec.ByteEncoding;
 import rx.Observable;
 
+import java.util.List;
+
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.rpc.util.Converters.toObservable;
 import static io.token.security.Crypto.sign;
 
@@ -45,8 +47,7 @@ public final class Client {
      * @return member information
      */
     public Observable<Member> getMember() {
-        return
-                toObservable(gateway.getMember(GetMemberRequest.getDefaultInstance()))
+        return toObservable(gateway.getMember(GetMemberRequest.getDefaultInstance()))
                 .map(GetMemberResponse::getMember);
     }
 
@@ -116,14 +117,102 @@ public final class Client {
                 .build());
     }
 
+    /**
+     * Creates a new payment token.
+     *
+     * @param token payment token
+     * @return payment token returned by the server
+     */
+    public Observable<SignedToken> createToken(PaymentToken token) {
+        return toObservable(gateway.createPaymentToken(CreatePaymentTokenRequest.newBuilder()
+                .setToken(token)
+                .build())
+        ).map(CreatePaymentTokenResponse::getToken);
+    }
+
+    /**
+     * Looks up a existing token.
+     *
+     * @param tokenId token id
+     * @return token returned by the server
+     */
+    public Observable<SignedToken> lookupToken(String tokenId) {
+        return toObservable(gateway.lookupToken(LookupTokenRequest.newBuilder()
+                .setTokenId(tokenId)
+                .build())
+        ).map(LookupTokenResponse::getToken);
+    }
+
+    /**
+     * Looks up a list of existing token.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @return token returned by the server
+     */
+    public Observable<List<SignedToken>> lookupTokens(int offset, int limit) {
+        return toObservable(gateway.lookupTokens(LookupTokensRequest.newBuilder()
+                .setOffset(offset)
+                .setLimit(limit)
+                .build())
+        ).map(LookupTokensResponse::getTokensList);
+    }
+
+    /**
+     * Endorses a token.
+     *
+     * @param token token to endorse
+     * @return endorsed token returned by the server
+     */
+    public Observable<SignedToken> endorseToken(SignedToken token) {
+        return toObservable(gateway.endorseToken(EndorseTokenRequest.newBuilder()
+                .setTokenId(token.getId())
+                .setSignature(Signature.newBuilder()
+                        .setKeyId(key.getId())
+                        .setSignature(sign(key, token, ENDORSED)))
+                .build())
+        ).map(EndorseTokenResponse::getToken);
+    }
+
+    /**
+     * Declines a token.
+     *
+     * @param token token to decline
+     * @return declined token returned by the server
+     */
+    public Observable<SignedToken> declineToken(SignedToken token) {
+        return toObservable(gateway.declineToken(DeclineTokenRequest.newBuilder()
+                .setTokenId(token.getId())
+                .setSignature(Signature.newBuilder()
+                        .setKeyId(key.getId())
+                        .setSignature(sign(key, token, ENDORSED)))
+                .build())
+        ).map(DeclineTokenResponse::getToken);
+    }
+
+    /**
+     * Revokes a token.
+     *
+     * @param token token to revoke
+     * @return revoked token returned by the server
+     */
+    public Observable<SignedToken> revokeToken(SignedToken token) {
+        return toObservable(gateway.revokeToken(RevokeTokenRequest.newBuilder()
+                .setTokenId(token.getId())
+                .setSignature(Signature.newBuilder()
+                        .setKeyId(key.getId())
+                        .setSignature(sign(key, token, ENDORSED)))
+                .build())
+        ).map(RevokeTokenResponse::getToken);
+    }
+
     private Observable<Member> updateMember(MemberUpdate update) {
-        return
-                toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
-                        .setUpdate(update)
-                        .setSignature(SecurityProtos.Signature.newBuilder()
-                                .setKeyId(key.getId())
-                                .setSignature(sign(key, update)))
-                        .build()))
-                        .map(UpdateMemberResponse::getMember);
+        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                .setUpdate(update)
+                .setSignature(Signature.newBuilder()
+                        .setKeyId(key.getId())
+                        .setSignature(sign(key, update)))
+                .build())
+        ).map(UpdateMemberResponse::getMember);
     }
 }

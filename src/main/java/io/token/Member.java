@@ -158,6 +158,13 @@ public final class Member {
                 });
     }
 
+    /**
+     * TODO(alexey): This will in the future lookup an existing account or link one.
+     */
+    public Account account() {
+        return new Account(this, client);
+    }
+
     @Override
     public String toString() {
         return reflectionToString(this);
