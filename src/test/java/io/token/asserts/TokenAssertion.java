@@ -1,5 +1,6 @@
-package io.token;
+package io.token.asserts;
 
+import io.token.Member;
 import io.token.proto.common.token.TokenProtos.SignedToken;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.security.SecretKey;

@@ -4,7 +4,7 @@ import io.token.proto.common.token.TokenProtos.SignedToken;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static io.token.TokenAssertion.assertThat;
+import static io.token.asserts.TokenAssertion.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class PaymentTokenTest {
@@ -36,10 +36,11 @@ public class PaymentTokenTest {
     public void lookupTokens() {
         SignedToken token1 = account.createToken(123.45, "EUR");
         SignedToken token2 = account.createToken(678.90, "USD");
+        SignedToken token3 = account.createToken(100.99, "USD");
 
         assertThat(account.lookupTokens(0, 100))
-                .hasSize(2)
-                .containsOnly(token1, token2);
+                .hasSize(3)
+                .containsOnly(token1, token2, token3);
     }
 
     @Test

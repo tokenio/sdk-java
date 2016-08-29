@@ -1,6 +1,8 @@
 package io.token;
 
 import com.google.protobuf.StringValue;
+import io.token.proto.common.payment.PaymentProtos.Payment;
+import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.SignedToken;
@@ -9,6 +11,8 @@ import rx.Observable;
 
 import javax.annotation.Nullable;
 import java.util.List;
+
+import static io.token.util.Util.generateNonce;
 
 /**
  * Represents a funding account in the Token system.
@@ -218,5 +222,104 @@ public final class Account {
      */
     public Observable<SignedToken> revokeTokenAsync(SignedToken token) {
         return client.revokeToken(token);
+    }
+
+    /**
+     * Redeems a payment token.
+     *
+     * @param token payment token to redeem
+     * @return payment record
+     */
+    public Payment redeemToken(SignedToken token) {
+        return redeemTokenAsync(token).toBlocking().single();
+    }
+
+    /**
+     * Redeems a payment token.
+     *
+     * @param token payment token to redeem
+     * @return payment record
+     */
+    public Observable<Payment> redeemTokenAsync(SignedToken token) {
+        return redeemTokenAsync(token, null, null);
+    }
+
+    /**
+     * Redeems a payment token.
+     *
+     * @param token payment token to redeem
+     * @param amount payment amount
+     * @param currency payment currency code, e.g. "EUR"
+     * @return payment record
+     */
+    public Payment redeemToken(SignedToken token, @Nullable Double amount, @Nullable String currency) {
+        return redeemTokenAsync(token, amount, currency).toBlocking().single();
+    }
+
+    /**
+     * Redeems a payment token.
+     *
+     * @param token payment token to redeem
+     * @param amount payment amount
+     * @param currency payment currency code, e.g. "EUR"
+     * @return payment record
+     */
+    public Observable<Payment> redeemTokenAsync(SignedToken token, @Nullable Double amount, @Nullable String currency) {
+        PaymentPayload.Builder payload = PaymentPayload.newBuilder()
+                .setNonce(generateNonce())
+                .setTokenId(token.getId());
+
+        if (amount != null) {
+            payload.setAmount(amount);
+        }
+        if (currency != null) {
+            payload.setCurrency(currency);
+        }
+
+        return client.redeemToken(token, payload.build());
+    }
+
+    /**
+     * Looks up an existing payment.
+     *
+     * @param paymentId ID of the payment record
+     * @return payment record
+     */
+    public Payment lookupPayment(String paymentId) {
+        return lookupPaymentAsync(paymentId).toBlocking().single();
+    }
+
+    /**
+     * Looks up an existing payment.
+     *
+     * @param paymentId ID of the payment record
+     * @return payment record
+     */
+    public Observable<Payment> lookupPaymentAsync(String paymentId) {
+        return client.lookupPayment(paymentId);
+    }
+
+    /**
+     * Looks up existing payments.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @param tokenId optional token id to restrict the search
+     * @return payment record
+     */
+    public List<Payment> lookupPayments(int offset, int limit, @Nullable String tokenId) {
+        return lookupPaymentsAsync(offset, limit, tokenId).toBlocking().single();
+    }
+
+    /**
+     * Looks up existing payments.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @param tokenId optional token id to restrict the search
+     * @return payment record
+     */
+    public Observable<List<Payment>> lookupPaymentsAsync(int offset, int limit, @Nullable String tokenId) {
+        return client.lookupPayments(offset, limit, tokenId);
     }
 }

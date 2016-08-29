@@ -1,5 +1,6 @@
-package io.token;
+package io.token.asserts;
 
+import io.token.Member;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
