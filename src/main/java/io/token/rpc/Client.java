@@ -16,7 +16,9 @@ import rx.Observable;
 
 import java.util.List;
 
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.DECLINED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.REVOKED;
 import static io.token.rpc.util.Converters.toObservable;
 import static io.token.security.Crypto.sign;
 
@@ -185,7 +187,7 @@ public final class Client {
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
-                        .setSignature(sign(key, token, ENDORSED)))
+                        .setSignature(sign(key, token, DECLINED)))
                 .build())
         ).map(DeclineTokenResponse::getToken);
     }
@@ -201,7 +203,7 @@ public final class Client {
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
-                        .setSignature(sign(key, token, ENDORSED)))
+                        .setSignature(sign(key, token, REVOKED)))
                 .build())
         ).map(RevokeTokenResponse::getToken);
     }

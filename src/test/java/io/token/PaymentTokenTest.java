@@ -39,13 +39,13 @@ public class PaymentTokenTest {
 
         assertThat(account.lookupTokens(0, 100))
                 .hasSize(2)
-                .containsExactly(token1, token2);
+                .containsOnly(token1, token2);
     }
 
     @Test
     public void endorseToken() {
         SignedToken token = account.createToken(100.0, "USD");
-        account.endorseToken(token);
+        token = account.endorseToken(token);
 
         assertThat(token)
                 .hasNSignatures(2)
@@ -58,7 +58,7 @@ public class PaymentTokenTest {
     @Test
     public void declineToken() {
         SignedToken token = account.createToken(100.0, "USD");
-        account.declineToken(token);
+        token = account.declineToken(token);
 
         assertThat(token)
                 .hasNSignatures(2)
@@ -71,8 +71,8 @@ public class PaymentTokenTest {
     @Test
     public void revokeToken() {
         SignedToken token = account.createToken(100.0, "USD");
-        account.endorseToken(token);
-        account.revokeToken(token);
+        token = account.endorseToken(token);
+        token = account.revokeToken(token);
 
         assertThat(token)
                 .hasNSignatures(4)

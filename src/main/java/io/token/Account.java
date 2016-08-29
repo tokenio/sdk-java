@@ -144,13 +144,35 @@ public final class Account {
     }
 
     /**
+     * Looks up token owned by the member.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @return payment tokens owned by the member
+     */
+    public Observable<List<SignedToken>> lookupTokensAsync(int offset, int limit) {
+        return client.lookupTokens(offset, limit);
+    }
+
+    /**
      * Endorses the token by signing it. The signature is persisted along
      * with the token.
      *
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<SignedToken> endorseToken(SignedToken token) {
+    public SignedToken endorseToken(SignedToken token) {
+        return endorseTokenAsync(token).toBlocking().single();
+    }
+
+    /**
+     * Endorses the token by signing it. The signature is persisted along
+     * with the token.
+     *
+     * @param token token to endorse
+     * @return endorsed token
+     */
+    public Observable<SignedToken> endorseTokenAsync(SignedToken token) {
         return client.endorseToken(token);
     }
 
@@ -161,7 +183,18 @@ public final class Account {
      * @param token token to decline
      * @return declined token
      */
-    public Observable<SignedToken> declineToken(SignedToken token) {
+    public SignedToken declineToken(SignedToken token) {
+        return declineTokenAsync(token).toBlocking().single();
+    }
+
+    /**
+     * Declines the token by signing it. The signature is persisted along
+     * with the token.
+     *
+     * @param token token to decline
+     * @return declined token
+     */
+    public Observable<SignedToken> declineTokenAsync(SignedToken token) {
         return client.declineToken(token);
     }
 
@@ -172,18 +205,18 @@ public final class Account {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<SignedToken> revokeToken(SignedToken token) {
-        return client.revokeToken(token);
+    public SignedToken revokeToken(SignedToken token) {
+        return revokeTokenAsync(token).toBlocking().single();
     }
 
     /**
-     * Looks up token owned by the member.
+     * Revoke the token by signing it. The signature is persisted along
+     * with the token. Only applicable to endorsed tokens.
      *
-     * @param offset offset to start at
-     * @param limit max number of records to return
-     * @return payment tokens owned by the member
+     * @param token token to endorse
+     * @return endorsed token
      */
-    public Observable<List<SignedToken>> lookupTokensAsync(int offset, int limit) {
-        return client.lookupTokens(offset, limit);
+    public Observable<SignedToken> revokeTokenAsync(SignedToken token) {
+        return client.revokeToken(token);
     }
 }

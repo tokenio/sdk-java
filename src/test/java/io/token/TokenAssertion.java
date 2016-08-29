@@ -92,7 +92,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, SignedT
                 .filter(s -> action == null || action == s.getAction())
                 .map(s -> s.getSignature().getKeyId())
                 .collect(toList());
-        Assertions.assertThat(signatures).containsOnly(keyIds);
+        Assertions.assertThat(signatures).contains(keyIds);
         return this;
     }
 }
