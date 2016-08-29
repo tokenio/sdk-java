@@ -5,6 +5,8 @@ import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.payment.PaymentProtos.Payment;
+import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.SignedToken;
@@ -14,11 +16,10 @@ import io.token.security.SecretKey;
 import io.token.util.codec.ByteEncoding;
 import rx.Observable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
-import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.DECLINED;
-import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
-import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.REVOKED;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.*;
 import static io.token.rpc.util.Converters.toObservable;
 import static io.token.security.Crypto.sign;
 
@@ -206,6 +207,57 @@ public final class Client {
                         .setSignature(sign(key, token, REVOKED)))
                 .build())
         ).map(RevokeTokenResponse::getToken);
+    }
+
+    /**
+     * Redeems a payment token.
+     *
+     * @param token payment token to redeem
+     * @param payment payment parameters, such as amount, currency, etc
+     * @return payment record
+     */
+    public Observable<Payment> redeemToken(SignedToken token, PaymentPayload payment) {
+        return toObservable(gateway.redeemPaymentToken(RedeemPaymentTokenRequest.newBuilder()
+                .setPayload(payment)
+                .setSignature(Signature.newBuilder()
+                        .setKeyId(key.getId())
+                        .setSignature(sign(key, payment)))
+                .build())
+        ).map(RedeemPaymentTokenResponse::getPayment);
+    }
+
+    /**
+     * Looks up an existing payment.
+     *
+     * @param paymentId payment id
+     * @return payment record
+     */
+    public Observable<Payment> lookupPayment(String paymentId) {
+        return toObservable(gateway.lookupPayment(LookupPaymentRequest.newBuilder()
+                .setPaymentId(paymentId)
+                .build())
+        ).map(LookupPaymentResponse::getPayment);
+    }
+
+    /**
+     * Looks up a list of existing payments.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @param tokenId optional token id to restrict the search
+     * @return payment record
+     */
+    public Observable<List<Payment>> lookupPayments(int offset, int limit, @Nullable String tokenId) {
+        LookupPaymentsRequest.Builder request = LookupPaymentsRequest.newBuilder()
+                .setOffset(offset)
+                .setLimit(limit);
+
+        if (tokenId != null) {
+            request.setTokenId(tokenId);
+        }
+
+        return toObservable(gateway.lookupPayments(request.build()))
+                .map(LookupPaymentsResponse::getPaymentsList);
     }
 
     private Observable<Member> updateMember(MemberUpdate update) {

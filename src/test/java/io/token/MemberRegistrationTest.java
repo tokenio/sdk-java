@@ -6,7 +6,7 @@ import io.token.util.Util;
 import org.junit.Rule;
 import org.junit.Test;
 
-import static io.token.MemberAssertion.assertThat;
+import static io.token.asserts.MemberAssertion.assertThat;
 
 public class MemberRegistrationTest {
     @Rule public TokenRule rule = new TokenRule();
