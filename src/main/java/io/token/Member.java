@@ -159,10 +159,51 @@ public final class Member {
     }
 
     /**
-     * TODO(alexey): This will in the future lookup an existing account or link one.
+     * Links a funding bank account to Token and returns it to the caller.
+     *
+     * @param bankId bank id
+     * @param accountLinkPayload account link authorization payload generated
+     *                           by the bank
      */
-    public Account account() {
-        return new Account(this, client);
+    public List<Account> linkAccount(String bankId, byte[] accountLinkPayload) {
+        return linkAccountAsync(bankId, accountLinkPayload).toBlocking().single();
+    }
+
+    /**
+     * Links a funding bank account to Token and returns it to the caller.
+     *
+     * @param bankId bank id
+     * @param accountLinkPayload account link authorization payload generated
+     *                           by the bank
+     */
+    public Observable<List<Account>> linkAccountAsync(String bankId, byte[] accountLinkPayload) {
+        return client
+                .linkAccount(bankId, accountLinkPayload)
+                .map(accounts -> accounts.stream()
+                        .map(a -> new Account(this, a, client))
+                        .collect(toList()));
+    }
+
+    /**
+     * Looks up funding bank accounts linked to Token.
+     *
+     * @return list of accounts
+     */
+    public List<Account> lookupAccounts() {
+        return lookupAccountAsync().toBlocking().single();
+    }
+
+    /**
+     * Links a funding bank account to Token and returns it to the caller.
+     *
+     * @return list of accounts
+     */
+    public Observable<List<Account>> lookupAccountAsync() {
+        return client
+                .lookupAccounts()
+                .map(accounts -> accounts.stream()
+                        .map(a -> new Account(this, a, client))
+                        .collect(toList()));
     }
 
     @Override
