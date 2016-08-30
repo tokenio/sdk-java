@@ -1,5 +1,7 @@
 package io.token.rpc;
 
+import com.google.protobuf.ByteString;
+import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -118,6 +120,61 @@ public final class Client {
                 .setRemoveAlias(MemberAliasOperation.newBuilder()
                         .setAlias(alias))
                 .build());
+    }
+
+    /**
+     * Links a funding bank account to Token.
+     *
+     * @param bankId bank id
+     * @param accountLinkPayload account link authorization payload generated
+     *                           by the bank
+     * @return list of linked accounts
+     */
+    public Observable<List<Account>> linkAccount(String bankId, byte[] accountLinkPayload) {
+        return toObservable(gateway.linkAccount(LinkAccountRequest.newBuilder()
+                .setBankId(bankId)
+                .setAccountLinkPayload(ByteString.copyFrom(accountLinkPayload))
+                .build())
+        ).map(LinkAccountResponse::getAccountsList);
+    }
+
+    /**
+     * Looks up a linked funding account.
+     *
+     * @param accountId account id
+     * @return account info
+     */
+    public Observable<Account> lookupAccount(String accountId) {
+        return toObservable(gateway.lookupAccount(LookupAccountRequest.newBuilder()
+                .setAccountId(accountId)
+                .build())
+        ).map(LookupAccountResponse::getAccount);
+    }
+
+    /**
+     * Looks up all the linked funding accounts.
+     *
+     * @return list of linked accounts
+     */
+    public Observable<List<Account>> lookupAccounts() {
+        return toObservable(gateway.lookupAccounts(LookupAccountsRequest.newBuilder()
+                .build())
+        ).map(LookupAccountsResponse::getAccountsList);
+    }
+
+    /**
+     * Sets account name.
+     *
+     * @param accountId account id
+     * @param accountName new name to use
+     * @return updated account info
+     */
+    public Observable<Account> setAccountName(String accountId, String accountName) {
+        return toObservable(gateway.setAccountName(SetAccountNameRequest.newBuilder()
+                .setAccountId(accountId)
+                .setName(accountName)
+                .build())
+        ).map(SetAccountNameResponse::getAccount);
     }
 
     /**

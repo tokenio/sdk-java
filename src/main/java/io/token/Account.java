@@ -1,11 +1,13 @@
 package io.token;
 
 import com.google.protobuf.StringValue;
+import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.SignedToken;
+import io.token.proto.common.token.TokenProtos.Transfer;
 import io.token.rpc.Client;
 import rx.Observable;
 
@@ -19,14 +21,17 @@ import static io.token.util.Util.generateNonce;
  */
 public final class Account {
     private final Member member;
+    private final AccountProtos.Account.Builder account;
     private final Client client;
 
     /**
      * @param member account owner
+     * @param account account information
      * @param client RPC client used to perform operations against the server
      */
-    Account(Member member, Client client) {
+    Account(Member member, AccountProtos.Account account, Client client) {
         this.member = member;
+        this.account = account.toBuilder();
         this.client = client;
     }
 
@@ -35,6 +40,36 @@ public final class Account {
      */
     public Member getMember() {
         return member;
+    }
+
+    /**
+     * @return account information
+     */
+    public AccountProtos.Account getAccount() {
+        return account.build();
+    }
+
+    /**
+     * Sets a new bank account.
+     *
+     * @param newName new name to use
+     */
+    public void setAccountName(String newName) {
+        setAccountNameAsync(newName).toBlocking().single();
+    }
+
+    /**
+     * Sets a new bank account.
+     *
+     * @param newName new name to use
+     */
+    public Observable<Void> setAccountNameAsync(String newName) {
+        return client
+                .setAccountName(account.getId(), newName)
+                .map(a -> {
+                    this.account.clear().mergeFrom(a);
+                    return null;
+                });
     }
 
     /**
@@ -95,7 +130,12 @@ public final class Account {
         PaymentToken.Builder paymentToken = Tokens
                 .newToken(member, amount, currency)
                 .toBuilder()
-                .setScheme("Pay/1.0");
+                .setScheme("Pay/1.0")
+                .setTransfer(Transfer.newBuilder()
+                        .setFrom(TokenProtos.Account.newBuilder()
+                                .setId(account.getId())
+                                .setName(account.getName())));
+
         if (redeemer != null) {
             paymentToken.setRedeemer(TokenProtos.Member.newBuilder()
                     .setAlias(StringValue.newBuilder().setValue(redeemer).build()));
