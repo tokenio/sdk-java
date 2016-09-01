@@ -1,6 +1,6 @@
 package io.token;
 
-import io.token.proto.common.token.TokenProtos.SignedToken;
+import io.token.proto.common.token.TokenProtos.Token;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -13,7 +13,7 @@ public class PaymentTokenTest {
 
     @Test
     public void createToken() {
-        SignedToken token = account.createToken(100.0, "USD", "amazon", "book purchase");
+        Token token = account.createToken(100.0, "USD", "amazon", "book purchase");
         assertThat(token)
                 .hasPayer(account.getMember())
                 .hasRedeemerAlias("amazon")
@@ -24,7 +24,7 @@ public class PaymentTokenTest {
 
     @Test
     public void lookupToken() {
-        SignedToken token = account.createToken(100.0, "USD");
+        Token token = account.createToken(100.0, "USD");
         assertThat(account.lookupToken(token.getId()))
                 .hasPayer(account.getMember())
                 .hasAmount(100.0)
@@ -34,9 +34,9 @@ public class PaymentTokenTest {
 
     @Test
     public void lookupTokens() {
-        SignedToken token1 = account.createToken(123.45, "EUR");
-        SignedToken token2 = account.createToken(678.90, "USD");
-        SignedToken token3 = account.createToken(100.99, "USD");
+        Token token1 = account.createToken(123.45, "EUR");
+        Token token2 = account.createToken(678.90, "USD");
+        Token token3 = account.createToken(100.99, "USD");
 
         assertThat(account.lookupTokens(0, 100))
                 .hasSize(3)
@@ -45,7 +45,7 @@ public class PaymentTokenTest {
 
     @Test
     public void endorseToken() {
-        SignedToken token = account.createToken(100.0, "USD");
+        Token token = account.createToken(100.0, "USD");
         token = account.endorseToken(token);
 
         assertThat(token)
@@ -58,7 +58,7 @@ public class PaymentTokenTest {
 
     @Test
     public void declineToken() {
-        SignedToken token = account.createToken(100.0, "USD");
+        Token token = account.createToken(100.0, "USD");
         token = account.declineToken(token);
 
         assertThat(token)
@@ -71,7 +71,7 @@ public class PaymentTokenTest {
 
     @Test
     public void revokeToken() {
-        SignedToken token = account.createToken(100.0, "USD");
+        Token token = account.createToken(100.0, "USD");
         token = account.endorseToken(token);
         token = account.revokeToken(token);
 

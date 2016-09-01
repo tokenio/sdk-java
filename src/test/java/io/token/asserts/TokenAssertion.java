@@ -1,7 +1,7 @@
 package io.token.asserts;
 
 import io.token.Member;
-import io.token.proto.common.token.TokenProtos.SignedToken;
+import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.security.SecretKey;
 import org.assertj.core.api.AbstractAssert;
@@ -15,12 +15,12 @@ import java.util.List;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.*;
 import static java.util.stream.Collectors.toList;
 
-public final class TokenAssertion extends AbstractAssert<TokenAssertion, SignedToken> {
-    public static TokenAssertion assertThat(SignedToken token) {
+public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> {
+    public static TokenAssertion assertThat(Token token) {
         return new TokenAssertion(token);
     }
 
-    private TokenAssertion(SignedToken actual) {
+    private TokenAssertion(Token actual) {
         super(actual, TokenAssertion.class);
     }
 

@@ -6,7 +6,7 @@ import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
-import io.token.proto.common.token.TokenProtos.SignedToken;
+import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.Transfer;
 import io.token.rpc.Client;
 import rx.Observable;
@@ -79,7 +79,7 @@ public final class Account {
      * @param currency currency code, e.g. "USD"
      * @return payment token returned by the server
      */
-    public SignedToken createToken(double amount, String currency) {
+    public Token createToken(double amount, String currency) {
         return createToken(amount, currency, null, null);
     }
 
@@ -92,7 +92,7 @@ public final class Account {
      * @param description payment description, optional
      * @return payment token returned by the server
      */
-    public SignedToken createToken(
+    public Token createToken(
             double amount,
             String currency,
             @Nullable String redeemer,
@@ -109,7 +109,7 @@ public final class Account {
      * @param currency currency code, e.g. "USD"
      * @return payment token returned by the server
      */
-    public Observable<SignedToken> createTokenAsync(double amount, String currency) {
+    public Observable<Token> createTokenAsync(double amount, String currency) {
         return createTokenAsync(amount, currency, null, null);
     }
 
@@ -122,7 +122,7 @@ public final class Account {
      * @param description payment description, optional
      * @return payment token returned by the server
      */
-    public Observable<SignedToken> createTokenAsync(
+    public Observable<Token> createTokenAsync(
             double amount,
             String currency,
             @Nullable String redeemer,
@@ -152,7 +152,7 @@ public final class Account {
      * @param paymentToken payment token
      * @return payment token returned by the server
      */
-    public Observable<SignedToken> createTokenAsync(PaymentToken paymentToken) {
+    public Observable<Token> createTokenAsync(PaymentToken paymentToken) {
         return client.createToken(paymentToken);
     }
 
@@ -162,7 +162,7 @@ public final class Account {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public SignedToken lookupToken(String tokenId) {
+    public Token lookupToken(String tokenId) {
         return lookupTokenAsync(tokenId).toBlocking().single();
     }
 
@@ -172,7 +172,7 @@ public final class Account {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public Observable<SignedToken> lookupTokenAsync(String tokenId) {
+    public Observable<Token> lookupTokenAsync(String tokenId) {
         return client.lookupToken(tokenId);
     }
 
@@ -183,7 +183,7 @@ public final class Account {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public List<SignedToken> lookupTokens(int offset, int limit) {
+    public List<Token> lookupTokens(int offset, int limit) {
         return lookupTokensAsync(offset, limit).toBlocking().single();
     }
 
@@ -194,7 +194,7 @@ public final class Account {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public Observable<List<SignedToken>> lookupTokensAsync(int offset, int limit) {
+    public Observable<List<Token>> lookupTokensAsync(int offset, int limit) {
         return client.lookupTokens(offset, limit);
     }
 
@@ -205,7 +205,7 @@ public final class Account {
      * @param token token to endorse
      * @return endorsed token
      */
-    public SignedToken endorseToken(SignedToken token) {
+    public Token endorseToken(Token token) {
         return endorseTokenAsync(token).toBlocking().single();
     }
 
@@ -216,7 +216,7 @@ public final class Account {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<SignedToken> endorseTokenAsync(SignedToken token) {
+    public Observable<Token> endorseTokenAsync(Token token) {
         return client.endorseToken(token);
     }
 
@@ -227,7 +227,7 @@ public final class Account {
      * @param token token to decline
      * @return declined token
      */
-    public SignedToken declineToken(SignedToken token) {
+    public Token declineToken(Token token) {
         return declineTokenAsync(token).toBlocking().single();
     }
 
@@ -238,7 +238,7 @@ public final class Account {
      * @param token token to decline
      * @return declined token
      */
-    public Observable<SignedToken> declineTokenAsync(SignedToken token) {
+    public Observable<Token> declineTokenAsync(Token token) {
         return client.declineToken(token);
     }
 
@@ -249,7 +249,7 @@ public final class Account {
      * @param token token to endorse
      * @return endorsed token
      */
-    public SignedToken revokeToken(SignedToken token) {
+    public Token revokeToken(Token token) {
         return revokeTokenAsync(token).toBlocking().single();
     }
 
@@ -260,7 +260,7 @@ public final class Account {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<SignedToken> revokeTokenAsync(SignedToken token) {
+    public Observable<Token> revokeTokenAsync(Token token) {
         return client.revokeToken(token);
     }
 
@@ -270,7 +270,7 @@ public final class Account {
      * @param token payment token to redeem
      * @return payment record
      */
-    public Payment redeemToken(SignedToken token) {
+    public Payment redeemToken(Token token) {
         return redeemTokenAsync(token).toBlocking().single();
     }
 
@@ -280,7 +280,7 @@ public final class Account {
      * @param token payment token to redeem
      * @return payment record
      */
-    public Observable<Payment> redeemTokenAsync(SignedToken token) {
+    public Observable<Payment> redeemTokenAsync(Token token) {
         return redeemTokenAsync(token, null, null);
     }
 
@@ -292,7 +292,7 @@ public final class Account {
      * @param currency payment currency code, e.g. "EUR"
      * @return payment record
      */
-    public Payment redeemToken(SignedToken token, @Nullable Double amount, @Nullable String currency) {
+    public Payment redeemToken(Token token, @Nullable Double amount, @Nullable String currency) {
         return redeemTokenAsync(token, amount, currency).toBlocking().single();
     }
 
@@ -304,7 +304,7 @@ public final class Account {
      * @param currency payment currency code, e.g. "EUR"
      * @return payment record
      */
-    public Observable<Payment> redeemTokenAsync(SignedToken token, @Nullable Double amount, @Nullable String currency) {
+    public Observable<Payment> redeemTokenAsync(Token token, @Nullable Double amount, @Nullable String currency) {
         PaymentPayload.Builder payload = PaymentPayload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());
