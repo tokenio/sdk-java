@@ -6,11 +6,43 @@ import io.token.proto.common.account.AccountProtos.AccountLinkPayload.NamedBankA
 import io.token.util.Util;
 import org.junit.rules.ExternalResource;
 
+/**
+ * One can control what gateway the tests run against by setting system property on the
+ * command line. E.g:
+ *
+ * ./gradlew -DTOKEN_GATEWAY=some-ip test
+ */
 public class TokenRule extends ExternalResource {
-    private final Token token = Token.builder()
-            .hostName("localhost")
-            .port(9000)
-            .build();
+    private final Token token;
+
+    public TokenRule() {
+        String hostName = "localhost";
+        int port = 9000;
+
+        String override = System.getenv("TOKEN_GATEWAY");
+        if (override == null) {
+            override = System.getProperty("TOKEN_GATEWAY");
+        }
+        if (override != null) {
+            String[] hostAndPort = override.split(":");
+            switch (hostAndPort.length) {
+                case 1:
+                    hostName = hostAndPort[0];
+                    break;
+                case 2:
+                    hostName = hostAndPort[0];
+                    port = Integer.parseInt(hostAndPort[1]);
+                    break;
+                default:
+                    throw new RuntimeException("Invalid TOKEN_GATEWAY format: " + override);
+            }
+        }
+
+        this.token = Token.builder()
+                .hostName(hostName)
+                .port(port)
+                .build();
+    }
 
     public Token token() {
        return token;
