@@ -2,7 +2,7 @@ package io.token.security;
 
 import com.google.protobuf.Message;
 import io.token.proto.ProtoJson;
-import io.token.proto.common.token.TokenProtos.SignedToken;
+import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 
 import java.util.stream.Stream;
@@ -34,7 +34,7 @@ public final class Crypto {
      * @param action action being signed on
      * @return token signature
      */
-    public static String sign(SecretKey key, SignedToken token, Action action) {
+    public static String sign(SecretKey key, Token token, Action action) {
         String payload = Stream
                 .of(ProtoJson.toJson(token.getPayment()), action.name().toLowerCase())
                 .collect(joining("."));

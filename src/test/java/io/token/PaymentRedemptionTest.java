@@ -1,7 +1,7 @@
 package io.token;
 
 import io.token.proto.common.payment.PaymentProtos.Payment;
-import io.token.proto.common.token.TokenProtos.SignedToken;
+import io.token.proto.common.token.TokenProtos.Token;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -16,7 +16,7 @@ public class PaymentRedemptionTest {
 
     @Test
     public void redeemToken() {
-        SignedToken token = account.createToken(100.0, "USD", "amazon", "book purchase");
+        Token token = account.createToken(100.0, "USD", "amazon", "book purchase");
         token = account.endorseToken(token);
 
         Payment payment = account.redeemToken(token);
@@ -29,7 +29,7 @@ public class PaymentRedemptionTest {
 
     @Test
     public void redeemToken_withParams() {
-        SignedToken token = account.createToken(100.0, "USD", "amazon", "book purchase");
+        Token token = account.createToken(100.0, "USD", "amazon", "book purchase");
         token = account.endorseToken(token);
 
         Payment payment = account.redeemToken(token, 99.0, "USD");
@@ -42,7 +42,7 @@ public class PaymentRedemptionTest {
 
     @Test
     public void lookupPayment() {
-        SignedToken token = account.createToken(100.0, "USD", "amazon", "book purchase");
+        Token token = account.createToken(100.0, "USD", "amazon", "book purchase");
         token = account.endorseToken(token);
 
         Payment payment = account.redeemToken(token);
@@ -52,7 +52,7 @@ public class PaymentRedemptionTest {
 
     @Test
     public void lookupPayments() {
-        SignedToken token = account.createToken(100.0, "USD", "amazon", "book purchase");
+        Token token = account.createToken(100.0, "USD", "amazon", "book purchase");
         token = account.endorseToken(token);
 
         Payment payment1 = account.redeemToken(token, 10.0, "USD");

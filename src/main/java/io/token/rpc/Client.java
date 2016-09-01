@@ -11,7 +11,7 @@ import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
-import io.token.proto.common.token.TokenProtos.SignedToken;
+import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.gateway.Gateway.*;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.SecretKey;
@@ -183,7 +183,7 @@ public final class Client {
      * @param token payment token
      * @return payment token returned by the server
      */
-    public Observable<SignedToken> createToken(PaymentToken token) {
+    public Observable<Token> createToken(PaymentToken token) {
         return toObservable(gateway.createPaymentToken(CreatePaymentTokenRequest.newBuilder()
                 .setToken(token)
                 .build())
@@ -196,7 +196,7 @@ public final class Client {
      * @param tokenId token id
      * @return token returned by the server
      */
-    public Observable<SignedToken> lookupToken(String tokenId) {
+    public Observable<Token> lookupToken(String tokenId) {
         return toObservable(gateway.lookupToken(LookupTokenRequest.newBuilder()
                 .setTokenId(tokenId)
                 .build())
@@ -210,7 +210,7 @@ public final class Client {
      * @param limit max number of records to return
      * @return token returned by the server
      */
-    public Observable<List<SignedToken>> lookupTokens(int offset, int limit) {
+    public Observable<List<Token>> lookupTokens(int offset, int limit) {
         return toObservable(gateway.lookupTokens(LookupTokensRequest.newBuilder()
                 .setOffset(offset)
                 .setLimit(limit)
@@ -224,7 +224,7 @@ public final class Client {
      * @param token token to endorse
      * @return endorsed token returned by the server
      */
-    public Observable<SignedToken> endorseToken(SignedToken token) {
+    public Observable<Token> endorseToken(Token token) {
         return toObservable(gateway.endorseToken(EndorseTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
@@ -240,7 +240,7 @@ public final class Client {
      * @param token token to decline
      * @return declined token returned by the server
      */
-    public Observable<SignedToken> declineToken(SignedToken token) {
+    public Observable<Token> declineToken(Token token) {
         return toObservable(gateway.declineToken(DeclineTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
@@ -256,7 +256,7 @@ public final class Client {
      * @param token token to revoke
      * @return revoked token returned by the server
      */
-    public Observable<SignedToken> revokeToken(SignedToken token) {
+    public Observable<Token> revokeToken(Token token) {
         return toObservable(gateway.revokeToken(RevokeTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
@@ -273,7 +273,7 @@ public final class Client {
      * @param payment payment parameters, such as amount, currency, etc
      * @return payment record
      */
-    public Observable<Payment> redeemToken(SignedToken token, PaymentPayload payment) {
+    public Observable<Payment> redeemToken(Token token, PaymentPayload payment) {
         return toObservable(gateway.redeemPaymentToken(RedeemPaymentTokenRequest.newBuilder()
                 .setPayload(payment)
                 .setSignature(Signature.newBuilder()
