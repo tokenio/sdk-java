@@ -35,3 +35,8 @@ dependencies {
 
     testCompile group: 'io.token.rpc', name: 'testing', version: ver.tokenRpc
 }
+
+tasks.withType(Test) {
+    // Pipe through the properties that we care about to tests.
+    systemProperty 'TOKEN_GATEWAY', System.getProperty('TOKEN_GATEWAY', null)
+}
