@@ -1,4 +1,4 @@
 #!/bin/bash
 
 TOKEN_GATEWAY=$(docker-machine ip)
-./gradlew -DTOKEN_GATEWAY=$TOKEN_GATEWAY test
+./gradlew -DTOKEN_GATEWAY=$TOKEN_GATEWAY cleanTest test
