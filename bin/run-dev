@@ -1,0 +1,3 @@
+#!/bin/bash
+
+./gradlew -DTOKEN_GATEWAY=dev.api.token.io:90 cleanTest test
