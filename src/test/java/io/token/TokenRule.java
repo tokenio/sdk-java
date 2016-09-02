@@ -6,6 +6,8 @@ import io.token.proto.common.account.AccountProtos.AccountLinkPayload.NamedBankA
 import io.token.util.Util;
 import org.junit.rules.ExternalResource;
 
+import static org.assertj.core.util.Strings.isNullOrEmpty;
+
 /**
  * One can control what gateway the tests run against by setting system property on the
  * command line. E.g:
@@ -20,10 +22,10 @@ public class TokenRule extends ExternalResource {
         int port = 9000;
 
         String override = System.getenv("TOKEN_GATEWAY");
-        if (override == null) {
+        if (isNullOrEmpty(override)) {
             override = System.getProperty("TOKEN_GATEWAY");
         }
-        if (override != null) {
+        if (!isNullOrEmpty(override)) {
             String[] hostAndPort = override.split(":");
             switch (hostAndPort.length) {
                 case 1:
