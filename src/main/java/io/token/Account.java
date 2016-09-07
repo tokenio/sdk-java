@@ -1,6 +1,5 @@
 package io.token;
 
-import com.google.protobuf.StringValue;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
@@ -138,7 +137,7 @@ public final class Account {
 
         if (redeemer != null) {
             paymentToken.setRedeemer(TokenProtos.Member.newBuilder()
-                    .setAlias(StringValue.newBuilder().setValue(redeemer).build()));
+                    .setAlias(redeemer));
         }
         if (description != null) {
             paymentToken.setDescription(description);

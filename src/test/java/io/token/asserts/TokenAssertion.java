@@ -26,14 +26,14 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
 
     public TokenAssertion hasPayer(Member member) {
         Assertions
-                .assertThat(actual.getPayment().getPayer().getId().getValue())
+                .assertThat(actual.getPayment().getPayer().getId())
                 .isEqualTo(member.getMemberId());
         return this;
     }
 
     public TokenAssertion hasRedeemerAlias(String alias) {
         Assertions
-                .assertThat(actual.getPayment().getRedeemer().getAlias().getValue())
+                .assertThat(actual.getPayment().getRedeemer().getAlias())
                 .isEqualTo(alias);
         return this;
     }

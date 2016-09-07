@@ -23,11 +23,10 @@ public class AccountTest {
                 bankId,
                 ProtoJson.toJson(AccountLinkPayload.newBuilder()
                         .setAlias(alias)
-                        .setBankId(bankId)
-                        .addAccounts(AccountLinkPayload.NamedBankAccount.newBuilder()
+                        .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
                                 .setName("Checking")
                                 .setAccountNumber("iban:checking"))
-                        .addAccounts(AccountLinkPayload.NamedBankAccount.newBuilder()
+                        .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
                                 .setName("Savings")
                                 .setAccountNumber("iban:savings"))
                         .build()).getBytes());
