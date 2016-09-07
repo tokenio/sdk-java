@@ -309,10 +309,10 @@ public final class Account {
                 .setTokenId(token.getId());
 
         if (amount != null) {
-            payload.setAmount(amount);
+            payload.getAmountBuilder().setValue(amount);
         }
         if (currency != null) {
-            payload.setCurrency(currency);
+            payload.getAmountBuilder().setCurrency(currency);
         }
 
         return client.redeemToken(token, payload.build());
