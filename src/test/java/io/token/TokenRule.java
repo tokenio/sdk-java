@@ -2,7 +2,7 @@ package io.token;
 
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos;
-import io.token.proto.common.account.AccountProtos.AccountLinkPayload.NamedBankAccount;
+import io.token.proto.common.account.AccountProtos.AccountLinkPayload.NamedAccount;
 import io.token.util.Util;
 import org.junit.rules.ExternalResource;
 
@@ -67,8 +67,7 @@ public class TokenRule extends ExternalResource {
                 bankId,
                 ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
                         .setAlias(alias)
-                        .setBankId(bankId)
-                        .addAccounts(NamedBankAccount.newBuilder()
+                        .addAccounts(NamedAccount.newBuilder()
                                 .setName(bankAccountName)
                                 .setAccountNumber(bankAccountNumber))
                         .build()).getBytes()).get(0);

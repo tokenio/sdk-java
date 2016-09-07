@@ -1,6 +1,5 @@
 package io.token;
 
-import com.google.protobuf.StringValue;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 
@@ -14,9 +13,7 @@ public interface Tokens {
         return PaymentToken.newBuilder()
                 .setNonce(generateNonce())
                 .setPayer(TokenProtos.Member.newBuilder()
-                        .setId(StringValue.newBuilder()
-                                .setValue(member.getMemberId())
-                                .build()))
+                        .setId(member.getMemberId()))
                 .setCurrency(currencyCode)
                 .setAmount(amount)
                 .build();
