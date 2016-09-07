@@ -46,10 +46,17 @@ public final class Member {
     }
 
     /**
+     * @return first alias owned by the user
+     */
+    public String getFirstAlias() {
+        return member.getAliasesCount() == 0 ? null : member.getAliases(0);
+    }
+
+    /**
      * @return list of aliases owned by the member
      */
     public List<String> getAliases() {
-       return member.getAliasesList();
+        return member.getAliasesList();
     }
 
     /**

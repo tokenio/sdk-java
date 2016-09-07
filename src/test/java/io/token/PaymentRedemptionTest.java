@@ -12,52 +12,69 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PaymentRedemptionTest {
     @Rule public TokenRule rule = new TokenRule();
-    private final Account account = rule.account();
+    private final Account payer = rule.account();
+    private final Account payee = rule.account();
 
     @Test
     public void redeemToken() {
-        Token token = account.createToken(100.0, "USD", "amazon", "book purchase");
-        token = account.endorseToken(token);
+        Token token = payer.createToken(
+                100.0,
+                "USD",
+                payee.getMember().getFirstAlias(),
+                "book purchase");
+        token = payer.endorseToken(token);
 
-        Payment payment = account.redeemToken(token);
+        Payment payment = payee.redeemToken(token);
         assertThat(payment)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasNSignatures(2)
-                .isSignedBy(account.getMember());
+                .isSignedBy(payee.getMember());
     }
 
     @Test
     public void redeemToken_withParams() {
-        Token token = account.createToken(100.0, "USD", "amazon", "book purchase");
-        token = account.endorseToken(token);
+        Token token = payer.createToken(
+                100.0,
+                "USD",
+                payee.getMember().getFirstAlias(),
+                "book purchase");
+        token = payer.endorseToken(token);
 
-        Payment payment = account.redeemToken(token, 99.0, "USD");
+        Payment payment = payee.redeemToken(token, 99.0, "USD");
         assertThat(payment)
                 .hasAmount(99.0)
                 .hasCurrency("USD")
                 .hasNSignatures(2)
-                .isSignedBy(account.getMember());
+                .isSignedBy(payee.getMember());
     }
 
     @Test
     public void lookupPayment() {
-        Token token = account.createToken(100.0, "USD", "amazon", "book purchase");
-        token = account.endorseToken(token);
+        Token token = payer.createToken(
+                100.0,
+                "USD",
+                payee.getMember().getFirstAlias(),
+                "book purchase");
+        token = payer.endorseToken(token);
 
-        Payment payment = account.redeemToken(token);
-        Payment lookedUp = account.lookupPayment(payment.getId());
+        Payment payment = payee.redeemToken(token);
+        Payment lookedUp = payer.lookupPayment(payment.getId());
         assertThat(lookedUp).isEqualTo(payment);
     }
 
     @Test
     public void lookupPayments() {
-        Token token = account.createToken(100.0, "USD", "amazon", "book purchase");
-        token = account.endorseToken(token);
+        Token token = payer.createToken(
+                100.0,
+                "USD",
+                payee.getMember().getFirstAlias(),
+                "book purchase");
+        token = payer.endorseToken(token);
 
-        Payment payment1 = account.redeemToken(token, 10.0, "USD");
-        Payment payment2 = account.redeemToken(token, 20.0, "USD");
-        Payment payment3 = account.redeemToken(token, 70.0, "USD");
+        Payment payment1 = payee.redeemToken(token, 10.0, "USD");
+        Payment payment2 = payee.redeemToken(token, 20.0, "USD");
+        Payment payment3 = payee.redeemToken(token, 70.0, "USD");
 
         assertThat(payment1)
                 .hasAmount(10.0)
@@ -69,7 +86,7 @@ public class PaymentRedemptionTest {
                 .hasAmount(70.0)
                 .hasCurrency("USD");
 
-        List<Payment> lookedUp = account.lookupPayments(0, 100, token.getId());
+        List<Payment> lookedUp = payer.lookupPayments(0, 100, token.getId());
         assertThat(lookedUp).containsOnly(payment1, payment2, payment3);
     }
 }

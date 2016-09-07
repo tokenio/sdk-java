@@ -1,7 +1,7 @@
 package io.token;
 
 import io.token.proto.ProtoJson;
-import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.account.AccountProtos.AccountLinkPayload;
 import io.token.proto.common.account.AccountProtos.AccountLinkPayload.NamedAccount;
 import io.token.util.Util;
 import org.junit.rules.ExternalResource;
@@ -51,21 +51,25 @@ public class TokenRule extends ExternalResource {
     }
 
     public Member member() {
-        String alias = "alexey-" + Util.generateNonce();
+        String alias = "alias-" + Util.generateNonce();
         return token.createMember(alias);
     }
 
     public Account account() {
         Member member = member();
 
-        String alias = member.getAliases().get(0);
+        String alias = member.getFirstAlias();
         String bankId = "bank-id";
         String bankAccountName = "Checking";
         String bankAccountNumber = "iban:123456789";
 
+        if (alias == null) {
+            throw new IllegalStateException("Member doesn't have an alias");
+        }
+
         return member.linkAccount(
                 bankId,
-                ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
+                ProtoJson.toJson(AccountLinkPayload.newBuilder()
                         .setAlias(alias)
                         .addAccounts(NamedAccount.newBuilder()
                                 .setName(bankAccountName)
