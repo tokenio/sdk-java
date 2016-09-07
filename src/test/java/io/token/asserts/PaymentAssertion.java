@@ -29,12 +29,12 @@ public final class PaymentAssertion extends AbstractAssert<PaymentAssertion, Pay
     }
 
     public PaymentAssertion hasAmount(double amount) {
-        Assertions.assertThat(actual.getPayload().getAmount()).isEqualTo(amount);
+        Assertions.assertThat(actual.getPayload().getAmount().getValue()).isEqualTo(amount);
         return this;
     }
 
     public PaymentAssertion hasCurrency(String currency) {
-        Assertions.assertThat(actual.getPayload().getCurrency()).isEqualTo(currency);
+        Assertions.assertThat(actual.getPayload().getAmount().getCurrency()).isEqualTo(currency);
         return this;
     }
 
