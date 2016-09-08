@@ -1,3 +1,8 @@
 #!/bin/bash
 
-./gradlew -DTOKEN_GATEWAY=dev.api.token.io:90 -DTOKEN_BANK=dev.api.token.io:91 cleanTest test
+HOST=dev.api.token.io
+
+./gradlew \
+-DTOKEN_GATEWAY=${HOST}:90 \
+-DTOKEN_BANK=${HOST}:91 \
+cleanTest test
