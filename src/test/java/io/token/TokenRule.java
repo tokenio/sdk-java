@@ -1,10 +1,13 @@
 package io.token;
 
-import io.token.proto.ProtoJson;
-import io.token.proto.common.account.AccountProtos.AccountLinkPayload;
-import io.token.proto.common.account.AccountProtos.AccountLinkPayload.NamedAccount;
+import com.google.common.net.HostAndPort;
+import io.token.proto.bankapi.Fank;
+import io.token.proto.common.money.MoneyProtos;
 import io.token.util.Util;
 import org.junit.rules.ExternalResource;
+
+import java.util.Collections;
+import java.util.Optional;
 
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
@@ -12,37 +15,28 @@ import static org.assertj.core.util.Strings.isNullOrEmpty;
  * One can control what gateway the tests run against by setting system property on the
  * command line. E.g:
  *
- * ./gradlew -DTOKEN_GATEWAY=some-ip test
+ * ./gradlew -DTOKEN_GATEWAY=some-ip -DTOKEN_BANK=some-ip test
  */
 public class TokenRule extends ExternalResource {
     private final Token token;
+    private final BankClient bankClient;
 
     public TokenRule() {
-        String hostName = "localhost";
-        int port = 9000;
+        HostAndPort gateway = HostAndPort
+                .fromString(getHostPortString("TOKEN_GATEWAY", "localhost"))
+                .withDefaultPort(9000);
 
-        String override = System.getenv("TOKEN_GATEWAY");
-        if (isNullOrEmpty(override)) {
-            override = System.getProperty("TOKEN_GATEWAY");
-        }
-        if (!isNullOrEmpty(override)) {
-            String[] hostAndPort = override.split(":");
-            switch (hostAndPort.length) {
-                case 1:
-                    hostName = hostAndPort[0];
-                    break;
-                case 2:
-                    hostName = hostAndPort[0];
-                    port = Integer.parseInt(hostAndPort[1]);
-                    break;
-                default:
-                    throw new RuntimeException("Invalid TOKEN_GATEWAY format: " + override);
-            }
-        }
+        HostAndPort bank = HostAndPort
+                .fromString(getHostPortString("TOKEN_BANK", "localhost"))
+                .withDefaultPort(9100);
+
+        this.bankClient = new BankClient(
+                bank.getHostText(),
+                bank.getPort());
 
         this.token = Token.builder()
-                .hostName(hostName)
-                .port(port)
+                .hostName(gateway.getHostText())
+                .port(gateway.getPort())
                 .build();
     }
 
@@ -67,18 +61,45 @@ public class TokenRule extends ExternalResource {
             throw new IllegalStateException("Member doesn't have an alias");
         }
 
-        return member.linkAccount(
-                bankId,
-                ProtoJson.toJson(AccountLinkPayload.newBuilder()
-                        .setAlias(alias)
-                        .addAccounts(NamedAccount.newBuilder()
-                                .setName(bankAccountName)
-                                .setAccountNumber(bankAccountNumber))
-                        .build()).getBytes()).get(0);
+        Fank.FankMetadata metadata = Fank.FankMetadata.newBuilder()
+                .setClient(Fank.FankMetadata.Client.newBuilder()
+                    .setFirstName("Joe")
+                    .setLastName("Shmoe")
+                    .build())
+                .addClientAccounts(Fank.FankMetadata.ClientAccount.newBuilder()
+                    .setAccountNumber(bankAccountNumber)
+                    .setName(bankAccountName)
+                    .setBalance(MoneyProtos.Money.newBuilder()
+                        .setCurrency("EUR")
+                        .setValue(1000000.00)
+                        .build())
+                    .build())
+                .build();
+
+        byte[] accountLinkingPayload = bankClient.createLinkingPayload(
+                alias,
+                Optional.empty(),
+                Collections.singletonList(bankAccountNumber),
+                Optional.of(metadata));
+
+        return member
+                .linkAccount(bankId, accountLinkingPayload)
+                .get(0);
     }
 
     @Override
     protected void before() throws Throwable {
         super.before();
+    }
+
+    private static String getHostPortString(String name, String defaultValue) {
+        String override = System.getenv(name);
+        if (isNullOrEmpty(override)) {
+            override = System.getProperty(name);
+        }
+        if (!isNullOrEmpty(override)) {
+            return defaultValue;
+        }
+        return defaultValue;
     }
 }
