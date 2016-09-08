@@ -6,7 +6,8 @@ import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.token.TokenProtos.Transfer;
+import io.token.proto.common.transfer.TransferProtos;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.rpc.Client;
 import rx.Observable;
 
@@ -131,9 +132,8 @@ public final class Account {
                 .toBuilder()
                 .setScheme("Pay/1.0")
                 .setTransfer(Transfer.newBuilder()
-                        .setFrom(TokenProtos.Account.newBuilder()
-                                .setId(account.getId())
-                                .setName(account.getName())));
+                        .setFrom(TransferProtos.Source.newBuilder()
+                                .setAccountId(account.getId())));
 
         if (redeemer != null) {
             paymentToken.setRedeemer(TokenProtos.Member.newBuilder()
