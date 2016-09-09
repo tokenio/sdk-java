@@ -1,7 +1,0 @@
-#!/bin/bash
-
-HOST=$(docker-machine ip)
-./gradlew \
--DTOKEN_GATEWAY=${HOST} \
--DTOKEN_BANK=${HOST} \
-cleanTest test
