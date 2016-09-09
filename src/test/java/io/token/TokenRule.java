@@ -94,12 +94,15 @@ public class TokenRule extends ExternalResource {
 
     private static String getHostPortString(String name, String defaultValue) {
         String override = System.getenv(name);
-        if (isNullOrEmpty(override)) {
-            override = System.getProperty(name);
-        }
         if (!isNullOrEmpty(override)) {
-            return defaultValue;
+            return override;
         }
+
+        override = System.getProperty(name);
+        if (!isNullOrEmpty(override)) {
+            return override;
+        }
+
         return defaultValue;
     }
 }
