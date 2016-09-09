@@ -21,7 +21,7 @@ ext {
     ver = [
         grpc: '0.15.0',
         tokenProto: '1.0.68',
-        tokenRpc: '1.0.12',
+        tokenRpc: '1.0.13',
         tokenSecurity: '1.0.10',
         tokenUtil: '1.0.6',
     ]
