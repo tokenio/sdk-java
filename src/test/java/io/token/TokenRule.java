@@ -70,7 +70,7 @@ public class TokenRule extends ExternalResource {
                     .setAccountNumber(bankAccountNumber)
                     .setName(bankAccountName)
                     .setBalance(MoneyProtos.Money.newBuilder()
-                        .setCurrency("EUR")
+                        .setCurrency("USD")
                         .setValue(1000000.00)
                         .build())
                     .build())
