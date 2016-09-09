@@ -269,11 +269,10 @@ public final class Client {
     /**
      * Redeems a payment token.
      *
-     * @param token payment token to redeem
      * @param payment payment parameters, such as amount, currency, etc
      * @return payment record
      */
-    public Observable<Payment> redeemToken(Token token, PaymentPayload payment) {
+    public Observable<Payment> redeemToken(PaymentPayload payment) {
         return toObservable(gateway.redeemPaymentToken(RedeemPaymentTokenRequest.newBuilder()
                 .setPayload(payment)
                 .setSignature(Signature.newBuilder()

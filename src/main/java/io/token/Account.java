@@ -315,7 +315,7 @@ public final class Account {
             payload.getAmountBuilder().setCurrency(currency);
         }
 
-        return client.redeemToken(token, payload.build());
+        return client.redeemToken(payload.build());
     }
 
     /**
