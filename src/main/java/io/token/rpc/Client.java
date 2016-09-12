@@ -7,11 +7,13 @@ import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.gateway.Gateway.*;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.SecretKey;
@@ -283,6 +285,19 @@ public final class Client {
     }
 
     /**
+     * Looks up account balance.
+     *
+     * @param accountId account id
+     * @return account balance
+     */
+    public Observable<Money> lookupBalance(String accountId) {
+        return toObservable(gateway.lookupBalance(LookupBalanceRequest.newBuilder()
+                .setAccountId(accountId)
+                .build())
+        ).map(LookupBalanceResponse::getCurrent);
+    }
+
+    /**
      * Looks up an existing payment.
      *
      * @param paymentId payment id
@@ -314,6 +329,39 @@ public final class Client {
 
         return toObservable(gateway.lookupPayments(request.build()))
                 .map(LookupPaymentsResponse::getPaymentsList);
+    }
+
+    /**
+     * Looks up an existing transaction. Doesn't have to be a transaction for a token payment.
+     *
+     * @param accountId ID of the account
+     * @param transactionId ID of the transaction
+     * @return transaction record
+     */
+    public Observable<Transaction> lookupTransaction(String accountId, String transactionId) {
+        return toObservable(gateway.lookupTransaction(LookupTransactionRequest.newBuilder()
+                .setAccountId(accountId)
+                .setTransactionId(transactionId)
+                .build())
+        ).map(LookupTransactionResponse::getTransaction);
+    }
+
+    /**
+     * Looks up existing transactions. This is a full list of transactions with token payments
+     * being a subset.
+     *
+     * @param accountId ID of the account
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @return transaction record
+     */
+    public Observable<List<Transaction>> lookupTransactions(String accountId, int offset, int limit) {
+        return toObservable(gateway.lookupTransactions(LookupTransactionsRequest.newBuilder()
+                .setAccountId(accountId)
+                .setOffset(offset)
+                .setLimit(limit)
+                .build())
+        ).map(LookupTransactionsResponse::getTransactionsList);
     }
 
     private Observable<Member> updateMember(MemberUpdate update) {
