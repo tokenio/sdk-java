@@ -59,7 +59,7 @@ public class PaymentRedemptionTest {
         token = payer.endorseToken(token);
 
         Payment payment = payee.redeemToken(token);
-        Payment lookedUp = payer.lookupPayment(payment.getId());
+        Payment lookedUp = payer.getMember().lookupPayment(payment.getId());
         assertThat(lookedUp).isEqualTo(payment);
     }
 
@@ -86,7 +86,7 @@ public class PaymentRedemptionTest {
                 .hasAmount(70.0)
                 .hasCurrency("USD");
 
-        List<Payment> lookedUp = payer.lookupPayments(0, 100, token.getId());
+        List<Payment> lookedUp = payer.getMember().lookupPayments(0, 100, token.getId());
         assertThat(lookedUp).containsOnly(payment1, payment2, payment3);
     }
 }
