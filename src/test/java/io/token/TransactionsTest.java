@@ -35,14 +35,13 @@ public class TransactionsTest {
 
         List<Transaction> transactions = payee.lookupTransactions(0, 10);
         assertThat(transactions).isNotEmpty();
-        TransactionAssertion.assertThat(transactions.get(0))
+
+        Transaction transaction = payee.lookupTransaction(payment.getReferenceId());
+        TransactionAssertion.assertThat(transaction)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenPaymentId(payment.getId());
-
-        Transaction transaction = payee.lookupTransaction(transactions.get(0).getId());
-        TransactionAssertion.assertThat(transaction).isEqualTo(transactions.get(0));
     }
 
     @Test
