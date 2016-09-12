@@ -1,11 +1,13 @@
 package io.token;
 
 import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.rpc.Client;
@@ -319,46 +321,64 @@ public final class Account {
     }
 
     /**
-     * Looks up an existing payment.
+     * Looks up an account balance.
      *
-     * @param paymentId ID of the payment record
-     * @return payment record
+     * @return account balance
      */
-    public Payment lookupPayment(String paymentId) {
-        return lookupPaymentAsync(paymentId).toBlocking().single();
+    public Money lookupBalance() {
+        return lookupBalanceAsync().toBlocking().single();
     }
 
     /**
-     * Looks up an existing payment.
+     * Looks up an account balance.
      *
-     * @param paymentId ID of the payment record
-     * @return payment record
+     * @return account balance
      */
-    public Observable<Payment> lookupPaymentAsync(String paymentId) {
-        return client.lookupPayment(paymentId);
+    public Observable<Money> lookupBalanceAsync() {
+        return client.lookupBalance(account.getId());
     }
 
     /**
-     * Looks up existing payments.
+     * Looks up an existing transaction. Doesn't have to be a transaction for a token payment.
+     *
+     * @param transactionId ID of the transaction
+     * @return transaction record
+     */
+    public Transaction lookupTransaction(String transactionId) {
+        return lookupTransactionAsync(transactionId).toBlocking().single();
+    }
+
+    /**
+     * Looks up an existing transaction. Doesn't have to be a transaction for a token payment.
+     *
+     * @param transactionId ID of the transaction
+     * @return transaction record
+     */
+    public Observable<Transaction> lookupTransactionAsync(String transactionId) {
+        return client.lookupTransaction(account.getId(), transactionId);
+    }
+
+    /**
+     * Looks up existing transactions. This is a full list of transactions with token payments
+     * being a subset.
      *
      * @param offset offset to start at
      * @param limit max number of records to return
-     * @param tokenId optional token id to restrict the search
      * @return payment record
      */
-    public List<Payment> lookupPayments(int offset, int limit, @Nullable String tokenId) {
-        return lookupPaymentsAsync(offset, limit, tokenId).toBlocking().single();
+    public List<Transaction> lookupTransactions(int offset, int limit) {
+        return lookupTransactionsAsync(offset, limit).toBlocking().single();
     }
 
     /**
-     * Looks up existing payments.
+     * Looks up existing transactions. This is a full list of transactions with token payments
+     * being a subset.
      *
      * @param offset offset to start at
      * @param limit max number of records to return
-     * @param tokenId optional token id to restrict the search
      * @return payment record
      */
-    public Observable<List<Payment>> lookupPaymentsAsync(int offset, int limit, @Nullable String tokenId) {
-        return client.lookupPayments(offset, limit, tokenId);
+    public Observable<List<Transaction>> lookupTransactionsAsync(int offset, int limit) {
+        return client.lookupTransactions(account.getId(), offset, limit);
     }
 }

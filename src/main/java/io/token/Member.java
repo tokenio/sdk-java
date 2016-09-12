@@ -1,11 +1,13 @@
 package io.token;
 
 import io.token.proto.common.member.MemberProtos;
+import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.rpc.Client;
 import io.token.security.SecretKey;
 import io.token.util.codec.ByteEncoding;
 import rx.Observable;
 
+import javax.annotation.Nullable;
 import java.util.List;
 
 import static java.util.stream.Collectors.toList;
@@ -211,6 +213,50 @@ public final class Member {
                 .map(accounts -> accounts.stream()
                         .map(a -> new Account(this, a, client))
                         .collect(toList()));
+    }
+
+    /**
+     * Looks up an existing token payment.
+     *
+     * @param paymentId ID of the payment record
+     * @return payment record
+     */
+    public Payment lookupPayment(String paymentId) {
+        return lookupPaymentAsync(paymentId).toBlocking().single();
+    }
+
+    /**
+     * Looks up an existing token payment.
+     *
+     * @param paymentId ID of the payment record
+     * @return payment record
+     */
+    public Observable<Payment> lookupPaymentAsync(String paymentId) {
+        return client.lookupPayment(paymentId);
+    }
+
+    /**
+     * Looks up existing token payments.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @param tokenId optional token id to restrict the search
+     * @return payment record
+     */
+    public List<Payment> lookupPayments(int offset, int limit, @Nullable String tokenId) {
+        return lookupPaymentsAsync(offset, limit, tokenId).toBlocking().single();
+    }
+
+    /**
+     * Looks up existing token payments.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @param tokenId optional token id to restrict the search
+     * @return payment record
+     */
+    public Observable<List<Payment>> lookupPaymentsAsync(int offset, int limit, @Nullable String tokenId) {
+        return client.lookupPayments(offset, limit, tokenId);
     }
 
     @Override
