@@ -33,10 +33,10 @@ public class TransactionsTest {
         token = payer.endorseToken(token);
         Payment payment = payee.redeemToken(token, 100.0, "USD");
 
-        List<Transaction> transactions = payee.lookupTransactions(0, 10);
+        List<Transaction> transactions = payer.lookupTransactions(0, 10);
         assertThat(transactions).isNotEmpty();
 
-        Transaction transaction = payee.lookupTransaction(payment.getReferenceId());
+        Transaction transaction = payer.lookupTransaction(payment.getReferenceId());
         TransactionAssertion.assertThat(transaction)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
@@ -57,7 +57,7 @@ public class TransactionsTest {
         Payment payment2 = payee.redeemToken(token, 200.0, "USD");
         Payment payment3 = payee.redeemToken(token, 300.0, "USD");
 
-        List<Transaction> transactions = payee.lookupTransactions(0, 3).stream()
+        List<Transaction> transactions = payer.lookupTransactions(0, 3).stream()
                 .sorted((t1, t2) -> Double.compare(t1.getAmount().getValue(), t2.getAmount().getValue()))
                 .collect(toList());
 

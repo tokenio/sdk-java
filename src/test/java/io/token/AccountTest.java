@@ -8,6 +8,8 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static com.sun.tools.attach.VirtualMachine.list;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AccountTest {
@@ -44,7 +46,10 @@ public class AccountTest {
     public void lookupAccounts() {
         linkAccounts();
 
-        List<Account> accounts = member.lookupAccounts();
+        List<Account> accounts = member.lookupAccounts()
+                .stream()
+                .sorted((a1, a2) -> a1.getAccount().getName().compareTo(a2.getAccount().getName()))
+                .collect(toList());
 
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0).getAccount())
