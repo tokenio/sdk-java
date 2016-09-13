@@ -4,6 +4,7 @@ import com.google.common.net.HostAndPort;
 import io.token.proto.bankapi.Fank;
 import io.token.proto.common.money.MoneyProtos;
 import io.token.util.Util;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
 
 import java.util.Collections;
@@ -55,7 +56,7 @@ public class TokenRule extends ExternalResource {
         String alias = member.getFirstAlias();
         String bankId = "bank-id";
         String bankAccountName = "Checking";
-        String bankAccountNumber = "iban:123456789";
+        String bankAccountNumber = "iban:" + randomInt(7);
 
         if (alias == null) {
             throw new IllegalStateException("Member doesn't have an alias");
@@ -63,8 +64,8 @@ public class TokenRule extends ExternalResource {
 
         Fank.FankMetadata metadata = Fank.FankMetadata.newBuilder()
                 .setClient(Fank.FankMetadata.Client.newBuilder()
-                    .setFirstName("Joe")
-                    .setLastName("Shmoe")
+                    .setFirstName(string())
+                    .setLastName(string())
                     .build())
                 .addClientAccounts(Fank.FankMetadata.ClientAccount.newBuilder()
                     .setAccountNumber(bankAccountNumber)
@@ -104,5 +105,20 @@ public class TokenRule extends ExternalResource {
         }
 
         return defaultValue;
+    }
+
+    private static String string() {
+        int length = randomInt(3,7);
+        return RandomStringUtils.randomAlphabetic(length);
+    }
+
+    private static int randomInt(int digits) {
+        return randomInt(
+                (int) Math.pow(10, digits),
+                (int) Math.pow(10, digits+1)-1);
+    }
+
+    private static int randomInt(int min, int max){
+        return (int)(Math.random() * (max-min)) + min;
     }
 }
