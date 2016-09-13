@@ -4,9 +4,9 @@ import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -138,7 +138,7 @@ public final class Account {
                                 .setAccountId(account.getId())));
 
         if (redeemer != null) {
-            paymentToken.setRedeemer(TokenProtos.Member.newBuilder()
+            paymentToken.setRedeemer(TokenMember.newBuilder()
                     .setAlias(redeemer));
         }
         if (description != null) {
