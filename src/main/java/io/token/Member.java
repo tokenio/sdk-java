@@ -1,7 +1,8 @@
 package io.token;
 
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.payment.PaymentProtos.Payment;
+import io.token.proto.common.member.MemberProtos.*;
+import io.token.proto.common.payment.PaymentProtos.*;
 import io.token.rpc.Client;
 import io.token.security.SecretKey;
 import io.token.util.codec.ByteEncoding;
@@ -257,6 +258,120 @@ public final class Member {
      */
     public Observable<List<Payment>> lookupPaymentsAsync(int offset, int limit, @Nullable String tokenId) {
         return client.lookupPayments(offset, limit, tokenId);
+    }
+
+    /**
+     * Creates a new member address
+     *
+     * @param name the name of the address
+     * @param address the address json
+     * @return an address record created
+     */
+    public Observable<Address> createAddressAsync(String name, String address) {
+        return client.createAddress(name, address);
+    }
+
+    /**
+     * Creates a new member address
+     *
+     * @param name the name of the address
+     * @param address the address json
+     * @return the address record created
+     */
+    public Address createAddress(String name, String address) {
+        return createAddressAsync(name, address).toBlocking().single();
+    }
+
+    /**
+     * Looks up an address by id
+     *
+     * @param addressId the address id
+     * @return an address record
+     */
+    public Observable<Address> getAddressAsync(String addressId) {
+        return client.getAddress(addressId);
+    }
+
+    /**
+     * Looks up an address by id
+     *
+     * @param addressId the address id
+     * @return an address record
+     */
+    public Address getAddress(String addressId) {
+        return getAddressAsync(addressId).toBlocking().single();
+    }
+
+    /**
+     * Looks up member addresses
+     *
+     * @return a list of addresses
+     */
+    public Observable<List<Address>> getAddressesAsync() {
+        return client.getAddresses();
+    }
+
+    /**
+     * Looks up member addresses
+     *
+     * @return a list of addresses
+     */
+    public List<Address> getAddresses() {
+        return getAddressesAsync().toBlocking().single();
+    }
+
+    /**
+     * Deletes a member address by its id
+     *
+     * @param addressId the id of the address
+     */
+    public Observable<Void> deleteAddressAsync(String addressId) {
+        return client.deleteAddress(addressId);
+    }
+
+    /**
+     * Deletes a member address by its id
+     *
+     * @param addressId the id of the address
+     */
+    public void deleteAddress(String addressId) {
+        deleteAddressAsync(addressId).toBlocking().single();
+    }
+
+    /**
+     * Sets member preferences
+     *
+     * @param preferences member json preferences
+     */
+    public Observable<Void> setPreferencesAsync(String preferences) {
+        return client.setPreferences(preferences);
+    }
+
+    /**
+     * Sets member preferences
+     *
+     * @param preferences member json preferences
+     */
+    public void setPreferences(String preferences) {
+        setPreferencesAsync(preferences).toBlocking().single();
+    }
+
+    /**
+     * Looks up member preferences
+     *
+     * @return member preferences
+     */
+    public Observable<String> getPreferencesAsync() {
+        return client.getPreferences();
+    }
+
+    /**
+     * Looks up member preferences
+     *
+     * @return member preferences
+     */
+    public String getPreferences() {
+        return getPreferencesAsync().toBlocking().single();
     }
 
     @Override

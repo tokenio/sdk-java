@@ -1,9 +1,9 @@
 package io.token.rpc;
 
 import com.google.protobuf.ByteString;
-import io.token.proto.common.account.AccountProtos.Account;
+import io.token.proto.common.account.AccountProtos.*;
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.member.MemberProtos.Member;
+import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
@@ -362,6 +362,81 @@ public final class Client {
                 .setLimit(limit)
                 .build())
         ).map(LookupTransactionsResponse::getTransactionsList);
+    }
+
+    /**
+     * Creates a new member address
+     *
+     * @param name the name of the address
+     * @param address the address json
+     * @return an address record created
+     */
+    public Observable<Address> createAddress(String name, String address) {
+        return toObservable(gateway.createAddress(CreateAddressRequest.newBuilder()
+                .setName(name)
+                .setData(address)
+                .setSignature(sign(key, address))
+                .build())
+        ).map(CreateAddressResponse::getAddress);
+    }
+
+    /**
+     * Looks up an address by id
+     *
+     * @param addressId the address id
+     * @return an address record
+     */
+    public Observable<Address> getAddress(String addressId) {
+        return toObservable(gateway.getAddress(GetAddressRequest.newBuilder()
+                .setAddressId(addressId)
+                .build())
+        ).map(GetAddressResponse::getAddress);
+    }
+
+    /**
+     * Looks up member addresses
+     *
+     * @return a list of addresses
+     */
+    public Observable<List<Address>> getAddresses() {
+        return toObservable(gateway.getAddresses(GetAddressesRequest.newBuilder()
+                .build())
+        ).map(GetAddressesResponse::getAddressesList);
+    }
+
+    /**
+     * Deletes a member address by its id
+     *
+     * @param addressId the id of the address
+     */
+    public Observable<Void> deleteAddress(String addressId) {
+        return toObservable(gateway.deleteAddress(DeleteAddressRequest.newBuilder()
+                .setAddressId(addressId)
+                .build())
+        ).map(empty -> null);
+    }
+
+    /**
+     * Sets member preferences
+     *
+     * @param preferences member json preferences
+     */
+    public Observable<Void> setPreferences(String preferences) {
+        return toObservable(gateway.setPreference(SetPreferenceRequest.newBuilder()
+                .setPreference(preferences)
+                .build())
+        ).map(empty -> null);
+    }
+
+    /**
+     * Looks up member preferences
+     *
+     * @return member preferences
+     */
+    public Observable<String> getPreferences() {
+        return toObservable(gateway.getPreference(GetPreferenceRequest.newBuilder()
+                .build())
+        ).map(GetPreferenceResponse::getPreference);
     }
 
     private Observable<Member> updateMember(MemberUpdate update) {
