@@ -110,7 +110,7 @@ public final class AccountAsync {
                 .setPayer(TokenMember.newBuilder()
                         .setId(member.getMemberId()))
                 .setCurrency(currency)
-                .setAmount(amount)
+                .setAmount(Double.toString(amount))
                 .setTransfer(Transfer.newBuilder()
                         .setFrom(TransferProtos.Source.newBuilder()
                                 .setAccountId(account.getId())));
@@ -213,7 +213,7 @@ public final class AccountAsync {
                 .setTokenId(token.getId());
 
         if (amount != null) {
-            payload.getAmountBuilder().setValue(amount);
+            payload.getAmountBuilder().setValue(Double.toString(amount));
         }
         if (currency != null) {
             payload.getAmountBuilder().setCurrency(currency);

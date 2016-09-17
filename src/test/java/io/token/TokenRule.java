@@ -71,7 +71,7 @@ public class TokenRule extends ExternalResource {
                         .setName(bankAccountName)
                         .setBalance(MoneyProtos.Money.newBuilder()
                                 .setCurrency("USD")
-                                .setValue(1000000.00)))
+                                .setValue("1000000.00")))
                 .build();
 
         byte[] accountLinkingPayload = bankClient.startAccountsLinking(
