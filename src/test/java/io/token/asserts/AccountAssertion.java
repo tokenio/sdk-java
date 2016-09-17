@@ -1,6 +1,6 @@
 package io.token.asserts;
 
-import io.token.proto.common.account.AccountProtos.Account;
+import io.token.Account;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 

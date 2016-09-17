@@ -19,7 +19,7 @@ import static org.assertj.core.util.Strings.isNullOrEmpty;
  * ./gradlew -DTOKEN_GATEWAY=some-ip -DTOKEN_BANK=some-ip test
  */
 public class TokenRule extends ExternalResource {
-    private final Token token;
+    private final TokenIO token;
     private final BankClient bankClient;
 
     public TokenRule() {
@@ -35,13 +35,13 @@ public class TokenRule extends ExternalResource {
                 bank.getHostText(),
                 bank.getPort());
 
-        this.token = Token.builder()
+        this.token = TokenIO.builder()
                 .hostName(gateway.getHostText())
                 .port(gateway.getPort())
                 .build();
     }
 
-    public Token token() {
+    public TokenIO token() {
        return token;
     }
 
@@ -64,27 +64,24 @@ public class TokenRule extends ExternalResource {
 
         Fank.FankMetadata metadata = Fank.FankMetadata.newBuilder()
                 .setClient(Fank.FankMetadata.Client.newBuilder()
-                    .setFirstName(string())
-                    .setLastName(string())
-                    .build())
+                        .setFirstName(string())
+                        .setLastName(string()))
                 .addClientAccounts(Fank.FankMetadata.ClientAccount.newBuilder()
-                    .setAccountNumber(bankAccountNumber)
-                    .setName(bankAccountName)
-                    .setBalance(MoneyProtos.Money.newBuilder()
-                        .setCurrency("USD")
-                        .setValue(1000000.00)
-                        .build())
-                    .build())
+                        .setAccountNumber(bankAccountNumber)
+                        .setName(bankAccountName)
+                        .setBalance(MoneyProtos.Money.newBuilder()
+                                .setCurrency("USD")
+                                .setValue(1000000.00)))
                 .build();
 
-        byte[] accountLinkingPayload = bankClient.createLinkingPayload(
+        byte[] accountLinkingPayload = bankClient.startAccountsLinking(
                 alias,
                 Optional.empty(),
                 Collections.singletonList(bankAccountNumber),
                 Optional.of(metadata));
 
         return member
-                .linkAccount(bankId, accountLinkingPayload)
+                .linkAccounts(bankId, accountLinkingPayload)
                 .get(0);
     }
 

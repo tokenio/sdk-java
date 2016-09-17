@@ -132,7 +132,7 @@ public final class Client {
      *                           by the bank
      * @return list of linked accounts
      */
-    public Observable<List<Account>> linkAccount(String bankId, byte[] accountLinkPayload) {
+    public Observable<List<Account>> linkAccounts(String bankId, byte[] accountLinkPayload) {
         return toObservable(gateway.linkAccount(LinkAccountRequest.newBuilder()
                 .setBankId(bankId)
                 .setAccountLinkPayload(ByteString.copyFrom(accountLinkPayload))

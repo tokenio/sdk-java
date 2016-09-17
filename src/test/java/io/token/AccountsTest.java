@@ -11,7 +11,7 @@ import java.util.List;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class AccountTest {
+public class AccountsTest {
     @Rule public TokenRule rule = new TokenRule();
     private final Member member = rule.member();
 
@@ -20,7 +20,7 @@ public class AccountTest {
         String alias = member.getAliases().get(0);
         String bankId = "bank-id";
 
-        List<Account> accounts = member.linkAccount(
+        List<Account> accounts = member.linkAccounts(
                 bankId,
                 ProtoJson.toJson(AccountLinkPayload.newBuilder()
                         .setAlias(alias)
@@ -33,10 +33,10 @@ public class AccountTest {
                         .build()).getBytes());
 
         assertThat(accounts).hasSize(2);
-        AccountAssertion.assertThat(accounts.get(0).getAccount())
+        AccountAssertion.assertThat(accounts.get(0))
                 .hasId()
                 .hasName("Checking");
-        AccountAssertion.assertThat(accounts.get(1).getAccount())
+        AccountAssertion.assertThat(accounts.get(1))
                 .hasId()
                 .hasName("Savings");
     }
@@ -47,24 +47,24 @@ public class AccountTest {
 
         List<Account> accounts = member.lookupAccounts()
                 .stream()
-                .sorted((a1, a2) -> a1.getAccount().getName().compareTo(a2.getAccount().getName()))
+                .sorted((a1, a2) -> a1.getName().compareTo(a2.getName()))
                 .collect(toList());
 
         assertThat(accounts).hasSize(2);
-        AccountAssertion.assertThat(accounts.get(0).getAccount())
+        AccountAssertion.assertThat(accounts.get(0))
                 .hasId()
                 .hasName("Checking");
-        AccountAssertion.assertThat(accounts.get(1).getAccount())
+        AccountAssertion.assertThat(accounts.get(1))
                 .hasId()
                 .hasName("Savings");
 
         for (Account account : accounts) {
-            account.setAccountName("New " + account.getAccount().getName());
+            account.setAccountName("New " + account.getName());
         }
-        AccountAssertion.assertThat(accounts.get(0).getAccount())
+        AccountAssertion.assertThat(accounts.get(0))
                 .hasId()
                 .hasName("New Checking");
-        AccountAssertion.assertThat(accounts.get(1).getAccount())
+        AccountAssertion.assertThat(accounts.get(1))
                 .hasId()
                 .hasName("New Savings");
     }
