@@ -14,7 +14,7 @@ public final class TransactionAssertion extends AbstractAssert<TransactionAssert
     }
 
     public TransactionAssertion hasAmount(double amount) {
-        Assertions.assertThat(actual.getAmount().getValue()).isEqualTo(amount);
+        Assertions.assertThat(actual.getAmount().getValue()).isEqualTo(Double.toString(amount));
         return this;
     }
 

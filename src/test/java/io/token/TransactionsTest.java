@@ -9,6 +9,7 @@ import org.junit.Test;
 
 import java.util.List;
 
+import static java.lang.Double.parseDouble;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -19,7 +20,7 @@ public class TransactionsTest {
 
     @Test
     public void lookupBalance() {
-        assertThat(payer.lookupBalance().getValue()).isGreaterThan(0);
+        assertThat(parseDouble(payer.lookupBalance().getValue())).isGreaterThan(0);
         assertThat(payer.lookupBalance().getCurrency()).isEqualTo("USD");
     }
 
@@ -55,7 +56,7 @@ public class TransactionsTest {
         Payment payment3 = payee.redeemToken(token, 300.0, "USD");
 
         List<Transaction> transactions = payer.lookupTransactions(0, 3).stream()
-                .sorted((t1, t2) -> Double.compare(t1.getAmount().getValue(), t2.getAmount().getValue()))
+                .sorted((t1, t2) -> t1.getAmount().getValue().compareTo(t2.getAmount().getValue()))
                 .collect(toList());
 
         assertThat(transactions).hasSize(3);
