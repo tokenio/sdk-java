@@ -33,9 +33,6 @@ public class TransactionsTest {
         token = payer.endorseToken(token);
         Payment payment = payee.redeemToken(token, 100.0, "USD");
 
-        List<Transaction> transactions = payer.lookupTransactions(0, 10);
-        assertThat(transactions).isNotEmpty();
-
         Transaction transaction = payer.lookupTransaction(payment.getReferenceId());
         TransactionAssertion.assertThat(transaction)
                 .hasAmount(100.0)

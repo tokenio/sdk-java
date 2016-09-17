@@ -16,9 +16,9 @@ import static java.lang.String.format;
  * the {@link Token} and then use {@link #createMember} to create new member
  * or {@link #login} to login an existing member.
  */
-public final class Token {
+public final class TokenIO {
     /**
-     * Used to create a new {@link Token} instances.
+     * Used to create a new {@link TokenIO} instances.
      */
     public static final class Builder {
         private String hostName;
@@ -49,10 +49,10 @@ public final class Token {
         /**
          * Builds and returns a new {@link Token} instance.
          *
-         * @return {@link Token} instance
+         * @return {@link TokenIO} instance
          */
-        public Token build() {
-            return new Token(RpcChannelFactory.forTarget(format("dns:///%s:%d/", hostName, port)));
+        public TokenIO build() {
+            return new TokenIO(RpcChannelFactory.forTarget(format("dns:///%s:%d/", hostName, port)));
         }
     }
 
@@ -60,7 +60,7 @@ public final class Token {
 
     /**
      * Creates a new {@link Builder} instance that is used to configure and
-     * build a {@link Token} instance.
+     * build a {@link TokenIO} instance.
      *
      * @return builder
      */
@@ -68,7 +68,7 @@ public final class Token {
         return new Builder();
     }
 
-    private Token(ManagedChannel channel) {
+    private TokenIO(ManagedChannel channel) {
         this.channel = channel;
     }
 

@@ -23,17 +23,17 @@ public final class BankClient {
         this.client = AccountServiceGrpc.newFutureStub(channel);
     }
 
-    public byte[] createLinkingPayload(
+    public byte[] startAccountsLinking(
             String alias,
             Optional<String> secret,
             List<String> accountNumbers,
             Optional<Message> metadata) {
-        return createLinkingPayloadAsync(alias, secret, accountNumbers, metadata)
+        return startAccountsLinkingAsync(alias, secret, accountNumbers, metadata)
                 .toBlocking()
                 .single();
     }
 
-    public Observable<byte[]> createLinkingPayloadAsync(
+    public Observable<byte[]> startAccountsLinkingAsync(
             String alias,
             Optional<String> secret,
             List<String> accountNumbers,

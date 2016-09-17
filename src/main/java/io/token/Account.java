@@ -45,10 +45,17 @@ public final class Account {
     }
 
     /**
-     * @return account information
+     * @return account id
      */
-    public AccountProtos.Account getAccount() {
-        return account.build();
+    public String getId() {
+        return account.getId();
+    }
+
+    /**
+     * @return account name
+     */
+    public String getName() {
+        return account.getName();
     }
 
     /**
@@ -129,9 +136,7 @@ public final class Account {
             String currency,
             @Nullable String redeemer,
             @Nullable String description) {
-        PaymentToken.Builder paymentToken = Tokens
-                .newToken(member, amount, currency)
-                .toBuilder()
+        PaymentToken.Builder paymentToken = Tokens.newToken(member, amount, currency).toBuilder()
                 .setScheme("Pay/1.0")
                 .setTransfer(Transfer.newBuilder()
                         .setFrom(TransferProtos.Source.newBuilder()

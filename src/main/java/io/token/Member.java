@@ -175,8 +175,8 @@ public final class Member {
      * @param accountLinkPayload account link authorization payload generated
      *                           by the bank
      */
-    public List<Account> linkAccount(String bankId, byte[] accountLinkPayload) {
-        return linkAccountAsync(bankId, accountLinkPayload).toBlocking().single();
+    public List<Account> linkAccounts(String bankId, byte[] accountLinkPayload) {
+        return linkAccountsAsync(bankId, accountLinkPayload).toBlocking().single();
     }
 
     /**
@@ -186,9 +186,9 @@ public final class Member {
      * @param accountLinkPayload account link authorization payload generated
      *                           by the bank
      */
-    public Observable<List<Account>> linkAccountAsync(String bankId, byte[] accountLinkPayload) {
+    public Observable<List<Account>> linkAccountsAsync(String bankId, byte[] accountLinkPayload) {
         return client
-                .linkAccount(bankId, accountLinkPayload)
+                .linkAccounts(bankId, accountLinkPayload)
                 .map(accounts -> accounts.stream()
                         .map(a -> new Account(this, a, client))
                         .collect(toList()));
