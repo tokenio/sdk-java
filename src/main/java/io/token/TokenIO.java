@@ -1,19 +1,13 @@
 package io.token;
 
-import io.grpc.ManagedChannel;
-import io.token.rpc.Client;
-import io.token.rpc.ClientFactory;
-import io.token.rpc.UnauthenticatedClient;
 import io.token.rpc.client.RpcChannelFactory;
-import io.token.security.Crypto;
 import io.token.security.SecretKey;
-import rx.Observable;
 
 import static java.lang.String.format;
 
 /**
  * Main entry point to the Token SDK. Use this class to create an instance of
- * the {@link Token} and then use {@link #createMember} to create new member
+ * the {@link TokenIO} and then use {@link #createMember} to create new member
  * or {@link #login} to login an existing member.
  */
 public final class TokenIO {
@@ -47,16 +41,23 @@ public final class TokenIO {
         }
 
         /**
-         * Builds and returns a new {@link Token} instance.
+         * Builds and returns a new {@link TokenIO} instance.
          *
          * @return {@link TokenIO} instance
          */
         public TokenIO build() {
-            return new TokenIO(RpcChannelFactory.forTarget(format("dns:///%s:%d/", hostName, port)));
+            return buildAsync().sync();
+        }
+
+        /**
+         * Builds and returns a new {@link TokenIOAsync} instance.
+         *
+         * @return {@link TokenIO} instance
+         */
+        public TokenIOAsync buildAsync() {
+            return new TokenIOAsync(RpcChannelFactory.forTarget(format("dns:///%s:%d/", hostName, port)));
         }
     }
-
-    private final ManagedChannel channel;
 
     /**
      * Creates a new {@link Builder} instance that is used to configure and
@@ -68,8 +69,20 @@ public final class TokenIO {
         return new Builder();
     }
 
-    private TokenIO(ManagedChannel channel) {
-        this.channel = channel;
+    private final TokenIOAsync async;
+
+    /**
+     * @param async real implementation that the calls are delegated to
+     */
+    TokenIO(TokenIOAsync async) {
+        this.async = async;
+    }
+
+    /**
+     * @return asynchronous version of the account API
+     */
+    public TokenIOAsync async() {
+        return async;
     }
 
     /**
@@ -80,29 +93,10 @@ public final class TokenIO {
      * @return newly created member
      */
     public Member createMember(String alias) {
-        return createMemberAsync(alias).toBlocking().single();
-    }
-
-    /**
-     * Creates a new Token member with a pair of auto generated keys and the
-     * given alias.
-     *
-     * @param alias member alias to use, must be unique
-     * @return newly created member
-     */
-    public Observable<Member> createMemberAsync(String alias) {
-        SecretKey key = Crypto.generateSecretKey();
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-
-        return unauthenticated
-                .createMemberId()
-                .flatMap(memberId -> unauthenticated.addFirstKey(memberId, key))
-                .flatMap(member -> {
-                    Client client = ClientFactory.authenticated(channel, member.getId(), key);
-                    return client
-                            .addAlias(member, alias)
-                            .map(m -> new Member(m, key, client));
-                });
+        return async.createMember(alias)
+                .map(MemberAsync::sync)
+                .toBlocking()
+                .single();
     }
 
     /**
@@ -113,20 +107,9 @@ public final class TokenIO {
      * @return logged in member
      */
     public Member login(String memberId, SecretKey key) {
-        return loginAsync(memberId, key).toBlocking().single();
-    }
-
-    /**
-     * Logs in an existing member to the system.
-     *
-     * @param memberId member id
-     * @param key secret/public key pair to use
-     * @return logged in member
-     */
-    public Observable<Member> loginAsync(String memberId, SecretKey key) {
-        Client client = ClientFactory.authenticated(channel, memberId, key);
-        return client
-                .getMember()
-                .map(member -> new Member(member, key, client));
+        return async.login(memberId, key)
+                .map(MemberAsync::sync)
+                .toBlocking()
+                .single();
     }
 }

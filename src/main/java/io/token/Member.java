@@ -1,12 +1,8 @@
 package io.token;
 
-import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.member.MemberProtos.*;
-import io.token.proto.common.payment.PaymentProtos.*;
-import io.token.rpc.Client;
+import io.token.proto.common.member.MemberProtos.Address;
+import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.security.SecretKey;
-import io.token.util.codec.ByteEncoding;
-import rx.Observable;
 
 import javax.annotation.Nullable;
 import java.util.List;
@@ -19,57 +15,55 @@ import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToStrin
  * and public key pair that is used to perform authentication.
  */
 public final class Member {
-    private final SecretKey key;
-    private final Client client;
-    private final MemberProtos.Member.Builder member;
+    private final MemberAsync async;
 
     /**
-     * @param member internal member representation, fetched from server
-     * @param key secret/public key pair
-     * @param client RPC client used to perform operations against the server
+     * @param async real implementation that the calls are delegated to
      */
-    Member(MemberProtos.Member member, SecretKey key, Client client) {
-        this.key = key;
-        this.client = client;
-        this.member = member.toBuilder();
+    public Member(MemberAsync async) {
+        this.async = async;
+    }
+
+    /**
+     * @return asynchronous version of the account API
+     */
+    public MemberAsync async() {
+        return async;
     }
 
     /**
      * @return a unique ID that identifies the member in the Token system
      */
     public String getMemberId() {
-        return member.getId();
+        return async.getMemberId();
     }
 
     /**
      * @return secret/public keys associated with this member instance
      */
     public SecretKey getKey() {
-        return key;
+        return async.getKey();
     }
 
     /**
      * @return first alias owned by the user
      */
     public String getFirstAlias() {
-        return member.getAliasesCount() == 0 ? null : member.getAliases(0);
+        return async.getFirstAlias();
     }
 
     /**
      * @return list of aliases owned by the member
      */
     public List<String> getAliases() {
-        return member.getAliasesList();
+        return async.getAliases();
     }
 
     /**
      * @return list of public keys that are approved for this member
      */
     public List<byte[]> getPublicKeys() {
-        return member.getKeysBuilderList()
-                .stream()
-                .map(k -> ByteEncoding.parse(k.getPublicKey()))
-                .collect(toList());
+        return async.getPublicKeys();
     }
 
     /**
@@ -78,21 +72,7 @@ public final class Member {
      * @param alias alias, e.g. 'john', must be unique
      */
     public void addAlias(String alias) {
-        addAliasAsync(alias).toBlocking().single();
-    }
-
-    /**
-     * Adds a new alias for the member.
-     *
-     * @param alias alias, e.g. 'john', must be unique
-     */
-    public Observable<Void> addAliasAsync(String alias) {
-        return client
-                .addAlias(member.build(), alias)
-                .map(m -> {
-                    member.clear().mergeFrom(m);
-                    return null;
-                });
+        async.addAlias(alias).toBlocking().single();
     }
 
     /**
@@ -101,21 +81,7 @@ public final class Member {
      * @param alias alias, e.g. 'john'
      */
     public void removeAlias(String alias) {
-        removeAliasAsync(alias).toBlocking().single();
-    }
-
-    /**
-     * Removes an alias for the member.
-     *
-     * @param alias alias, e.g. 'john'
-     */
-    public Observable<Void> removeAliasAsync(String alias) {
-        return client
-                .removeAlias(member.build(), alias)
-                .map(m -> {
-                    member.clear().mergeFrom(m);
-                    return null;
-                });
+        async.removeAlias(alias).toBlocking().single();
     }
 
     /**
@@ -126,23 +92,7 @@ public final class Member {
      * @param level key security level
      */
     public void approveKey(byte[] publicKey, int level) {
-        approveKeyAsync(publicKey, level).toBlocking().single();
-    }
-
-    /**
-     * Approves a public key owned by this member. The key is added to the list
-     * of valid keys for the member.
-     *
-     * @param publicKey public key to add to the approved list
-     * @param level key security level
-     */
-    public Observable<Void> approveKeyAsync(byte[] publicKey, int level) {
-        return client
-                .addKey(member.build(), level, publicKey)
-                .map(m -> {
-                    member.clear().mergeFrom(m);
-                    return null;
-                });
+        async.approveKey(publicKey, level).toBlocking().single();
     }
 
     /**
@@ -151,21 +101,7 @@ public final class Member {
      * @param keyId key ID of the key to remove
      */
     public void removeKey(String keyId) {
-        removeKeyAsync(keyId).toBlocking().single();
-    }
-
-    /**
-     * Removes a public key owned by this member.
-     *
-     * @param keyId key ID of the key to remove
-     */
-    public Observable<Void> removeKeyAsync(String keyId) {
-        return client
-                .removeKey(member.build(), keyId)
-                .map(m -> {
-                    member.clear().mergeFrom(m);
-                    return null;
-                });
+        async.removeKey(keyId).toBlocking().single();
     }
 
     /**
@@ -176,22 +112,12 @@ public final class Member {
      *                           by the bank
      */
     public List<Account> linkAccounts(String bankId, byte[] accountLinkPayload) {
-        return linkAccountsAsync(bankId, accountLinkPayload).toBlocking().single();
-    }
-
-    /**
-     * Links a funding bank account to Token and returns it to the caller.
-     *
-     * @param bankId bank id
-     * @param accountLinkPayload account link authorization payload generated
-     *                           by the bank
-     */
-    public Observable<List<Account>> linkAccountsAsync(String bankId, byte[] accountLinkPayload) {
-        return client
-                .linkAccounts(bankId, accountLinkPayload)
-                .map(accounts -> accounts.stream()
-                        .map(a -> new Account(this, a, client))
-                        .collect(toList()));
+        return async.linkAccounts(bankId, accountLinkPayload)
+                .map(l -> l.stream()
+                        .map(AccountAsync::sync)
+                        .collect(toList()))
+                .toBlocking()
+                .single();
     }
 
     /**
@@ -200,20 +126,12 @@ public final class Member {
      * @return list of accounts
      */
     public List<Account> lookupAccounts() {
-        return lookupAccountAsync().toBlocking().single();
-    }
-
-    /**
-     * Links a funding bank account to Token and returns it to the caller.
-     *
-     * @return list of accounts
-     */
-    public Observable<List<Account>> lookupAccountAsync() {
-        return client
-                .lookupAccounts()
-                .map(accounts -> accounts.stream()
-                        .map(a -> new Account(this, a, client))
-                        .collect(toList()));
+        return async.lookupAccount()
+                .map(l -> l.stream()
+                        .map(AccountAsync::sync)
+                        .collect(toList()))
+                .toBlocking()
+                .single();
     }
 
     /**
@@ -223,17 +141,7 @@ public final class Member {
      * @return payment record
      */
     public Payment lookupPayment(String paymentId) {
-        return lookupPaymentAsync(paymentId).toBlocking().single();
-    }
-
-    /**
-     * Looks up an existing token payment.
-     *
-     * @param paymentId ID of the payment record
-     * @return payment record
-     */
-    public Observable<Payment> lookupPaymentAsync(String paymentId) {
-        return client.lookupPayment(paymentId);
+        return async.lookupPayment(paymentId).toBlocking().single();
     }
 
     /**
@@ -245,30 +153,7 @@ public final class Member {
      * @return payment record
      */
     public List<Payment> lookupPayments(int offset, int limit, @Nullable String tokenId) {
-        return lookupPaymentsAsync(offset, limit, tokenId).toBlocking().single();
-    }
-
-    /**
-     * Looks up existing token payments.
-     *
-     * @param offset offset to start at
-     * @param limit max number of records to return
-     * @param tokenId optional token id to restrict the search
-     * @return payment record
-     */
-    public Observable<List<Payment>> lookupPaymentsAsync(int offset, int limit, @Nullable String tokenId) {
-        return client.lookupPayments(offset, limit, tokenId);
-    }
-
-    /**
-     * Creates a new member address
-     *
-     * @param name the name of the address
-     * @param address the address json
-     * @return an address record created
-     */
-    public Observable<Address> createAddressAsync(String name, String address) {
-        return client.createAddress(name, address);
+        return async.lookupPayments(offset, limit, tokenId).toBlocking().single();
     }
 
     /**
@@ -279,17 +164,7 @@ public final class Member {
      * @return the address record created
      */
     public Address createAddress(String name, String address) {
-        return createAddressAsync(name, address).toBlocking().single();
-    }
-
-    /**
-     * Looks up an address by id
-     *
-     * @param addressId the address id
-     * @return an address record
-     */
-    public Observable<Address> getAddressAsync(String addressId) {
-        return client.getAddress(addressId);
+        return async.createAddress(name, address).toBlocking().single();
     }
 
     /**
@@ -299,34 +174,16 @@ public final class Member {
      * @return an address record
      */
     public Address getAddress(String addressId) {
-        return getAddressAsync(addressId).toBlocking().single();
+        return async.getAddress(addressId).toBlocking().single();
     }
 
     /**
-     * Looks up member addresses
-     *
-     * @return a list of addresses
-     */
-    public Observable<List<Address>> getAddressesAsync() {
-        return client.getAddresses();
-    }
-
-    /**
-     * Looks up member addresses
+     * Looks up member addresses.
      *
      * @return a list of addresses
      */
     public List<Address> getAddresses() {
-        return getAddressesAsync().toBlocking().single();
-    }
-
-    /**
-     * Deletes a member address by its id
-     *
-     * @param addressId the id of the address
-     */
-    public Observable<Void> deleteAddressAsync(String addressId) {
-        return client.deleteAddress(addressId);
+        return async.getAddresses().toBlocking().single();
     }
 
     /**
@@ -335,16 +192,7 @@ public final class Member {
      * @param addressId the id of the address
      */
     public void deleteAddress(String addressId) {
-        deleteAddressAsync(addressId).toBlocking().single();
-    }
-
-    /**
-     * Sets member preferences
-     *
-     * @param preferences member json preferences
-     */
-    public Observable<Void> setPreferencesAsync(String preferences) {
-        return client.setPreferences(preferences);
+        async.deleteAddress(addressId).toBlocking().single();
     }
 
     /**
@@ -353,16 +201,7 @@ public final class Member {
      * @param preferences member json preferences
      */
     public void setPreferences(String preferences) {
-        setPreferencesAsync(preferences).toBlocking().single();
-    }
-
-    /**
-     * Looks up member preferences
-     *
-     * @return member preferences
-     */
-    public Observable<String> getPreferencesAsync() {
-        return client.getPreferences();
+        async.setPreferences(preferences).toBlocking().single();
     }
 
     /**
@@ -371,7 +210,7 @@ public final class Member {
      * @return member preferences
      */
     public String getPreferences() {
-        return getPreferencesAsync().toBlocking().single();
+        return async.getPreferences().toBlocking().single();
     }
 
     @Override
