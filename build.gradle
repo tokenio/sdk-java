@@ -20,20 +20,20 @@ version = '1.0.0'
 ext {
     ver = [
         grpc: '0.15.0',
-        tokenProto: '1.0.80',
-        tokenRpc: '1.0.13',
-        tokenSecurity: '1.0.10',
-        tokenUtil: '1.0.6',
+        tokenProto: '1.0.81',
+        tokenRpc: '1.0.17',
+        tokenSecurity: '1.0.12',
+        tokenUtil: '1.0.7',
     ]
 }
 
 dependencies {
-    compile group: 'io.token.proto', name: 'external', version: ver.tokenProto
-    compile group: 'io.token.rpc', name: 'lib', version: ver.tokenRpc
-    compile group: 'io.token.security', name: 'security', version: ver.tokenSecurity
-    compile group: 'io.token.util', name: 'util', version: ver.tokenUtil
+    compile group: 'io.token.proto', name: 'tokenio-proto-external', version: ver.tokenProto
+    compile group: 'io.token.rpc', name: 'tokenio-rpc-lib', version: ver.tokenRpc
+    compile group: 'io.token.security', name: 'tokenio-security', version: ver.tokenSecurity
+    compile group: 'io.token.util', name: 'tokenio-util', version: ver.tokenUtil
 
-    testCompile group: 'io.token.rpc', name: 'testing', version: ver.tokenRpc
+    testCompile group: 'io.token.rpc', name: 'tokenio-rpc-testing', version: ver.tokenRpc
 }
 
 tasks.withType(Test) {
