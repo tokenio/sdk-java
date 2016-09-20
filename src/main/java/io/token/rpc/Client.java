@@ -375,7 +375,10 @@ public final class Client {
         return toObservable(gateway.createAddress(CreateAddressRequest.newBuilder()
                 .setName(name)
                 .setData(address)
-                .setSignature(sign(key, address))
+                .setSignature(Signature.newBuilder()
+                        .setKeyId(key.getId())
+                        .setSignature(sign(key, address))
+                        .build())
                 .build())
         ).map(CreateAddressResponse::getAddress);
     }
