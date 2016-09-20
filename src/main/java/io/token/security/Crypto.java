@@ -41,6 +41,13 @@ public final class Crypto {
         return new Signer(dsa, key.getPrivateKey()).sign(payload);
     }
 
+    /**
+     * Signes the specified payload using given key
+     *
+     * @param key the key to be used for signing
+     * @param payload the payload to be signed
+     * @return a payload signature
+     */
     public static String sign(SecretKey key, String payload) {
         return new Signer(dsa, key.getPrivateKey()).sign(payload);
     }
