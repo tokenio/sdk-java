@@ -42,7 +42,7 @@ public final class Crypto {
     }
 
     /**
-     * Signes the specified payload using given key
+     * Signs the specified payload using given key
      *
      * @param key the key to be used for signing
      * @param payload the payload to be signed
