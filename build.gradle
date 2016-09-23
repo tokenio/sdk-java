@@ -22,7 +22,7 @@ ext {
         grpc: '0.15.0',
         tokenProto: '1.0.89',
         tokenRpc: '1.0.17',
-        tokenSecurity: '1.0.12',
+        tokenSecurity: '1.0.13',
         tokenUtil: '1.0.7',
     ]
 }
