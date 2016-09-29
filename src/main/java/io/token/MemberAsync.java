@@ -3,6 +3,12 @@ package io.token;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
+import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
+import io.token.proto.common.token.TokenProtos.PaymentToken;
+import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenMember;
+import io.token.proto.common.transfer.TransferProtos.Source;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.rpc.Client;
 import io.token.security.SecretKey;
 import io.token.util.codec.ByteEncoding;
@@ -11,6 +17,7 @@ import rx.Observable;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static io.token.util.Util.generateNonce;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
@@ -242,6 +249,150 @@ public final class MemberAsync {
      */
     public Observable<String> getPreferences() {
         return client.getPreferences();
+    }
+
+    /**
+     * Creates a new payment token.
+     *
+     * @param amount payment amount
+     * @param currency currency code, e.g. "USD"
+     * @return payment token returned by the server
+     */
+    public Observable<Token> createToken(double amount, String currency, String accountId) {
+        return createToken(amount, currency, accountId, null, null);
+    }
+
+    /**
+     * Creates a new payment token.
+     *
+     * @param amount payment amount
+     * @param currency currency code, e.g. "USD"
+     * @param redeemer redeemer alias
+     * @param description payment description, optional
+     * @return payment token returned by the server
+     */
+    public Observable<Token> createToken(
+            double amount,
+            String currency,
+            String accountId,
+            @Nullable String redeemer,
+            @Nullable String description) {
+        PaymentToken.Builder paymentToken = PaymentToken.newBuilder()
+                .setScheme("Pay/1.0")
+                .setNonce(generateNonce())
+                .setPayer(TokenMember.newBuilder()
+                        .setId(member.getId()))
+                .setCurrency(currency)
+                .setAmount(Double.toString(amount))
+                .setTransfer(Transfer.newBuilder()
+                        .setFrom(Source.newBuilder()
+                                .setAccountId(accountId)));
+
+        if (redeemer != null) {
+            paymentToken.setRedeemer(TokenMember.newBuilder()
+                    .setAlias(redeemer));
+        }
+        if (description != null) {
+            paymentToken.setDescription(description);
+        }
+        return createToken(paymentToken.build());
+    }
+
+    /**
+     * Creates a new payment token.
+     *
+     * @param paymentToken payment token
+     * @return payment token returned by the server
+     */
+    public Observable<Token> createToken(PaymentToken paymentToken) {
+        return client.createToken(paymentToken);
+    }
+
+    /**
+     * Looks up a existing token.
+     *
+     * @param tokenId token id
+     * @return payment token returned by the server
+     */
+    public Observable<Token> lookupToken(String tokenId) {
+        return client.lookupToken(tokenId);
+    }
+
+    /**
+     * Looks up token owned by the member.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @return payment tokens owned by the member
+     */
+    public Observable<List<Token>> lookupTokens(int offset, int limit) {
+        return client.lookupTokens(offset, limit);
+    }
+
+    /**
+     * Endorses the token by signing it. The signature is persisted along
+     * with the token.
+     *
+     * @param token token to endorse
+     * @return endorsed token
+     */
+    public Observable<Token> endorseToken(Token token) {
+        return client.endorseToken(token);
+    }
+
+    /**
+     * Declines the token by signing it. The signature is persisted along
+     * with the token.
+     *
+     * @param token token to decline
+     * @return declined token
+     */
+    public Observable<Token> declineToken(Token token) {
+        return client.declineToken(token);
+    }
+
+    /**
+     * Revoke the token by signing it. The signature is persisted along
+     * with the token. Only applicable to endorsed tokens.
+     *
+     * @param token token to endorse
+     * @return endorsed token
+     */
+    public Observable<Token> revokeToken(Token token) {
+        return client.revokeToken(token);
+    }
+
+    /**
+     * Redeems a payment token.
+     *
+     * @param token payment token to redeem
+     * @return payment record
+     */
+    public Observable<Payment> redeemToken(Token token) {
+        return redeemToken(token, null, null);
+    }
+
+    /**
+     * Redeems a payment token.
+     *
+     * @param token payment token to redeem
+     * @param amount payment amount
+     * @param currency payment currency code, e.g. "EUR"
+     * @return payment record
+     */
+    public Observable<Payment> redeemToken(Token token, @Nullable Double amount, @Nullable String currency) {
+        PaymentPayload.Builder payload = PaymentPayload.newBuilder()
+                .setNonce(generateNonce())
+                .setTokenId(token.getId());
+
+        if (amount != null) {
+            payload.getAmountBuilder().setValue(Double.toString(amount));
+        }
+        if (currency != null) {
+            payload.getAmountBuilder().setCurrency(currency);
+        }
+
+        return client.redeemToken(payload.build());
     }
 
     @Override
