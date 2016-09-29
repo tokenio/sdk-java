@@ -11,7 +11,7 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.token.TokenProtos.PaymentToken;
+import io.token.proto.common.token.TokenProtos.*;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.gateway.Gateway.*;
@@ -190,6 +190,19 @@ public final class Client {
                 .setToken(token)
                 .build())
         ).map(CreatePaymentTokenResponse::getToken);
+    }
+
+    /**
+     * Creates a new information token.
+     *
+     * @param token information token
+     * @return the token returned by the server
+     */
+    public Observable<Token> createToken(InformationToken token) {
+        return toObservable(gateway.createInformationToken(CreateInformationTokenRequest.newBuilder()
+                .setToken(token)
+                .build())
+        ).map(CreateInformationTokenResponse::getToken);
     }
 
     /**

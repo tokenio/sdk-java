@@ -12,15 +12,18 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 public class PaymentRedemptionTest {
     @Rule public TokenRule rule = new TokenRule();
-    private final Account payer = rule.account();
-    private final Account payee = rule.account();
+    private final Account payerAccount = rule.account();
+    private final Account payeeAccount = rule.account();
+    private final Member payer = payerAccount.getMember();
+    private final Member payee = payeeAccount.getMember();
 
     @Test
     public void redeemToken() {
         Token token = payer.createToken(
                 100.0,
                 "USD",
-                payee.getMember().getFirstAlias(),
+                payerAccount.getId(),
+                payee.getFirstAlias(),
                 "book purchase");
         token = payer.endorseToken(token);
 
@@ -29,7 +32,7 @@ public class PaymentRedemptionTest {
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasNSignatures(2)
-                .isSignedBy(payee.getMember());
+                .isSignedBy(payee);
     }
 
     @Test
@@ -37,7 +40,8 @@ public class PaymentRedemptionTest {
         Token token = payer.createToken(
                 100.0,
                 "USD",
-                payee.getMember().getFirstAlias(),
+                payerAccount.getId(),
+                payee.getFirstAlias(),
                 "book purchase");
         token = payer.endorseToken(token);
 
@@ -46,7 +50,7 @@ public class PaymentRedemptionTest {
                 .hasAmount(99.0)
                 .hasCurrency("USD")
                 .hasNSignatures(2)
-                .isSignedBy(payee.getMember());
+                .isSignedBy(payee);
     }
 
     @Test
@@ -54,12 +58,13 @@ public class PaymentRedemptionTest {
         Token token = payer.createToken(
                 100.0,
                 "USD",
-                payee.getMember().getFirstAlias(),
+                payerAccount.getId(),
+                payee.getFirstAlias(),
                 "book purchase");
         token = payer.endorseToken(token);
 
         Payment payment = payee.redeemToken(token);
-        Payment lookedUp = payer.getMember().lookupPayment(payment.getId());
+        Payment lookedUp = payer.lookupPayment(payment.getId());
         assertThat(lookedUp).isEqualTo(payment);
     }
 
@@ -68,7 +73,8 @@ public class PaymentRedemptionTest {
         Token token = payer.createToken(
                 100.0,
                 "USD",
-                payee.getMember().getFirstAlias(),
+                payerAccount.getId(),
+                payee.getFirstAlias(),
                 "book purchase");
         token = payer.endorseToken(token);
 
@@ -86,7 +92,7 @@ public class PaymentRedemptionTest {
                 .hasAmount(70.0)
                 .hasCurrency("USD");
 
-        List<Payment> lookedUp = payer.getMember().lookupPayments(0, 100, token.getId());
+        List<Payment> lookedUp = payer.lookupPayments(0, 100, token.getId());
         assertThat(lookedUp).containsOnly(payment1, payment2, payment3);
     }
 }
