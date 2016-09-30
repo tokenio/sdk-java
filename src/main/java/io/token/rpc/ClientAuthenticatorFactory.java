@@ -11,15 +11,17 @@ import io.token.security.SecretKey;
  */
 final class ClientAuthenticatorFactory implements InterceptorFactory {
     private final String memberId;
+    private final String alias;
     private final SecretKey key;
 
-    public ClientAuthenticatorFactory(String memberId, SecretKey key) {
+    public ClientAuthenticatorFactory(String memberId, String alias, SecretKey key) {
         this.memberId = memberId;
+        this.alias = alias;
         this.key = key;
     }
 
     @Override
     public <ReqT, ResT> SimpleInterceptor<ReqT, ResT> create(MethodDescriptor<ReqT, ResT> ignore) {
-        return new ClientAuthenticator<>(memberId, key);
+        return new ClientAuthenticator<>(memberId, alias, key);
     }
 }

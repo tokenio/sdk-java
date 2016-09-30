@@ -50,7 +50,7 @@ public final class TokenIOAsync {
                 .createMemberId()
                 .flatMap(memberId -> unauthenticated.addFirstKey(memberId, key))
                 .flatMap(member -> {
-                    Client client = ClientFactory.authenticated(channel, member.getId(), key);
+                    Client client = ClientFactory.authenticated(channel, member.getId(), null, key);
                     return client
                             .addAlias(member, alias)
                             .map(m -> new MemberAsync(m, key, client));
@@ -65,7 +65,21 @@ public final class TokenIOAsync {
      * @return logged in member
      */
     public Observable<MemberAsync> login(String memberId, SecretKey key) {
-        Client client = ClientFactory.authenticated(channel, memberId, key);
+        Client client = ClientFactory.authenticated(channel, memberId, null, key);
+        return client
+                .getMember()
+                .map(member -> new MemberAsync(member, key, client));
+    }
+
+    /**
+     * Logs in an existing member to the system, using an alias
+     *
+     * @param alias alias
+     * @param key secret/public key pair to use
+     * @return logged in member
+     */
+    public Observable<MemberAsync> loginWithAlias(String alias, SecretKey key) {
+        Client client = ClientFactory.authenticated(channel, null, alias, key);
         return client
                 .getMember()
                 .map(member -> new MemberAsync(member, key, client));

@@ -122,6 +122,20 @@ public final class TokenIO {
     }
 
     /**
+     * Logs in an existing member to the system, using the alias
+     *
+     * @param alias member id
+     * @param key secret/public key pair to use
+     * @return logged in member
+     */
+    public Member loginWithAlias(String alias, SecretKey key) {
+        return async.loginWithAlias(alias, key)
+                .map(MemberAsync::sync)
+                .toBlocking()
+                .single();
+    }
+
+    /**
      * Notifies to link accounts
      *
      * @param alias alias to notify
