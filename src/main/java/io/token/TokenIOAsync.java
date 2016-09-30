@@ -12,9 +12,14 @@ import rx.Observable;
 import java.util.List;
 
 /**
- * Main entry point to the Token SDK. Use this class to create an instance of
- * the {@link TokenIOAsync} and then use {@link #createMember} to create new member
- * or {@link #login} to login an existing member.
+ * Use this class to create to create a new member using {@link #createMember}
+ * method or login an existing member using {@link #login}.
+ *
+ * <p>
+ * The class provides async API with {@link TokenIO} providing a synchronous
+ * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
+ * method.
+ * </p>
  */
 public final class TokenIOAsync {
     private final ManagedChannel channel;

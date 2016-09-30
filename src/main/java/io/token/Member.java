@@ -188,7 +188,7 @@ public final class Member {
     }
 
     /**
-     * Creates a new member address
+     * Creates a new member address record.
      *
      * @param name the name of the address
      * @param address the address json
@@ -199,12 +199,12 @@ public final class Member {
     }
 
     /**
-     * Looks up an address by id
+     * Looks up an address by id.
      *
      * @param addressId the address id
      * @return an address record
      */
-    public Address getAddress(String addressId) {
+    public Address lookupAddress(String addressId) {
         return async.getAddress(addressId).toBlocking().single();
     }
 
@@ -213,12 +213,12 @@ public final class Member {
      *
      * @return a list of addresses
      */
-    public List<Address> getAddresses() {
+    public List<Address> lookupAddresses() {
         return async.getAddresses().toBlocking().single();
     }
 
     /**
-     * Deletes a member address by its id
+     * Deletes a member address by its id.
      *
      * @param addressId the id of the address
      */
@@ -227,7 +227,7 @@ public final class Member {
     }
 
     /**
-     * Sets member preferences
+     * Sets member preferences.
      *
      * @param preferences member json preferences
      */
@@ -236,11 +236,11 @@ public final class Member {
     }
 
     /**
-     * Looks up member preferences
+     * Looks up member preferences.
      *
      * @return member preferences
      */
-    public String getPreferences() {
+    public String lookupPreferences() {
         return async.getPreferences().toBlocking().single();
     }
 
@@ -288,7 +288,7 @@ public final class Member {
     }
 
     /**
-     * Looks up token owned by the member.
+     * Looks up tokens owned by the member.
      *
      * @param offset offset to start at
      * @param limit max number of records to return

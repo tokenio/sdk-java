@@ -15,7 +15,7 @@ public class PreferenceTest {
     public void setAndGetPreference() {
         String preference = string();
         member.setPreferences(preference);
-        String result = member.getPreferences();
+        String result = member.lookupPreferences();
         assertThat(result).isEqualTo(preference);
     }
 }

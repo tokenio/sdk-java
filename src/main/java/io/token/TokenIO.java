@@ -9,9 +9,14 @@ import java.util.List;
 import static java.lang.String.format;
 
 /**
- * Main entry point to the Token SDK. Use this class to create an instance of
- * the {@link TokenIO} and then use {@link #createMember} to create new member
- * or {@link #login} to login an existing member.
+ * Main entry point to the Token SDK. Use {@link io.token.TokenIO.Builder}
+ * class to create an instance of the {@link TokenIOAsync} or {@link TokenIO}.
+ *
+ * <p>
+ * The class provides synchronous API with {@link TokenIOAsync} providing an
+ * asynchronous version. {@link TokenIOAsync} instance can be obtained by
+ * calling {@link #async} method.
+ * </p>
  */
 public final class TokenIO {
     /**
