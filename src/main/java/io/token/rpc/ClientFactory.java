@@ -27,11 +27,11 @@ public interface ClientFactory {
      * @param channel RPC channel to use
      * @return newly created client
      */
-    static Client authenticated(ManagedChannel channel, String memberId, SecretKey key) {
+    static Client authenticated(ManagedChannel channel, String memberId, String alias, SecretKey key) {
         GatewayServiceGrpc.GatewayServiceFutureStub stub = GatewayServiceGrpc.newFutureStub(
                 RpcChannelFactory.intercept(
                         channel,
-                        new ClientAuthenticatorFactory(memberId, key)
+                        new ClientAuthenticatorFactory(memberId, alias, key)
                 )
         );
         return new Client(key, stub);
