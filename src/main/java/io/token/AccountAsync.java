@@ -69,7 +69,6 @@ public final class AccountAsync {
                 });
     }
 
-
     /**
      * Looks up an account balance.
      *
