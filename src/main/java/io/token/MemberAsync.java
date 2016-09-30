@@ -1,5 +1,6 @@
 package io.token;
 
+import io.token.proto.common.device.DeviceProtos;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
@@ -143,6 +144,34 @@ public final class MemberAsync {
                     return null;
                 });
     }
+
+    /**
+     * Subscribes a device to receive push notifications
+     *
+     * @param provider notification provider (e.g. Token)
+     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @param platform platform of the device
+     * @param tags tags for the device
+     * @return nothing
+     */
+    public Observable<Void> subscribeDevice(String provider, String notificationUri,
+                                            DeviceProtos.Platform platform, List<String> tags) {
+        return client.subscribeDevice(provider, notificationUri, platform, tags)
+                .map(empty -> null);
+    }
+
+    /**
+     * Unsubscribes a device to from push notifications
+     *
+     * @param provider notification provider (e.g. Token)
+     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @return nothing
+     */
+    public Observable<Void> unsubscribeDevice(String provider, String notificationUri) {
+        return client.unsubscribeDevice(provider, notificationUri)
+                .map(empty -> null);
+    }
+
 
     /**
      * Links a funding bank account to Token and returns it to the caller.
