@@ -1,5 +1,6 @@
 package io.token;
 
+import io.token.proto.common.device.DeviceProtos.Platform;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -103,6 +104,35 @@ public final class Member {
      */
     public void removeKey(String keyId) {
         async.removeKey(keyId).toBlocking().single();
+    }
+
+    /**
+     * Subscribes a device to receive push notifications
+     *
+     * @param provider notification provider (e.g. Token)
+     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @param platform platform of the device
+     * @param tags tags for the device
+     * @return nothing
+     */
+    public void subscribeDevice(String provider, String notificationUri,
+                                Platform platform, List<String> tags) {
+        async.subscribeDevice(provider, notificationUri, platform, tags)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Unsubscribes a device to from push notifications
+     *
+     * @param provider notification provider (e.g. Token)
+     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @return nothing
+     */
+    public void unsubscribeDevice(String provider, String notificationUri) {
+        async.unsubscribeDevice(provider, notificationUri)
+                .toBlocking()
+                .single();
     }
 
     /**

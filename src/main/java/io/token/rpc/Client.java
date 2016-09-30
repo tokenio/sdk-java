@@ -2,6 +2,7 @@ package io.token.rpc;
 
 import com.google.protobuf.ByteString;
 import io.token.proto.common.account.AccountProtos.*;
+import io.token.proto.common.device.DeviceProtos;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -122,6 +123,41 @@ public final class Client {
                 .setRemoveAlias(MemberAliasOperation.newBuilder()
                         .setAlias(alias))
                 .build());
+    }
+
+    /**
+     * Subscribes a device to receive push notifications
+     *
+     * @param provider notification provider (e.g. Token)
+     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @param platform platform of the device
+     * @param tags tags for the device
+     * @return nothing
+     */
+    public Observable<Void> subscribeDevice(String provider, String notificationUri,
+                                            DeviceProtos.Platform platform, List<String> tags) {
+        return toObservable(gateway.subscribeDevice(SubscribeDeviceRequest.newBuilder()
+                .setProvider(provider)
+                .setNotificationUri(notificationUri)
+                .setPlatform(platform)
+                .addAllTags(tags)
+                .build()))
+                .map(empty -> null);
+    }
+
+     /**
+     * Unsubscribes a device from push notifications
+     *
+     * @param provider notification provider (e.g. Token)
+     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @return nothing
+     */
+    public Observable<Void> unsubscribeDevice(String provider, String notificationUri) {
+        return toObservable(gateway.unsubscribeDevice(UnsubscribeDeviceRequest.newBuilder()
+                .setProvider(provider)
+                .setNotificationUri(notificationUri)
+                .build()))
+                .map(empty -> null);
     }
 
     /**
