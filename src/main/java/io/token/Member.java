@@ -3,7 +3,7 @@ package io.token;
 import io.token.proto.common.device.DeviceProtos.Platform;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
-import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.security.SecretKey;
 
 import javax.annotation.Nullable;
@@ -142,7 +142,7 @@ public final class Member {
      * @param accountLinkPayload account link authorization payload generated
      *                           by the bank
      */
-    public List<Account> linkAccounts(String bankId, byte[] accountLinkPayload) {
+    public List<Account> linkAccounts(String bankId, String accountLinkPayload) {
         return async.linkAccounts(bankId, accountLinkPayload)
                 .map(l -> l.stream()
                         .map(AccountAsync::sync)
@@ -252,7 +252,7 @@ public final class Member {
      * @param accountId the funding account id
      * @return payment token returned by the server
      */
-    public Token createToken(double amount, String currency, String accountId) {
+    public PaymentToken createToken(double amount, String currency, String accountId) {
         return createToken(amount, currency, accountId, null, null);
     }
 
@@ -266,7 +266,7 @@ public final class Member {
      * @param description payment description, optional
      * @return payment token returned by the server
      */
-    public Token createToken(
+    public PaymentToken createToken(
             double amount,
             String currency,
             String accountId,
@@ -283,7 +283,7 @@ public final class Member {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public Token lookupToken(String tokenId) {
+    public PaymentToken lookupToken(String tokenId) {
         return async.lookupToken(tokenId).toBlocking().single();
     }
 
@@ -294,7 +294,7 @@ public final class Member {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public List<Token> lookupTokens(int offset, int limit) {
+    public List<PaymentToken> lookupTokens(int offset, int limit) {
         return async.lookupTokens(offset, limit).toBlocking().single();
     }
 
@@ -305,7 +305,7 @@ public final class Member {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Token endorseToken(Token token) {
+    public PaymentToken endorseToken(PaymentToken token) {
         return async.endorseToken(token).toBlocking().single();
     }
 
@@ -316,7 +316,7 @@ public final class Member {
      * @param token token to decline
      * @return declined token
      */
-    public Token declineToken(Token token) {
+    public PaymentToken declineToken(PaymentToken token) {
         return async.declineToken(token).toBlocking().single();
     }
 
@@ -327,7 +327,7 @@ public final class Member {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Token revokeToken(Token token) {
+    public PaymentToken revokeToken(PaymentToken token) {
         return async.revokeToken(token).toBlocking().single();
     }
 
@@ -337,7 +337,7 @@ public final class Member {
      * @param token payment token to redeem
      * @return payment record
      */
-    public Payment redeemToken(Token token) {
+    public Payment redeemToken(PaymentToken token) {
         return async.redeemToken(token).toBlocking().single();
     }
 
@@ -349,7 +349,7 @@ public final class Member {
      * @param currency payment currency code, e.g. "EUR"
      * @return payment record
      */
-    public Payment redeemToken(Token token, @Nullable Double amount, @Nullable String currency) {
+    public Payment redeemToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
         return async.redeemToken(token, amount, currency).toBlocking().single();
     }
 
