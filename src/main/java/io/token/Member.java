@@ -252,8 +252,8 @@ public final class Member {
      * @param accountId the funding account id
      * @return payment token returned by the server
      */
-    public PaymentToken createToken(double amount, String currency, String accountId) {
-        return createToken(amount, currency, accountId, null, null);
+    public PaymentToken createPaymentToken(double amount, String currency, String accountId) {
+        return createPaymentToken(amount, currency, accountId, null, null);
     }
 
     /**
@@ -266,13 +266,13 @@ public final class Member {
      * @param description payment description, optional
      * @return payment token returned by the server
      */
-    public PaymentToken createToken(
+    public PaymentToken createPaymentToken(
             double amount,
             String currency,
             String accountId,
             @Nullable String redeemer,
             @Nullable String description) {
-        return async.createToken(amount, currency, accountId, redeemer, description)
+        return async.createPaymentToken(amount, currency, accountId, redeemer, description)
                 .toBlocking()
                 .single();
     }
@@ -283,8 +283,8 @@ public final class Member {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public PaymentToken lookupToken(String tokenId) {
-        return async.lookupToken(tokenId).toBlocking().single();
+    public PaymentToken lookupPaymentToken(String tokenId) {
+        return async.lookupPaymentToken(tokenId).toBlocking().single();
     }
 
     /**
@@ -294,8 +294,8 @@ public final class Member {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public List<PaymentToken> lookupTokens(int offset, int limit) {
-        return async.lookupTokens(offset, limit).toBlocking().single();
+    public List<PaymentToken> lookupPaymentTokens(int offset, int limit) {
+        return async.lookupPaymentTokens(offset, limit).toBlocking().single();
     }
 
     /**
@@ -305,8 +305,8 @@ public final class Member {
      * @param token token to endorse
      * @return endorsed token
      */
-    public PaymentToken endorseToken(PaymentToken token) {
-        return async.endorseToken(token).toBlocking().single();
+    public PaymentToken endorsePaymentToken(PaymentToken token) {
+        return async.endorsePaymentToken(token).toBlocking().single();
     }
 
     /**
@@ -316,8 +316,8 @@ public final class Member {
      * @param token token to decline
      * @return declined token
      */
-    public PaymentToken declineToken(PaymentToken token) {
-        return async.declineToken(token).toBlocking().single();
+    public PaymentToken declinePaymentToken(PaymentToken token) {
+        return async.declinePaymentToken(token).toBlocking().single();
     }
 
     /**
@@ -327,8 +327,8 @@ public final class Member {
      * @param token token to endorse
      * @return endorsed token
      */
-    public PaymentToken revokeToken(PaymentToken token) {
-        return async.revokeToken(token).toBlocking().single();
+    public PaymentToken revokePaymentToken(PaymentToken token) {
+        return async.revokePaymentToken(token).toBlocking().single();
     }
 
     /**
@@ -337,8 +337,8 @@ public final class Member {
      * @param token payment token to redeem
      * @return payment record
      */
-    public Payment redeemToken(PaymentToken token) {
-        return async.redeemToken(token).toBlocking().single();
+    public Payment redeemPaymentToken(PaymentToken token) {
+        return async.redeemPaymentToken(token).toBlocking().single();
     }
 
     /**
@@ -349,8 +349,8 @@ public final class Member {
      * @param currency payment currency code, e.g. "EUR"
      * @return payment record
      */
-    public Payment redeemToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
-        return async.redeemToken(token, amount, currency).toBlocking().single();
+    public Payment redeemPaymentToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
+        return async.redeemPaymentToken(token, amount, currency).toBlocking().single();
     }
 
     @Override

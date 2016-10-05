@@ -16,7 +16,7 @@ public class PaymentTokenTest {
 
     @Test
     public void createPaymentToken() {
-        PaymentToken token = payer.createToken(
+        PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),
@@ -33,8 +33,8 @@ public class PaymentTokenTest {
 
     @Test
     public void lookupPaymentToken() {
-        PaymentToken token = payer.createToken(100.0, "USD", payerAccount.getId());
-        assertThat(payer.lookupToken(token.getId()))
+        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.getId());
+        assertThat(payer.lookupPaymentToken(token.getId()))
                 .hasPayer(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
@@ -43,19 +43,19 @@ public class PaymentTokenTest {
 
     @Test
     public void lookupPaymentTokens() {
-        PaymentToken token1 = payer.createToken(123.45, "EUR", payerAccount.getId());
-        PaymentToken token2 = payer.createToken(678.90, "USD", payerAccount.getId());
-        PaymentToken token3 = payer.createToken(100.99, "USD", payerAccount.getId());
+        PaymentToken token1 = payer.createPaymentToken(123.45, "EUR", payerAccount.getId());
+        PaymentToken token2 = payer.createPaymentToken(678.90, "USD", payerAccount.getId());
+        PaymentToken token3 = payer.createPaymentToken(100.99, "USD", payerAccount.getId());
 
-        assertThat(payer.lookupTokens(0, 100))
+        assertThat(payer.lookupPaymentTokens(0, 100))
                 .hasSize(3)
                 .containsOnly(token1, token2, token3);
     }
 
     @Test
     public void endorsePaymentToken() {
-        PaymentToken token = payer.createToken(100.0, "USD", payerAccount.getId());
-        token = payer.endorseToken(token);
+        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.getId());
+        token = payer.endorsePaymentToken(token);
 
         assertThat(token)
                 .hasNSignatures(2)
@@ -67,8 +67,8 @@ public class PaymentTokenTest {
 
     @Test
     public void declinePaymentToken() {
-        PaymentToken token = payer.createToken(100.0, "USD", payerAccount.getId());
-        token = payer.declineToken(token);
+        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.getId());
+        token = payer.declinePaymentToken(token);
 
         assertThat(token)
                 .hasNSignatures(2)
@@ -80,9 +80,9 @@ public class PaymentTokenTest {
 
     @Test
     public void revokePaymentToken() {
-        PaymentToken token = payer.createToken(100.0, "USD", payerAccount.getId());
-        token = payer.endorseToken(token);
-        token = payer.revokeToken(token);
+        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.getId());
+        token = payer.endorsePaymentToken(token);
+        token = payer.revokePaymentToken(token);
 
         assertThat(token)
                 .hasNSignatures(4)
