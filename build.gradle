@@ -20,7 +20,7 @@ version = '1.0.0'
 ext {
     ver = [
         grpc: '1.0.1',
-        tokenProto: '1.0.108',
+        tokenProto: '1.0.109-SNAPSHOT',
         tokenRpc: '1.0.18',
         tokenSecurity: '1.0.13',
         tokenUtil: '1.0.7',
