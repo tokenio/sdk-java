@@ -310,25 +310,14 @@ public final class Member {
     }
 
     /**
-     * Declines the token by signing it. The signature is persisted along
+     * Cancels the token by signing it. The signature is persisted along
      * with the token.
      *
-     * @param token token to decline
-     * @return declined token
+     * @param token token to cancel
+     * @return cancelled token
      */
-    public PaymentToken declinePaymentToken(PaymentToken token) {
-        return async.declinePaymentToken(token).toBlocking().single();
-    }
-
-    /**
-     * Revoke the token by signing it. The signature is persisted along
-     * with the token. Only applicable to endorsed tokens.
-     *
-     * @param token token to endorse
-     * @return endorsed token
-     */
-    public PaymentToken revokePaymentToken(PaymentToken token) {
-        return async.revokePaymentToken(token).toBlocking().single();
+    public PaymentToken cancelPaymentToken(PaymentToken token) {
+        return async.cancelPaymentToken(token).toBlocking().single();
     }
 
     /**
