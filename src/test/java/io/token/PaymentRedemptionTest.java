@@ -1,7 +1,7 @@
 package io.token;
 
 import io.token.proto.common.payment.PaymentProtos.Payment;
-import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.PaymentToken;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -19,7 +19,7 @@ public class PaymentRedemptionTest {
 
     @Test
     public void redeemToken() {
-        Token token = payer.createToken(
+        PaymentToken token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),
@@ -37,7 +37,7 @@ public class PaymentRedemptionTest {
 
     @Test
     public void redeemToken_withParams() {
-        Token token = payer.createToken(
+        PaymentToken token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),
@@ -55,7 +55,7 @@ public class PaymentRedemptionTest {
 
     @Test
     public void lookupPayment() {
-        Token token = payer.createToken(
+        PaymentToken token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),
@@ -70,7 +70,7 @@ public class PaymentRedemptionTest {
 
     @Test
     public void lookupPayments() {
-        Token token = payer.createToken(
+        PaymentToken token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),

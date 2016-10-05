@@ -6,7 +6,6 @@ import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
-import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.transfer.TransferProtos.Source;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -180,7 +179,7 @@ public final class MemberAsync {
      * @param accountLinkPayload account link authorization payload generated
      *                           by the bank
      */
-    public Observable<List<AccountAsync>> linkAccounts(String bankId, byte[] accountLinkPayload) {
+    public Observable<List<AccountAsync>> linkAccounts(String bankId, String accountLinkPayload) {
         return client
                 .linkAccounts(bankId, accountLinkPayload)
                 .map(accounts -> accounts.stream()
@@ -287,7 +286,7 @@ public final class MemberAsync {
      * @param currency currency code, e.g. "USD"
      * @return payment token returned by the server
      */
-    public Observable<Token> createToken(double amount, String currency, String accountId) {
+    public Observable<PaymentToken> createToken(double amount, String currency, String accountId) {
         return createToken(amount, currency, accountId, null, null);
     }
 
@@ -300,14 +299,14 @@ public final class MemberAsync {
      * @param description payment description, optional
      * @return payment token returned by the server
      */
-    public Observable<Token> createToken(
+    public Observable<PaymentToken> createToken(
             double amount,
             String currency,
             String accountId,
             @Nullable String redeemer,
             @Nullable String description) {
-        PaymentToken.Builder paymentToken = PaymentToken.newBuilder()
-                .setScheme("Pay/1.0")
+        PaymentToken.Payload.Builder payload = PaymentToken.Payload.newBuilder()
+                .setVersion("1.0")
                 .setNonce(generateNonce())
                 .setPayer(TokenMember.newBuilder()
                         .setId(member.getId()))
@@ -318,23 +317,23 @@ public final class MemberAsync {
                                 .setAccountId(accountId)));
 
         if (redeemer != null) {
-            paymentToken.setRedeemer(TokenMember.newBuilder()
+            payload.setRedeemer(TokenMember.newBuilder()
                     .setAlias(redeemer));
         }
         if (description != null) {
-            paymentToken.setDescription(description);
+            payload.setDescription(description);
         }
-        return createToken(paymentToken.build());
+        return createToken(payload.build());
     }
 
     /**
      * Creates a new payment token.
      *
-     * @param paymentToken payment token
+     * @param payload payment token payload
      * @return payment token returned by the server
      */
-    public Observable<Token> createToken(PaymentToken paymentToken) {
-        return client.createToken(paymentToken);
+    public Observable<PaymentToken> createToken(PaymentToken.Payload payload) {
+        return client.createPaymentToken(payload);
     }
 
     /**
@@ -343,8 +342,8 @@ public final class MemberAsync {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public Observable<Token> lookupToken(String tokenId) {
-        return client.lookupToken(tokenId);
+    public Observable<PaymentToken> lookupToken(String tokenId) {
+        return client.lookupPaymentToken(tokenId);
     }
 
     /**
@@ -354,8 +353,8 @@ public final class MemberAsync {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public Observable<List<Token>> lookupTokens(int offset, int limit) {
-        return client.lookupTokens(offset, limit);
+    public Observable<List<PaymentToken>> lookupTokens(int offset, int limit) {
+        return client.lookupPaymentTokens(offset, limit);
     }
 
     /**
@@ -365,8 +364,8 @@ public final class MemberAsync {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<Token> endorseToken(Token token) {
-        return client.endorseToken(token);
+    public Observable<PaymentToken> endorseToken(PaymentToken token) {
+        return client.endorsePaymentToken(token);
     }
 
     /**
@@ -376,8 +375,8 @@ public final class MemberAsync {
      * @param token token to decline
      * @return declined token
      */
-    public Observable<Token> declineToken(Token token) {
-        return client.declineToken(token);
+    public Observable<PaymentToken> declineToken(PaymentToken token) {
+        return client.declinePaymentToken(token);
     }
 
     /**
@@ -387,8 +386,8 @@ public final class MemberAsync {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<Token> revokeToken(Token token) {
-        return client.revokeToken(token);
+    public Observable<PaymentToken> revokeToken(PaymentToken token) {
+        return client.revokePaymentToken(token);
     }
 
     /**
@@ -397,7 +396,7 @@ public final class MemberAsync {
      * @param token payment token to redeem
      * @return payment record
      */
-    public Observable<Payment> redeemToken(Token token) {
+    public Observable<Payment> redeemToken(PaymentToken token) {
         return redeemToken(token, null, null);
     }
 
@@ -409,7 +408,7 @@ public final class MemberAsync {
      * @param currency payment currency code, e.g. "EUR"
      * @return payment record
      */
-    public Observable<Payment> redeemToken(Token token, @Nullable Double amount, @Nullable String currency) {
+    public Observable<Payment> redeemToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
         PaymentPayload.Builder payload = PaymentPayload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());

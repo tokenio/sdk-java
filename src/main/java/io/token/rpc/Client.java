@@ -1,19 +1,15 @@
 package io.token.rpc;
 
-import com.google.protobuf.ByteString;
-import io.token.proto.common.account.AccountProtos.*;
+import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.device.DeviceProtos;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.*;
-import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
-import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
-import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.token.TokenProtos.*;
-import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.AccessToken;
+import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.gateway.Gateway.*;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -168,10 +164,10 @@ public final class Client {
      *                           by the bank
      * @return list of linked accounts
      */
-    public Observable<List<Account>> linkAccounts(String bankId, byte[] accountLinkPayload) {
+    public Observable<List<Account>> linkAccounts(String bankId, String accountLinkPayload) {
         return toObservable(gateway.linkAccount(LinkAccountRequest.newBuilder()
                 .setBankId(bankId)
-                .setAccountLinkPayload(ByteString.copyFrom(accountLinkPayload))
+                .setAccountLinkPayload(accountLinkPayload)
                 .build())
         ).map(LinkAccountResponse::getAccountsList);
     }
@@ -218,27 +214,27 @@ public final class Client {
     /**
      * Creates a new payment token.
      *
-     * @param token payment token
+     * @param payload payment token payload
      * @return payment token returned by the server
      */
-    public Observable<Token> createToken(PaymentToken token) {
+    public Observable<PaymentToken> createPaymentToken(PaymentToken.Payload payload) {
         return toObservable(gateway.createPaymentToken(CreatePaymentTokenRequest.newBuilder()
-                .setToken(token)
+                .setPayload(payload)
                 .build())
         ).map(CreatePaymentTokenResponse::getToken);
     }
 
     /**
-     * Creates a new information token.
+     * Creates a new access token.
      *
-     * @param token information token
+     * @param payload information token payload
      * @return the token returned by the server
      */
-    public Observable<Token> createToken(InformationToken token) {
-        return toObservable(gateway.createInformationToken(CreateInformationTokenRequest.newBuilder()
-                .setToken(token)
+    public Observable<AccessToken> createAccessToken(AccessToken.Payload payload) {
+        return toObservable(gateway.createAccessToken(CreateAccessTokenRequest.newBuilder()
+                .setPayload(payload)
                 .build())
-        ).map(CreateInformationTokenResponse::getToken);
+        ).map(CreateAccessTokenResponse::getToken);
     }
 
     /**
@@ -247,11 +243,11 @@ public final class Client {
      * @param tokenId token id
      * @return token returned by the server
      */
-    public Observable<Token> lookupToken(String tokenId) {
-        return toObservable(gateway.lookupToken(LookupTokenRequest.newBuilder()
+    public Observable<PaymentToken> lookupPaymentToken(String tokenId) {
+        return toObservable(gateway.lookupPaymentToken(LookupPaymentTokenRequest.newBuilder()
                 .setTokenId(tokenId)
                 .build())
-        ).map(LookupTokenResponse::getToken);
+        ).map(LookupPaymentTokenResponse::getToken);
     }
 
     /**
@@ -261,12 +257,12 @@ public final class Client {
      * @param limit max number of records to return
      * @return token returned by the server
      */
-    public Observable<List<Token>> lookupTokens(int offset, int limit) {
-        return toObservable(gateway.lookupTokens(LookupTokensRequest.newBuilder()
+    public Observable<List<PaymentToken>> lookupPaymentTokens(int offset, int limit) {
+        return toObservable(gateway.lookupPaymentTokens(LookupPaymentTokensRequest.newBuilder()
                 .setOffset(offset)
                 .setLimit(limit)
                 .build())
-        ).map(LookupTokensResponse::getTokensList);
+        ).map(LookupPaymentTokensResponse::getTokensList);
     }
 
     /**
@@ -275,14 +271,14 @@ public final class Client {
      * @param token token to endorse
      * @return endorsed token returned by the server
      */
-    public Observable<Token> endorseToken(Token token) {
-        return toObservable(gateway.endorseToken(EndorseTokenRequest.newBuilder()
+    public Observable<PaymentToken> endorsePaymentToken(PaymentToken token) {
+        return toObservable(gateway.endorsePaymentToken(EndorsePaymentTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, ENDORSED)))
                 .build())
-        ).map(EndorseTokenResponse::getToken);
+        ).map(EndorsePaymentTokenResponse::getToken);
     }
 
     /**
@@ -291,14 +287,14 @@ public final class Client {
      * @param token token to decline
      * @return declined token returned by the server
      */
-    public Observable<Token> declineToken(Token token) {
-        return toObservable(gateway.declineToken(DeclineTokenRequest.newBuilder()
+    public Observable<PaymentToken> declinePaymentToken(PaymentToken token) {
+        return toObservable(gateway.declinePaymentToken(DeclinePaymentTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, DECLINED)))
                 .build())
-        ).map(DeclineTokenResponse::getToken);
+        ).map(DeclinePaymentTokenResponse::getToken);
     }
 
     /**
@@ -307,14 +303,14 @@ public final class Client {
      * @param token token to revoke
      * @return revoked token returned by the server
      */
-    public Observable<Token> revokeToken(Token token) {
-        return toObservable(gateway.revokeToken(RevokeTokenRequest.newBuilder()
+    public Observable<PaymentToken> revokePaymentToken(PaymentToken token) {
+        return toObservable(gateway.revokePaymentToken(RevokePaymentTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, REVOKED)))
                 .build())
-        ).map(RevokeTokenResponse::getToken);
+        ).map(RevokePaymentTokenResponse::getToken);
     }
 
     /**

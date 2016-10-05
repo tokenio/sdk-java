@@ -1,5 +1,6 @@
 package io.token;
 
+import com.google.common.io.BaseEncoding;
 import io.token.asserts.AccountAssertion;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos.AccountLinkPayload;
@@ -20,17 +21,18 @@ public class AccountsTest {
         String alias = member.getAliases().get(0);
         String bankId = "bank-id";
 
-        List<Account> accounts = member.linkAccounts(
-                bankId,
-                ProtoJson.toJson(AccountLinkPayload.newBuilder()
-                        .setAlias(alias)
-                        .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
-                                .setName("Checking")
-                                .setAccountNumber("iban:checking"))
-                        .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
-                                .setName("Savings")
-                                .setAccountNumber("iban:savings"))
-                        .build()).getBytes());
+        byte[] data = ProtoJson.toJson(AccountLinkPayload.newBuilder()
+                .setAlias(alias)
+                .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
+                        .setName("Checking")
+                        .setAccountNumber("iban:checking"))
+                .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
+                        .setName("Savings")
+                        .setAccountNumber("iban:savings"))
+                .build()).getBytes();
+        String accountLinkingPayload = BaseEncoding.base64Url().encode(data);
+
+        List<Account> accounts = member.linkAccounts(bankId, accountLinkingPayload);
 
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0))
