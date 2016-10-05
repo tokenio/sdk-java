@@ -1,7 +1,7 @@
 package io.token.asserts;
 
 import io.token.Member;
-import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.security.SecretKey;
 import org.assertj.core.api.AbstractAssert;
@@ -15,36 +15,36 @@ import java.util.List;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.*;
 import static java.util.stream.Collectors.toList;
 
-public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> {
-    public static TokenAssertion assertThat(Token token) {
+public final class TokenAssertion extends AbstractAssert<TokenAssertion, PaymentToken> {
+    public static TokenAssertion assertThat(PaymentToken token) {
         return new TokenAssertion(token);
     }
 
-    private TokenAssertion(Token actual) {
+    private TokenAssertion(PaymentToken actual) {
         super(actual, TokenAssertion.class);
     }
 
     public TokenAssertion hasPayer(Member member) {
         Assertions
-                .assertThat(actual.getPayment().getPayer().getId())
+                .assertThat(actual.getPayload().getPayer().getId())
                 .isEqualTo(member.getMemberId());
         return this;
     }
 
     public TokenAssertion hasRedeemerAlias(String alias) {
         Assertions
-                .assertThat(actual.getPayment().getRedeemer().getAlias())
+                .assertThat(actual.getPayload().getRedeemer().getAlias())
                 .isEqualTo(alias);
         return this;
     }
 
     public TokenAssertion hasAmount(double amount) {
-        Assertions.assertThat(actual.getPayment().getAmount()).isEqualTo(Double.toString(amount));
+        Assertions.assertThat(actual.getPayload().getAmount()).isEqualTo(Double.toString(amount));
         return this;
     }
 
     public TokenAssertion hasCurrency(String currency) {
-        Assertions.assertThat(actual.getPayment().getCurrency()).isEqualTo(currency);
+        Assertions.assertThat(actual.getPayload().getCurrency()).isEqualTo(currency);
         return this;
     }
 

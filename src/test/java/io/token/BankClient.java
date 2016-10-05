@@ -4,6 +4,7 @@ import com.google.protobuf.Any;
 import com.google.protobuf.Message;
 import io.grpc.ManagedChannel;
 import io.token.proto.bankapi.AccountServiceGrpc;
+import io.token.proto.bankapi.Bankapi;
 import io.token.proto.bankapi.Bankapi.StartLinkBankRequest;
 import io.token.rpc.client.RpcChannelFactory;
 import rx.Observable;
@@ -23,7 +24,7 @@ public final class BankClient {
         this.client = AccountServiceGrpc.newFutureStub(channel);
     }
 
-    public byte[] startAccountsLinking(
+    public String startAccountsLinking(
             String alias,
             Optional<String> secret,
             List<String> accountNumbers,
@@ -33,7 +34,7 @@ public final class BankClient {
                 .single();
     }
 
-    public Observable<byte[]> startAccountsLinkingAsync(
+    public Observable<String> startAccountsLinkingAsync(
             String alias,
             Optional<String> secret,
             List<String> accountNumbers,
@@ -46,6 +47,6 @@ public final class BankClient {
                 .setSecret(secret.orElse(""))
                 .build();
         return toObservable(client.startLinkBank(builder.build()))
-                .map(response -> response.getAccountLinkPayload().toByteArray());
+                .map(Bankapi.StartLinkBankResponse::getAccountLinkPayload);
     }
 }

@@ -1,5 +1,6 @@
 package io.token;
 
+import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import io.token.asserts.AccountAssertion;
 import io.token.proto.ProtoJson;
@@ -32,7 +33,7 @@ public class NotificationsTest {
         member.subscribeDevice("Token", notificationUri, Platform.TEST, tags);
 
 
-        byte[] accountLinkPayload = ProtoJson.toJson(AccountLinkPayload.newBuilder()
+        byte[] data = ProtoJson.toJson(AccountLinkPayload.newBuilder()
                         .setAlias(alias)
                         .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
                                 .setName("Checking")
@@ -41,6 +42,7 @@ public class NotificationsTest {
                                 .setName("Savings")
                                 .setAccountNumber("iban:savings"))
                         .build()).getBytes();
+        String accountLinkPayload = BaseEncoding.base64().encode(data);
 
         rule.token().notifyLinkAccounts(alias, "bank-id", accountLinkPayload);
         rule.token().notifyAddKey(alias, key.getPublicKey(), tags);
