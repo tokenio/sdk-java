@@ -66,28 +66,13 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void declinePaymentToken() {
+    public void cancelPaymentToken() {
         PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.getId());
-        token = payer.declinePaymentToken(token);
+        token = payer.cancelPaymentToken(token);
 
         assertThat(token)
                 .hasNSignatures(2)
-                .isDeclinedBy(payer)
-                .hasPayer(payer)
-                .hasAmount(100.0)
-                .hasCurrency("USD");
-    }
-
-    @Test
-    public void revokePaymentToken() {
-        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.getId());
-        token = payer.endorsePaymentToken(token);
-        token = payer.revokePaymentToken(token);
-
-        assertThat(token)
-                .hasNSignatures(4)
-                .isEndorsedBy(payer)
-                .isRevokedBy(payer)
+                .isCancelledBy(payer)
                 .hasPayer(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD");
