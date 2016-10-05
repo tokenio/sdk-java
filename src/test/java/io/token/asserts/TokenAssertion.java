@@ -61,20 +61,12 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Payment
                 ENDORSED);
     }
 
-    public TokenAssertion isDeclinedBy(Member... members) {
+    public TokenAssertion isCancelledBy(Member... members) {
         return hasKeySignatures(
                 Arrays.stream(members)
                         .map(Member::getKey)
                         .collect(toList()),
-                DECLINED);
-    }
-
-    public TokenAssertion isRevokedBy(Member... members) {
-        return hasKeySignatures(
-                Arrays.stream(members)
-                        .map(Member::getKey)
-                        .collect(toList()),
-                REVOKED);
+                CANCELLED);
     }
 
     public TokenAssertion hasNoSignatures() {
