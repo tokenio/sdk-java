@@ -74,7 +74,7 @@ public class TokenRule extends ExternalResource {
                                 .setValue("1000000.00")))
                 .build();
 
-        byte[] accountLinkingPayload = bankClient.startAccountsLinking(
+        String accountLinkingPayload = bankClient.startAccountsLinking(
                 alias,
                 Optional.empty(),
                 Collections.singletonList(bankAccountNumber),

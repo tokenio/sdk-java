@@ -1,6 +1,6 @@
 package io.token;
 
-import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.PaymentToken;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -15,8 +15,8 @@ public class PaymentTokenTest {
     private final Member payee = payeeAccount.getMember();
 
     @Test
-    public void createToken() {
-        Token token = payer.createToken(
+    public void createPaymentToken() {
+        PaymentToken token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),
@@ -32,8 +32,8 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void lookupToken() {
-        Token token = payer.createToken(100.0, "USD", payerAccount.getId());
+    public void lookupPaymentToken() {
+        PaymentToken token = payer.createToken(100.0, "USD", payerAccount.getId());
         assertThat(payer.lookupToken(token.getId()))
                 .hasPayer(payer)
                 .hasAmount(100.0)
@@ -42,10 +42,10 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void lookupTokens() {
-        Token token1 = payer.createToken(123.45, "EUR", payerAccount.getId());
-        Token token2 = payer.createToken(678.90, "USD", payerAccount.getId());
-        Token token3 = payer.createToken(100.99, "USD", payerAccount.getId());
+    public void lookupPaymentTokens() {
+        PaymentToken token1 = payer.createToken(123.45, "EUR", payerAccount.getId());
+        PaymentToken token2 = payer.createToken(678.90, "USD", payerAccount.getId());
+        PaymentToken token3 = payer.createToken(100.99, "USD", payerAccount.getId());
 
         assertThat(payer.lookupTokens(0, 100))
                 .hasSize(3)
@@ -53,8 +53,8 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void endorseToken() {
-        Token token = payer.createToken(100.0, "USD", payerAccount.getId());
+    public void endorsePaymentToken() {
+        PaymentToken token = payer.createToken(100.0, "USD", payerAccount.getId());
         token = payer.endorseToken(token);
 
         assertThat(token)
@@ -66,8 +66,8 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void declineToken() {
-        Token token = payer.createToken(100.0, "USD", payerAccount.getId());
+    public void declinePaymentToken() {
+        PaymentToken token = payer.createToken(100.0, "USD", payerAccount.getId());
         token = payer.declineToken(token);
 
         assertThat(token)
@@ -79,8 +79,8 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void revokeToken() {
-        Token token = payer.createToken(100.0, "USD", payerAccount.getId());
+    public void revokePaymentToken() {
+        PaymentToken token = payer.createToken(100.0, "USD", payerAccount.getId());
         token = payer.endorseToken(token);
         token = payer.revokeToken(token);
 
