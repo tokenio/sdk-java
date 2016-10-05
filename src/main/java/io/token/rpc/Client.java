@@ -282,35 +282,19 @@ public final class Client {
     }
 
     /**
-     * Declines a token.
+     * Cancels a token.
      *
-     * @param token token to decline
-     * @return declined token returned by the server
+     * @param token token to cancel
+     * @return cancelled token returned by the server
      */
-    public Observable<PaymentToken> declinePaymentToken(PaymentToken token) {
-        return toObservable(gateway.declinePaymentToken(DeclinePaymentTokenRequest.newBuilder()
+    public Observable<PaymentToken> cancelPaymentToken(PaymentToken token) {
+        return toObservable(gateway.cancelPaymentToken(CancelPaymentTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
-                        .setSignature(sign(key, token, DECLINED)))
+                        .setSignature(sign(key, token, CANCELLED)))
                 .build())
-        ).map(DeclinePaymentTokenResponse::getToken);
-    }
-
-    /**
-     * Revokes a token.
-     *
-     * @param token token to revoke
-     * @return revoked token returned by the server
-     */
-    public Observable<PaymentToken> revokePaymentToken(PaymentToken token) {
-        return toObservable(gateway.revokePaymentToken(RevokePaymentTokenRequest.newBuilder()
-                .setTokenId(token.getId())
-                .setSignature(Signature.newBuilder()
-                        .setKeyId(key.getId())
-                        .setSignature(sign(key, token, REVOKED)))
-                .build())
-        ).map(RevokePaymentTokenResponse::getToken);
+        ).map(CancelPaymentTokenResponse::getToken);
     }
 
     /**

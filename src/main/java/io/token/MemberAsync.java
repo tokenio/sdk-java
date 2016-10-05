@@ -369,25 +369,14 @@ public final class MemberAsync {
     }
 
     /**
-     * Declines the token by signing it. The signature is persisted along
+     * Cancels the token by signing it. The signature is persisted along
      * with the token.
      *
-     * @param token token to decline
-     * @return declined token
+     * @param token token to cancel
+     * @return cancelled token
      */
-    public Observable<PaymentToken> declinePaymentToken(PaymentToken token) {
-        return client.declinePaymentToken(token);
-    }
-
-    /**
-     * Revoke the token by signing it. The signature is persisted along
-     * with the token. Only applicable to endorsed tokens.
-     *
-     * @param token token to endorse
-     * @return endorsed token
-     */
-    public Observable<PaymentToken> revokePaymentToken(PaymentToken token) {
-        return client.revokePaymentToken(token);
+    public Observable<PaymentToken> cancelPaymentToken(PaymentToken token) {
+        return client.cancelPaymentToken(token);
     }
 
     /**
