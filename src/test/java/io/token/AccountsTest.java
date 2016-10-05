@@ -1,9 +1,9 @@
 package io.token;
 
-import com.google.common.io.BaseEncoding;
 import io.token.asserts.AccountAssertion;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos.AccountLinkPayload;
+import io.token.util.codec.ByteEncoding;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -30,7 +30,7 @@ public class AccountsTest {
                         .setName("Savings")
                         .setAccountNumber("iban:savings"))
                 .build()).getBytes();
-        String accountLinkingPayload = BaseEncoding.base64Url().encode(data);
+        String accountLinkingPayload = ByteEncoding.serialize(data);
 
         List<Account> accounts = member.linkAccounts(bankId, accountLinkingPayload);
 
