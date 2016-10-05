@@ -19,15 +19,15 @@ public class PaymentRedemptionTest {
 
     @Test
     public void redeemToken() {
-        PaymentToken token = payer.createToken(
+        PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),
                 payee.getFirstAlias(),
                 "book purchase");
-        token = payer.endorseToken(token);
+        token = payer.endorsePaymentToken(token);
 
-        Payment payment = payee.redeemToken(token);
+        Payment payment = payee.redeemPaymentToken(token);
         assertThat(payment)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
@@ -37,15 +37,15 @@ public class PaymentRedemptionTest {
 
     @Test
     public void redeemToken_withParams() {
-        PaymentToken token = payer.createToken(
+        PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),
                 payee.getFirstAlias(),
                 "book purchase");
-        token = payer.endorseToken(token);
+        token = payer.endorsePaymentToken(token);
 
-        Payment payment = payee.redeemToken(token, 99.0, "USD");
+        Payment payment = payee.redeemPaymentToken(token, 99.0, "USD");
         assertThat(payment)
                 .hasAmount(99.0)
                 .hasCurrency("USD")
@@ -55,32 +55,32 @@ public class PaymentRedemptionTest {
 
     @Test
     public void lookupPayment() {
-        PaymentToken token = payer.createToken(
+        PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),
                 payee.getFirstAlias(),
                 "book purchase");
-        token = payer.endorseToken(token);
+        token = payer.endorsePaymentToken(token);
 
-        Payment payment = payee.redeemToken(token);
+        Payment payment = payee.redeemPaymentToken(token);
         Payment lookedUp = payer.lookupPayment(payment.getId());
         assertThat(lookedUp).isEqualTo(payment);
     }
 
     @Test
     public void lookupPayments() {
-        PaymentToken token = payer.createToken(
+        PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
                 payerAccount.getId(),
                 payee.getFirstAlias(),
                 "book purchase");
-        token = payer.endorseToken(token);
+        token = payer.endorsePaymentToken(token);
 
-        Payment payment1 = payee.redeemToken(token, 10.0, "USD");
-        Payment payment2 = payee.redeemToken(token, 20.0, "USD");
-        Payment payment3 = payee.redeemToken(token, 70.0, "USD");
+        Payment payment1 = payee.redeemPaymentToken(token, 10.0, "USD");
+        Payment payment2 = payee.redeemPaymentToken(token, 20.0, "USD");
+        Payment payment3 = payee.redeemPaymentToken(token, 70.0, "USD");
 
         assertThat(payment1)
                 .hasAmount(10.0)

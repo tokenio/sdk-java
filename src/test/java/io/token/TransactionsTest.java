@@ -28,14 +28,14 @@ public class TransactionsTest {
 
     @Test
     public void lookupTransaction() {
-        PaymentToken token = payer.createToken(
+        PaymentToken token = payer.createPaymentToken(
                 1000.0,
                 "USD",
                 payerAccount.getId(),
                 payee.getFirstAlias(),
                 "Multi charge token");
-        token = payer.endorseToken(token);
-        Payment payment = payee.redeemToken(token, 100.0, "USD");
+        token = payer.endorsePaymentToken(token);
+        Payment payment = payee.redeemPaymentToken(token, 100.0, "USD");
 
         Transaction transaction = payerAccount.lookupTransaction(payment.getReferenceId());
         TransactionAssertion.assertThat(transaction)
@@ -47,17 +47,17 @@ public class TransactionsTest {
 
     @Test
     public void lookupTransactions() {
-        PaymentToken token = payer.createToken(
+        PaymentToken token = payer.createPaymentToken(
                 1000.0,
                 "USD",
                 payerAccount.getId(),
                 payee.getFirstAlias(),
                 "Multi charge token");
-        token = payer.endorseToken(token);
+        token = payer.endorsePaymentToken(token);
 
-        Payment payment1 = payee.redeemToken(token, 100.0, "USD");
-        Payment payment2 = payee.redeemToken(token, 200.0, "USD");
-        Payment payment3 = payee.redeemToken(token, 300.0, "USD");
+        Payment payment1 = payee.redeemPaymentToken(token, 100.0, "USD");
+        Payment payment2 = payee.redeemPaymentToken(token, 200.0, "USD");
+        Payment payment3 = payee.redeemPaymentToken(token, 300.0, "USD");
 
         List<Transaction> transactions = payerAccount.lookupTransactions(0, 3).stream()
                 .sorted((t1, t2) -> t1.getAmount().getValue().compareTo(t2.getAmount().getValue()))

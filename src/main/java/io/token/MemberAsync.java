@@ -286,8 +286,8 @@ public final class MemberAsync {
      * @param currency currency code, e.g. "USD"
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> createToken(double amount, String currency, String accountId) {
-        return createToken(amount, currency, accountId, null, null);
+    public Observable<PaymentToken> createPaymentToken(double amount, String currency, String accountId) {
+        return createPaymentToken(amount, currency, accountId, null, null);
     }
 
     /**
@@ -299,7 +299,7 @@ public final class MemberAsync {
      * @param description payment description, optional
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> createToken(
+    public Observable<PaymentToken> createPaymentToken(
             double amount,
             String currency,
             String accountId,
@@ -323,7 +323,7 @@ public final class MemberAsync {
         if (description != null) {
             payload.setDescription(description);
         }
-        return createToken(payload.build());
+        return createPaymentToken(payload.build());
     }
 
     /**
@@ -332,7 +332,7 @@ public final class MemberAsync {
      * @param payload payment token payload
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> createToken(PaymentToken.Payload payload) {
+    public Observable<PaymentToken> createPaymentToken(PaymentToken.Payload payload) {
         return client.createPaymentToken(payload);
     }
 
@@ -342,7 +342,7 @@ public final class MemberAsync {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> lookupToken(String tokenId) {
+    public Observable<PaymentToken> lookupPaymentToken(String tokenId) {
         return client.lookupPaymentToken(tokenId);
     }
 
@@ -353,7 +353,7 @@ public final class MemberAsync {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public Observable<List<PaymentToken>> lookupTokens(int offset, int limit) {
+    public Observable<List<PaymentToken>> lookupPaymentTokens(int offset, int limit) {
         return client.lookupPaymentTokens(offset, limit);
     }
 
@@ -364,7 +364,7 @@ public final class MemberAsync {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<PaymentToken> endorseToken(PaymentToken token) {
+    public Observable<PaymentToken> endorsePaymentToken(PaymentToken token) {
         return client.endorsePaymentToken(token);
     }
 
@@ -375,7 +375,7 @@ public final class MemberAsync {
      * @param token token to decline
      * @return declined token
      */
-    public Observable<PaymentToken> declineToken(PaymentToken token) {
+    public Observable<PaymentToken> declinePaymentToken(PaymentToken token) {
         return client.declinePaymentToken(token);
     }
 
@@ -386,7 +386,7 @@ public final class MemberAsync {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<PaymentToken> revokeToken(PaymentToken token) {
+    public Observable<PaymentToken> revokePaymentToken(PaymentToken token) {
         return client.revokePaymentToken(token);
     }
 
@@ -396,8 +396,8 @@ public final class MemberAsync {
      * @param token payment token to redeem
      * @return payment record
      */
-    public Observable<Payment> redeemToken(PaymentToken token) {
-        return redeemToken(token, null, null);
+    public Observable<Payment> redeemPaymentToken(PaymentToken token) {
+        return redeemPaymentToken(token, null, null);
     }
 
     /**
@@ -408,7 +408,7 @@ public final class MemberAsync {
      * @param currency payment currency code, e.g. "EUR"
      * @return payment record
      */
-    public Observable<Payment> redeemToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
+    public Observable<Payment> redeemPaymentToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
         PaymentPayload.Builder payload = PaymentPayload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());
@@ -420,7 +420,7 @@ public final class MemberAsync {
             payload.getAmountBuilder().setCurrency(currency);
         }
 
-        return client.redeemToken(payload.build());
+        return client.redeemPaymentToken(payload.build());
     }
 
     @Override
