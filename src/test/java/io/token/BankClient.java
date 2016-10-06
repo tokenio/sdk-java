@@ -5,8 +5,8 @@ import com.google.protobuf.Message;
 import io.grpc.ManagedChannel;
 import io.token.proto.bankapi.AccountLinkingServiceGrpc;
 import io.token.proto.bankapi.AccountLinkingServiceGrpc.AccountLinkingServiceFutureStub;
-import io.token.proto.bankapi.Banklink.LinkAccountsRequest;
-import io.token.proto.bankapi.Banklink.LinkAccountsResponse;
+import io.token.proto.bankapi.Banklink.AuthorizeLinkAccountsRequest;
+import io.token.proto.bankapi.Banklink.AuthorizeLinkAccountsResponse;
 import io.token.rpc.client.RpcChannelFactory;
 import rx.Observable;
 
@@ -40,14 +40,14 @@ public final class BankClient {
             Optional<String> secret,
             List<String> accountNumbers,
             Optional<Message> metadata) {
-        LinkAccountsRequest.Builder builder = LinkAccountsRequest.newBuilder();
+        AuthorizeLinkAccountsRequest.Builder builder = AuthorizeLinkAccountsRequest.newBuilder();
         metadata.ifPresent(data -> builder.setMetadata(Any.pack(data)));
         builder
                 .setAlias(alias)
                 .addAllAccounts(accountNumbers)
                 .setSecret(secret.orElse(""))
                 .build();
-        return toObservable(client.linkAccounts(builder.build()))
-                .map(LinkAccountsResponse::getAccountsLinkPayload);
+        return toObservable(client.authorizeLinkAccounts(builder.build()))
+                .map(AuthorizeLinkAccountsResponse::getAccountsLinkPayload);
     }
 }
