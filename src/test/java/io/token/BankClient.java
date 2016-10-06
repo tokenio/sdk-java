@@ -3,9 +3,10 @@ package io.token;
 import com.google.protobuf.Any;
 import com.google.protobuf.Message;
 import io.grpc.ManagedChannel;
-import io.token.proto.bankapi.AccountServiceGrpc;
-import io.token.proto.bankapi.Bankapi.LinkAccountsRequest;
-import io.token.proto.bankapi.Bankapi.LinkAccountsResponse;
+import io.token.proto.bankapi.AccountLinkingServiceGrpc;
+import io.token.proto.bankapi.AccountLinkingServiceGrpc.AccountLinkingServiceFutureStub;
+import io.token.proto.bankapi.Banklink.LinkAccountsRequest;
+import io.token.proto.bankapi.Banklink.LinkAccountsResponse;
 import io.token.rpc.client.RpcChannelFactory;
 import rx.Observable;
 
@@ -17,11 +18,11 @@ import static java.lang.String.format;
 
 
 public final class BankClient {
-    private final AccountServiceGrpc.AccountServiceFutureStub client;
+    private final AccountLinkingServiceFutureStub client;
 
     public BankClient(String hostName, int port) {
         ManagedChannel channel = RpcChannelFactory.forTarget(format("dns:///%s:%d/", hostName, port));
-        this.client = AccountServiceGrpc.newFutureStub(channel);
+        this.client = AccountLinkingServiceGrpc.newFutureStub(channel);
     }
 
     public String startAccountsLinking(
