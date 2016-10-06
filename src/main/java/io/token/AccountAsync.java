@@ -37,21 +37,21 @@ public final class AccountAsync {
     /**
      * @return account owner
      */
-    public MemberAsync getMember() {
+    public MemberAsync member() {
         return member;
     }
 
     /**
      * @return account id
      */
-    public String getId() {
+    public String id() {
         return account.getId();
     }
 
     /**
      * @return account name
      */
-    public String getName() {
+    public String name() {
         return account.getName();
     }
 
@@ -74,8 +74,8 @@ public final class AccountAsync {
      *
      * @return account balance
      */
-    public Observable<Money> lookupBalance() {
-        return client.lookupBalance(account.getId());
+    public Observable<Money> getBalance() {
+        return client.getBalance(account.getId());
     }
 
     /**
@@ -84,8 +84,8 @@ public final class AccountAsync {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
-    public Observable<Transaction> lookupTransaction(String transactionId) {
-        return client.lookupTransaction(account.getId(), transactionId);
+    public Observable<Transaction> getTransaction(String transactionId) {
+        return client.getTransaction(account.getId(), transactionId);
     }
 
     /**
@@ -96,7 +96,7 @@ public final class AccountAsync {
      * @param limit max number of records to return
      * @return payment record
      */
-    public Observable<List<Transaction>> lookupTransactions(int offset, int limit) {
-        return client.lookupTransactions(account.getId(), offset, limit);
+    public Observable<List<Transaction>> getTransactions(int offset, int limit) {
+        return client.getTransactions(account.getId(), offset, limit);
     }
 }

@@ -17,27 +17,27 @@ public class TransactionsTest {
     @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
     private final Account payeeAccount = rule.account();
-    private final Member payer = payerAccount.getMember();
-    private final Member payee = payeeAccount.getMember();
+    private final Member payer = payerAccount.member();
+    private final Member payee = payeeAccount.member();
 
     @Test
-    public void lookupBalance() {
-        assertThat(parseDouble(payerAccount.lookupBalance().getValue())).isGreaterThan(0);
-        assertThat(payerAccount.lookupBalance().getCurrency()).isEqualTo("USD");
+    public void getBalance() {
+        assertThat(parseDouble(payerAccount.getBalance().getValue())).isGreaterThan(0);
+        assertThat(payerAccount.getBalance().getCurrency()).isEqualTo("USD");
     }
 
     @Test
-    public void lookupTransaction() {
+    public void getTransaction() {
         PaymentToken token = payer.createPaymentToken(
                 1000.0,
                 "USD",
-                payerAccount.getId(),
-                payee.getFirstAlias(),
+                payerAccount.id(),
+                payee.firstAlias(),
                 "Multi charge token");
         token = payer.endorsePaymentToken(token);
         Payment payment = payee.redeemPaymentToken(token, 100.0, "USD");
 
-        Transaction transaction = payerAccount.lookupTransaction(payment.getReferenceId());
+        Transaction transaction = payerAccount.getTransaction(payment.getReferenceId());
         TransactionAssertion.assertThat(transaction)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
@@ -46,12 +46,12 @@ public class TransactionsTest {
     }
 
     @Test
-    public void lookupTransactions() {
+    public void getTransactions() {
         PaymentToken token = payer.createPaymentToken(
                 1000.0,
                 "USD",
-                payerAccount.getId(),
-                payee.getFirstAlias(),
+                payerAccount.id(),
+                payee.firstAlias(),
                 "Multi charge token");
         token = payer.endorsePaymentToken(token);
 
@@ -59,7 +59,7 @@ public class TransactionsTest {
         Payment payment2 = payee.redeemPaymentToken(token, 200.0, "USD");
         Payment payment3 = payee.redeemPaymentToken(token, 300.0, "USD");
 
-        List<Transaction> transactions = payerAccount.lookupTransactions(0, 3).stream()
+        List<Transaction> transactions = payerAccount.getTransactions(0, 3).stream()
                 .sorted((t1, t2) -> t1.getAmount().getValue().compareTo(t2.getAmount().getValue()))
                 .collect(toList());
 

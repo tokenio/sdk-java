@@ -166,11 +166,11 @@ public final class Client {
      * @return list of linked accounts
      */
     public Observable<List<Account>> linkAccounts(String bankId, String accountLinkPayload) {
-        return toObservable(gateway.linkAccount(LinkAccountRequest.newBuilder()
+        return toObservable(gateway.linkAccounts(LinkAccountsRequest.newBuilder()
                 .setBankId(bankId)
-                .setAccountLinkPayload(accountLinkPayload)
+                .setAccountsLinkPayload(accountLinkPayload)
                 .build())
-        ).map(LinkAccountResponse::getAccountsList);
+        ).map(LinkAccountsResponse::getAccountsList);
     }
 
     /**
@@ -179,11 +179,11 @@ public final class Client {
      * @param accountId account id
      * @return account info
      */
-    public Observable<Account> lookupAccount(String accountId) {
-        return toObservable(gateway.lookupAccount(LookupAccountRequest.newBuilder()
+    public Observable<Account> getAccount(String accountId) {
+        return toObservable(gateway.getAccount(GetAccountRequest.newBuilder()
                 .setAccountId(accountId)
                 .build())
-        ).map(LookupAccountResponse::getAccount);
+        ).map(GetAccountResponse::getAccount);
     }
 
     /**
@@ -191,10 +191,10 @@ public final class Client {
      *
      * @return list of linked accounts
      */
-    public Observable<List<Account>> lookupAccounts() {
-        return toObservable(gateway.lookupAccounts(LookupAccountsRequest.newBuilder()
+    public Observable<List<Account>> getAccounts() {
+        return toObservable(gateway.getAccounts(GetAccountsRequest.newBuilder()
                 .build())
-        ).map(LookupAccountsResponse::getAccountsList);
+        ).map(GetAccountsResponse::getAccountsList);
     }
 
     /**
@@ -244,11 +244,11 @@ public final class Client {
      * @param tokenId token id
      * @return token returned by the server
      */
-    public Observable<PaymentToken> lookupPaymentToken(String tokenId) {
-        return toObservable(gateway.lookupPaymentToken(LookupPaymentTokenRequest.newBuilder()
+    public Observable<PaymentToken> getPaymentToken(String tokenId) {
+        return toObservable(gateway.getPaymentToken(GetPaymentTokenRequest.newBuilder()
                 .setTokenId(tokenId)
                 .build())
-        ).map(LookupPaymentTokenResponse::getToken);
+        ).map(GetPaymentTokenResponse::getToken);
     }
 
     /**
@@ -258,12 +258,12 @@ public final class Client {
      * @param limit max number of records to return
      * @return token returned by the server
      */
-    public Observable<List<PaymentToken>> lookupPaymentTokens(int offset, int limit) {
-        return toObservable(gateway.lookupPaymentTokens(LookupPaymentTokensRequest.newBuilder()
+    public Observable<List<PaymentToken>> getPaymentTokens(int offset, int limit) {
+        return toObservable(gateway.getPaymentTokens(GetPaymentTokensRequest.newBuilder()
                 .setOffset(offset)
                 .setLimit(limit)
                 .build())
-        ).map(LookupPaymentTokensResponse::getTokensList);
+        ).map(GetPaymentTokensResponse::getTokensList);
     }
 
     /**
@@ -320,11 +320,11 @@ public final class Client {
      * @param accountId account id
      * @return account balance
      */
-    public Observable<Money> lookupBalance(String accountId) {
-        return toObservable(gateway.lookupBalance(LookupBalanceRequest.newBuilder()
+    public Observable<Money> getBalance(String accountId) {
+        return toObservable(gateway.getBalance(GetBalanceRequest.newBuilder()
                 .setAccountId(accountId)
                 .build())
-        ).map(LookupBalanceResponse::getCurrent);
+        ).map(GetBalanceResponse::getCurrent);
     }
 
     /**
@@ -333,11 +333,11 @@ public final class Client {
      * @param paymentId payment id
      * @return payment record
      */
-    public Observable<Payment> lookupPayment(String paymentId) {
-        return toObservable(gateway.lookupPayment(LookupPaymentRequest.newBuilder()
+    public Observable<Payment> getPayment(String paymentId) {
+        return toObservable(gateway.getPayment(GetPaymentRequest.newBuilder()
                 .setPaymentId(paymentId)
                 .build())
-        ).map(LookupPaymentResponse::getPayment);
+        ).map(GetPaymentResponse::getPayment);
     }
 
     /**
@@ -348,8 +348,8 @@ public final class Client {
      * @param tokenId optional token id to restrict the search
      * @return payment record
      */
-    public Observable<List<Payment>> lookupPayments(int offset, int limit, @Nullable String tokenId) {
-        LookupPaymentsRequest.Builder request = LookupPaymentsRequest.newBuilder()
+    public Observable<List<Payment>> getPayments(int offset, int limit, @Nullable String tokenId) {
+        GetPaymentsRequest.Builder request = GetPaymentsRequest.newBuilder()
                 .setOffset(offset)
                 .setLimit(limit);
 
@@ -357,8 +357,8 @@ public final class Client {
             request.setTokenId(tokenId);
         }
 
-        return toObservable(gateway.lookupPayments(request.build()))
-                .map(LookupPaymentsResponse::getPaymentsList);
+        return toObservable(gateway.getPayments(request.build()))
+                .map(GetPaymentsResponse::getPaymentsList);
     }
 
     /**
@@ -368,12 +368,12 @@ public final class Client {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
-    public Observable<Transaction> lookupTransaction(String accountId, String transactionId) {
-        return toObservable(gateway.lookupTransaction(LookupTransactionRequest.newBuilder()
+    public Observable<Transaction> getTransaction(String accountId, String transactionId) {
+        return toObservable(gateway.getTransaction(GetTransactionRequest.newBuilder()
                 .setAccountId(accountId)
                 .setTransactionId(transactionId)
                 .build())
-        ).map(LookupTransactionResponse::getTransaction);
+        ).map(GetTransactionResponse::getTransaction);
     }
 
     /**
@@ -385,24 +385,24 @@ public final class Client {
      * @param limit max number of records to return
      * @return transaction record
      */
-    public Observable<List<Transaction>> lookupTransactions(String accountId, int offset, int limit) {
-        return toObservable(gateway.lookupTransactions(LookupTransactionsRequest.newBuilder()
+    public Observable<List<Transaction>> getTransactions(String accountId, int offset, int limit) {
+        return toObservable(gateway.getTransactions(GetTransactionsRequest.newBuilder()
                 .setAccountId(accountId)
                 .setOffset(offset)
                 .setLimit(limit)
                 .build())
-        ).map(LookupTransactionsResponse::getTransactionsList);
+        ).map(GetTransactionsResponse::getTransactionsList);
     }
 
     /**
-     * Creates a new member address
+     * Adds a new member address.
      *
      * @param name the name of the address
      * @param address the address json
      * @return an address record created
      */
-    public Observable<Address> createAddress(String name, String address) {
-        return toObservable(gateway.createAddress(CreateAddressRequest.newBuilder()
+    public Observable<Address> addAddress(String name, String address) {
+        return toObservable(gateway.addAddress(AddAddressRequest.newBuilder()
                 .setName(name)
                 .setData(address)
                 .setSignature(Signature.newBuilder()
@@ -410,7 +410,7 @@ public final class Client {
                         .setSignature(sign(key, address))
                         .build())
                 .build())
-        ).map(CreateAddressResponse::getAddress);
+        ).map(AddAddressResponse::getAddress);
     }
 
     /**
@@ -447,29 +447,6 @@ public final class Client {
                 .setAddressId(addressId)
                 .build())
         ).map(empty -> null);
-    }
-
-    /**
-     * Sets member preferences
-     *
-     * @param preferences member json preferences
-     */
-    public Observable<Void> setPreferences(String preferences) {
-        return toObservable(gateway.setPreference(SetPreferenceRequest.newBuilder()
-                .setPreference(preferences)
-                .build())
-        ).map(empty -> null);
-    }
-
-    /**
-     * Looks up member preferences
-     *
-     * @return member preferences
-     */
-    public Observable<String> getPreferences() {
-        return toObservable(gateway.getPreference(GetPreferenceRequest.newBuilder()
-                .build())
-        ).map(GetPreferenceResponse::getPreference);
     }
 
     private Observable<Member> updateMember(MemberUpdate update) {
