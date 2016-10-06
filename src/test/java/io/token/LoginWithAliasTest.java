@@ -9,14 +9,14 @@ import org.junit.Test;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
-public class LoginWithAlias {
+public class LoginWithAliasTest {
     @Rule public TokenRule rule = new TokenRule();
     private final Member member = rule.member();
 
     @Test
     public void loginWithAlias() {
         SecretKey key = Crypto.generateSecretKey();
-        String alias = member.getAliases().get(0);
+        String alias = member.aliases().get(0);
 
         assertThatExceptionThrownBy(() -> {
             rule.token().loginWithAlias(alias, key);
@@ -25,6 +25,6 @@ public class LoginWithAlias {
 
         member.approveKey(key.getPublicKey(), SecurityProtos.Key.Level.PRIVILEGED);
         Member loggedIn = rule.token().loginWithAlias(alias, key);
-        assertThat(loggedIn.getAliases().size()).isEqualTo(1);
+        assertThat(loggedIn.aliases().size()).isEqualTo(1);
     }
 }

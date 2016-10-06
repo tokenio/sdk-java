@@ -52,35 +52,35 @@ public final class MemberAsync {
     /**
      * @return a unique ID that identifies the member in the Token system
      */
-    public String getMemberId() {
+    public String memberId() {
         return member.getId();
     }
 
     /**
      * @return secret/public keys associated with this member instance
      */
-    public SecretKey getKey() {
+    public SecretKey key() {
         return key;
     }
 
     /**
      * @return first alias owned by the user
      */
-    public String getFirstAlias() {
+    public String firstAlias() {
         return member.getAliasesCount() == 0 ? null : member.getAliases(0);
     }
 
     /**
      * @return list of aliases owned by the member
      */
-    public List<String> getAliases() {
+    public List<String> aliases() {
         return member.getAliasesList();
     }
 
     /**
      * @return list of public keys that are approved for this member
      */
-    public List<byte[]> getPublicKeys() {
+    public List<byte[]> publicKeys() {
         return member.getKeysBuilderList()
                 .stream()
                 .map(k -> ByteEncoding.parse(k.getPublicKey()))
@@ -193,9 +193,9 @@ public final class MemberAsync {
      *
      * @return list of accounts
      */
-    public Observable<List<AccountAsync>> lookupAccount() {
+    public Observable<List<AccountAsync>> getAccount() {
         return client
-                .lookupAccounts()
+                .getAccounts()
                 .map(accounts -> accounts.stream()
                         .map(a -> new AccountAsync(this, a, client))
                         .collect(toList()));
@@ -207,8 +207,8 @@ public final class MemberAsync {
      * @param paymentId ID of the payment record
      * @return payment record
      */
-    public Observable<Payment> lookupPayment(String paymentId) {
-        return client.lookupPayment(paymentId);
+    public Observable<Payment> getPayment(String paymentId) {
+        return client.getPayment(paymentId);
     }
 
     /**
@@ -219,8 +219,8 @@ public final class MemberAsync {
      * @param tokenId optional token id to restrict the search
      * @return payment record
      */
-    public Observable<List<Payment>> lookupPayments(int offset, int limit, @Nullable String tokenId) {
-        return client.lookupPayments(offset, limit, tokenId);
+    public Observable<List<Payment>> getPayments(int offset, int limit, @Nullable String tokenId) {
+        return client.getPayments(offset, limit, tokenId);
     }
 
     /**
@@ -230,8 +230,8 @@ public final class MemberAsync {
      * @param address the address json
      * @return an address record created
      */
-    public Observable<Address> createAddress(String name, String address) {
-        return client.createAddress(name, address);
+    public Observable<Address> addAddress(String name, String address) {
+        return client.addAddress(name, address);
     }
 
     /**
@@ -260,24 +260,6 @@ public final class MemberAsync {
      */
     public Observable<Void> deleteAddress(String addressId) {
         return client.deleteAddress(addressId);
-    }
-
-    /**
-     * Sets member preferences
-     *
-     * @param preferences member json preferences
-     */
-    public Observable<Void> setPreferences(String preferences) {
-        return client.setPreferences(preferences);
-    }
-
-    /**
-     * Looks up member preferences
-     *
-     * @return member preferences
-     */
-    public Observable<String> getPreferences() {
-        return client.getPreferences();
     }
 
     /**
@@ -343,8 +325,8 @@ public final class MemberAsync {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> lookupPaymentToken(String tokenId) {
-        return client.lookupPaymentToken(tokenId);
+    public Observable<PaymentToken> getPaymentToken(String tokenId) {
+        return client.getPaymentToken(tokenId);
     }
 
     /**
@@ -354,8 +336,8 @@ public final class MemberAsync {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public Observable<List<PaymentToken>> lookupPaymentTokens(int offset, int limit) {
-        return client.lookupPaymentTokens(offset, limit);
+    public Observable<List<PaymentToken>> getPaymentTokens(int offset, int limit) {
+        return client.getPaymentTokens(offset, limit);
     }
 
     /**

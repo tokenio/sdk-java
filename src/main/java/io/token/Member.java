@@ -37,36 +37,36 @@ public final class Member {
     /**
      * @return a unique ID that identifies the member in the Token system
      */
-    public String getMemberId() {
-        return async.getMemberId();
+    public String memberId() {
+        return async.memberId();
     }
 
     /**
      * @return secret/public keys associated with this member instance
      */
-    public SecretKey getKey() {
-        return async.getKey();
+    public SecretKey key() {
+        return async.key();
     }
 
     /**
      * @return first alias owned by the user
      */
-    public String getFirstAlias() {
-        return async.getFirstAlias();
+    public String firstAlias() {
+        return async.firstAlias();
     }
 
     /**
      * @return list of aliases owned by the member
      */
-    public List<String> getAliases() {
-        return async.getAliases();
+    public List<String> aliases() {
+        return async.aliases();
     }
 
     /**
      * @return list of public keys that are approved for this member
      */
-    public List<byte[]> getPublicKeys() {
-        return async.getPublicKeys();
+    public List<byte[]> publicKeys() {
+        return async.publicKeys();
     }
 
     /**
@@ -157,8 +157,8 @@ public final class Member {
      *
      * @return list of accounts
      */
-    public List<Account> lookupAccounts() {
-        return async.lookupAccount()
+    public List<Account> getAccounts() {
+        return async.getAccount()
                 .map(l -> l.stream()
                         .map(AccountAsync::sync)
                         .collect(toList()))
@@ -172,8 +172,8 @@ public final class Member {
      * @param paymentId ID of the payment record
      * @return payment record
      */
-    public Payment lookupPayment(String paymentId) {
-        return async.lookupPayment(paymentId).toBlocking().single();
+    public Payment getPayment(String paymentId) {
+        return async.getPayment(paymentId).toBlocking().single();
     }
 
     /**
@@ -184,8 +184,8 @@ public final class Member {
      * @param tokenId optional token id to restrict the search
      * @return payment record
      */
-    public List<Payment> lookupPayments(int offset, int limit, @Nullable String tokenId) {
-        return async.lookupPayments(offset, limit, tokenId).toBlocking().single();
+    public List<Payment> getPayments(int offset, int limit, @Nullable String tokenId) {
+        return async.getPayments(offset, limit, tokenId).toBlocking().single();
     }
 
     /**
@@ -195,8 +195,8 @@ public final class Member {
      * @param address the address json
      * @return the address record created
      */
-    public Address createAddress(String name, String address) {
-        return async.createAddress(name, address).toBlocking().single();
+    public Address addAddress(String name, String address) {
+        return async.addAddress(name, address).toBlocking().single();
     }
 
     /**
@@ -205,7 +205,7 @@ public final class Member {
      * @param addressId the address id
      * @return an address record
      */
-    public Address lookupAddress(String addressId) {
+    public Address getAddress(String addressId) {
         return async.getAddress(addressId).toBlocking().single();
     }
 
@@ -214,7 +214,7 @@ public final class Member {
      *
      * @return a list of addresses
      */
-    public List<Address> lookupAddresses() {
+    public List<Address> getAddresses() {
         return async.getAddresses().toBlocking().single();
     }
 
@@ -225,24 +225,6 @@ public final class Member {
      */
     public void deleteAddress(String addressId) {
         async.deleteAddress(addressId).toBlocking().single();
-    }
-
-    /**
-     * Sets member preferences.
-     *
-     * @param preferences member json preferences
-     */
-    public void setPreferences(String preferences) {
-        async.setPreferences(preferences).toBlocking().single();
-    }
-
-    /**
-     * Looks up member preferences.
-     *
-     * @return member preferences
-     */
-    public String lookupPreferences() {
-        return async.getPreferences().toBlocking().single();
     }
 
     /**
@@ -284,8 +266,8 @@ public final class Member {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public PaymentToken lookupPaymentToken(String tokenId) {
-        return async.lookupPaymentToken(tokenId).toBlocking().single();
+    public PaymentToken getPaymentToken(String tokenId) {
+        return async.getPaymentToken(tokenId).toBlocking().single();
     }
 
     /**
@@ -295,8 +277,8 @@ public final class Member {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public List<PaymentToken> lookupPaymentTokens(int offset, int limit) {
-        return async.lookupPaymentTokens(offset, limit).toBlocking().single();
+    public List<PaymentToken> getPaymentTokens(int offset, int limit) {
+        return async.getPaymentTokens(offset, limit).toBlocking().single();
     }
 
     /**

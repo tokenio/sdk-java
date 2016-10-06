@@ -14,16 +14,16 @@ public class PaymentRedemptionTest {
     @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
     private final Account payeeAccount = rule.account();
-    private final Member payer = payerAccount.getMember();
-    private final Member payee = payeeAccount.getMember();
+    private final Member payer = payerAccount.member();
+    private final Member payee = payeeAccount.member();
 
     @Test
     public void redeemToken() {
         PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
-                payerAccount.getId(),
-                payee.getFirstAlias(),
+                payerAccount.id(),
+                payee.firstAlias(),
                 "book purchase");
         token = payer.endorsePaymentToken(token);
 
@@ -40,8 +40,8 @@ public class PaymentRedemptionTest {
         PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
-                payerAccount.getId(),
-                payee.getFirstAlias(),
+                payerAccount.id(),
+                payee.firstAlias(),
                 "book purchase");
         token = payer.endorsePaymentToken(token);
 
@@ -54,27 +54,27 @@ public class PaymentRedemptionTest {
     }
 
     @Test
-    public void lookupPayment() {
+    public void getPayment() {
         PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
-                payerAccount.getId(),
-                payee.getFirstAlias(),
+                payerAccount.id(),
+                payee.firstAlias(),
                 "book purchase");
         token = payer.endorsePaymentToken(token);
 
         Payment payment = payee.redeemPaymentToken(token);
-        Payment lookedUp = payer.lookupPayment(payment.getId());
+        Payment lookedUp = payer.getPayment(payment.getId());
         assertThat(lookedUp).isEqualTo(payment);
     }
 
     @Test
-    public void lookupPayments() {
+    public void getPayments() {
         PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
-                payerAccount.getId(),
-                payee.getFirstAlias(),
+                payerAccount.id(),
+                payee.firstAlias(),
                 "book purchase");
         token = payer.endorsePaymentToken(token);
 
@@ -92,7 +92,7 @@ public class PaymentRedemptionTest {
                 .hasAmount(70.0)
                 .hasCurrency("USD");
 
-        List<Payment> lookedUp = payer.lookupPayments(0, 100, token.getId());
+        List<Payment> lookedUp = payer.getPayments(0, 100, token.getId());
         assertThat(lookedUp).containsOnly(payment1, payment2, payment3);
     }
 }

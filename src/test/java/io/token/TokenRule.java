@@ -53,7 +53,7 @@ public class TokenRule extends ExternalResource {
     public Account account() {
         Member member = member();
 
-        String alias = member.getFirstAlias();
+        String alias = member.firstAlias();
         String bankId = "bank-id";
         String bankAccountName = "Checking";
         String bankAccountNumber = "iban:" + randomInt(7);

@@ -1,7 +1,7 @@
 package io.token;
 
 import io.token.proto.ProtoJson;
-import io.token.proto.common.account.AccountProtos.AccountLinkPayload;
+import io.token.proto.common.account.AccountProtos.AccountsLinkPayload;
 import io.token.proto.common.device.DeviceProtos.Platform;
 import io.token.security.Crypto;
 import io.token.security.SecretKey;
@@ -22,18 +22,18 @@ public class NotificationsTest {
     @Test
     public void sendNotification() {
         SecretKey key = Crypto.generateSecretKey();
-        String alias = member.getAliases().get(0);
+        String alias = member.aliases().get(0);
         List<String> tags = new ArrayList<>();
         tags.add("my iphone");
         String notificationUri = Util.generateNonce();
         member.subscribeDevice("Token", notificationUri, Platform.TEST, tags);
 
-        byte[] data = ProtoJson.toJson(AccountLinkPayload.newBuilder()
+        byte[] data = ProtoJson.toJson(AccountsLinkPayload.newBuilder()
                         .setAlias(alias)
-                        .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
+                        .addAccounts(AccountsLinkPayload.NamedAccount.newBuilder()
                                 .setName("Checking")
                                 .setAccountNumber("iban:checking"))
-                        .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
+                        .addAccounts(AccountsLinkPayload.NamedAccount.newBuilder()
                                 .setName("Savings")
                                 .setAccountNumber("iban:savings"))
                         .build()).getBytes();
