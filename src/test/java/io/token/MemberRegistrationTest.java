@@ -24,9 +24,9 @@ public class MemberRegistrationTest {
     @Test
     public void loginMember() {
         Member member = rule.member();
-        Member loggedIn = rule.token().login(member.getMemberId(), member.getKey());
+        Member loggedIn = rule.token().login(member.memberId(), member.key());
         assertThat(loggedIn)
-                .hasAliases(member.getAliases())
+                .hasAliases(member.aliases())
                 .hasOneKey();
     }
 

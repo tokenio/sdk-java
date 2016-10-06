@@ -22,20 +22,20 @@ public class AddressTest {
     private Member member = rule.member();
 
     @Test
-    public void createAddress() {
+    public void addAddress() {
         String name = string();
         String data = string();
-        Address address = member.createAddress(name, data);
+        Address address = member.addAddress(name, data);
         assertThat(address.getName()).isEqualTo(name);
         assertThat(address.getData()).isEqualTo(data);
     }
 
     @Test
-    public void createAndGetAddress() {
+    public void addAndGetAddress() {
         String name = string();
         String data = string();
-        Address address = member.createAddress(name, data);
-        Address result = member.lookupAddress(address.getId());
+        Address address = member.addAddress(name, data);
+        Address result = member.getAddress(address.getId());
         assertThat(address).isEqualTo(result);
     }
 
@@ -43,8 +43,8 @@ public class AddressTest {
     public void createAndGetAddresses() {
         Map<String,String> addressMap = map(Sample::string, Sample::string);
         addressMap.forEach((name, data) ->
-                member.createAddress(name, data));
-        List<Address> addresses = member.lookupAddresses();
+                member.addAddress(name, data));
+        List<Address> addresses = member.getAddresses();
 
         List<String> names = addresses.stream()
                 .map(Address::getName)
@@ -60,14 +60,14 @@ public class AddressTest {
 
     @Test
     public void getAddresses_NotFound() {
-        List<Address> addresses = member.lookupAddresses();
+        List<Address> addresses = member.getAddresses();
         assertThat(addresses).isEmpty();
     }
 
     @Test
     public void getAddress_NotFound() {
         String fakeAddressId = string();
-        assertThatExceptionThrownBy(() -> member.lookupAddress(fakeAddressId))
+        assertThatExceptionThrownBy(() -> member.getAddress(fakeAddressId))
                 .isInstanceOf(StatusRuntimeException.class)
                 .matches(ex ->
                         ((StatusRuntimeException)ex).getStatus().getCode() == Status.Code.NOT_FOUND);
@@ -77,12 +77,12 @@ public class AddressTest {
     public void deleteAddress() {
         String name = string();
         String data = string();
-        Address address = member.createAddress(name, data);
-        member.lookupAddress(address.getId());
+        Address address = member.addAddress(name, data);
+        member.getAddress(address.getId());
 
         member.deleteAddress(address.getId());
 
-        assertThatExceptionThrownBy(() -> member.lookupAddress(address.getId()))
+        assertThatExceptionThrownBy(() -> member.getAddress(address.getId()))
                 .isInstanceOf(StatusRuntimeException.class)
                 .matches(ex ->
                         ((StatusRuntimeException)ex).getStatus().getCode() == Status.Code.NOT_FOUND);
@@ -91,7 +91,7 @@ public class AddressTest {
     @Test
     public void deleteAddress_NotFound() {
         String fakeAddressId = string();
-        assertThatExceptionThrownBy(() -> member.lookupAddress(fakeAddressId))
+        assertThatExceptionThrownBy(() -> member.getAddress(fakeAddressId))
                 .isInstanceOf(StatusRuntimeException.class)
                 .matches(ex ->
                         ((StatusRuntimeException)ex).getStatus().getCode() == Status.Code.NOT_FOUND);

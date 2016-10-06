@@ -11,30 +11,30 @@ public class PaymentTokenTest {
     @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
     private final Account payeeAccount = rule.account();
-    private final Member payer = payerAccount.getMember();
-    private final Member payee = payeeAccount.getMember();
+    private final Member payer = payerAccount.member();
+    private final Member payee = payeeAccount.member();
 
     @Test
     public void createPaymentToken() {
         PaymentToken token = payer.createPaymentToken(
                 100.0,
                 "USD",
-                payerAccount.getId(),
-                payee.getFirstAlias(),
+                payerAccount.id(),
+                payee.firstAlias(),
                 "book purchase");
 
         assertThat(token)
                 .hasPayer(payer)
-                .hasRedeemerAlias(payee.getFirstAlias())
+                .hasRedeemerAlias(payee.firstAlias())
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasNoSignatures();
     }
 
     @Test
-    public void lookupPaymentToken() {
-        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.getId());
-        assertThat(payer.lookupPaymentToken(token.getId()))
+    public void getPaymentToken() {
+        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.id());
+        assertThat(payer.getPaymentToken(token.getId()))
                 .hasPayer(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
@@ -42,19 +42,19 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void lookupPaymentTokens() {
-        PaymentToken token1 = payer.createPaymentToken(123.45, "EUR", payerAccount.getId());
-        PaymentToken token2 = payer.createPaymentToken(678.90, "USD", payerAccount.getId());
-        PaymentToken token3 = payer.createPaymentToken(100.99, "USD", payerAccount.getId());
+    public void getPaymentTokens() {
+        PaymentToken token1 = payer.createPaymentToken(123.45, "EUR", payerAccount.id());
+        PaymentToken token2 = payer.createPaymentToken(678.90, "USD", payerAccount.id());
+        PaymentToken token3 = payer.createPaymentToken(100.99, "USD", payerAccount.id());
 
-        assertThat(payer.lookupPaymentTokens(0, 100))
+        assertThat(payer.getPaymentTokens(0, 100))
                 .hasSize(3)
                 .containsOnly(token1, token2, token3);
     }
 
     @Test
     public void endorsePaymentToken() {
-        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.getId());
+        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.id());
         token = payer.endorsePaymentToken(token);
 
         assertThat(token)
@@ -67,7 +67,7 @@ public class PaymentTokenTest {
 
     @Test
     public void cancelPaymentToken() {
-        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.getId());
+        PaymentToken token = payer.createPaymentToken(100.0, "USD", payerAccount.id());
         token = payer.cancelPaymentToken(token);
 
         assertThat(token)
