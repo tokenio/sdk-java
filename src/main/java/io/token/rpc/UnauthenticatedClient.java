@@ -4,7 +4,8 @@ import com.google.protobuf.ByteString;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
-import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.gateway.Gateway.NotifyLinkAccountsRequest;
 import io.token.proto.gateway.Gateway.NotifyLinkAccountsAndAddKeyRequest;
 import io.token.proto.gateway.Gateway.NotifyAddKeyRequest;
@@ -63,14 +64,14 @@ public final class UnauthenticatedClient {
         MemberUpdate update = MemberUpdate.newBuilder()
                 .setMemberId(memberId)
                 .setAddKey(MemberAddKeyOperation.newBuilder()
-                        .setLevel(0) // TODO(alexey): This will be enum at some point.
+                        .setLevel(Level.PRIVILEGED)
                         .setPublicKey(ByteEncoding.serialize(key.getPublicKey())))
                 .build();
 
         return
                 toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
                         .setUpdate(update)
-                        .setSignature(SecurityProtos.Signature.newBuilder()
+                        .setSignature(Signature.newBuilder()
                                 .setKeyId(key.getId())
                                 .setSignature(sign(key, update)))
                         .build()))

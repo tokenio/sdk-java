@@ -1,5 +1,6 @@
 package io.token;
 
+import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.security.Crypto;
 import io.token.security.SecretKey;
 import io.token.util.Util;
@@ -35,8 +36,8 @@ public class MemberRegistrationTest {
         SecretKey key3 = Crypto.generateSecretKey();
 
         Member member = rule.member();
-        member.approveKey(key2.getPublicKey(), 1);
-        member.approveKey(key3.getPublicKey(), 0);
+        member.approveKey(key2.getPublicKey(), Level.STANDARD);
+        member.approveKey(key3.getPublicKey(), Level.PRIVILEGED);
 
         assertThat(member)
                 .hasOneAlias()
@@ -50,7 +51,7 @@ public class MemberRegistrationTest {
         Member member = rule.member();
 
         SecretKey key2 = Crypto.generateSecretKey();
-        member.approveKey(key2.getPublicKey(), 1);
+        member.approveKey(key2.getPublicKey(), Level.STANDARD);
         assertThat(member)
                 .hasNKeys(2)
                 .hasKey(key2.getPublicKey());

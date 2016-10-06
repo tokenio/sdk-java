@@ -5,6 +5,7 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
+import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.transfer.TransferProtos.Source;
@@ -121,7 +122,7 @@ public final class MemberAsync {
      * @param publicKey public key to add to the approved list
      * @param level key security level
      */
-    public Observable<Void> approveKey(byte[] publicKey, int level) {
+    public Observable<Void> approveKey(byte[] publicKey, Level level) {
         return client
                 .addKey(member.build(), level, publicKey)
                 .map(m -> {

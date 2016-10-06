@@ -3,6 +3,7 @@ package io.token;
 import io.token.proto.common.device.DeviceProtos.Platform;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
+import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.security.SecretKey;
 
@@ -93,7 +94,7 @@ public final class Member {
      * @param publicKey public key to add to the approved list
      * @param level key security level
      */
-    public void approveKey(byte[] publicKey, int level) {
+    public void approveKey(byte[] publicKey, Level level) {
         async.approveKey(publicKey, level).toBlocking().single();
     }
 
