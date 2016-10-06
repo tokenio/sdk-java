@@ -1,16 +1,10 @@
 package io.token;
 
-import io.token.proto.ProtoJson;
-import io.token.proto.common.account.AccountProtos.AccountLinkPayload;
-import io.token.proto.common.device.DeviceProtos.Platform;
+import io.token.proto.common.security.SecurityProtos;
 import io.token.security.Crypto;
 import io.token.security.SecretKey;
-import io.token.util.Util;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
@@ -29,7 +23,7 @@ public class LoginWithAlias {
             return 0;
         }).hasMessageContaining("INTERNAL");
 
-        member.approveKey(key.getPublicKey(), 0);
+        member.approveKey(key.getPublicKey(), SecurityProtos.Key.Level.PRIVILEGED);
         Member loggedIn = rule.token().loginWithAlias(alias, key);
         assertThat(loggedIn.getAliases().size()).isEqualTo(1);
     }

@@ -7,6 +7,7 @@ import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
+import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.AccessToken;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
@@ -63,7 +64,7 @@ public final class Client {
      * @param publicKey public key to add to the approved list
      * @return member information
      */
-    public Observable<Member> addKey(Member member, int level, byte[] publicKey) {
+    public Observable<Member> addKey(Member member, Level level, byte[] publicKey) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
