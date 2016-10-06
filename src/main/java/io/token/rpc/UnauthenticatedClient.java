@@ -1,6 +1,5 @@
 package io.token.rpc;
 
-import com.google.protobuf.ByteString;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
@@ -93,7 +92,7 @@ public final class UnauthenticatedClient {
         return  toObservable(gateway.notifyLinkAccounts(NotifyLinkAccountsRequest.newBuilder()
                         .setAlias(alias)
                         .setBankId(bankId)
-                        .setAccountLinkPayload(accountLinkPayload)
+                        .setAccountsLinkPayload(accountLinkPayload)
                         .build()))
                 .map(empty -> null);
     }
@@ -106,8 +105,10 @@ public final class UnauthenticatedClient {
      * @param tags tags for this key
      * @return nothing
      */
-    public Observable<Void> notifyAddKey(String alias, byte[] publicKey,
-                                                   List<String> tags) {
+    public Observable<Void> notifyAddKey(
+            String alias,
+            byte[] publicKey,
+            List<String> tags) {
         return  toObservable(gateway.notifyAddKey(NotifyAddKeyRequest.newBuilder()
                         .setAlias(alias)
                         .setPublicKey(ByteEncoding.serialize(publicKey))
@@ -135,7 +136,7 @@ public final class UnauthenticatedClient {
                         .newBuilder()
                         .setAlias(alias)
                         .setBankId(bankId)
-                        .setAccountLinkPayload(accountLinkPayload)
+                        .setAccountsLinkPayload(accountLinkPayload)
                         .setPublicKey(ByteEncoding.serialize(publicKey))
                         .addAllTags(tags)
                         .build()))

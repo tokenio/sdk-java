@@ -27,7 +27,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Payment
     public TokenAssertion hasPayer(Member member) {
         Assertions
                 .assertThat(actual.getPayload().getPayer().getId())
-                .isEqualTo(member.getMemberId());
+                .isEqualTo(member.memberId());
         return this;
     }
 
@@ -56,7 +56,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Payment
     public TokenAssertion isEndorsedBy(Member... members) {
         return hasKeySignatures(
                 Arrays.stream(members)
-                        .map(Member::getKey)
+                        .map(Member::key)
                         .collect(toList()),
                 ENDORSED);
     }
@@ -64,7 +64,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Payment
     public TokenAssertion isCancelledBy(Member... members) {
         return hasKeySignatures(
                 Arrays.stream(members)
-                        .map(Member::getKey)
+                        .map(Member::key)
                         .collect(toList()),
                 CANCELLED);
     }

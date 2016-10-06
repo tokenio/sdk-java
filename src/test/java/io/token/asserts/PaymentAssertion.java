@@ -45,7 +45,7 @@ public final class PaymentAssertion extends AbstractAssert<PaymentAssertion, Pay
 
     public PaymentAssertion isSignedBy(Member... members) {
         return hasKeySignatures(Arrays.stream(members)
-                        .map(Member::getKey)
+                        .map(Member::key)
                         .collect(toList()));
     }
 

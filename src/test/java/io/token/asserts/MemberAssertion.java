@@ -17,7 +17,7 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
     }
 
     public MemberAssertion hasAlias(String alias) {
-        Assertions.assertThat(actual.getAliases()).contains(alias);
+        Assertions.assertThat(actual.aliases()).contains(alias);
         return this;
     }
 
@@ -26,7 +26,7 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
     }
 
     public MemberAssertion hasAliases(Collection<String> aliases) {
-        Assertions.assertThat(actual.getAliases()).containsOnlyElementsOf(aliases);
+        Assertions.assertThat(actual.aliases()).containsOnlyElementsOf(aliases);
         return this;
     }
 
@@ -35,17 +35,17 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
     }
 
     public MemberAssertion hasNAliases(int count) {
-        Assertions.assertThat(actual.getAliases()).hasSize(count);
+        Assertions.assertThat(actual.aliases()).hasSize(count);
         return this;
     }
 
     public MemberAssertion hasKey(byte[] publicKey) {
-        Assertions.assertThat(actual.getPublicKeys()).contains(publicKey);
+        Assertions.assertThat(actual.publicKeys()).contains(publicKey);
         return this;
     }
 
     public MemberAssertion hasKeys(byte[] ... publicKeys) {
-        Assertions.assertThat(actual.getPublicKeys()).containsOnlyElementsOf(Arrays.asList(publicKeys));
+        Assertions.assertThat(actual.publicKeys()).containsOnlyElementsOf(Arrays.asList(publicKeys));
         return this;
     }
 
@@ -54,7 +54,7 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
     }
 
     public MemberAssertion hasNKeys(int count) {
-        Assertions.assertThat(actual.getPublicKeys()).hasSize(count);
+        Assertions.assertThat(actual.publicKeys()).hasSize(count);
         return this;
     }
 }

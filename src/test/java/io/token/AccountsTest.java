@@ -2,7 +2,7 @@ package io.token;
 
 import io.token.asserts.AccountAssertion;
 import io.token.proto.ProtoJson;
-import io.token.proto.common.account.AccountProtos.AccountLinkPayload;
+import io.token.proto.common.account.AccountProtos.AccountsLinkPayload;
 import io.token.util.codec.ByteEncoding;
 import org.junit.Rule;
 import org.junit.Test;
@@ -18,15 +18,15 @@ public class AccountsTest {
 
     @Test
     public void linkAccounts() {
-        String alias = member.getAliases().get(0);
+        String alias = member.aliases().get(0);
         String bankId = "bank-id";
 
-        byte[] data = ProtoJson.toJson(AccountLinkPayload.newBuilder()
+        byte[] data = ProtoJson.toJson(AccountsLinkPayload.newBuilder()
                 .setAlias(alias)
-                .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
+                .addAccounts(AccountsLinkPayload.NamedAccount.newBuilder()
                         .setName("Checking")
                         .setAccountNumber("iban:checking"))
-                .addAccounts(AccountLinkPayload.NamedAccount.newBuilder()
+                .addAccounts(AccountsLinkPayload.NamedAccount.newBuilder()
                         .setName("Savings")
                         .setAccountNumber("iban:savings"))
                 .build()).getBytes();
@@ -44,12 +44,12 @@ public class AccountsTest {
     }
 
     @Test
-    public void lookupAccounts() {
+    public void getAccounts() {
         linkAccounts();
 
-        List<Account> accounts = member.lookupAccounts()
+        List<Account> accounts = member.getAccounts()
                 .stream()
-                .sorted((a1, a2) -> a1.getName().compareTo(a2.getName()))
+                .sorted((a1, a2) -> a1.name().compareTo(a2.name()))
                 .collect(toList());
 
         assertThat(accounts).hasSize(2);
@@ -61,7 +61,7 @@ public class AccountsTest {
                 .hasName("Savings");
 
         for (Account account : accounts) {
-            account.setAccountName("New " + account.getName());
+            account.setAccountName("New " + account.name());
         }
         AccountAssertion.assertThat(accounts.get(0))
                 .hasId()

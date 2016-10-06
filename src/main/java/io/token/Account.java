@@ -28,22 +28,22 @@ public final class Account {
     /**
      * @return account owner
      */
-    public Member getMember() {
-        return async.getMember().sync();
+    public Member member() {
+        return async.member().sync();
     }
 
     /**
      * @return account id
      */
-    public String getId() {
-        return async.getId();
+    public String id() {
+        return async.id();
     }
 
     /**
      * @return account name
      */
-    public String getName() {
-        return async.getName();
+    public String name() {
+        return async.name();
     }
 
     /**
@@ -61,8 +61,8 @@ public final class Account {
      *
      * @return account balance
      */
-    public Money lookupBalance() {
-        return async.lookupBalance().toBlocking().single();
+    public Money getBalance() {
+        return async.getBalance().toBlocking().single();
     }
 
     /**
@@ -71,8 +71,8 @@ public final class Account {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
-    public Transaction lookupTransaction(String transactionId) {
-        return async.lookupTransaction(transactionId).toBlocking().single();
+    public Transaction getTransaction(String transactionId) {
+        return async.getTransaction(transactionId).toBlocking().single();
     }
 
     /**
@@ -83,7 +83,7 @@ public final class Account {
      * @param limit max number of records to return
      * @return payment record
      */
-    public List<Transaction> lookupTransactions(int offset, int limit) {
-        return async.lookupTransactions(offset, limit).toBlocking().single();
+    public List<Transaction> getTransactions(int offset, int limit) {
+        return async.getTransactions(offset, limit).toBlocking().single();
     }
 }

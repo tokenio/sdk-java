@@ -14,12 +14,12 @@ public final class AccountAssertion extends AbstractAssert<AccountAssertion, Acc
     }
 
     public AccountAssertion hasId() {
-        Assertions.assertThat(actual.getId()).isNotEmpty();
+        Assertions.assertThat(actual.id()).isNotEmpty();
         return this;
     }
 
     public AccountAssertion hasName(String name) {
-        Assertions.assertThat(actual.getName()).isEqualTo(name);
+        Assertions.assertThat(actual.name()).isEqualTo(name);
         return this;
     }
 }
