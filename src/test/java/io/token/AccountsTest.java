@@ -70,4 +70,20 @@ public class AccountsTest {
                 .hasId()
                 .hasName("New Savings");
     }
+
+    @Test
+    public void getAccount() {
+        linkAccounts();
+
+        List<Account> accounts = member.getAccounts()
+                .stream()
+                .sorted((a1, a2) -> a1.name().compareTo(a2.name()))
+                .collect(toList());
+        assertThat(accounts).hasSize(2);
+
+        Account account = member.getAccount(accounts.get(0).id());
+        AccountAssertion.assertThat(account)
+                .hasId()
+                .hasName("Checking");
+    }
 }

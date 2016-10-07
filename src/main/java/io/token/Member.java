@@ -167,6 +167,19 @@ public final class Member {
     }
 
     /**
+     * Looks up a funding bank accounts linked to Token.
+     *
+     * @param accountId account id
+     * @return looked up account
+     */
+    public Account getAccount(String accountId) {
+        return async.getAccount(accountId)
+                .map(AccountAsync::sync)
+                .toBlocking()
+                .single();
+    }
+
+    /**
      * Looks up an existing token payment.
      *
      * @param paymentId ID of the payment record
