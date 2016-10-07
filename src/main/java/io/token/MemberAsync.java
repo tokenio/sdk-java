@@ -6,8 +6,11 @@ import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.token.TokenProtos.AccessToken;
+import io.token.proto.common.token.TokenProtos.AccessToken.Resource;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.TokenMember;
+import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Source;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.rpc.Client;
@@ -16,7 +19,9 @@ import io.token.util.codec.ByteEncoding;
 import rx.Observable;
 
 import javax.annotation.Nullable;
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 import static io.token.util.Util.generateNonce;
 import static java.util.stream.Collectors.toList;
@@ -214,6 +219,19 @@ public final class MemberAsync {
     }
 
     /**
+     * Looks up a funding bank accounts linked to Token.
+     *
+     * @param accountId account id
+     * @param onBehalfOf the on-behalf-of
+     * @return looked up account
+     */
+    public Observable<AccountAsync> getAccount(String accountId, String onBehalfOf) {
+        return client
+                .getAccount(accountId, onBehalfOf)
+                .map(a -> new AccountAsync(this, a, client, Optional.of(onBehalfOf)));
+    }
+
+    /**
      * Looks up an existing token payment.
      *
      * @param paymentId ID of the payment record
@@ -257,12 +275,33 @@ public final class MemberAsync {
     }
 
     /**
+     * Looks up an address by id using an access token
+     *
+     * @param addressId the address id
+     * @param onBehalfOf the on-behalf-of
+     * @return an address record
+     */
+    public Observable<Address> getAddress(String addressId, String onBehalfOf) {
+        return client.getAddress(addressId, onBehalfOf);
+    }
+
+    /**
      * Looks up member addresses
      *
      * @return a list of addresses
      */
     public Observable<List<Address>> getAddresses() {
         return client.getAddresses();
+    }
+
+    /**
+     * Looks up member addresses using an access token
+     *
+     * @param onBehalfOf the on-behalf-of
+     * @return a list of addresses
+     */
+    public Observable<List<Address>> getAddresses(String onBehalfOf) {
+        return client.getAddresses(onBehalfOf);
     }
 
     /**
@@ -405,6 +444,124 @@ public final class MemberAsync {
         }
 
         return client.redeemPaymentToken(payload.build());
+    }
+
+    /**
+     * Looks up an existing transaction for a given account
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @return transaction record
+     */
+    public Observable<Transaction> getTransaction(String accountId, String transactionId) {
+        return client.getTransaction(accountId, transactionId);
+    }
+
+    /**
+     * Looks up an existing transaction for a given account by using an access token
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @param onBehalfOf the On-Behalf-Of value
+     * @return transaction record
+     */
+    public Observable<Transaction> getTransaction(String accountId, String transactionId, String onBehalfOf) {
+        return client.getTransaction(accountId, transactionId, Optional.of(onBehalfOf));
+    }
+
+    /**
+     * Looks up transactions for a given account
+     *
+     * @param accountId the account id
+     * @return a list of transaction records
+     */
+    public Observable<List<Transaction>> getTransactions(String accountId, int offset, int limit) {
+        return client.getTransactions(accountId, offset, limit);
+    }
+
+    /**
+     * Looks up transactions for a given account by using an access token
+     *
+     * @param accountId the account id
+     * @param onBehalfOf the On-Behalf-Of value
+     * @return a list of transaction records
+     */
+    public Observable<List<Transaction>> getTransactions(String accountId, int offset, int limit, String onBehalfOf) {
+        return client.getTransactions(accountId, offset, limit, Optional.of(onBehalfOf));
+    }
+
+    /**
+     * Creates an access token for a list of resources
+     *
+     * @param redeemer the redeemer alias
+     * @param resources a list of resources
+     * @return the access token created
+     */
+    public Observable<AccessToken> createAccessToken(String redeemer, List<Resource> resources) {
+        AccessToken.Payload payload = AccessToken.Payload.newBuilder()
+                .setVersion("1.0")
+                .setNonce(generateNonce())
+                .setMember(TokenMember.newBuilder()
+                        .setId(member.getId()))
+                .setRedeemer(TokenMember.newBuilder()
+                        .setAlias(redeemer))
+                .addAllResources(resources)
+                .build();
+        return client.createAccessToken(payload);
+    }
+
+    /**
+     * Creates an address access token
+     *
+     * @param redeemer the redeemer alias
+     * @param addressId an optional address id
+     * @return the address access token created
+     */
+    public Observable<AccessToken> createAddressAccessToken(
+            String redeemer,
+            Optional<String> addressId) {
+        Resource.Address.Builder address = Resource.Address.newBuilder();
+        addressId.ifPresent(address::setAddressId);
+        Resource resource = Resource.newBuilder()
+                .setAddress(address.build())
+                .build();
+        return createAccessToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates an account access token
+     *
+     * @param redeemer the redeemer alias
+     * @param accountId an optional account id
+     * @return the account access token created
+     */
+    public Observable<AccessToken> createAccountAccessToken(
+            String redeemer,
+            Optional<String>  accountId) {
+        Resource.Account.Builder account = Resource.Account.newBuilder();
+        accountId.ifPresent(account::setAccountId);
+        Resource resource = Resource.newBuilder()
+                .setAccount(account.build())
+                .build();
+        return createAccessToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates a transaction access token
+     *
+     * @param redeemer the redeemer alias
+     * @param accountId an optional account id
+     * @return the transaction access token created
+     */
+    public Observable<AccessToken> createTransactionAccessToken(
+            String redeemer,
+            Optional<String> accountId) {
+        Resource.Transaction.Builder transaction = Resource.Transaction.newBuilder();
+        accountId.ifPresent(transaction::setAccountId);
+        Resource resource = Resource.newBuilder()
+                .setTransaction(transaction.build())
+                .build();
+        return createAccessToken(redeemer, Collections.singletonList(resource));
     }
 
     @Override

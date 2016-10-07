@@ -20,8 +20,10 @@ import rx.Observable;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
-import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.*;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.rpc.util.Converters.toObservable;
 import static io.token.security.Crypto.sign;
 
@@ -64,7 +66,10 @@ public final class Client {
      * @param publicKey public key to add to the approved list
      * @return member information
      */
-    public Observable<Member> addKey(Member member, Level level, byte[] publicKey) {
+    public Observable<Member> addKey(
+            Member member,
+            Level level,
+            byte[] publicKey) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
@@ -81,7 +86,9 @@ public final class Client {
      * @param keyId key ID of the key to remove
      * @return member information
      */
-    public Observable<Member> removeKey(Member member, String keyId) {
+    public Observable<Member> removeKey(
+            Member member,
+            String keyId) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
@@ -97,7 +104,9 @@ public final class Client {
      * @param alias new unique alias to add
      * @return member information
      */
-    public Observable<Member> addAlias(Member member, String alias) {
+    public Observable<Member> addAlias(
+            Member member,
+            String alias) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
@@ -113,7 +122,9 @@ public final class Client {
      * @param alias new unique alias to add
      * @return member information
      */
-    public Observable<Member> removeAlias(Member member, String alias) {
+    public Observable<Member> removeAlias(
+            Member member,
+            String alias) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
@@ -131,8 +142,11 @@ public final class Client {
      * @param tags tags for the device
      * @return nothing
      */
-    public Observable<Void> subscribeDevice(String provider, String notificationUri,
-                                            DeviceProtos.Platform platform, List<String> tags) {
+    public Observable<Void> subscribeDevice(
+            String provider,
+            String notificationUri,
+            DeviceProtos.Platform platform,
+            List<String> tags) {
         return toObservable(gateway.subscribeDevice(SubscribeDeviceRequest.newBuilder()
                 .setProvider(provider)
                 .setNotificationUri(notificationUri)
@@ -149,7 +163,9 @@ public final class Client {
      * @param notificationUri uri of the device (e.g. iOS push token)
      * @return nothing
      */
-    public Observable<Void> unsubscribeDevice(String provider, String notificationUri) {
+    public Observable<Void> unsubscribeDevice(
+            String provider,
+            String notificationUri) {
         return toObservable(gateway.unsubscribeDevice(UnsubscribeDeviceRequest.newBuilder()
                 .setProvider(provider)
                 .setNotificationUri(notificationUri)
@@ -165,7 +181,9 @@ public final class Client {
      *                           by the bank
      * @return list of linked accounts
      */
-    public Observable<List<Account>> linkAccounts(String bankId, String accountLinkPayload) {
+    public Observable<List<Account>> linkAccounts(
+            String bankId,
+            String accountLinkPayload) {
         return toObservable(gateway.linkAccounts(LinkAccountsRequest.newBuilder()
                 .setBankId(bankId)
                 .setAccountsLinkPayload(accountLinkPayload)
@@ -187,6 +205,18 @@ public final class Client {
     }
 
     /**
+     * Looks up a linked funding account using an access token
+     *
+     * @param accountId account id
+     * @param onBehalfOf the on-behalf-of
+     * @return account info
+     */
+    public Observable<Account> getAccount(String accountId, String onBehalfOf) {
+        AuthenticationContext.setOnBehalfOf(onBehalfOf);
+        return getAccount(accountId);
+    }
+
+    /**
      * Looks up all the linked funding accounts.
      *
      * @return list of linked accounts
@@ -204,7 +234,9 @@ public final class Client {
      * @param accountName new name to use
      * @return updated account info
      */
-    public Observable<Account> setAccountName(String accountId, String accountName) {
+    public Observable<Account> setAccountName(
+            String accountId,
+            String accountName) {
         return toObservable(gateway.setAccountName(SetAccountNameRequest.newBuilder()
                 .setAccountId(accountId)
                 .setName(accountName)
@@ -328,6 +360,20 @@ public final class Client {
     }
 
     /**
+     * Looks up account balance by using an access token
+     *
+     * @param accountId account id
+     * @param onBehalfOf an optional on-behalf-of
+     * @return account balance
+     */
+    public Observable<Money> getBalance(
+            String accountId,
+            Optional<String> onBehalfOf) {
+        onBehalfOf.ifPresent(AuthenticationContext::setOnBehalfOf);
+        return getBalance(accountId);
+    }
+
+    /**
      * Looks up an existing payment.
      *
      * @param paymentId payment id
@@ -348,7 +394,10 @@ public final class Client {
      * @param tokenId optional token id to restrict the search
      * @return payment record
      */
-    public Observable<List<Payment>> getPayments(int offset, int limit, @Nullable String tokenId) {
+    public Observable<List<Payment>> getPayments(
+            int offset,
+            int limit,
+            @Nullable String tokenId) {
         GetPaymentsRequest.Builder request = GetPaymentsRequest.newBuilder()
                 .setOffset(offset)
                 .setLimit(limit);
@@ -368,12 +417,29 @@ public final class Client {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
-    public Observable<Transaction> getTransaction(String accountId, String transactionId) {
+    public Observable<Transaction> getTransaction(
+            String accountId,
+            String transactionId) {
         return toObservable(gateway.getTransaction(GetTransactionRequest.newBuilder()
                 .setAccountId(accountId)
                 .setTransactionId(transactionId)
                 .build())
         ).map(GetTransactionResponse::getTransaction);
+    }
+
+    /**
+     * Looks up an existing transaction by using an access token
+     *
+     * @param transactionId ID of the transaction
+     * @param onBehalfOf an optional on-behalf-of
+     * @return transaction record
+     */
+    public Observable<Transaction> getTransaction(
+            String accountId,
+            String transactionId,
+            Optional<String> onBehalfOf) {
+        onBehalfOf.ifPresent(AuthenticationContext::setOnBehalfOf);
+        return getTransaction(accountId, transactionId);
     }
 
     /**
@@ -385,7 +451,10 @@ public final class Client {
      * @param limit max number of records to return
      * @return transaction record
      */
-    public Observable<List<Transaction>> getTransactions(String accountId, int offset, int limit) {
+    public Observable<List<Transaction>> getTransactions(
+            String accountId,
+            int offset,
+            int limit) {
         return toObservable(gateway.getTransactions(GetTransactionsRequest.newBuilder()
                 .setAccountId(accountId)
                 .setOffset(offset)
@@ -395,13 +464,34 @@ public final class Client {
     }
 
     /**
+     * Looks up existing transactions. This is a full list of transactions with token payments
+     * being a subset.
+     *
+     * @param accountId ID of the account
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @param onBehalfOf the on-behalf-of
+     * @return transaction record
+     */
+    public Observable<List<Transaction>> getTransactions(
+            String accountId,
+            int offset,
+            int limit,
+            Optional<String> onBehalfOf) {
+        onBehalfOf.ifPresent(AuthenticationContext::setOnBehalfOf);
+        return getTransactions(accountId, offset, limit);
+    }
+
+    /**
      * Adds a new member address.
      *
      * @param name the name of the address
      * @param address the address json
      * @return an address record created
      */
-    public Observable<Address> addAddress(String name, String address) {
+    public Observable<Address> addAddress(
+            String name,
+            String address) {
         return toObservable(gateway.addAddress(AddAddressRequest.newBuilder()
                 .setName(name)
                 .setData(address)
@@ -427,6 +517,20 @@ public final class Client {
     }
 
     /**
+     * Looks up an address by id using an access token
+     *
+     * @param addressId the address id
+     * @param onBehalfOf the on-behalf-of
+     * @return an address record
+     */
+    public Observable<Address> getAddress(
+            String addressId,
+            String onBehalfOf) {
+        AuthenticationContext.setOnBehalfOf(onBehalfOf);
+        return getAddress(addressId);
+    }
+
+    /**
      * Looks up member addresses
      *
      * @return a list of addresses
@@ -435,6 +539,17 @@ public final class Client {
         return toObservable(gateway.getAddresses(GetAddressesRequest.newBuilder()
                 .build())
         ).map(GetAddressesResponse::getAddressesList);
+    }
+
+    /**
+     * Looks up member addresses using an access token
+     *
+     * @param onBehalfOf the on-behalf-of
+     * @return a list of addresses
+     */
+    public Observable<List<Address>> getAddresses(String onBehalfOf) {
+        AuthenticationContext.setOnBehalfOf(onBehalfOf);
+        return getAddresses();
     }
 
     /**

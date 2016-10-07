@@ -4,11 +4,15 @@ import io.token.proto.common.device.DeviceProtos.Platform;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.token.TokenProtos.AccessToken;
+import io.token.proto.common.token.TokenProtos.AccessToken.Resource;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
+import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.security.SecretKey;
 
 import javax.annotation.Nullable;
 import java.util.List;
+import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
@@ -180,6 +184,20 @@ public final class Member {
     }
 
     /**
+     * Looks up a funding bank account using an access token
+     *
+     * @param accountId account id
+     * @param onBehalfOf the on-behalf-of
+     * @return looked up account
+     */
+    public Account getAccount(String accountId, String onBehalfOf) {
+        return async.getAccount(accountId, onBehalfOf)
+                .map(AccountAsync::sync)
+                .toBlocking()
+                .single();
+    }
+
+    /**
      * Looks up an existing token payment.
      *
      * @param paymentId ID of the payment record
@@ -223,12 +241,37 @@ public final class Member {
     }
 
     /**
+     * Looks up an address by id using access token
+     *
+     * @param addressId the address id
+     * @param onBehalfOf the on-behalf-of
+     * @return an address record
+     */
+    public Address getAddress(String addressId, String onBehalfOf) {
+        return async.getAddress(addressId, onBehalfOf)
+                .toBlocking()
+                .single();
+    }
+
+    /**
      * Looks up member addresses.
      *
      * @return a list of addresses
      */
     public List<Address> getAddresses() {
         return async.getAddresses().toBlocking().single();
+    }
+
+    /**
+     * Looks up member addresses using access token
+     *
+     * @param onBehalfOf the on-behalf-of
+     * @return a list of addresses
+     */
+    public List<Address> getAddresses(String onBehalfOf) {
+        return async.getAddresses(onBehalfOf)
+                .toBlocking()
+                .single();
     }
 
     /**
@@ -336,6 +379,110 @@ public final class Member {
      */
     public Payment redeemPaymentToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
         return async.redeemPaymentToken(token, amount, currency).toBlocking().single();
+    }
+
+    /**
+     * Looks up an existing transaction for a given account
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @return transaction record
+     */
+    public Transaction getTransaction(String accountId, String transactionId) {
+        return async.getTransaction(accountId, transactionId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Looks up an existing transaction for a given account by using an access token
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @onBehalfOf the On-Behalf-Of value
+     * @return transaction record
+     */
+    public Transaction getTransaction(String accountId, String transactionId, String onBehalfOf) {
+        return async.getTransaction(accountId, transactionId, onBehalfOf)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Looks up transactions for a given account
+     *
+     * @param accountId the account id
+     * @return a list of transaction record
+     */
+    public List<Transaction> getTransactions(String accountId, int offset, int limit) {
+        return async.getTransactions(accountId, offset, limit)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Looks up transactions for a given account by using an access token
+     *
+     * @param accountId the account id
+     * @param onBehalfOf the On-Behalf-Of value
+     * @return a list of transaction record
+     */
+    public List<Transaction> getTransactions(String accountId, int offset, int limit, String onBehalfOf) {
+        return async.getTransactions(accountId, offset, limit, onBehalfOf)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates an access token for a list of resources
+     *
+     * @param redeemer the redeemer alias
+     * @param resources a list of resources
+     * @return the access token created
+     */
+    public AccessToken createAccessToken(String redeemer, List<Resource> resources) {
+        return async.createAccessToken(redeemer, resources)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates an address access token
+     *
+     * @param redeemer the redeemer alias
+     * @param addressId an optional address id
+     * @return the address access token created
+     */
+    public AccessToken createAddressAccessToken(String redeemer, Optional<String> addressId) {
+        return async.createAddressAccessToken(redeemer, addressId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates an account access token
+     *
+     * @param redeemer the redeemer alias
+     * @param accountId an optional account id
+     * @return the account access token created
+     */
+    public AccessToken createAccountAccessToken(String redeemer, Optional<String> accountId) {
+        return async.createAccountAccessToken(redeemer, accountId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a transaction access token
+     *
+     * @param redeemer the redeemer alias
+     * @param accountId an optional account id
+     * @return the transaction access token created
+     */
+    public AccessToken createTransactionAccessToken(String redeemer, Optional<String>  accountId) {
+        return async.createTransactionAccessToken(redeemer, accountId)
+                .toBlocking()
+                .single();
     }
 
     @Override
