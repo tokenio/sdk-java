@@ -307,7 +307,7 @@ public final class Client {
     public Observable<Payment> redeemPaymentToken(PaymentPayload payment) {
         return toObservable(gateway.redeemPaymentToken(RedeemPaymentTokenRequest.newBuilder()
                 .setPayload(payment)
-                .setSignature(Signature.newBuilder()
+                .setPayloadSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, payment)))
                 .build())
@@ -405,7 +405,7 @@ public final class Client {
         return toObservable(gateway.addAddress(AddAddressRequest.newBuilder()
                 .setName(name)
                 .setData(address)
-                .setSignature(Signature.newBuilder()
+                .setDataSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, address))
                         .build())
@@ -452,7 +452,7 @@ public final class Client {
     private Observable<Member> updateMember(MemberUpdate update) {
         return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
                 .setUpdate(update)
-                .setSignature(Signature.newBuilder()
+                .setUpdateSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, update)))
                 .build())
