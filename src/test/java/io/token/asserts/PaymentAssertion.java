@@ -39,7 +39,7 @@ public final class PaymentAssertion extends AbstractAssert<PaymentAssertion, Pay
     }
 
     public PaymentAssertion hasNSignatures(int count) {
-        Assertions.assertThat(actual.getSignatureCount()).isEqualTo(count);
+        Assertions.assertThat(actual.getPayloadSignaturesCount()).isEqualTo(count);
         return this;
     }
 
@@ -50,7 +50,7 @@ public final class PaymentAssertion extends AbstractAssert<PaymentAssertion, Pay
     }
 
     public PaymentAssertion hasNoSignatures() {
-        Assertions.assertThat(actual.getSignatureList()).isEmpty();
+        Assertions.assertThat(actual.getPayloadSignaturesList()).isEmpty();
         return this;
     }
 
@@ -60,7 +60,7 @@ public final class PaymentAssertion extends AbstractAssert<PaymentAssertion, Pay
     }
 
     private PaymentAssertion hasKeySignatures(String[] keyIds) {
-        List<String> signatures = actual.getSignatureList()
+        List<String> signatures = actual.getPayloadSignaturesList()
                 .stream()
                 .map(SecurityProtos.Signature::getKeyId)
                 .collect(toList());

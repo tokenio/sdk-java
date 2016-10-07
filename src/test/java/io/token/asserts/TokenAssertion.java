@@ -49,7 +49,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Payment
     }
 
     public TokenAssertion hasNSignatures(int count) {
-        Assertions.assertThat(actual.getSignaturesCount()).isEqualTo(count);
+        Assertions.assertThat(actual.getPayloadSignaturesCount()).isEqualTo(count);
         return this;
     }
 
@@ -70,7 +70,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Payment
     }
 
     public TokenAssertion hasNoSignatures() {
-        Assertions.assertThat(actual.getSignaturesList()).isEmpty();
+        Assertions.assertThat(actual.getPayloadSignaturesList()).isEmpty();
         return this;
     }
 
@@ -80,7 +80,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Payment
     }
 
     private TokenAssertion hasKeySignatures(String[] keyIds, @Nullable Action action) {
-        List<String> signatures = actual.getSignaturesList()
+        List<String> signatures = actual.getPayloadSignaturesList()
                 .stream()
                 .filter(s -> action == null || action == s.getAction())
                 .map(s -> s.getSignature().getKeyId())
