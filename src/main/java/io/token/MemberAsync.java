@@ -202,6 +202,18 @@ public final class MemberAsync {
     }
 
     /**
+     * Looks up a funding bank accounts linked to Token.
+     *
+     * @param accountId account id
+     * @return looked up account
+     */
+    public Observable<AccountAsync> getAccount(String accountId) {
+        return client
+                .getAccount(accountId)
+                .map(a -> new AccountAsync(this, a, client));
+    }
+
+    /**
      * Looks up an existing token payment.
      *
      * @param paymentId ID of the payment record
