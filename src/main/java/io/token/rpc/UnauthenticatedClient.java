@@ -70,7 +70,7 @@ public final class UnauthenticatedClient {
         return
                 toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
                         .setUpdate(update)
-                        .setSignature(Signature.newBuilder()
+                        .setUpdateSignature(Signature.newBuilder()
                                 .setKeyId(key.getId())
                                 .setSignature(sign(key, update)))
                         .build()))
