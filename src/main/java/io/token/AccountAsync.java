@@ -7,7 +7,6 @@ import io.token.rpc.Client;
 import rx.Observable;
 
 import java.util.List;
-import java.util.Optional;
 
 /**
  * Represents a funding account in the Token system.
@@ -16,7 +15,6 @@ public final class AccountAsync {
     private final MemberAsync member;
     private final AccountProtos.Account.Builder account;
     private final Client client;
-    private final Optional<String> onBehalfOf;
 
     /**
      * @param member account owner
@@ -24,20 +22,9 @@ public final class AccountAsync {
      * @param client RPC client used to perform operations against the server
      */
     AccountAsync(MemberAsync member, AccountProtos.Account account, Client client) {
-       this(member, account, client, Optional.empty());
-    }
-
-    /**
-     * @param member account owner
-     * @param account account information
-     * @param client RPC client used to perform operations against the server
-     * @param onBehalfOf the On-Behalf-Of value to be used with this account
-     */
-    AccountAsync(MemberAsync member, AccountProtos.Account account, Client client, Optional<String> onBehalfOf) {
         this.member = member;
         this.account = account.toBuilder();
         this.client = client;
-        this.onBehalfOf = onBehalfOf;
     }
 
     /**
@@ -88,7 +75,7 @@ public final class AccountAsync {
      * @return account balance
      */
     public Observable<Money> getBalance() {
-        return client.getBalance(account.getId(), onBehalfOf);
+        return client.getBalance(account.getId());
     }
 
     /**
@@ -98,7 +85,7 @@ public final class AccountAsync {
      * @return transaction record
      */
     public Observable<Transaction> getTransaction(String transactionId) {
-        return client.getTransaction(account.getId(), transactionId, onBehalfOf);
+        return client.getTransaction(account.getId(), transactionId);
     }
 
     /**
@@ -110,6 +97,6 @@ public final class AccountAsync {
      * @return payment record
      */
     public Observable<List<Transaction>> getTransactions(int offset, int limit) {
-        return client.getTransactions(account.getId(), offset, limit, onBehalfOf);
+        return client.getTransactions(account.getId(), offset, limit);
     }
 }

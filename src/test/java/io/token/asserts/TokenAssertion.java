@@ -12,7 +12,8 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
-import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.*;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static java.util.stream.Collectors.toList;
 
 public final class TokenAssertion extends AbstractAssert<TokenAssertion, PaymentToken> {

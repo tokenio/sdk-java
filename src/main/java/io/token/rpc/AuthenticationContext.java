@@ -3,7 +3,7 @@ package io.token.rpc;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Optional;
+import javax.annotation.Nullable;
 
 /**
  * Authentication context. Stores the value of On-Behalf-Of in the
@@ -37,10 +37,10 @@ public class AuthenticationContext {
      *
      * @return an optional On-Behalf-Of value
      */
-    public static Optional<String> clearOnBehalfOf() {
+    public static @Nullable String clearOnBehalfOf() {
         String tokenId = onBehalfOf.get();
         onBehalfOf.remove();
-        return Optional.ofNullable(tokenId);
+        return tokenId;
     }
 
     /**
