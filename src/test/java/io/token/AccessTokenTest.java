@@ -10,7 +10,6 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
-import java.util.Optional;
 
 import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -29,15 +28,17 @@ public class AccessTokenTest {
         Address address1 = member1.addAddress(string(), string());
         AccessToken accessToken = member1.createAddressAccessToken(
                 member2.firstAlias(),
-                Optional.of(address1.getId()));
+                address1.getId());
 
         assertThatExceptionThrownBy( () ->
                 member2.getAddress(address1.getId())
         );
 
-        Address result = member2.getAddress(address1.getId(), accessToken.getId());
+        member2.setOnBehalfOf(accessToken.getId());
+        Address result = member2.getAddress(address1.getId());
         assertThat(result).isEqualTo(address1);
 
+        member2.clearOnBehalfOf();
         assertThatExceptionThrownBy( () ->
                 member2.getAddress(address1.getId())
         );
@@ -49,9 +50,10 @@ public class AccessTokenTest {
         Address address2 = member1.addAddress(string(), string());
         AccessToken accessToken = member1.createAddressAccessToken(
                 member2.firstAlias(),
-                Optional.of(address1.getId()));
+                address1.getId());
+        member2.setOnBehalfOf(accessToken.getId());
         assertThatExceptionThrownBy( () ->
-                member2.getAddress(address2.getId(), accessToken.getId())
+                member2.getAddress(address2.getId())
         );
     }
 
@@ -61,8 +63,9 @@ public class AccessTokenTest {
         Address address2 = member1.addAddress(string(), string());
         AccessToken accessToken = member1.createAddressAccessToken(
                 member2.firstAlias(),
-                Optional.empty());
-        Address result = member2.getAddress(address2.getId(), accessToken.getId());
+                null);
+        member2.setOnBehalfOf(accessToken.getId());
+        Address result = member2.getAddress(address2.getId());
         assertThat(result).isEqualTo(address2);
         assertThat(result).isNotEqualTo(address1);
     }
@@ -73,14 +76,14 @@ public class AccessTokenTest {
         Member accountMember = account.member();
         AccessToken accessToken = accountMember.createAccountAccessToken(
                 member1.firstAlias(),
-                Optional.of(account.id()));
+                account.id());
 
         assertThatExceptionThrownBy( () ->
                 member1.getAccount(account.id())
         );
 
-        String onBehalfOf = accessToken.getId();
-        Account resultAccount = member1.getAccount(account.id(), onBehalfOf);
+        member1.setOnBehalfOf(accessToken.getId());
+        Account resultAccount = member1.getAccount(account.id());
         Money balance = resultAccount.getBalance();
 
         assertThat(balance).isEqualTo(account.getBalance());
@@ -96,10 +99,10 @@ public class AccessTokenTest {
 
         AccessToken accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
-                Optional.of(payerAccount.id()));
+                payerAccount.id());
 
-        String onBehalfOf = accessToken.getId();
-        Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId(), onBehalfOf);
+        member1.setOnBehalfOf(accessToken.getId());
+        Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId());
 
         assertThat(result).isEqualTo(transaction);
     }
@@ -110,10 +113,10 @@ public class AccessTokenTest {
 
         AccessToken accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
-                Optional.empty());
+                null);
 
-        String onBehalfOf = accessToken.getId();
-        Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId(), onBehalfOf);
+        member1.setOnBehalfOf(accessToken.getId());
+        Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId());
 
         assertThat(result).isEqualTo(transaction);
     }
@@ -124,10 +127,10 @@ public class AccessTokenTest {
 
         AccessToken accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
-                Optional.empty());
+                null);
 
-        String onBehalfOf = accessToken.getId();
-        List<Transaction> result = member1.getTransactions(payerAccount.id(), 0, 1, onBehalfOf);
+        member1.setOnBehalfOf(accessToken.getId());
+        List<Transaction> result = member1.getTransactions(payerAccount.id(), 0, 1);
 
         assertThat(result).contains(transaction);
     }

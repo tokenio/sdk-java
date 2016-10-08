@@ -20,7 +20,6 @@ import rx.Observable;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
@@ -35,6 +34,7 @@ import static io.token.security.Crypto.sign;
 public final class Client {
     private final SecretKey key;
     private final GatewayServiceFutureStub gateway;
+    private String onBehalfOf;
 
     /**
      * @param key secret key that is used to sign payload for certain requests.
@@ -45,6 +45,24 @@ public final class Client {
     public Client(SecretKey key, GatewayServiceFutureStub gateway) {
         this.key = key;
         this.gateway = gateway;
+    }
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member.
+     *
+     * @param onBehalfOf the on-behalf-of value
+     */
+    public void setAuthenticationContext(String onBehalfOf) {
+        this.onBehalfOf = onBehalfOf;
+    }
+
+    /**
+     * Clears the On-Behalf-Of value used with this client.
+     */
+    public void clearOnBehalfOf() {
+        this.onBehalfOf = null;
     }
 
     /**
@@ -198,22 +216,11 @@ public final class Client {
      * @return account info
      */
     public Observable<Account> getAccount(String accountId) {
+        setAuthenticationContext();
         return toObservable(gateway.getAccount(GetAccountRequest.newBuilder()
                 .setAccountId(accountId)
                 .build())
         ).map(GetAccountResponse::getAccount);
-    }
-
-    /**
-     * Looks up a linked funding account using an access token
-     *
-     * @param accountId account id
-     * @param onBehalfOf the on-behalf-of
-     * @return account info
-     */
-    public Observable<Account> getAccount(String accountId, String onBehalfOf) {
-        AuthenticationContext.setOnBehalfOf(onBehalfOf);
-        return getAccount(accountId);
     }
 
     /**
@@ -222,6 +229,7 @@ public final class Client {
      * @return list of linked accounts
      */
     public Observable<List<Account>> getAccounts() {
+        setAuthenticationContext();
         return toObservable(gateway.getAccounts(GetAccountsRequest.newBuilder()
                 .build())
         ).map(GetAccountsResponse::getAccountsList);
@@ -353,24 +361,11 @@ public final class Client {
      * @return account balance
      */
     public Observable<Money> getBalance(String accountId) {
+        setAuthenticationContext();
         return toObservable(gateway.getBalance(GetBalanceRequest.newBuilder()
                 .setAccountId(accountId)
                 .build())
         ).map(GetBalanceResponse::getCurrent);
-    }
-
-    /**
-     * Looks up account balance by using an access token
-     *
-     * @param accountId account id
-     * @param onBehalfOf an optional on-behalf-of
-     * @return account balance
-     */
-    public Observable<Money> getBalance(
-            String accountId,
-            Optional<String> onBehalfOf) {
-        onBehalfOf.ifPresent(AuthenticationContext::setOnBehalfOf);
-        return getBalance(accountId);
     }
 
     /**
@@ -420,26 +415,12 @@ public final class Client {
     public Observable<Transaction> getTransaction(
             String accountId,
             String transactionId) {
+        setAuthenticationContext();
         return toObservable(gateway.getTransaction(GetTransactionRequest.newBuilder()
                 .setAccountId(accountId)
                 .setTransactionId(transactionId)
                 .build())
         ).map(GetTransactionResponse::getTransaction);
-    }
-
-    /**
-     * Looks up an existing transaction by using an access token
-     *
-     * @param transactionId ID of the transaction
-     * @param onBehalfOf an optional on-behalf-of
-     * @return transaction record
-     */
-    public Observable<Transaction> getTransaction(
-            String accountId,
-            String transactionId,
-            Optional<String> onBehalfOf) {
-        onBehalfOf.ifPresent(AuthenticationContext::setOnBehalfOf);
-        return getTransaction(accountId, transactionId);
     }
 
     /**
@@ -455,31 +436,13 @@ public final class Client {
             String accountId,
             int offset,
             int limit) {
+        setAuthenticationContext();
         return toObservable(gateway.getTransactions(GetTransactionsRequest.newBuilder()
                 .setAccountId(accountId)
                 .setOffset(offset)
                 .setLimit(limit)
                 .build())
         ).map(GetTransactionsResponse::getTransactionsList);
-    }
-
-    /**
-     * Looks up existing transactions. This is a full list of transactions with token payments
-     * being a subset.
-     *
-     * @param accountId ID of the account
-     * @param offset offset to start at
-     * @param limit max number of records to return
-     * @param onBehalfOf the on-behalf-of
-     * @return transaction record
-     */
-    public Observable<List<Transaction>> getTransactions(
-            String accountId,
-            int offset,
-            int limit,
-            Optional<String> onBehalfOf) {
-        onBehalfOf.ifPresent(AuthenticationContext::setOnBehalfOf);
-        return getTransactions(accountId, offset, limit);
     }
 
     /**
@@ -510,24 +473,11 @@ public final class Client {
      * @return an address record
      */
     public Observable<Address> getAddress(String addressId) {
+        setAuthenticationContext();
         return toObservable(gateway.getAddress(GetAddressRequest.newBuilder()
                 .setAddressId(addressId)
                 .build())
         ).map(GetAddressResponse::getAddress);
-    }
-
-    /**
-     * Looks up an address by id using an access token
-     *
-     * @param addressId the address id
-     * @param onBehalfOf the on-behalf-of
-     * @return an address record
-     */
-    public Observable<Address> getAddress(
-            String addressId,
-            String onBehalfOf) {
-        AuthenticationContext.setOnBehalfOf(onBehalfOf);
-        return getAddress(addressId);
     }
 
     /**
@@ -536,20 +486,10 @@ public final class Client {
      * @return a list of addresses
      */
     public Observable<List<Address>> getAddresses() {
+        setAuthenticationContext();
         return toObservable(gateway.getAddresses(GetAddressesRequest.newBuilder()
                 .build())
         ).map(GetAddressesResponse::getAddressesList);
-    }
-
-    /**
-     * Looks up member addresses using an access token
-     *
-     * @param onBehalfOf the on-behalf-of
-     * @return a list of addresses
-     */
-    public Observable<List<Address>> getAddresses(String onBehalfOf) {
-        AuthenticationContext.setOnBehalfOf(onBehalfOf);
-        return getAddresses();
     }
 
     /**
@@ -572,5 +512,11 @@ public final class Client {
                         .setSignature(sign(key, update)))
                 .build())
         ).map(UpdateMemberResponse::getMember);
+    }
+
+    private void setAuthenticationContext() {
+        if(onBehalfOf != null) {
+            AuthenticationContext.setOnBehalfOf(onBehalfOf);
+        }
     }
 }

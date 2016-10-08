@@ -12,7 +12,6 @@ import io.token.security.SecretKey;
 
 import javax.annotation.Nullable;
 import java.util.List;
-import java.util.Optional;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
@@ -23,6 +22,24 @@ import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToStrin
  */
 public final class Member {
     private final MemberAsync async;
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member.
+     *
+     * @param onBehalfOf the on-behalf-of value
+     */
+    public void setOnBehalfOf(String onBehalfOf) {
+        this.async.setOnBehalfOf(onBehalfOf);
+    }
+
+    /**
+     * Clears the On-Behalf-Of value used with this client.
+     */
+    public void clearOnBehalfOf() {
+        this.async.clearOnBehalfOf();
+    }
 
     /**
      * @param async real implementation that the calls are delegated to
@@ -184,20 +201,6 @@ public final class Member {
     }
 
     /**
-     * Looks up a funding bank account using an access token
-     *
-     * @param accountId account id
-     * @param onBehalfOf the on-behalf-of
-     * @return looked up account
-     */
-    public Account getAccount(String accountId, String onBehalfOf) {
-        return async.getAccount(accountId, onBehalfOf)
-                .map(AccountAsync::sync)
-                .toBlocking()
-                .single();
-    }
-
-    /**
      * Looks up an existing token payment.
      *
      * @param paymentId ID of the payment record
@@ -241,37 +244,12 @@ public final class Member {
     }
 
     /**
-     * Looks up an address by id using access token
-     *
-     * @param addressId the address id
-     * @param onBehalfOf the on-behalf-of
-     * @return an address record
-     */
-    public Address getAddress(String addressId, String onBehalfOf) {
-        return async.getAddress(addressId, onBehalfOf)
-                .toBlocking()
-                .single();
-    }
-
-    /**
      * Looks up member addresses.
      *
      * @return a list of addresses
      */
     public List<Address> getAddresses() {
         return async.getAddresses().toBlocking().single();
-    }
-
-    /**
-     * Looks up member addresses using access token
-     *
-     * @param onBehalfOf the on-behalf-of
-     * @return a list of addresses
-     */
-    public List<Address> getAddresses(String onBehalfOf) {
-        return async.getAddresses(onBehalfOf)
-                .toBlocking()
-                .single();
     }
 
     /**
@@ -395,20 +373,6 @@ public final class Member {
     }
 
     /**
-     * Looks up an existing transaction for a given account by using an access token
-     *
-     * @param accountId the account id
-     * @param transactionId ID of the transaction
-     * @onBehalfOf the On-Behalf-Of value
-     * @return transaction record
-     */
-    public Transaction getTransaction(String accountId, String transactionId, String onBehalfOf) {
-        return async.getTransaction(accountId, transactionId, onBehalfOf)
-                .toBlocking()
-                .single();
-    }
-
-    /**
      * Looks up transactions for a given account
      *
      * @param accountId the account id
@@ -416,19 +380,6 @@ public final class Member {
      */
     public List<Transaction> getTransactions(String accountId, int offset, int limit) {
         return async.getTransactions(accountId, offset, limit)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Looks up transactions for a given account by using an access token
-     *
-     * @param accountId the account id
-     * @param onBehalfOf the On-Behalf-Of value
-     * @return a list of transaction record
-     */
-    public List<Transaction> getTransactions(String accountId, int offset, int limit, String onBehalfOf) {
-        return async.getTransactions(accountId, offset, limit, onBehalfOf)
                 .toBlocking()
                 .single();
     }
@@ -453,7 +404,7 @@ public final class Member {
      * @param addressId an optional address id
      * @return the address access token created
      */
-    public AccessToken createAddressAccessToken(String redeemer, Optional<String> addressId) {
+    public AccessToken createAddressAccessToken(String redeemer, @Nullable String addressId) {
         return async.createAddressAccessToken(redeemer, addressId)
                 .toBlocking()
                 .single();
@@ -466,7 +417,7 @@ public final class Member {
      * @param accountId an optional account id
      * @return the account access token created
      */
-    public AccessToken createAccountAccessToken(String redeemer, Optional<String> accountId) {
+    public AccessToken createAccountAccessToken(String redeemer, @Nullable String accountId) {
         return async.createAccountAccessToken(redeemer, accountId)
                 .toBlocking()
                 .single();
@@ -479,7 +430,7 @@ public final class Member {
      * @param accountId an optional account id
      * @return the transaction access token created
      */
-    public AccessToken createTransactionAccessToken(String redeemer, Optional<String>  accountId) {
+    public AccessToken createTransactionAccessToken(String redeemer, @Nullable String  accountId) {
         return async.createTransactionAccessToken(redeemer, accountId)
                 .toBlocking()
                 .single();

@@ -21,7 +21,6 @@ import rx.Observable;
 import javax.annotation.Nullable;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 import static io.token.util.Util.generateNonce;
 import static java.util.stream.Collectors.toList;
@@ -45,6 +44,24 @@ public final class MemberAsync {
         this.key = key;
         this.client = client;
         this.member = member.toBuilder();
+    }
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member.
+     *
+     * @param onBehalfOf the on-behalf-of value
+     */
+    public void setOnBehalfOf(String onBehalfOf) {
+        this.client.setAuthenticationContext(onBehalfOf);
+    }
+
+    /**
+     * Clears the On-Behalf-Of value used with this client.
+     */
+    public void clearOnBehalfOf() {
+        this.client.clearOnBehalfOf();
     }
 
     /**
@@ -219,19 +236,6 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up a funding bank accounts linked to Token.
-     *
-     * @param accountId account id
-     * @param onBehalfOf the on-behalf-of
-     * @return looked up account
-     */
-    public Observable<AccountAsync> getAccount(String accountId, String onBehalfOf) {
-        return client
-                .getAccount(accountId, onBehalfOf)
-                .map(a -> new AccountAsync(this, a, client, Optional.of(onBehalfOf)));
-    }
-
-    /**
      * Looks up an existing token payment.
      *
      * @param paymentId ID of the payment record
@@ -275,33 +279,12 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up an address by id using an access token
-     *
-     * @param addressId the address id
-     * @param onBehalfOf the on-behalf-of
-     * @return an address record
-     */
-    public Observable<Address> getAddress(String addressId, String onBehalfOf) {
-        return client.getAddress(addressId, onBehalfOf);
-    }
-
-    /**
      * Looks up member addresses
      *
      * @return a list of addresses
      */
     public Observable<List<Address>> getAddresses() {
         return client.getAddresses();
-    }
-
-    /**
-     * Looks up member addresses using an access token
-     *
-     * @param onBehalfOf the on-behalf-of
-     * @return a list of addresses
-     */
-    public Observable<List<Address>> getAddresses(String onBehalfOf) {
-        return client.getAddresses(onBehalfOf);
     }
 
     /**
@@ -458,18 +441,6 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up an existing transaction for a given account by using an access token
-     *
-     * @param accountId the account id
-     * @param transactionId ID of the transaction
-     * @param onBehalfOf the On-Behalf-Of value
-     * @return transaction record
-     */
-    public Observable<Transaction> getTransaction(String accountId, String transactionId, String onBehalfOf) {
-        return client.getTransaction(accountId, transactionId, Optional.of(onBehalfOf));
-    }
-
-    /**
      * Looks up transactions for a given account
      *
      * @param accountId the account id
@@ -477,17 +448,6 @@ public final class MemberAsync {
      */
     public Observable<List<Transaction>> getTransactions(String accountId, int offset, int limit) {
         return client.getTransactions(accountId, offset, limit);
-    }
-
-    /**
-     * Looks up transactions for a given account by using an access token
-     *
-     * @param accountId the account id
-     * @param onBehalfOf the On-Behalf-Of value
-     * @return a list of transaction records
-     */
-    public Observable<List<Transaction>> getTransactions(String accountId, int offset, int limit, String onBehalfOf) {
-        return client.getTransactions(accountId, offset, limit, Optional.of(onBehalfOf));
     }
 
     /**
@@ -519,9 +479,11 @@ public final class MemberAsync {
      */
     public Observable<AccessToken> createAddressAccessToken(
             String redeemer,
-            Optional<String> addressId) {
+            @Nullable String addressId) {
         Resource.Address.Builder address = Resource.Address.newBuilder();
-        addressId.ifPresent(address::setAddressId);
+        if(addressId != null) {
+            address.setAddressId(addressId);
+        }
         Resource resource = Resource.newBuilder()
                 .setAddress(address.build())
                 .build();
@@ -537,9 +499,11 @@ public final class MemberAsync {
      */
     public Observable<AccessToken> createAccountAccessToken(
             String redeemer,
-            Optional<String>  accountId) {
+            @Nullable String  accountId) {
         Resource.Account.Builder account = Resource.Account.newBuilder();
-        accountId.ifPresent(account::setAccountId);
+        if(accountId != null) {
+            account.setAccountId(accountId);
+        }
         Resource resource = Resource.newBuilder()
                 .setAccount(account.build())
                 .build();
@@ -555,9 +519,11 @@ public final class MemberAsync {
      */
     public Observable<AccessToken> createTransactionAccessToken(
             String redeemer,
-            Optional<String> accountId) {
+            @Nullable String accountId) {
         Resource.Transaction.Builder transaction = Resource.Transaction.newBuilder();
-        accountId.ifPresent(transaction::setAccountId);
+        if(accountId != null) {
+            transaction.setAccountId(accountId);
+        }
         Resource resource = Resource.newBuilder()
                 .setTransaction(transaction.build())
                 .build();
