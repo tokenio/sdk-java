@@ -21,7 +21,8 @@ import rx.Observable;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.*;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.rpc.util.Converters.toObservable;
 import static io.token.security.Crypto.sign;
 
@@ -33,6 +34,7 @@ import static io.token.security.Crypto.sign;
 public final class Client {
     private final SecretKey key;
     private final GatewayServiceFutureStub gateway;
+    private String onBehalfOf;
 
     /**
      * @param key secret key that is used to sign payload for certain requests.
@@ -43,6 +45,24 @@ public final class Client {
     public Client(SecretKey key, GatewayServiceFutureStub gateway) {
         this.key = key;
         this.gateway = gateway;
+    }
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member.
+     *
+     * @param onBehalfOf the on-behalf-of value
+     */
+    public void setAuthenticationContext(String onBehalfOf) {
+        this.onBehalfOf = onBehalfOf;
+    }
+
+    /**
+     * Clears the On-Behalf-Of value used with this client.
+     */
+    public void clearOnBehalfOf() {
+        this.onBehalfOf = null;
     }
 
     /**
@@ -64,7 +84,10 @@ public final class Client {
      * @param publicKey public key to add to the approved list
      * @return member information
      */
-    public Observable<Member> addKey(Member member, Level level, byte[] publicKey) {
+    public Observable<Member> addKey(
+            Member member,
+            Level level,
+            byte[] publicKey) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
@@ -81,7 +104,9 @@ public final class Client {
      * @param keyId key ID of the key to remove
      * @return member information
      */
-    public Observable<Member> removeKey(Member member, String keyId) {
+    public Observable<Member> removeKey(
+            Member member,
+            String keyId) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
@@ -97,7 +122,9 @@ public final class Client {
      * @param alias new unique alias to add
      * @return member information
      */
-    public Observable<Member> addAlias(Member member, String alias) {
+    public Observable<Member> addAlias(
+            Member member,
+            String alias) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
@@ -113,7 +140,9 @@ public final class Client {
      * @param alias new unique alias to add
      * @return member information
      */
-    public Observable<Member> removeAlias(Member member, String alias) {
+    public Observable<Member> removeAlias(
+            Member member,
+            String alias) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
@@ -131,8 +160,11 @@ public final class Client {
      * @param tags tags for the device
      * @return nothing
      */
-    public Observable<Void> subscribeDevice(String provider, String notificationUri,
-                                            DeviceProtos.Platform platform, List<String> tags) {
+    public Observable<Void> subscribeDevice(
+            String provider,
+            String notificationUri,
+            DeviceProtos.Platform platform,
+            List<String> tags) {
         return toObservable(gateway.subscribeDevice(SubscribeDeviceRequest.newBuilder()
                 .setProvider(provider)
                 .setNotificationUri(notificationUri)
@@ -149,7 +181,9 @@ public final class Client {
      * @param notificationUri uri of the device (e.g. iOS push token)
      * @return nothing
      */
-    public Observable<Void> unsubscribeDevice(String provider, String notificationUri) {
+    public Observable<Void> unsubscribeDevice(
+            String provider,
+            String notificationUri) {
         return toObservable(gateway.unsubscribeDevice(UnsubscribeDeviceRequest.newBuilder()
                 .setProvider(provider)
                 .setNotificationUri(notificationUri)
@@ -165,7 +199,9 @@ public final class Client {
      *                           by the bank
      * @return list of linked accounts
      */
-    public Observable<List<Account>> linkAccounts(String bankId, String accountLinkPayload) {
+    public Observable<List<Account>> linkAccounts(
+            String bankId,
+            String accountLinkPayload) {
         return toObservable(gateway.linkAccounts(LinkAccountsRequest.newBuilder()
                 .setBankId(bankId)
                 .setAccountsLinkPayload(accountLinkPayload)
@@ -180,6 +216,7 @@ public final class Client {
      * @return account info
      */
     public Observable<Account> getAccount(String accountId) {
+        setAuthenticationContext();
         return toObservable(gateway.getAccount(GetAccountRequest.newBuilder()
                 .setAccountId(accountId)
                 .build())
@@ -192,6 +229,7 @@ public final class Client {
      * @return list of linked accounts
      */
     public Observable<List<Account>> getAccounts() {
+        setAuthenticationContext();
         return toObservable(gateway.getAccounts(GetAccountsRequest.newBuilder()
                 .build())
         ).map(GetAccountsResponse::getAccountsList);
@@ -204,7 +242,9 @@ public final class Client {
      * @param accountName new name to use
      * @return updated account info
      */
-    public Observable<Account> setAccountName(String accountId, String accountName) {
+    public Observable<Account> setAccountName(
+            String accountId,
+            String accountName) {
         return toObservable(gateway.setAccountName(SetAccountNameRequest.newBuilder()
                 .setAccountId(accountId)
                 .setName(accountName)
@@ -321,6 +361,7 @@ public final class Client {
      * @return account balance
      */
     public Observable<Money> getBalance(String accountId) {
+        setAuthenticationContext();
         return toObservable(gateway.getBalance(GetBalanceRequest.newBuilder()
                 .setAccountId(accountId)
                 .build())
@@ -348,7 +389,10 @@ public final class Client {
      * @param tokenId optional token id to restrict the search
      * @return payment record
      */
-    public Observable<List<Payment>> getPayments(int offset, int limit, @Nullable String tokenId) {
+    public Observable<List<Payment>> getPayments(
+            int offset,
+            int limit,
+            @Nullable String tokenId) {
         GetPaymentsRequest.Builder request = GetPaymentsRequest.newBuilder()
                 .setOffset(offset)
                 .setLimit(limit);
@@ -368,7 +412,10 @@ public final class Client {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
-    public Observable<Transaction> getTransaction(String accountId, String transactionId) {
+    public Observable<Transaction> getTransaction(
+            String accountId,
+            String transactionId) {
+        setAuthenticationContext();
         return toObservable(gateway.getTransaction(GetTransactionRequest.newBuilder()
                 .setAccountId(accountId)
                 .setTransactionId(transactionId)
@@ -385,7 +432,11 @@ public final class Client {
      * @param limit max number of records to return
      * @return transaction record
      */
-    public Observable<List<Transaction>> getTransactions(String accountId, int offset, int limit) {
+    public Observable<List<Transaction>> getTransactions(
+            String accountId,
+            int offset,
+            int limit) {
+        setAuthenticationContext();
         return toObservable(gateway.getTransactions(GetTransactionsRequest.newBuilder()
                 .setAccountId(accountId)
                 .setOffset(offset)
@@ -401,7 +452,9 @@ public final class Client {
      * @param address the address json
      * @return an address record created
      */
-    public Observable<Address> addAddress(String name, String address) {
+    public Observable<Address> addAddress(
+            String name,
+            String address) {
         return toObservable(gateway.addAddress(AddAddressRequest.newBuilder()
                 .setName(name)
                 .setData(address)
@@ -420,6 +473,7 @@ public final class Client {
      * @return an address record
      */
     public Observable<Address> getAddress(String addressId) {
+        setAuthenticationContext();
         return toObservable(gateway.getAddress(GetAddressRequest.newBuilder()
                 .setAddressId(addressId)
                 .build())
@@ -432,6 +486,7 @@ public final class Client {
      * @return a list of addresses
      */
     public Observable<List<Address>> getAddresses() {
+        setAuthenticationContext();
         return toObservable(gateway.getAddresses(GetAddressesRequest.newBuilder()
                 .build())
         ).map(GetAddressesResponse::getAddressesList);
@@ -457,5 +512,11 @@ public final class Client {
                         .setSignature(sign(key, update)))
                 .build())
         ).map(UpdateMemberResponse::getMember);
+    }
+
+    private void setAuthenticationContext() {
+        if(onBehalfOf != null) {
+            AuthenticationContext.setOnBehalfOf(onBehalfOf);
+        }
     }
 }

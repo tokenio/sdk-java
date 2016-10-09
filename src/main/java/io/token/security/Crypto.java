@@ -2,7 +2,6 @@ package io.token.security;
 
 import com.google.protobuf.Message;
 import io.token.proto.ProtoJson;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 
