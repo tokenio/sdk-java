@@ -461,9 +461,9 @@ public final class MemberAsync {
         AccessToken.Payload payload = AccessToken.Payload.newBuilder()
                 .setVersion("1.0")
                 .setNonce(generateNonce())
-                .setMember(TokenMember.newBuilder()
+                .setGrantor(TokenMember.newBuilder()
                         .setId(member.getId()))
-                .setRedeemer(TokenMember.newBuilder()
+                .setGrantee(TokenMember.newBuilder()
                         .setAlias(redeemer))
                 .addAllResources(resources)
                 .build();
