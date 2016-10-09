@@ -1,6 +1,5 @@
 package io.token;
 
-import com.google.protobuf.ByteString;
 import io.grpc.ManagedChannel;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;

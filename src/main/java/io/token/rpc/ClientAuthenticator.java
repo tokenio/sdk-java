@@ -40,6 +40,11 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
         } else {
             metadata.put(Metadata.Key.of("token-alias", ASCII_STRING_MARSHALLER), alias);
         }
+
+        String onBehalfOf = AuthenticationContext.clearOnBehalfOf();
+        if (!Strings.isNullOrEmpty(onBehalfOf)) {
+            metadata.put(Metadata.Key.of("token-on-behalf-of", ASCII_STRING_MARSHALLER), onBehalfOf);
+        }
     }
 
     @Override

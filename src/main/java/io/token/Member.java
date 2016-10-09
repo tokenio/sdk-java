@@ -4,7 +4,10 @@ import io.token.proto.common.device.DeviceProtos.Platform;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.token.TokenProtos.AccessToken;
+import io.token.proto.common.token.TokenProtos.AccessToken.Resource;
 import io.token.proto.common.token.TokenProtos.PaymentToken;
+import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.security.SecretKey;
 
 import javax.annotation.Nullable;
@@ -19,6 +22,24 @@ import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToStrin
  */
 public final class Member {
     private final MemberAsync async;
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member.
+     *
+     * @param onBehalfOf the on-behalf-of value
+     */
+    public void setOnBehalfOf(String onBehalfOf) {
+        this.async.setOnBehalfOf(onBehalfOf);
+    }
+
+    /**
+     * Clears the On-Behalf-Of value used with this client.
+     */
+    public void clearOnBehalfOf() {
+        this.async.clearOnBehalfOf();
+    }
 
     /**
      * @param async real implementation that the calls are delegated to
@@ -336,6 +357,83 @@ public final class Member {
      */
     public Payment redeemPaymentToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
         return async.redeemPaymentToken(token, amount, currency).toBlocking().single();
+    }
+
+    /**
+     * Looks up an existing transaction for a given account
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @return transaction record
+     */
+    public Transaction getTransaction(String accountId, String transactionId) {
+        return async.getTransaction(accountId, transactionId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Looks up transactions for a given account
+     *
+     * @param accountId the account id
+     * @return a list of transaction record
+     */
+    public List<Transaction> getTransactions(String accountId, int offset, int limit) {
+        return async.getTransactions(accountId, offset, limit)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates an access token for a list of resources
+     *
+     * @param redeemer the redeemer alias
+     * @param resources a list of resources
+     * @return the access token created
+     */
+    public AccessToken createAccessToken(String redeemer, List<Resource> resources) {
+        return async.createAccessToken(redeemer, resources)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates an address access token
+     *
+     * @param redeemer the redeemer alias
+     * @param addressId an optional address id
+     * @return the address access token created
+     */
+    public AccessToken createAddressAccessToken(String redeemer, @Nullable String addressId) {
+        return async.createAddressAccessToken(redeemer, addressId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates an account access token
+     *
+     * @param redeemer the redeemer alias
+     * @param accountId an optional account id
+     * @return the account access token created
+     */
+    public AccessToken createAccountAccessToken(String redeemer, @Nullable String accountId) {
+        return async.createAccountAccessToken(redeemer, accountId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a transaction access token
+     *
+     * @param redeemer the redeemer alias
+     * @param accountId an optional account id
+     * @return the transaction access token created
+     */
+    public AccessToken createTransactionAccessToken(String redeemer, @Nullable String  accountId) {
+        return async.createTransactionAccessToken(redeemer, accountId)
+                .toBlocking()
+                .single();
     }
 
     @Override

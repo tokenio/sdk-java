@@ -76,8 +76,7 @@ public final class Account {
     }
 
     /**
-     * Looks up existing transactions. This is a full list of transactions with token payments
-     * being a subset.
+     * Looks up existing transactions by using an access token
      *
      * @param offset offset to start at
      * @param limit max number of records to return
