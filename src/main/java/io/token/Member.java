@@ -70,6 +70,16 @@ public final class Member {
     }
 
     /**
+     * Checks if a given alias already exists.
+     *
+     * @param alias alias to check
+     * @return {@code true} if alias exists, {@code false} otherwise
+     */
+    public boolean aliasExists(String alias) {
+        return async.aliasExists(alias).toBlocking().single();
+    }
+
+    /**
      * Adds a new alias for the member.
      *
      * @param alias alias, e.g. 'john', must be unique
