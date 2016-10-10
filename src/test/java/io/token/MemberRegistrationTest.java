@@ -4,6 +4,7 @@ import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.security.Crypto;
 import io.token.security.SecretKey;
 import io.token.util.Util;
+import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -91,5 +92,17 @@ public class MemberRegistrationTest {
         assertThat(member)
                 .hasAliases(alias1)
                 .hasOneKey();
+    }
+
+    @Test
+    public void aliasDoesNotExist() {
+        Assertions.assertThat(rule.member().aliasExists("john" + Util.generateNonce())).isFalse();
+    }
+
+    @Test
+    public void aliasExists() {
+        String alias = "john-" + Util.generateNonce();
+        rule.token().createMember(alias);
+        Assertions.assertThat(rule.member().aliasExists(alias)).isTrue();
     }
 }
