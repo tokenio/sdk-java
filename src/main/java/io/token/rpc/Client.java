@@ -116,6 +116,19 @@ public final class Client {
     }
 
     /**
+     * Checks if a given alias already exists.
+     *
+     * @param alias alias to check
+     * @return {@code true} if alias already exists, {@code false} otherwise
+     */
+    public Observable<Boolean> aliasExists(String alias) {
+        return toObservable(gateway.aliasExists(AliasExistsRequest.newBuilder()
+                .setAlias(alias)
+                .build()))
+                .map(AliasExistsResponse::getExists);
+    }
+
+    /**
      * Adds an alias for a given user.
      *
      * @param member member to add the key to
