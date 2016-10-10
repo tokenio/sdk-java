@@ -88,6 +88,16 @@ public final class MemberAsync {
     }
 
     /**
+     * Checks if a given alias already exists.
+     *
+     * @param alias alias to check
+     * @return {@code true} if alias exists, {@code false} otherwise
+     */
+    public Observable<Boolean> aliasExists(String alias) {
+        return client.aliasExists(alias);
+    }
+
+    /**
      * Adds a new alias for the member.
      *
      * @param alias alias, e.g. 'john', must be unique
