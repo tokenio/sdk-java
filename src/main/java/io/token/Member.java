@@ -28,17 +28,17 @@ public final class Member {
      * with this client.  The value must correspond to an existing
      * Access Token ID issued for the client member.
      *
-     * @param onBehalfOf the on-behalf-of value
+     * @param accessTokenId the access token id
      */
-    public void setOnBehalfOf(String onBehalfOf) {
-        this.async.setOnBehalfOf(onBehalfOf);
+    public void useAccessToken(String accessTokenId) {
+        this.async.useAccessToken(accessTokenId);
     }
 
     /**
-     * Clears the On-Behalf-Of value used with this client.
+     * Clears the access token value used with this client.
      */
-    public void clearOnBehalfOf() {
-        this.async.clearOnBehalfOf();
+    public void clearAccessTokenOf() {
+        this.async.clearAccessToken();
     }
 
     /**

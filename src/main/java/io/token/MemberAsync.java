@@ -51,17 +51,17 @@ public final class MemberAsync {
      * with this client.  The value must correspond to an existing
      * Access Token ID issued for the client member.
      *
-     * @param onBehalfOf the on-behalf-of value
+     * @param accessTokenId the access token id
      */
-    public void setOnBehalfOf(String onBehalfOf) {
-        this.client.setAuthenticationContext(onBehalfOf);
+    public void useAccessToken(String accessTokenId) {
+        this.client.useAccessToken(accessTokenId);
     }
 
     /**
-     * Clears the On-Behalf-Of value used with this client.
+     * Clears the access token id from the authentication context used with this client.
      */
-    public void clearOnBehalfOf() {
-        this.client.clearOnBehalfOf();
+    public void clearAccessToken() {
+        this.client.clearAccessToken();
     }
 
     /**
