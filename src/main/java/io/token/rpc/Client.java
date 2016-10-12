@@ -52,16 +52,16 @@ public final class Client {
      * with this client.  The value must correspond to an existing
      * Access Token ID issued for the client member.
      *
-     * @param onBehalfOf the on-behalf-of value
+     * @param accessTokenId the access token id to be used
      */
-    public void setAuthenticationContext(String onBehalfOf) {
-        this.onBehalfOf = onBehalfOf;
+    public void useAccessToken(String accessTokenId) {
+        this.onBehalfOf = accessTokenId;
     }
 
     /**
      * Clears the On-Behalf-Of value used with this client.
      */
-    public void clearOnBehalfOf() {
+    public void clearAccessToken() {
         this.onBehalfOf = null;
     }
 
