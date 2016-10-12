@@ -2,7 +2,6 @@ package io.token;
 
 import com.google.common.net.HostAndPort;
 import io.token.proto.bankapi.Fank;
-import io.token.proto.common.money.MoneyProtos;
 import io.token.util.Util;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
@@ -54,34 +53,21 @@ public class TokenRule extends ExternalResource {
         Member member = member();
 
         String alias = member.firstAlias();
-        String bankId = "bank-id";
-        String bankAccountName = "Checking";
         String bankAccountNumber = "iban:" + randomInt(7);
 
         if (alias == null) {
             throw new IllegalStateException("Member doesn't have an alias");
         }
 
-        Fank.FankMetadata metadata = Fank.FankMetadata.newBuilder()
-                .setClient(Fank.FankMetadata.Client.newBuilder()
-                        .setFirstName(string())
-                        .setLastName(string()))
-                .addClientAccounts(Fank.FankMetadata.ClientAccount.newBuilder()
-                        .setAccountNumber(bankAccountNumber)
-                        .setName(bankAccountName)
-                        .setBalance(MoneyProtos.Money.newBuilder()
-                                .setCurrency("USD")
-                                .setValue("1000000.00")))
-                .build();
-
+        Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
+        bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
         String accountLinkingPayload = bankClient.startAccountsLinking(
                 alias,
                 Optional.empty(),
-                Collections.singletonList(bankAccountNumber),
-                Optional.of(metadata));
+                Collections.singletonList(bankAccountNumber));
 
         return member
-                .linkAccounts(bankId, accountLinkingPayload)
+                .linkAccounts("bank-id", accountLinkingPayload)
                 .get(0);
     }
 
