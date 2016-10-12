@@ -5,6 +5,7 @@ import io.token.proto.common.device.DeviceProtos;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.paging.PagingProtos.Page;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
@@ -313,8 +314,9 @@ public final class Client {
      */
     public Observable<List<PaymentToken>> getPaymentTokens(int offset, int limit) {
         return toObservable(gateway.getPaymentTokens(GetPaymentTokensRequest.newBuilder()
-                .setOffset(offset)
-                .setLimit(limit)
+                .setPage(Page.newBuilder()
+                    .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
+                    .setLimit(limit))
                 .build())
         ).map(GetPaymentTokensResponse::getTokensList);
     }
@@ -407,8 +409,9 @@ public final class Client {
             int limit,
             @Nullable String tokenId) {
         GetPaymentsRequest.Builder request = GetPaymentsRequest.newBuilder()
-                .setOffset(offset)
-                .setLimit(limit);
+                .setPage(Page.newBuilder()
+                        .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
+                        .setLimit(limit));
 
         if (tokenId != null) {
             request.setTokenId(tokenId);
@@ -452,8 +455,9 @@ public final class Client {
         setAuthenticationContext();
         return toObservable(gateway.getTransactions(GetTransactionsRequest.newBuilder()
                 .setAccountId(accountId)
-                .setOffset(offset)
-                .setLimit(limit)
+                .setPage(Page.newBuilder()
+                        .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
+                        .setLimit(limit))
                 .build())
         ).map(GetTransactionsResponse::getTransactionsList);
     }
