@@ -38,7 +38,7 @@ public class AccessTokenTest {
         Address result = member2.getAddress(address1.getId());
         assertThat(result).isEqualTo(address1);
 
-        member2.clearOnBehalfOf();
+        member2.clearAccessTokenOf();
         assertThatExceptionThrownBy( () ->
                 member2.getAddress(address1.getId())
         );
