@@ -1,6 +1,7 @@
 package io.token;
 
-import io.token.proto.common.device.DeviceProtos.Platform;
+import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
@@ -142,27 +143,48 @@ public final class Member {
      * Subscribes a device to receive push notifications
      *
      * @param provider notification provider (e.g. Token)
-     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @param target notification target (e.g. iOS push token)
      * @param platform platform of the device
-     * @param tags tags for the device
-     * @return nothing
+     * @return subscriber Subscriber
      */
-    public void subscribeDevice(String provider, String notificationUri,
-                                Platform platform, List<String> tags) {
-        async.subscribeDevice(provider, notificationUri, platform, tags)
+    public Subscriber subscribeToNotifications(String provider, String target,
+                                Platform platform) {
+        return async.subscribeToNotifications(provider, target, platform)
                 .toBlocking()
                 .single();
     }
 
     /**
-     * Unsubscribes a device to from push notifications
+     * Removes a subscriber by Id
      *
-     * @param provider notification provider (e.g. Token)
-     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @return subscribers Subscribers
+     */
+    public List<Subscriber> getSubscribers() {
+        return async.getSubscribers()
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Gets a subscriber by Id
+     *
+     * @param subscriberId subscriberId
+     * @return subscribers Subscribers
+     */
+    public Subscriber getSubscriber(String subscriberId) {
+        return async.getSubscriber(subscriberId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Removes a subscriber by Id
+     *
+     * @param subscriberId subscriberId
      * @return nothing
      */
-    public void unsubscribeDevice(String provider, String notificationUri) {
-        async.unsubscribeDevice(provider, notificationUri)
+    public void unsubscribeFromNotifications(String subscriberId) {
+        async.unsubscribeFromNotifications(subscriberId)
                 .toBlocking()
                 .single();
     }

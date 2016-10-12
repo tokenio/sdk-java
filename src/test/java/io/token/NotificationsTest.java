@@ -2,7 +2,8 @@ package io.token;
 
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos.AccountsLinkPayload;
-import io.token.proto.common.device.DeviceProtos.Platform;
+import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.security.Crypto;
 import io.token.security.SecretKey;
 import io.token.util.Util;
@@ -10,9 +11,9 @@ import io.token.util.codec.ByteEncoding;
 import org.junit.Rule;
 import org.junit.Test;
 
-import java.util.ArrayList;
 import java.util.List;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
 public class NotificationsTest {
@@ -23,10 +24,8 @@ public class NotificationsTest {
     public void sendNotification() {
         SecretKey key = Crypto.generateSecretKey();
         String alias = member.aliases().get(0);
-        List<String> tags = new ArrayList<>();
-        tags.add("my iphone");
-        String notificationUri = Util.generateNonce();
-        member.subscribeDevice("Token", notificationUri, Platform.TEST, tags);
+        String target = "8E8E256A58DE0F62F4A427202DF8CB07C6BD644AFFE93210BC49B8E5F9402554000";
+        Subscriber subscriber = member.subscribeToNotifications("Token", target, Platform.IOS);
 
         byte[] data = ProtoJson.toJson(AccountsLinkPayload.newBuilder()
                         .setAlias(alias)
@@ -39,20 +38,35 @@ public class NotificationsTest {
                         .build()).getBytes();
         String accountLinkPayload = ByteEncoding.serialize(data);
 
-        rule.token().notifyLinkAccounts(alias, "bank-id", accountLinkPayload);
-        rule.token().notifyAddKey(alias, key.getPublicKey(), tags);
+        rule.token().notifyLinkAccounts(alias, "BofA", accountLinkPayload);
+        rule.token().notifyAddKey(alias, key.getPublicKey(), "Chrome 52.0");
         rule.token().notifyLinkAccountsAndAddKey(
                 alias,
-                "bank-id",
+                "BofA",
                 accountLinkPayload,
                 key.getPublicKey(),
-                tags);
+                "Chrome 52.0");
 
-        member.unsubscribeDevice("Token", notificationUri);
+        List<Subscriber> subscriberList = member.getSubscribers();
+        assertThat(subscriberList.size()).isEqualTo(1);
+
+        member.unsubscribeFromNotifications(subscriber.getId());
+
+
+        List<Subscriber> subscriberList2 = member.getSubscribers();
+        assertThat(subscriberList2.size()).isEqualTo(0);
+
 
         assertThatExceptionThrownBy(() -> {
-            rule.token().notifyAddKey(alias, key.getPublicKey(), tags);
+            rule.token().notifyAddKey(alias, key.getPublicKey(), "Chrome 52.0");
             return 0;
         }).hasMessageContaining("NOT_FOUND");
+    }
+
+    @Test
+    public void getSubscriber() {
+        String target = Util.generateNonce();
+        Subscriber subscriber = member.subscribeToNotifications("Token", target, Platform.TEST);
+
     }
 }

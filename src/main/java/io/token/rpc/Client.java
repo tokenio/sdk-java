@@ -1,7 +1,9 @@
 package io.token.rpc;
 
 import io.token.proto.common.account.AccountProtos.Account;
-import io.token.proto.common.device.DeviceProtos;
+import io.token.proto.common.subscriber.SubscriberProtos;
+import io.token.proto.common.subscriber.SubscriberProtos.Platform;
+import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -166,42 +168,78 @@ public final class Client {
     }
 
     /**
-     * Subscribes a device to receive push notifications
+     * Creates a subscriber to receive push notifications
      *
      * @param provider notification provider (e.g. Token)
-     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @param target notification target (e.g. iOS push token)
      * @param platform platform of the device
-     * @param tags tags for the device
+     * @return subscriber subscriber
+     */
+    public Observable<Subscriber> subscribeToNotifications(
+            String provider,
+            String target,
+            Platform platform) {
+        return toObservable(gateway.subscribeToNotifications(
+                SubscribeToNotificationsRequest.newBuilder()
+                .setProvider(provider)
+                .setTarget(target)
+                .setPlatform(platform)
+                .build()))
+                .map(SubscribeToNotificationsResponse::getSubscriber);
+    }
+
+    /**
+     * Gets all subscribers for the member
+     *
+     * @return subscribers Subscribers
+     */
+    public Observable<List<Subscriber>> getSubscribers() {
+        return toObservable(gateway.getSubscribers(
+                GetSubscribersRequest.newBuilder()
+                        .build()))
+                .map(GetSubscribersResponse::getSubscribersList);
+    }
+
+    /**
+     * Gets a subscriber by Id
+     *
+     * @return subscriber Subscriber
+     */
+    public Observable<Subscriber> getSubscriber(String subscriberId) {
+        return toObservable(gateway.getSubscriber(
+                GetSubscriberRequest.newBuilder()
+                        .setSubscriberId(subscriberId)
+                        .build()))
+                .map(GetSubscriberResponse::getSubscriber);
+    }
+
+         /**
+     * Removes a subscriber, to stop receiving notifications
+     *
+     * @param subscriberId id of the subscriber
      * @return nothing
      */
-    public Observable<Void> subscribeDevice(
-            String provider,
-            String notificationUri,
-            DeviceProtos.Platform platform,
-            List<String> tags) {
-        return toObservable(gateway.subscribeDevice(SubscribeDeviceRequest.newBuilder()
-                .setProvider(provider)
-                .setNotificationUri(notificationUri)
-                .setPlatform(platform)
-                .addAllTags(tags)
-                .build()))
+    public Observable<Void> unsubscribeDevice(
+            String subscriberId) {
+        return toObservable(gateway.unsubscribeFromNotifications(
+                UnsubscribeFromNotificationsRequest.newBuilder()
+                        .setSubscriberId(subscriberId)
+                        .build()))
                 .map(empty -> null);
     }
 
      /**
-     * Unsubscribes a device from push notifications
+     * Removes a subscriber, to stop receiving notifications
      *
-     * @param provider notification provider (e.g. Token)
-     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @param subscriberId id of the subscriber
      * @return nothing
      */
-    public Observable<Void> unsubscribeDevice(
-            String provider,
-            String notificationUri) {
-        return toObservable(gateway.unsubscribeDevice(UnsubscribeDeviceRequest.newBuilder()
-                .setProvider(provider)
-                .setNotificationUri(notificationUri)
-                .build()))
+    public Observable<Void> unsubscribeFromNotifications(
+            String subscriberId) {
+        return toObservable(gateway.unsubscribeFromNotifications(
+                UnsubscribeFromNotificationsRequest.newBuilder()
+                        .setSubscriberId(subscriberId)
+                        .build()))
                 .map(empty -> null);
     }
 
