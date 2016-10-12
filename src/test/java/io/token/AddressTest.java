@@ -24,10 +24,10 @@ public class AddressTest {
     @Test
     public void addAddress() {
         String name = string();
-        String data = string();
-        Address address = member.addAddress(name, data);
+        String payload = string();
+        Address address = member.addAddress(name, payload);
         assertThat(address.getName()).isEqualTo(name);
-        assertThat(address.getData()).isEqualTo(data);
+        assertThat(address.getPayload()).isEqualTo(payload);
     }
 
     @Test
@@ -51,7 +51,7 @@ public class AddressTest {
                 .collect(Collectors.toList());
 
         List<String> values = addresses.stream()
-                .map(Address::getData)
+                .map(Address::getPayload)
                 .collect(Collectors.toList());
 
         assertThat(addressMap).containsOnlyKeys(names.toArray(new String[0]));
