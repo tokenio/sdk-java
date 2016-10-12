@@ -1,6 +1,7 @@
 package io.token;
 
-import io.token.proto.common.device.DeviceProtos;
+import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
@@ -178,29 +179,44 @@ public final class MemberAsync {
     }
 
     /**
-     * Subscribes a device to receive push notifications
+     * Creates a subscriber to push notifications
      *
      * @param provider notification provider (e.g. Token)
-     * @param notificationUri uri of the device (e.g. iOS push token)
+     * @param target notification target (e.g IOS push token)
      * @param platform platform of the device
-     * @param tags tags for the device
-     * @return nothing
+     * @return subscriber Subscriber
      */
-    public Observable<Void> subscribeDevice(String provider, String notificationUri,
-                                            DeviceProtos.Platform platform, List<String> tags) {
-        return client.subscribeDevice(provider, notificationUri, platform, tags)
-                .map(empty -> null);
+    public Observable<Subscriber> subscribeToNotifications(String provider, String target,
+                                                                            Platform platform) {
+        return client.subscribeToNotifications(provider, target, platform);
     }
 
     /**
-     * Unsubscribes a device to from push notifications
+     * Gets subscribers
      *
-     * @param provider notification provider (e.g. Token)
-     * @param notificationUri uri of the device (e.g. iOS push token)
-     * @return nothing
+     * @return subscribers
      */
-    public Observable<Void> unsubscribeDevice(String provider, String notificationUri) {
-        return client.unsubscribeDevice(provider, notificationUri)
+    public Observable<List<Subscriber>> getSubscribers() {
+        return client.getSubscribers();
+    }
+
+    /**
+     * Gets a subscriber by id
+     *
+     * @param subscriberId Id of the subscriber
+     * @return subscriber
+     */
+    public Observable<Subscriber> getSubscriber(String subscriberId) {
+        return client.getSubscriber(subscriberId);
+    }
+
+    /**
+     * Removes a subscriber
+     *
+     * @param subscriberId subscriberId
+     */
+    public Observable<Void> unsubscribeFromNotifications(String subscriberId) {
+        return client.unsubscribeDevice(subscriberId)
                 .map(empty -> null);
     }
 
