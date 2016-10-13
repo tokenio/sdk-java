@@ -7,10 +7,8 @@ import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
-import io.token.proto.common.token.TokenProtos.AccessToken;
-import io.token.proto.common.token.TokenProtos.AccessToken.Resource;
-import io.token.proto.common.token.TokenProtos.PaymentToken;
-import io.token.proto.common.token.TokenProtos.TokenMember;
+import io.token.proto.common.token.TokenProtos.*;
+import io.token.proto.common.token.TokenProtos.Access.Resource;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Source;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -329,7 +327,7 @@ public final class MemberAsync {
      * @param currency currency code, e.g. "USD"
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> createPaymentToken(double amount, String currency, String accountId) {
+    public Observable<Token> createPaymentToken(double amount, String currency, String accountId) {
         return createPaymentToken(amount, currency, accountId, null, null);
     }
 
@@ -342,26 +340,26 @@ public final class MemberAsync {
      * @param description payment description, optional
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> createPaymentToken(
+    public Observable<Token> createPaymentToken(
             double amount,
             String currency,
             String accountId,
             @Nullable String redeemer,
             @Nullable String description) {
-        PaymentToken.Payload.Builder payload = PaymentToken.Payload.newBuilder()
+        TokenPayload.Builder payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setNonce(generateNonce())
-                .setPayer(TokenMember.newBuilder()
+                .setFrom(TokenMember.newBuilder()
                         .setId(member.getId()))
-                .setCurrency(currency)
-                .setAmount(Double.toString(amount))
-                .setTransfer(Transfer.newBuilder()
-                        .setFrom(Source.newBuilder()
-                                .setAccountId(accountId)));
+                .setBankTransfer(BankTransfer.newBuilder()
+                        .setCurrency(currency)
+                        .setAmount(Double.toString(amount))
+                        .setTransfer(Transfer.newBuilder()
+                                .setSource(Source.newBuilder()
+                                        .setAccountId(accountId))));
 
         if (redeemer != null) {
-            payload.setRedeemer(TokenMember.newBuilder()
-                    .setAlias(redeemer));
+            payload.getBankTransferBuilder().setRedeemer(TokenMember.newBuilder().setAlias(redeemer));
         }
         if (description != null) {
             payload.setDescription(description);
@@ -375,7 +373,7 @@ public final class MemberAsync {
      * @param payload payment token payload
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> createPaymentToken(PaymentToken.Payload payload) {
+    public Observable<Token> createPaymentToken(TokenPayload payload) {
         return client.createPaymentToken(payload);
     }
 
@@ -385,7 +383,7 @@ public final class MemberAsync {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> getPaymentToken(String tokenId) {
+    public Observable<Token> getPaymentToken(String tokenId) {
         return client.getPaymentToken(tokenId);
     }
 
@@ -396,7 +394,7 @@ public final class MemberAsync {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public Observable<List<PaymentToken>> getPaymentTokens(int offset, int limit) {
+    public Observable<List<Token>> getPaymentTokens(int offset, int limit) {
         return client.getPaymentTokens(offset, limit);
     }
 
@@ -407,7 +405,7 @@ public final class MemberAsync {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<PaymentToken> endorsePaymentToken(PaymentToken token) {
+    public Observable<Token> endorsePaymentToken(Token token) {
         return client.endorsePaymentToken(token);
     }
 
@@ -418,7 +416,7 @@ public final class MemberAsync {
      * @param token token to cancel
      * @return cancelled token
      */
-    public Observable<PaymentToken> cancelPaymentToken(PaymentToken token) {
+    public Observable<Token> cancelPaymentToken(Token token) {
         return client.cancelPaymentToken(token);
     }
 
@@ -428,7 +426,7 @@ public final class MemberAsync {
      * @param token payment token to redeem
      * @return payment record
      */
-    public Observable<Payment> redeemPaymentToken(PaymentToken token) {
+    public Observable<Payment> redeemPaymentToken(Token token) {
         return redeemPaymentToken(token, null, null);
     }
 
@@ -440,7 +438,7 @@ public final class MemberAsync {
      * @param currency payment currency code, e.g. "EUR"
      * @return payment record
      */
-    public Observable<Payment> redeemPaymentToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
+    public Observable<Payment> redeemPaymentToken(Token token, @Nullable Double amount, @Nullable String currency) {
         PaymentPayload.Builder payload = PaymentPayload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());
@@ -483,17 +481,20 @@ public final class MemberAsync {
      * @param resources a list of resources
      * @return the access token created
      */
-    public Observable<AccessToken> createAccessToken(String redeemer, List<Resource> resources) {
-        AccessToken.Payload payload = AccessToken.Payload.newBuilder()
+    public Observable<Token> createAccessToken(String redeemer, List<Resource> resources) {
+        TokenPayload.Builder payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setNonce(generateNonce())
-                .setGrantor(TokenMember.newBuilder()
+                .setFrom(TokenMember.newBuilder()
                         .setId(member.getId()))
-                .setGrantee(TokenMember.newBuilder()
-                        .setAlias(redeemer))
+                .setTo(TokenMember.newBuilder()
+                        .setAlias(redeemer));
+
+        payload.getAccessBuilder()
                 .addAllResources(resources)
                 .build();
-        return client.createAccessToken(payload);
+
+        return client.createAccessToken(payload.build());
     }
 
     /**
@@ -503,7 +504,7 @@ public final class MemberAsync {
      * @param addressId an optional address id
      * @return the address access token created
      */
-    public Observable<AccessToken> createAddressAccessToken(
+    public Observable<Token> createAddressAccessToken(
             String redeemer,
             @Nullable String addressId) {
         Resource.Address.Builder address = Resource.Address.newBuilder();
@@ -523,7 +524,7 @@ public final class MemberAsync {
      * @param accountId an optional account id
      * @return the account access token created
      */
-    public Observable<AccessToken> createAccountAccessToken(
+    public Observable<Token> createAccountAccessToken(
             String redeemer,
             @Nullable String  accountId) {
         Resource.Account.Builder account = Resource.Account.newBuilder();
@@ -543,7 +544,7 @@ public final class MemberAsync {
      * @param accountId an optional account id
      * @return the transaction access token created
      */
-    public Observable<AccessToken> createTransactionAccessToken(
+    public Observable<Token> createTransactionAccessToken(
             String redeemer,
             @Nullable String accountId) {
         Resource.Transaction.Builder transaction = Resource.Transaction.newBuilder();
