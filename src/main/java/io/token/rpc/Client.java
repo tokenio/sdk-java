@@ -12,8 +12,8 @@ import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.token.TokenProtos.AccessToken;
-import io.token.proto.common.token.TokenProtos.PaymentToken;
+import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.gateway.Gateway.*;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -305,12 +305,12 @@ public final class Client {
     }
 
     /**
-     * Creates a new payment token.
+     * Creates a new token.
      *
      * @param payload payment token payload
      * @return payment token returned by the server
      */
-    public Observable<PaymentToken> createPaymentToken(PaymentToken.Payload payload) {
+    public Observable<Token> createPaymentToken(TokenPayload payload) {
         return toObservable(gateway.createPaymentToken(CreatePaymentTokenRequest.newBuilder()
                 .setPayload(payload)
                 .build())
@@ -323,7 +323,7 @@ public final class Client {
      * @param payload information token payload
      * @return the token returned by the server
      */
-    public Observable<AccessToken> createAccessToken(AccessToken.Payload payload) {
+    public Observable<Token> createAccessToken(TokenPayload payload) {
         return toObservable(gateway.createAccessToken(CreateAccessTokenRequest.newBuilder()
                 .setPayload(payload)
                 .build())
@@ -336,7 +336,7 @@ public final class Client {
      * @param tokenId token id
      * @return token returned by the server
      */
-    public Observable<PaymentToken> getPaymentToken(String tokenId) {
+    public Observable<Token> getPaymentToken(String tokenId) {
         return toObservable(gateway.getPaymentToken(GetPaymentTokenRequest.newBuilder()
                 .setTokenId(tokenId)
                 .build())
@@ -350,7 +350,7 @@ public final class Client {
      * @param limit max number of records to return
      * @return token returned by the server
      */
-    public Observable<List<PaymentToken>> getPaymentTokens(int offset, int limit) {
+    public Observable<List<Token>> getPaymentTokens(int offset, int limit) {
         return toObservable(gateway.getPaymentTokens(GetPaymentTokensRequest.newBuilder()
                 .setPage(Page.newBuilder()
                     .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
@@ -365,7 +365,7 @@ public final class Client {
      * @param token token to endorse
      * @return endorsed token returned by the server
      */
-    public Observable<PaymentToken> endorsePaymentToken(PaymentToken token) {
+    public Observable<Token> endorsePaymentToken(Token token) {
         return toObservable(gateway.endorsePaymentToken(EndorsePaymentTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
@@ -381,7 +381,7 @@ public final class Client {
      * @param token token to cancel
      * @return cancelled token returned by the server
      */
-    public Observable<PaymentToken> cancelPaymentToken(PaymentToken token) {
+    public Observable<Token> cancelPaymentToken(Token token) {
         return toObservable(gateway.cancelPaymentToken(CancelPaymentTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
