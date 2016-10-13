@@ -2,7 +2,7 @@ package io.token;
 
 import io.token.asserts.TransactionAssertion;
 import io.token.proto.common.payment.PaymentProtos.Payment;
-import io.token.proto.common.token.TokenProtos.PaymentToken;
+import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import org.junit.Rule;
 import org.junit.Test;
@@ -28,7 +28,7 @@ public class TransactionsTest {
 
     @Test
     public void getTransaction() {
-        PaymentToken token = payer.createPaymentToken(
+        Token token = payer.createPaymentToken(
                 1000.0,
                 "USD",
                 payerAccount.id(),
@@ -47,7 +47,7 @@ public class TransactionsTest {
 
     @Test
     public void getTransactions() {
-        PaymentToken token = payer.createPaymentToken(
+        Token token = payer.createPaymentToken(
                 1000.0,
                 "USD",
                 payerAccount.id(),

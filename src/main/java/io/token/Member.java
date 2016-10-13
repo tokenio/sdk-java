@@ -4,9 +4,8 @@ import io.token.proto.common.device.DeviceProtos.Platform;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
-import io.token.proto.common.token.TokenProtos.AccessToken;
-import io.token.proto.common.token.TokenProtos.AccessToken.Resource;
-import io.token.proto.common.token.TokenProtos.PaymentToken;
+import io.token.proto.common.token.TokenProtos.Access.Resource;
+import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.security.SecretKey;
 
@@ -279,7 +278,7 @@ public final class Member {
      * @param accountId the funding account id
      * @return payment token returned by the server
      */
-    public PaymentToken createPaymentToken(double amount, String currency, String accountId) {
+    public Token createPaymentToken(double amount, String currency, String accountId) {
         return createPaymentToken(amount, currency, accountId, null, null);
     }
 
@@ -293,7 +292,7 @@ public final class Member {
      * @param description payment description, optional
      * @return payment token returned by the server
      */
-    public PaymentToken createPaymentToken(
+    public Token createPaymentToken(
             double amount,
             String currency,
             String accountId,
@@ -310,7 +309,7 @@ public final class Member {
      * @param tokenId token id
      * @return payment token returned by the server
      */
-    public PaymentToken getPaymentToken(String tokenId) {
+    public Token getPaymentToken(String tokenId) {
         return async.getPaymentToken(tokenId).toBlocking().single();
     }
 
@@ -321,7 +320,7 @@ public final class Member {
      * @param limit max number of records to return
      * @return payment tokens owned by the member
      */
-    public List<PaymentToken> getPaymentTokens(int offset, int limit) {
+    public List<Token> getPaymentTokens(int offset, int limit) {
         return async.getPaymentTokens(offset, limit).toBlocking().single();
     }
 
@@ -332,7 +331,7 @@ public final class Member {
      * @param token token to endorse
      * @return endorsed token
      */
-    public PaymentToken endorsePaymentToken(PaymentToken token) {
+    public Token endorsePaymentToken(Token token) {
         return async.endorsePaymentToken(token).toBlocking().single();
     }
 
@@ -343,7 +342,7 @@ public final class Member {
      * @param token token to cancel
      * @return cancelled token
      */
-    public PaymentToken cancelPaymentToken(PaymentToken token) {
+    public Token cancelPaymentToken(Token token) {
         return async.cancelPaymentToken(token).toBlocking().single();
     }
 
@@ -353,7 +352,7 @@ public final class Member {
      * @param token payment token to redeem
      * @return payment record
      */
-    public Payment redeemPaymentToken(PaymentToken token) {
+    public Payment redeemPaymentToken(Token token) {
         return async.redeemPaymentToken(token).toBlocking().single();
     }
 
@@ -365,7 +364,7 @@ public final class Member {
      * @param currency payment currency code, e.g. "EUR"
      * @return payment record
      */
-    public Payment redeemPaymentToken(PaymentToken token, @Nullable Double amount, @Nullable String currency) {
+    public Payment redeemPaymentToken(Token token, @Nullable Double amount, @Nullable String currency) {
         return async.redeemPaymentToken(token, amount, currency).toBlocking().single();
     }
 
@@ -401,7 +400,7 @@ public final class Member {
      * @param resources a list of resources
      * @return the access token created
      */
-    public AccessToken createAccessToken(String redeemer, List<Resource> resources) {
+    public Token createAccessToken(String redeemer, List<Resource> resources) {
         return async.createAccessToken(redeemer, resources)
                 .toBlocking()
                 .single();
@@ -414,7 +413,7 @@ public final class Member {
      * @param addressId an optional address id
      * @return the address access token created
      */
-    public AccessToken createAddressAccessToken(String redeemer, @Nullable String addressId) {
+    public Token createAddressAccessToken(String redeemer, @Nullable String addressId) {
         return async.createAddressAccessToken(redeemer, addressId)
                 .toBlocking()
                 .single();
@@ -427,7 +426,7 @@ public final class Member {
      * @param accountId an optional account id
      * @return the account access token created
      */
-    public AccessToken createAccountAccessToken(String redeemer, @Nullable String accountId) {
+    public Token createAccountAccessToken(String redeemer, @Nullable String accountId) {
         return async.createAccountAccessToken(redeemer, accountId)
                 .toBlocking()
                 .single();
@@ -440,7 +439,7 @@ public final class Member {
      * @param accountId an optional account id
      * @return the transaction access token created
      */
-    public AccessToken createTransactionAccessToken(String redeemer, @Nullable String  accountId) {
+    public Token createTransactionAccessToken(String redeemer, @Nullable String  accountId) {
         return async.createTransactionAccessToken(redeemer, accountId)
                 .toBlocking()
                 .single();
