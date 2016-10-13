@@ -68,5 +68,9 @@ public class NotificationsTest {
         String target = Util.generateNonce();
         Subscriber subscriber = member.subscribeToNotifications("Token", target, Platform.TEST);
 
+        Subscriber subscriber2 = member.getSubscriber(subscriber.getId());
+        assertThat(subscriber.getId()).isEqualTo(subscriber2.getId());
+        assertThat(subscriber.getTarget()).isEqualTo(subscriber2.getTarget());
+        assertThat(subscriber.getPlatform()).isEqualTo(subscriber2.getPlatform());
     }
 }
