@@ -3,8 +3,7 @@ package io.token;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.payment.PaymentProtos;
-import io.token.proto.common.token.TokenProtos.AccessToken;
-import io.token.proto.common.token.TokenProtos.PaymentToken;
+import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,7 +25,7 @@ public class AccessTokenTest {
     @Test
     public void addressAccessToken() {
         Address address1 = member1.addAddress(string(), string());
-        AccessToken accessToken = member1.createAddressAccessToken(
+        Token accessToken = member1.createAddressAccessToken(
                 member2.firstAlias(),
                 address1.getId());
 
@@ -48,7 +47,7 @@ public class AccessTokenTest {
     public void addressAccessToken_withAddressId() {
         Address address1 = member1.addAddress(string(), string());
         Address address2 = member1.addAddress(string(), string());
-        AccessToken accessToken = member1.createAddressAccessToken(
+        Token accessToken = member1.createAddressAccessToken(
                 member2.firstAlias(),
                 address1.getId());
         member2.useAccessToken(accessToken.getId());
@@ -61,7 +60,7 @@ public class AccessTokenTest {
     public void addressAccessToken_withoutId() {
         Address address1 = member1.addAddress(string(), string());
         Address address2 = member1.addAddress(string(), string());
-        AccessToken accessToken = member1.createAddressAccessToken(
+        Token accessToken = member1.createAddressAccessToken(
                 member2.firstAlias(),
                 null);
         member2.useAccessToken(accessToken.getId());
@@ -74,7 +73,7 @@ public class AccessTokenTest {
     public void accountAccess_getBalance() {
         Account account = rule.account();
         Member accountMember = account.member();
-        AccessToken accessToken = accountMember.createAccountAccessToken(
+        Token accessToken = accountMember.createAccountAccessToken(
                 member1.firstAlias(),
                 account.id());
 
@@ -97,7 +96,7 @@ public class AccessTokenTest {
             member1.getTransaction(payerAccount.id(), transaction.getId())
         );
 
-        AccessToken accessToken = payerAccount.member().createTransactionAccessToken(
+        Token accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
                 payerAccount.id());
 
@@ -111,7 +110,7 @@ public class AccessTokenTest {
     public void accountAccess_getTransaction_wildcard() {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
-        AccessToken accessToken = payerAccount.member().createTransactionAccessToken(
+        Token accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
                 null);
 
@@ -125,7 +124,7 @@ public class AccessTokenTest {
     public void accountAccess_getTransactions() {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
-        AccessToken accessToken = payerAccount.member().createTransactionAccessToken(
+        Token accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
                 null);
 
@@ -138,7 +137,7 @@ public class AccessTokenTest {
     private Transaction getTransaction(Account payerAccount, Account payeeAccount) {
         Member payer = payerAccount.member();
         Member payee = payeeAccount.member();
-        PaymentToken token = payer.createPaymentToken(
+        Token token = payer.createPaymentToken(
                 10.0,
                 "USD",
                 payerAccount.id(),
