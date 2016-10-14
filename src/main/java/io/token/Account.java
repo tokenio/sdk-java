@@ -66,7 +66,7 @@ public final class Account {
     }
 
     /**
-     * Looks up an existing transaction. Doesn't have to be a transaction for a token payment.
+     * Looks up an existing transaction. Doesn't have to be a transaction for a token transfer.
      *
      * @param transactionId ID of the transaction
      * @return transaction record
@@ -80,7 +80,7 @@ public final class Account {
      *
      * @param offset offset to start at
      * @param limit max number of records to return
-     * @return payment record
+     * @return list of transactions
      */
     public List<Transaction> getTransactions(int offset, int limit) {
         return async.getTransactions(offset, limit).toBlocking().single();
