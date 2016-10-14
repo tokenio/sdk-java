@@ -1,17 +1,16 @@
 package io.token;
 
-import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Address;
-import io.token.proto.common.payment.PaymentProtos.Payment;
-import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.subscriber.SubscriberProtos.Platform;
+import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.*;
-import io.token.proto.common.token.TokenProtos.Access.Resource;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Source;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transfer.TransferProtos.TransferInstructions;
 import io.token.rpc.Client;
 import io.token.security.SecretKey;
 import io.token.util.codec.ByteEncoding;
@@ -260,25 +259,25 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up an existing token payment.
+     * Looks up an existing token transfer.
      *
-     * @param paymentId ID of the payment record
-     * @return payment record
+     * @param transferId ID of the transfer record
+     * @return transfer record
      */
-    public Observable<Payment> getPayment(String paymentId) {
-        return client.getPayment(paymentId);
+    public Observable<Transfer> getTransfer(String transferId) {
+        return client.getTransfer(transferId);
     }
 
     /**
-     * Looks up existing token payments.
+     * Looks up existing token transfers.
      *
      * @param offset offset to start at
      * @param limit max number of records to return
      * @param tokenId optional token id to restrict the search
-     * @return payment record
+     * @return transfer record
      */
-    public Observable<List<Payment>> getPayments(int offset, int limit, @Nullable String tokenId) {
-        return client.getPayments(offset, limit, tokenId);
+    public Observable<List<Transfer>> getTransfers(int offset, int limit, @Nullable String tokenId) {
+        return client.getTransfers(offset, limit, tokenId);
     }
 
     /**
@@ -321,26 +320,26 @@ public final class MemberAsync {
     }
 
     /**
-     * Creates a new payment token.
+     * Creates a new transfer token.
      *
-     * @param amount payment amount
+     * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
-     * @return payment token returned by the server
+     * @return transfer token returned by the server
      */
-    public Observable<Token> createPaymentToken(double amount, String currency, String accountId) {
-        return createPaymentToken(amount, currency, accountId, null, null);
+    public Observable<Token> createTransferToken(double amount, String currency, String accountId) {
+        return createTransferToken(amount, currency, accountId, null, null);
     }
 
     /**
-     * Creates a new payment token.
+     * Creates a new transfer token.
      *
-     * @param amount payment amount
+     * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
      * @param redeemer redeemer alias
-     * @param description payment description, optional
-     * @return payment token returned by the server
+     * @param description transfer description, optional
+     * @return transfer token returned by the server
      */
-    public Observable<Token> createPaymentToken(
+    public Observable<Token> createTransferToken(
             double amount,
             String currency,
             String accountId,
@@ -351,40 +350,40 @@ public final class MemberAsync {
                 .setNonce(generateNonce())
                 .setFrom(TokenMember.newBuilder()
                         .setId(member.getId()))
-                .setBankTransfer(BankTransfer.newBuilder()
+                .setTransfer(TransferBody.newBuilder()
                         .setCurrency(currency)
                         .setAmount(Double.toString(amount))
-                        .setTransfer(Transfer.newBuilder()
+                        .setInstructions(TransferInstructions.newBuilder()
                                 .setSource(Source.newBuilder()
                                         .setAccountId(accountId))));
 
         if (redeemer != null) {
-            payload.getBankTransferBuilder().setRedeemer(TokenMember.newBuilder().setAlias(redeemer));
+            payload.getTransferBuilder().setRedeemer(TokenMember.newBuilder().setAlias(redeemer));
         }
         if (description != null) {
             payload.setDescription(description);
         }
-        return createPaymentToken(payload.build());
+        return createTransferToken(payload.build());
     }
 
     /**
-     * Creates a new payment token.
+     * Creates a new transfer token.
      *
-     * @param payload payment token payload
-     * @return payment token returned by the server
+     * @param payload transfer token payload
+     * @return transfer token returned by the server
      */
-    public Observable<Token> createPaymentToken(TokenPayload payload) {
-        return client.createPaymentToken(payload);
+    public Observable<Token> createTransferToken(TokenPayload payload) {
+        return client.createTransferToken(payload);
     }
 
     /**
      * Looks up a existing token.
      *
      * @param tokenId token id
-     * @return payment token returned by the server
+     * @return transfer token returned by the server
      */
-    public Observable<Token> getPaymentToken(String tokenId) {
-        return client.getPaymentToken(tokenId);
+    public Observable<Token> getTransferToken(String tokenId) {
+        return client.getTransferToken(tokenId);
     }
 
     /**
@@ -392,10 +391,10 @@ public final class MemberAsync {
      *
      * @param offset offset to start at
      * @param limit max number of records to return
-     * @return payment tokens owned by the member
+     * @return transfer tokens owned by the member
      */
-    public Observable<List<Token>> getPaymentTokens(int offset, int limit) {
-        return client.getPaymentTokens(offset, limit);
+    public Observable<List<Token>> getTransferTokens(int offset, int limit) {
+        return client.getTransferTokens(offset, limit);
     }
 
     /**
@@ -405,8 +404,8 @@ public final class MemberAsync {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<Token> endorsePaymentToken(Token token) {
-        return client.endorsePaymentToken(token);
+    public Observable<Token> endorseTransferToken(Token token) {
+        return client.endorseTransferToken(token);
     }
 
     /**
@@ -416,30 +415,30 @@ public final class MemberAsync {
      * @param token token to cancel
      * @return cancelled token
      */
-    public Observable<Token> cancelPaymentToken(Token token) {
-        return client.cancelPaymentToken(token);
+    public Observable<Token> cancelTransferToken(Token token) {
+        return client.cancelTransferToken(token);
     }
 
     /**
-     * Redeems a payment token.
+     * Redeems a transfer token.
      *
-     * @param token payment token to redeem
-     * @return payment record
+     * @param token transfer token to redeem
+     * @return transfer record
      */
-    public Observable<Payment> redeemPaymentToken(Token token) {
-        return redeemPaymentToken(token, null, null);
+    public Observable<Transfer> redeemTransferToken(Token token) {
+        return redeemTransferToken(token, null, null);
     }
 
     /**
-     * Redeems a payment token.
+     * Redeems a transfer token.
      *
-     * @param token payment token to redeem
-     * @param amount payment amount
-     * @param currency payment currency code, e.g. "EUR"
-     * @return payment record
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @return transfer record
      */
-    public Observable<Payment> redeemPaymentToken(Token token, @Nullable Double amount, @Nullable String currency) {
-        PaymentPayload.Builder payload = PaymentPayload.newBuilder()
+    public Observable<Transfer> redeemTransferToken(Token token, @Nullable Double amount, @Nullable String currency) {
+        Transfer.Payload.Builder payload = Transfer.Payload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());
 
@@ -450,7 +449,7 @@ public final class MemberAsync {
             payload.getAmountBuilder().setCurrency(currency);
         }
 
-        return client.redeemPaymentToken(payload.build());
+        return client.redeemTransferToken(payload.build());
     }
 
     /**

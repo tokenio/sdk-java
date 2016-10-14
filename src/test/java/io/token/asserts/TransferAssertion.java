@@ -1,9 +1,8 @@
 package io.token.asserts;
 
 import io.token.Member;
-import io.token.proto.common.payment.PaymentProtos.Payment;
-import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.security.SecretKey;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
@@ -14,52 +13,52 @@ import java.util.List;
 
 import static java.util.stream.Collectors.toList;
 
-public final class PaymentAssertion extends AbstractAssert<PaymentAssertion, Payment> {
-    public static PaymentAssertion assertThat(Payment payment) {
-        return new PaymentAssertion(payment);
+public final class TransferAssertion extends AbstractAssert<TransferAssertion, Transfer> {
+    public static TransferAssertion assertThat(Transfer transfer) {
+        return new TransferAssertion(transfer);
     }
 
-    private PaymentAssertion(Payment actual) {
-        super(actual, PaymentAssertion.class);
+    private TransferAssertion(Transfer actual) {
+        super(actual, TransferAssertion.class);
     }
 
-    public PaymentAssertion hasPayload(PaymentPayload payload) {
+    public TransferAssertion hasPayload(Transfer.Payload payload) {
         Assertions.assertThat(actual.getPayload()).isEqualTo(payload);
         return this;
     }
 
-    public PaymentAssertion hasAmount(double amount) {
+    public TransferAssertion hasAmount(double amount) {
         Assertions.assertThat(actual.getPayload().getAmount().getValue()).isEqualTo(Double.toString(amount));
         return this;
     }
 
-    public PaymentAssertion hasCurrency(String currency) {
+    public TransferAssertion hasCurrency(String currency) {
         Assertions.assertThat(actual.getPayload().getAmount().getCurrency()).isEqualTo(currency);
         return this;
     }
 
-    public PaymentAssertion hasNSignatures(int count) {
+    public TransferAssertion hasNSignatures(int count) {
         Assertions.assertThat(actual.getPayloadSignaturesCount()).isEqualTo(count);
         return this;
     }
 
-    public PaymentAssertion isSignedBy(Member... members) {
+    public TransferAssertion isSignedBy(Member... members) {
         return hasKeySignatures(Arrays.stream(members)
                         .map(Member::key)
                         .collect(toList()));
     }
 
-    public PaymentAssertion hasNoSignatures() {
+    public TransferAssertion hasNoSignatures() {
         Assertions.assertThat(actual.getPayloadSignaturesList()).isEmpty();
         return this;
     }
 
-    private PaymentAssertion hasKeySignatures(Collection<SecretKey> keys) {
+    private TransferAssertion hasKeySignatures(Collection<SecretKey> keys) {
         List<String> members = keys.stream().map(SecretKey::getId).collect(toList());
         return hasKeySignatures(members.toArray(new String[members.size()]));
     }
 
-    private PaymentAssertion hasKeySignatures(String[] keyIds) {
+    private TransferAssertion hasKeySignatures(String[] keyIds) {
         List<String> signatures = actual.getPayloadSignaturesList()
                 .stream()
                 .map(SecurityProtos.Signature::getKeyId)

@@ -8,8 +8,6 @@ import io.token.security.Crypto;
 import io.token.security.SecretKey;
 import rx.Observable;
 
-import java.util.List;
-
 /**
  * Use this class to create to create a new member using {@link #createMember}
  * method or login an existing member using {@link #login}.

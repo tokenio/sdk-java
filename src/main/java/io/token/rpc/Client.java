@@ -1,20 +1,18 @@
 package io.token.rpc;
 
 import io.token.proto.common.account.AccountProtos.Account;
-import io.token.proto.common.subscriber.SubscriberProtos;
-import io.token.proto.common.subscriber.SubscriberProtos.Platform;
-import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.paging.PagingProtos.Page;
-import io.token.proto.common.payment.PaymentProtos.Payment;
-import io.token.proto.common.payment.PaymentProtos.PaymentPayload;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.subscriber.SubscriberProtos.Platform;
+import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.gateway.Gateway.*;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.SecretKey;
@@ -307,14 +305,14 @@ public final class Client {
     /**
      * Creates a new token.
      *
-     * @param payload payment token payload
-     * @return payment token returned by the server
+     * @param payload transfer token payload
+     * @return transfer token returned by the server
      */
-    public Observable<Token> createPaymentToken(TokenPayload payload) {
-        return toObservable(gateway.createPaymentToken(CreatePaymentTokenRequest.newBuilder()
+    public Observable<Token> createTransferToken(TokenPayload payload) {
+        return toObservable(gateway.createTransferToken(CreateTransferTokenRequest.newBuilder()
                 .setPayload(payload)
                 .build())
-        ).map(CreatePaymentTokenResponse::getToken);
+        ).map(CreateTransferTokenResponse::getToken);
     }
 
     /**
@@ -336,11 +334,11 @@ public final class Client {
      * @param tokenId token id
      * @return token returned by the server
      */
-    public Observable<Token> getPaymentToken(String tokenId) {
-        return toObservable(gateway.getPaymentToken(GetPaymentTokenRequest.newBuilder()
+    public Observable<Token> getTransferToken(String tokenId) {
+        return toObservable(gateway.getTransferToken(GetTransferTokenRequest.newBuilder()
                 .setTokenId(tokenId)
                 .build())
-        ).map(GetPaymentTokenResponse::getToken);
+        ).map(GetTransferTokenResponse::getToken);
     }
 
     /**
@@ -350,13 +348,13 @@ public final class Client {
      * @param limit max number of records to return
      * @return token returned by the server
      */
-    public Observable<List<Token>> getPaymentTokens(int offset, int limit) {
-        return toObservable(gateway.getPaymentTokens(GetPaymentTokensRequest.newBuilder()
+    public Observable<List<Token>> getTransferTokens(int offset, int limit) {
+        return toObservable(gateway.getTransferTokens(GetTransferTokensRequest.newBuilder()
                 .setPage(Page.newBuilder()
                     .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
                     .setLimit(limit))
                 .build())
-        ).map(GetPaymentTokensResponse::getTokensList);
+        ).map(GetTransferTokensResponse::getTokensList);
     }
 
     /**
@@ -365,14 +363,14 @@ public final class Client {
      * @param token token to endorse
      * @return endorsed token returned by the server
      */
-    public Observable<Token> endorsePaymentToken(Token token) {
-        return toObservable(gateway.endorsePaymentToken(EndorsePaymentTokenRequest.newBuilder()
+    public Observable<Token> endorseTransferToken(Token token) {
+        return toObservable(gateway.endorseTransferToken(EndorseTransferTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, ENDORSED)))
                 .build())
-        ).map(EndorsePaymentTokenResponse::getToken);
+        ).map(EndorseTransferTokenResponse::getToken);
     }
 
     /**
@@ -381,30 +379,30 @@ public final class Client {
      * @param token token to cancel
      * @return cancelled token returned by the server
      */
-    public Observable<Token> cancelPaymentToken(Token token) {
-        return toObservable(gateway.cancelPaymentToken(CancelPaymentTokenRequest.newBuilder()
+    public Observable<Token> cancelTransferToken(Token token) {
+        return toObservable(gateway.cancelTransferToken(CancelTransferTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, CANCELLED)))
                 .build())
-        ).map(CancelPaymentTokenResponse::getToken);
+        ).map(CancelTransferTokenResponse::getToken);
     }
 
     /**
-     * Redeems a payment token.
+     * Redeems a transfer token.
      *
-     * @param payment payment parameters, such as amount, currency, etc
-     * @return payment record
+     * @param transfer transfer parameters, such as amount, currency, etc
+     * @return transfer record
      */
-    public Observable<Payment> redeemPaymentToken(PaymentPayload payment) {
-        return toObservable(gateway.redeemPaymentToken(RedeemPaymentTokenRequest.newBuilder()
-                .setPayload(payment)
+    public Observable<Transfer> redeemTransferToken(Transfer.Payload transfer) {
+        return toObservable(gateway.redeemTransferToken(RedeemTransferTokenRequest.newBuilder()
+                .setPayload(transfer)
                 .setPayloadSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
-                        .setSignature(sign(key, payment)))
+                        .setSignature(sign(key, transfer)))
                 .build())
-        ).map(RedeemPaymentTokenResponse::getPayment);
+        ).map(RedeemTransferTokenResponse::getTransfer);
     }
 
     /**
@@ -422,31 +420,31 @@ public final class Client {
     }
 
     /**
-     * Looks up an existing payment.
+     * Looks up an existing transfer.
      *
-     * @param paymentId payment id
-     * @return payment record
+     * @param transferId transfer id
+     * @return transfer record
      */
-    public Observable<Payment> getPayment(String paymentId) {
-        return toObservable(gateway.getPayment(GetPaymentRequest.newBuilder()
-                .setPaymentId(paymentId)
+    public Observable<Transfer> getTransfer(String transferId) {
+        return toObservable(gateway.getTransfer(GetTransferRequest.newBuilder()
+                .setTransferId(transferId)
                 .build())
-        ).map(GetPaymentResponse::getPayment);
+        ).map(GetTransferResponse::getTransfer);
     }
 
     /**
-     * Looks up a list of existing payments.
+     * Looks up a list of existing transfers.
      *
      * @param offset offset to start at
      * @param limit max number of records to return
      * @param tokenId optional token id to restrict the search
-     * @return payment record
+     * @return transfer record
      */
-    public Observable<List<Payment>> getPayments(
+    public Observable<List<Transfer>> getTransfers(
             int offset,
             int limit,
             @Nullable String tokenId) {
-        GetPaymentsRequest.Builder request = GetPaymentsRequest.newBuilder()
+        GetTransfersRequest.Builder request = GetTransfersRequest.newBuilder()
                 .setPage(Page.newBuilder()
                         .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
                         .setLimit(limit));
@@ -455,12 +453,12 @@ public final class Client {
             request.setTokenId(tokenId);
         }
 
-        return toObservable(gateway.getPayments(request.build()))
-                .map(GetPaymentsResponse::getPaymentsList);
+        return toObservable(gateway.getTransfers(request.build()))
+                .map(GetTransfersResponse::getTransfersList);
     }
 
     /**
-     * Looks up an existing transaction. Doesn't have to be a transaction for a token payment.
+     * Looks up an existing transaction. Doesn't have to be a transaction for a token transfer.
      *
      * @param accountId ID of the account
      * @param transactionId ID of the transaction
@@ -478,7 +476,7 @@ public final class Client {
     }
 
     /**
-     * Looks up existing transactions. This is a full list of transactions with token payments
+     * Looks up existing transactions. This is a full list of transactions with token transfers
      * being a subset.
      *
      * @param accountId ID of the account

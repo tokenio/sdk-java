@@ -7,7 +7,7 @@ import org.junit.Test;
 import static io.token.asserts.TokenAssertion.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PaymentTokenTest {
+public class TransferTokenTest {
     @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
     private final Account payeeAccount = rule.account();
@@ -15,8 +15,8 @@ public class PaymentTokenTest {
     private final Member payee = payeeAccount.member();
 
     @Test
-    public void createPaymentToken() {
-        Token token = payer.createPaymentToken(
+    public void createTransferToken() {
+        Token token = payer.createTransferToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
@@ -32,9 +32,9 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void getPaymentToken() {
-        Token token = payer.createPaymentToken(100.0, "USD", payerAccount.id());
-        assertThat(payer.getPaymentToken(token.getId()))
+    public void getTransferToken() {
+        Token token = payer.createTransferToken(100.0, "USD", payerAccount.id());
+        assertThat(payer.getTransferToken(token.getId()))
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
@@ -42,20 +42,20 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void getPaymentTokens() {
-        Token token1 = payer.createPaymentToken(123.45, "EUR", payerAccount.id());
-        Token token2 = payer.createPaymentToken(678.90, "USD", payerAccount.id());
-        Token token3 = payer.createPaymentToken(100.99, "USD", payerAccount.id());
+    public void getTransferTokens() {
+        Token token1 = payer.createTransferToken(123.45, "EUR", payerAccount.id());
+        Token token2 = payer.createTransferToken(678.90, "USD", payerAccount.id());
+        Token token3 = payer.createTransferToken(100.99, "USD", payerAccount.id());
 
-        assertThat(payer.getPaymentTokens(0, 100))
+        assertThat(payer.getTransferTokens(0, 100))
                 .hasSize(3)
                 .containsOnly(token1, token2, token3);
     }
 
     @Test
-    public void endorsePaymentToken() {
-        Token token = payer.createPaymentToken(100.0, "USD", payerAccount.id());
-        token = payer.endorsePaymentToken(token);
+    public void endorseTransferToken() {
+        Token token = payer.createTransferToken(100.0, "USD", payerAccount.id());
+        token = payer.endorseTransferToken(token);
 
         assertThat(token)
                 .hasNSignatures(2)
@@ -66,9 +66,9 @@ public class PaymentTokenTest {
     }
 
     @Test
-    public void cancelPaymentToken() {
-        Token token = payer.createPaymentToken(100.0, "USD", payerAccount.id());
-        token = payer.cancelPaymentToken(token);
+    public void cancelTransferToken() {
+        Token token = payer.createTransferToken(100.0, "USD", payerAccount.id());
+        token = payer.cancelTransferToken(token);
 
         assertThat(token)
                 .hasNSignatures(2)

@@ -34,21 +34,21 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
 
     public TokenAssertion hasRedeemerAlias(String alias) {
         Assertions
-                .assertThat(actual.getPayload().getBankTransfer().getRedeemer().getAlias())
+                .assertThat(actual.getPayload().getTransfer().getRedeemer().getAlias())
                 .isEqualTo(alias);
         return this;
     }
 
     public TokenAssertion hasAmount(double amount) {
         Assertions
-                .assertThat(actual.getPayload().getBankTransfer().getAmount())
+                .assertThat(actual.getPayload().getTransfer().getAmount())
                 .isEqualTo(Double.toString(amount));
         return this;
     }
 
     public TokenAssertion hasCurrency(String currency) {
         Assertions
-                .assertThat(actual.getPayload().getBankTransfer().getCurrency())
+                .assertThat(actual.getPayload().getTransfer().getCurrency())
                 .isEqualTo(currency);
         return this;
     }

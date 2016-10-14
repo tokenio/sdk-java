@@ -2,9 +2,9 @@ package io.token;
 
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.money.MoneyProtos.Money;
-import io.token.proto.common.payment.PaymentProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -137,14 +137,14 @@ public class AccessTokenTest {
     private Transaction getTransaction(Account payerAccount, Account payeeAccount) {
         Member payer = payerAccount.member();
         Member payee = payeeAccount.member();
-        Token token = payer.createPaymentToken(
+        Token token = payer.createTransferToken(
                 10.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 string());
-        token = payer.endorsePaymentToken(token);
-        PaymentProtos.Payment payment = payee.redeemPaymentToken(token, 1.0, "USD");
-        return payerAccount.getTransaction(payment.getReferenceId());
+        token = payer.endorseTransferToken(token);
+        Transfer transfer = payee.redeemTransferToken(token, 1.0, "USD");
+        return payerAccount.getTransaction(transfer.getReferenceId());
     }
 }

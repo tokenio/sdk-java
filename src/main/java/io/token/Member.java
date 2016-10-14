@@ -1,13 +1,13 @@
 package io.token;
 
-import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.member.MemberProtos.Address;
-import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
-import io.token.proto.common.token.TokenProtos.Access.Resource;
+import io.token.proto.common.subscriber.SubscriberProtos.Platform;
+import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.security.SecretKey;
 
 import javax.annotation.Nullable;
@@ -232,25 +232,25 @@ public final class Member {
     }
 
     /**
-     * Looks up an existing token payment.
+     * Looks up an existing token transfer.
      *
-     * @param paymentId ID of the payment record
-     * @return payment record
+     * @param transferId ID of the transfer record
+     * @return transfer record
      */
-    public Payment getPayment(String paymentId) {
-        return async.getPayment(paymentId).toBlocking().single();
+    public Transfer getTransfer(String transferId) {
+        return async.getTransfer(transferId).toBlocking().single();
     }
 
     /**
-     * Looks up existing token payments.
+     * Looks up existing token transfers.
      *
      * @param offset offset to start at
      * @param limit max number of records to return
      * @param tokenId optional token id to restrict the search
-     * @return payment record
+     * @return transfer record
      */
-    public List<Payment> getPayments(int offset, int limit, @Nullable String tokenId) {
-        return async.getPayments(offset, limit, tokenId).toBlocking().single();
+    public List<Transfer> getTransfers(int offset, int limit, @Nullable String tokenId) {
+        return async.getTransfers(offset, limit, tokenId).toBlocking().single();
     }
 
     /**
@@ -293,34 +293,34 @@ public final class Member {
     }
 
     /**
-     * Creates a new payment token.
+     * Creates a new transfer token.
      *
-     * @param amount payment amount
+     * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
      * @param accountId the funding account id
-     * @return payment token returned by the server
+     * @return transfer token returned by the server
      */
-    public Token createPaymentToken(double amount, String currency, String accountId) {
-        return createPaymentToken(amount, currency, accountId, null, null);
+    public Token createTransferToken(double amount, String currency, String accountId) {
+        return createTransferToken(amount, currency, accountId, null, null);
     }
 
     /**
-     * Creates a new payment token.
+     * Creates a new transfer token.
      *
-     * @param amount payment amount
+     * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
      * @param accountId the funding account id
      * @param redeemer redeemer alias
-     * @param description payment description, optional
-     * @return payment token returned by the server
+     * @param description transfer description, optional
+     * @return transfer token returned by the server
      */
-    public Token createPaymentToken(
+    public Token createTransferToken(
             double amount,
             String currency,
             String accountId,
             @Nullable String redeemer,
             @Nullable String description) {
-        return async.createPaymentToken(amount, currency, accountId, redeemer, description)
+        return async.createTransferToken(amount, currency, accountId, redeemer, description)
                 .toBlocking()
                 .single();
     }
@@ -329,10 +329,10 @@ public final class Member {
      * Looks up a existing token.
      *
      * @param tokenId token id
-     * @return payment token returned by the server
+     * @return transfer token returned by the server
      */
-    public Token getPaymentToken(String tokenId) {
-        return async.getPaymentToken(tokenId).toBlocking().single();
+    public Token getTransferToken(String tokenId) {
+        return async.getTransferToken(tokenId).toBlocking().single();
     }
 
     /**
@@ -340,10 +340,10 @@ public final class Member {
      *
      * @param offset offset to start at
      * @param limit max number of records to return
-     * @return payment tokens owned by the member
+     * @return transfer tokens owned by the member
      */
-    public List<Token> getPaymentTokens(int offset, int limit) {
-        return async.getPaymentTokens(offset, limit).toBlocking().single();
+    public List<Token> getTransferTokens(int offset, int limit) {
+        return async.getTransferTokens(offset, limit).toBlocking().single();
     }
 
     /**
@@ -353,8 +353,8 @@ public final class Member {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Token endorsePaymentToken(Token token) {
-        return async.endorsePaymentToken(token).toBlocking().single();
+    public Token endorseTransferToken(Token token) {
+        return async.endorseTransferToken(token).toBlocking().single();
     }
 
     /**
@@ -364,30 +364,30 @@ public final class Member {
      * @param token token to cancel
      * @return cancelled token
      */
-    public Token cancelPaymentToken(Token token) {
-        return async.cancelPaymentToken(token).toBlocking().single();
+    public Token cancelTransferToken(Token token) {
+        return async.cancelTransferToken(token).toBlocking().single();
     }
 
     /**
-     * Redeems a payment token.
+     * Redeems a transfer token.
      *
-     * @param token payment token to redeem
-     * @return payment record
+     * @param token transfer token to redeem
+     * @return transfer record
      */
-    public Payment redeemPaymentToken(Token token) {
-        return async.redeemPaymentToken(token).toBlocking().single();
+    public Transfer redeemTransferToken(Token token) {
+        return async.redeemTransferToken(token).toBlocking().single();
     }
 
     /**
-     * Redeems a payment token.
+     * Redeems a transfer token.
      *
-     * @param token payment token to redeem
-     * @param amount payment amount
-     * @param currency payment currency code, e.g. "EUR"
-     * @return payment record
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @return transfer record
      */
-    public Payment redeemPaymentToken(Token token, @Nullable Double amount, @Nullable String currency) {
-        return async.redeemPaymentToken(token, amount, currency).toBlocking().single();
+    public Transfer redeemTransferToken(Token token, @Nullable Double amount, @Nullable String currency) {
+        return async.redeemTransferToken(token, amount, currency).toBlocking().single();
     }
 
     /**
