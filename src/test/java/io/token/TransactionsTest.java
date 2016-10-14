@@ -1,9 +1,10 @@
 package io.token;
 
 import io.token.asserts.TransactionAssertion;
-import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
+import io.token.proto.common.transfer.TransferProtos;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -28,36 +29,36 @@ public class TransactionsTest {
 
     @Test
     public void getTransaction() {
-        Token token = payer.createPaymentToken(
+        Token token = payer.createTransferToken(
                 1000.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "Multi charge token");
-        token = payer.endorsePaymentToken(token);
-        Payment payment = payee.redeemPaymentToken(token, 100.0, "USD");
+        token = payer.endorseTransferToken(token);
+        Transfer transfer = payee.redeemTransferToken(token, 100.0, "USD");
 
-        Transaction transaction = payerAccount.getTransaction(payment.getReferenceId());
+        Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
         TransactionAssertion.assertThat(transaction)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
-                .hasTokenPaymentId(payment.getId());
+                .hasTokenTransferId(transfer.getId());
     }
 
     @Test
     public void getTransactions() {
-        Token token = payer.createPaymentToken(
+        Token token = payer.createTransferToken(
                 1000.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "Multi charge token");
-        token = payer.endorsePaymentToken(token);
+        token = payer.endorseTransferToken(token);
 
-        Payment payment1 = payee.redeemPaymentToken(token, 100.0, "USD");
-        Payment payment2 = payee.redeemPaymentToken(token, 200.0, "USD");
-        Payment payment3 = payee.redeemPaymentToken(token, 300.0, "USD");
+        Transfer transfer1 = payee.redeemTransferToken(token, 100.0, "USD");
+        Transfer transfer2 = payee.redeemTransferToken(token, 200.0, "USD");
+        Transfer transfer3 = payee.redeemTransferToken(token, 300.0, "USD");
 
         List<Transaction> transactions = payerAccount.getTransactions(0, 3).stream()
                 .sorted((t1, t2) -> t1.getAmount().getValue().compareTo(t2.getAmount().getValue()))
@@ -68,16 +69,16 @@ public class TransactionsTest {
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
-                .hasTokenPaymentId(payment1.getId());
+                .hasTokenTransferId(transfer1.getId());
         TransactionAssertion.assertThat(transactions.get(1))
                 .hasAmount(200.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
-                .hasTokenPaymentId(payment2.getId());
+                .hasTokenTransferId(transfer2.getId());
         TransactionAssertion.assertThat(transactions.get(2))
                 .hasAmount(300.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
-                .hasTokenPaymentId(payment3.getId());
+                .hasTokenTransferId(transfer3.getId());
     }
 }

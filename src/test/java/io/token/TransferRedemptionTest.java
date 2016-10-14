@@ -1,16 +1,16 @@
 package io.token;
 
-import io.token.proto.common.payment.PaymentProtos.Payment;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
 
-import static io.token.asserts.PaymentAssertion.assertThat;
+import static io.token.asserts.TransferAssertion.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
-public class PaymentRedemptionTest {
+public class TransferRedemptionTest {
     @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
     private final Account payeeAccount = rule.account();
@@ -19,16 +19,16 @@ public class PaymentRedemptionTest {
 
     @Test
     public void redeemToken() {
-        Token token = payer.createPaymentToken(
+        Token token = payer.createTransferToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "book purchase");
-        token = payer.endorsePaymentToken(token);
+        token = payer.endorseTransferToken(token);
 
-        Payment payment = payee.redeemPaymentToken(token);
-        assertThat(payment)
+        Transfer transfer = payee.redeemTransferToken(token);
+        assertThat(transfer)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasNSignatures(2)
@@ -37,16 +37,16 @@ public class PaymentRedemptionTest {
 
     @Test
     public void redeemToken_withParams() {
-        Token token = payer.createPaymentToken(
+        Token token = payer.createTransferToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "book purchase");
-        token = payer.endorsePaymentToken(token);
+        token = payer.endorseTransferToken(token);
 
-        Payment payment = payee.redeemPaymentToken(token, 99.0, "USD");
-        assertThat(payment)
+        Transfer transfer = payee.redeemTransferToken(token, 99.0, "USD");
+        assertThat(transfer)
                 .hasAmount(99.0)
                 .hasCurrency("USD")
                 .hasNSignatures(2)
@@ -54,45 +54,45 @@ public class PaymentRedemptionTest {
     }
 
     @Test
-    public void getPayment() {
-        Token token = payer.createPaymentToken(
+    public void getTransfer() {
+        Token token = payer.createTransferToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "book purchase");
-        token = payer.endorsePaymentToken(token);
+        token = payer.endorseTransferToken(token);
 
-        Payment payment = payee.redeemPaymentToken(token);
-        Payment lookedUp = payer.getPayment(payment.getId());
-        assertThat(lookedUp).isEqualTo(payment);
+        Transfer transfer = payee.redeemTransferToken(token);
+        Transfer lookedUp = payer.getTransfer(transfer.getId());
+        assertThat(lookedUp).isEqualTo(transfer);
     }
 
     @Test
-    public void getPayments() {
-        Token token = payer.createPaymentToken(
+    public void getTransfers() {
+        Token token = payer.createTransferToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "book purchase");
-        token = payer.endorsePaymentToken(token);
+        token = payer.endorseTransferToken(token);
 
-        Payment payment1 = payee.redeemPaymentToken(token, 10.0, "USD");
-        Payment payment2 = payee.redeemPaymentToken(token, 20.0, "USD");
-        Payment payment3 = payee.redeemPaymentToken(token, 70.0, "USD");
+        Transfer transfer1 = payee.redeemTransferToken(token, 10.0, "USD");
+        Transfer transfer2 = payee.redeemTransferToken(token, 20.0, "USD");
+        Transfer transfer3 = payee.redeemTransferToken(token, 70.0, "USD");
 
-        assertThat(payment1)
+        assertThat(transfer1)
                 .hasAmount(10.0)
                 .hasCurrency("USD");
-        assertThat(payment2)
+        assertThat(transfer2)
                 .hasAmount(20.0)
                 .hasCurrency("USD");
-        assertThat(payment3)
+        assertThat(transfer3)
                 .hasAmount(70.0)
                 .hasCurrency("USD");
 
-        List<Payment> lookedUp = payer.getPayments(0, 100, token.getId());
-        assertThat(lookedUp).containsOnly(payment1, payment2, payment3);
+        List<Transfer> lookedUp = payer.getTransfers(0, 100, token.getId());
+        assertThat(lookedUp).containsOnly(transfer1, transfer2, transfer3);
     }
 }

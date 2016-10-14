@@ -79,7 +79,7 @@ public final class AccountAsync {
     }
 
     /**
-     * Looks up an existing transaction. Doesn't have to be a transaction for a token payment.
+     * Looks up an existing transaction. Doesn't have to be a transaction for a token transfer.
      *
      * @param transactionId ID of the transaction
      * @return transaction record
@@ -89,12 +89,12 @@ public final class AccountAsync {
     }
 
     /**
-     * Looks up existing transactions. This is a full list of transactions with token payments
+     * Looks up existing transactions. This is a full list of transactions with token transfers
      * being a subset.
      *
      * @param offset offset to start at
      * @param limit max number of records to return
-     * @return payment record
+     * @return list of transactions
      */
     public Observable<List<Transaction>> getTransactions(int offset, int limit) {
         return client.getTransactions(account.getId(), offset, limit);
