@@ -28,8 +28,8 @@ public final class TransactionAssertion extends AbstractAssert<TransactionAssert
         return this;
     }
 
-    public TransactionAssertion hasTokenPaymentId(String tokenPaymentId) {
-        Assertions.assertThat(actual.getTokenPaymentId()).isEqualTo(tokenPaymentId);
+    public TransactionAssertion hasTokenTransferId(String tokenTransferId) {
+        Assertions.assertThat(actual.getTokenTransferId()).isEqualTo(tokenTransferId);
         return this;
     }
 }
