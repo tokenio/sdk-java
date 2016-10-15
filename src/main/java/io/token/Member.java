@@ -24,24 +24,6 @@ public final class Member {
     private final MemberAsync async;
 
     /**
-     * Sets the On-Behalf-Of authentication value to be used
-     * with this client.  The value must correspond to an existing
-     * Access Token ID issued for the client member.
-     *
-     * @param accessTokenId the access token id
-     */
-    public void useAccessToken(String accessTokenId) {
-        this.async.useAccessToken(accessTokenId);
-    }
-
-    /**
-     * Clears the access token value used with this client.
-     */
-    public void clearAccessTokenOf() {
-        this.async.clearAccessToken();
-    }
-
-    /**
      * @param async real implementation that the calls are delegated to
      */
     public Member(MemberAsync async) {
@@ -88,6 +70,24 @@ public final class Member {
      */
     public List<byte[]> publicKeys() {
         return async.publicKeys();
+    }
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member.
+     *
+     * @param accessTokenId the access token id
+     */
+    public void useAccessToken(String accessTokenId) {
+        this.async.useAccessToken(accessTokenId);
+    }
+
+    /**
+     * Clears the access token value used with this client.
+     */
+    public void clearAccessTokenOf() {
+        this.async.clearAccessToken();
     }
 
     /**
@@ -300,8 +300,8 @@ public final class Member {
      * @param accountId the funding account id
      * @return transfer token returned by the server
      */
-    public Token createTransferToken(double amount, String currency, String accountId) {
-        return createTransferToken(amount, currency, accountId, null, null);
+    public Token createToken(double amount, String currency, String accountId) {
+        return createToken(amount, currency, accountId, null, null);
     }
 
     /**
@@ -314,116 +314,26 @@ public final class Member {
      * @param description transfer description, optional
      * @return transfer token returned by the server
      */
-    public Token createTransferToken(
+    public Token createToken(
             double amount,
             String currency,
             String accountId,
             @Nullable String redeemer,
             @Nullable String description) {
-        return async.createTransferToken(amount, currency, accountId, redeemer, description)
+        return async.createToken(amount, currency, accountId, redeemer, description)
                 .toBlocking()
                 .single();
     }
 
     /**
-     * Looks up a existing token.
-     *
-     * @param tokenId token id
-     * @return transfer token returned by the server
-     */
-    public Token getTransferToken(String tokenId) {
-        return async.getTransferToken(tokenId).toBlocking().single();
-    }
-
-    /**
-     * Looks up tokens owned by the member.
-     *
-     * @param offset offset to start at
-     * @param limit max number of records to return
-     * @return transfer tokens owned by the member
-     */
-    public List<Token> getTransferTokens(int offset, int limit) {
-        return async.getTransferTokens(offset, limit).toBlocking().single();
-    }
-
-    /**
-     * Endorses the token by signing it. The signature is persisted along
-     * with the token.
-     *
-     * @param token token to endorse
-     * @return endorsed token
-     */
-    public Token endorseTransferToken(Token token) {
-        return async.endorseTransferToken(token).toBlocking().single();
-    }
-
-    /**
-     * Cancels the token by signing it. The signature is persisted along
-     * with the token.
-     *
-     * @param token token to cancel
-     * @return cancelled token
-     */
-    public Token cancelTransferToken(Token token) {
-        return async.cancelTransferToken(token).toBlocking().single();
-    }
-
-    /**
-     * Redeems a transfer token.
-     *
-     * @param token transfer token to redeem
-     * @return transfer record
-     */
-    public Transfer redeemTransferToken(Token token) {
-        return async.redeemTransferToken(token).toBlocking().single();
-    }
-
-    /**
-     * Redeems a transfer token.
-     *
-     * @param token transfer token to redeem
-     * @param amount transfer amount
-     * @param currency transfer currency code, e.g. "EUR"
-     * @return transfer record
-     */
-    public Transfer redeemTransferToken(Token token, @Nullable Double amount, @Nullable String currency) {
-        return async.redeemTransferToken(token, amount, currency).toBlocking().single();
-    }
-
-    /**
-     * Looks up an existing transaction for a given account
-     *
-     * @param accountId the account id
-     * @param transactionId ID of the transaction
-     * @return transaction record
-     */
-    public Transaction getTransaction(String accountId, String transactionId) {
-        return async.getTransaction(accountId, transactionId)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Looks up transactions for a given account
-     *
-     * @param accountId the account id
-     * @return a list of transaction record
-     */
-    public List<Transaction> getTransactions(String accountId, int offset, int limit) {
-        return async.getTransactions(accountId, offset, limit)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates an access token for a list of resources
+     * Creates an access token for a list of resources.
      *
      * @param redeemer the redeemer alias
      * @param resources a list of resources
      * @return the access token created
      */
-    public Token createAccessToken(String redeemer, List<Resource> resources) {
-        return async.createAccessToken(redeemer, resources)
+    public Token createToken(String redeemer, List<Resource> resources) {
+        return async.createToken(redeemer, resources)
                 .toBlocking()
                 .single();
     }
@@ -461,8 +371,109 @@ public final class Member {
      * @param accountId an optional account id
      * @return the transaction access token created
      */
-    public Token createTransactionAccessToken(String redeemer, @Nullable String  accountId) {
+    public Token createTransactionAccessToken(String redeemer, @Nullable String accountId) {
         return async.createTransactionAccessToken(redeemer, accountId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Looks up a existing token.
+     *
+     * @param tokenId token id
+     * @return transfer token returned by the server
+     */
+    public Token getToken(String tokenId) {
+        return async.getToken(tokenId).toBlocking().single();
+    }
+
+    /**
+     * Looks up tokens owned by the member.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @return transfer tokens owned by the member
+     */
+    public List<Token> getTransferTokens(int offset, int limit) {
+        return async.getTransferTokens(offset, limit).toBlocking().single();
+    }
+
+    /**
+     * Looks up tokens owned by the member.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @return transfer tokens owned by the member
+     */
+    public List<Token> getAccessTokens(int offset, int limit) {
+        return async.getAccessTokens(offset, limit).toBlocking().single();
+    }
+
+    /**
+     * Endorses the token by signing it. The signature is persisted along
+     * with the token.
+     *
+     * @param token token to endorse
+     * @return endorsed token
+     */
+    public Token endorseToken(Token token) {
+        return async.endorseToken(token).toBlocking().single();
+    }
+
+    /**
+     * Cancels the token by signing it. The signature is persisted along
+     * with the token.
+     *
+     * @param token token to cancel
+     * @return cancelled token
+     */
+    public Token cancelToken(Token token) {
+        return async.cancelToken(token).toBlocking().single();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @return transfer record
+     */
+    public Transfer redeemToken(Token token) {
+        return async.createTransfer(token).toBlocking().single();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @return transfer record
+     */
+    public Transfer redeemToken(Token token, @Nullable Double amount, @Nullable String currency) {
+        return async.createTransfer(token, amount, currency).toBlocking().single();
+    }
+
+    /**
+     * Looks up an existing transaction for a given account
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @return transaction record
+     */
+    public Transaction getTransaction(String accountId, String transactionId) {
+        return async.getTransaction(accountId, transactionId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Looks up transactions for a given account
+     *
+     * @param accountId the account id
+     * @return a list of transaction record
+     */
+    public List<Transaction> getTransactions(String accountId, int offset, int limit) {
+        return async.getTransactions(accountId, offset, limit)
                 .toBlocking()
                 .single();
     }

@@ -3,7 +3,6 @@ package io.token;
 import io.token.asserts.TransactionAssertion;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import org.junit.Rule;
 import org.junit.Test;
@@ -29,14 +28,14 @@ public class TransactionsTest {
 
     @Test
     public void getTransaction() {
-        Token token = payer.createTransferToken(
+        Token token = payer.createToken(
                 1000.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "Multi charge token");
-        token = payer.endorseTransferToken(token);
-        Transfer transfer = payee.redeemTransferToken(token, 100.0, "USD");
+        token = payer.endorseToken(token);
+        Transfer transfer = payee.redeemToken(token, 100.0, "USD");
 
         Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
         TransactionAssertion.assertThat(transaction)
@@ -48,17 +47,17 @@ public class TransactionsTest {
 
     @Test
     public void getTransactions() {
-        Token token = payer.createTransferToken(
+        Token token = payer.createToken(
                 1000.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "Multi charge token");
-        token = payer.endorseTransferToken(token);
+        token = payer.endorseToken(token);
 
-        Transfer transfer1 = payee.redeemTransferToken(token, 100.0, "USD");
-        Transfer transfer2 = payee.redeemTransferToken(token, 200.0, "USD");
-        Transfer transfer3 = payee.redeemTransferToken(token, 300.0, "USD");
+        Transfer transfer1 = payee.redeemToken(token, 100.0, "USD");
+        Transfer transfer2 = payee.redeemToken(token, 200.0, "USD");
+        Transfer transfer3 = payee.redeemToken(token, 300.0, "USD");
 
         List<Transaction> transactions = payerAccount.getTransactions(0, 3).stream()
                 .sorted((t1, t2) -> t1.getAmount().getValue().compareTo(t2.getAmount().getValue()))

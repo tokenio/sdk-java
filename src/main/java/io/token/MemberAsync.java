@@ -5,12 +5,17 @@ import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos.*;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
+import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenMember;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Source;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferInstructions;
+import io.token.proto.gateway.Gateway;
+import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.SecretKey;
 import io.token.util.codec.ByteEncoding;
@@ -42,24 +47,6 @@ public final class MemberAsync {
         this.key = key;
         this.client = client;
         this.member = member.toBuilder();
-    }
-
-    /**
-     * Sets the On-Behalf-Of authentication value to be used
-     * with this client.  The value must correspond to an existing
-     * Access Token ID issued for the client member.
-     *
-     * @param accessTokenId the access token id
-     */
-    public void useAccessToken(String accessTokenId) {
-        this.client.useAccessToken(accessTokenId);
-    }
-
-    /**
-     * Clears the access token id from the authentication context used with this client.
-     */
-    public void clearAccessToken() {
-        this.client.clearAccessToken();
     }
 
     /**
@@ -105,6 +92,24 @@ public final class MemberAsync {
                 .stream()
                 .map(k -> ByteEncoding.parse(k.getPublicKey()))
                 .collect(toList());
+    }
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member.
+     *
+     * @param accessTokenId the access token id
+     */
+    public void useAccessToken(String accessTokenId) {
+        this.client.useAccessToken(accessTokenId);
+    }
+
+    /**
+     * Clears the access token id from the authentication context used with this client.
+     */
+    public void clearAccessToken() {
+        this.client.clearAccessToken();
     }
 
     /**
@@ -213,7 +218,7 @@ public final class MemberAsync {
      * @param subscriberId subscriberId
      */
     public Observable<Void> unsubscribeFromNotifications(String subscriberId) {
-        return client.unsubscribeDevice(subscriberId)
+        return client.unsubscribeFromNotifications(subscriberId)
                 .map(empty -> null);
     }
 
@@ -326,8 +331,8 @@ public final class MemberAsync {
      * @param currency currency code, e.g. "USD"
      * @return transfer token returned by the server
      */
-    public Observable<Token> createTransferToken(double amount, String currency, String accountId) {
-        return createTransferToken(amount, currency, accountId, null, null);
+    public Observable<Token> createToken(double amount, String currency, String accountId) {
+        return createToken(amount, currency, accountId, null, null);
     }
 
     /**
@@ -339,7 +344,7 @@ public final class MemberAsync {
      * @param description transfer description, optional
      * @return transfer token returned by the server
      */
-    public Observable<Token> createTransferToken(
+    public Observable<Token> createToken(
             double amount,
             String currency,
             String accountId,
@@ -363,17 +368,100 @@ public final class MemberAsync {
         if (description != null) {
             payload.setDescription(description);
         }
-        return createTransferToken(payload.build());
+        return createToken(payload.build());
     }
 
     /**
-     * Creates a new transfer token.
+     * Creates an access token for a list of resources.
+     *
+     * @param redeemer the redeemer alias
+     * @param resources a list of resources
+     * @return the access token created
+     */
+    public Observable<Token> createToken(String redeemer, List<Resource> resources) {
+        TokenPayload.Builder payload = TokenPayload.newBuilder()
+                .setVersion("1.0")
+                .setNonce(generateNonce())
+                .setFrom(TokenMember.newBuilder()
+                        .setId(member.getId()))
+                .setTo(TokenMember.newBuilder()
+                        .setAlias(redeemer));
+
+        payload.getAccessBuilder()
+                .addAllResources(resources)
+                .build();
+
+        return createToken(payload.build());
+    }
+
+    /**
+     * Creates an address access token.
+     *
+     * @param redeemer the redeemer alias
+     * @param addressId an optional address id
+     * @return the address access token created
+     */
+    public Observable<Token> createAddressAccessToken(
+            String redeemer,
+            @Nullable String addressId) {
+        Resource.Address.Builder address = Resource.Address.newBuilder();
+        if(addressId != null) {
+            address.setAddressId(addressId);
+        }
+        Resource resource = Resource.newBuilder()
+                .setAddress(address.build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates an account access token.
+     *
+     * @param redeemer the redeemer alias
+     * @param accountId an optional account id
+     * @return the account access token created
+     */
+    public Observable<Token> createAccountAccessToken(
+            String redeemer,
+            @Nullable String  accountId) {
+        Resource.Account.Builder account = Resource.Account.newBuilder();
+        if(accountId != null) {
+            account.setAccountId(accountId);
+        }
+        Resource resource = Resource.newBuilder()
+                .setAccount(account.build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates a transaction access token.
+     *
+     * @param redeemer the redeemer alias
+     * @param accountId an optional account id
+     * @return the transaction access token created
+     */
+    public Observable<Token> createTransactionAccessToken(
+            String redeemer,
+            @Nullable String accountId) {
+        Resource.Transaction.Builder transaction = Resource.Transaction.newBuilder();
+        if(accountId != null) {
+            transaction.setAccountId(accountId);
+        }
+        Resource resource = Resource.newBuilder()
+                .setTransaction(transaction.build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates a new token.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
-    public Observable<Token> createTransferToken(TokenPayload payload) {
-        return client.createTransferToken(payload);
+    public Observable<Token> createToken(TokenPayload payload) {
+        return client.createToken(payload);
     }
 
     /**
@@ -382,19 +470,30 @@ public final class MemberAsync {
      * @param tokenId token id
      * @return transfer token returned by the server
      */
-    public Observable<Token> getTransferToken(String tokenId) {
-        return client.getTransferToken(tokenId);
+    public Observable<Token> getToken(String tokenId) {
+        return client.getToken(tokenId);
     }
 
     /**
-     * Looks up token owned by the member.
+     * Looks up transfer tokens owned by the member.
      *
      * @param offset offset to start at
      * @param limit max number of records to return
      * @return transfer tokens owned by the member
      */
     public Observable<List<Token>> getTransferTokens(int offset, int limit) {
-        return client.getTransferTokens(offset, limit);
+        return client.getTokens(GetTokensRequest.Type.TRANSFER, offset, limit);
+    }
+
+    /**
+     * Looks up access tokens owned by the member.
+     *
+     * @param offset offset to start at
+     * @param limit max number of records to return
+     * @return transfer tokens owned by the member
+     */
+    public Observable<List<Token>> getAccessTokens(int offset, int limit) {
+        return client.getTokens(GetTokensRequest.Type.ACCESS, offset, limit);
     }
 
     /**
@@ -404,8 +503,8 @@ public final class MemberAsync {
      * @param token token to endorse
      * @return endorsed token
      */
-    public Observable<Token> endorseTransferToken(Token token) {
-        return client.endorseTransferToken(token);
+    public Observable<Token> endorseToken(Token token) {
+        return client.endorseToken(token);
     }
 
     /**
@@ -415,8 +514,8 @@ public final class MemberAsync {
      * @param token token to cancel
      * @return cancelled token
      */
-    public Observable<Token> cancelTransferToken(Token token) {
-        return client.cancelTransferToken(token);
+    public Observable<Token> cancelToken(Token token) {
+        return client.cancelToken(token);
     }
 
     /**
@@ -425,8 +524,8 @@ public final class MemberAsync {
      * @param token transfer token to redeem
      * @return transfer record
      */
-    public Observable<Transfer> redeemTransferToken(Token token) {
-        return redeemTransferToken(token, null, null);
+    public Observable<Transfer> createTransfer(Token token) {
+        return createTransfer(token, null, null);
     }
 
     /**
@@ -437,7 +536,7 @@ public final class MemberAsync {
      * @param currency transfer currency code, e.g. "EUR"
      * @return transfer record
      */
-    public Observable<Transfer> redeemTransferToken(Token token, @Nullable Double amount, @Nullable String currency) {
+    public Observable<Transfer> createTransfer(Token token, @Nullable Double amount, @Nullable String currency) {
         Transfer.Payload.Builder payload = Transfer.Payload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());
@@ -449,7 +548,7 @@ public final class MemberAsync {
             payload.getAmountBuilder().setCurrency(currency);
         }
 
-        return client.redeemTransferToken(payload.build());
+        return client.createTransfer(payload.build());
     }
 
     /**
@@ -471,89 +570,6 @@ public final class MemberAsync {
      */
     public Observable<List<Transaction>> getTransactions(String accountId, int offset, int limit) {
         return client.getTransactions(accountId, offset, limit);
-    }
-
-    /**
-     * Creates an access token for a list of resources
-     *
-     * @param redeemer the redeemer alias
-     * @param resources a list of resources
-     * @return the access token created
-     */
-    public Observable<Token> createAccessToken(String redeemer, List<Resource> resources) {
-        TokenPayload.Builder payload = TokenPayload.newBuilder()
-                .setVersion("1.0")
-                .setNonce(generateNonce())
-                .setFrom(TokenMember.newBuilder()
-                        .setId(member.getId()))
-                .setTo(TokenMember.newBuilder()
-                        .setAlias(redeemer));
-
-        payload.getAccessBuilder()
-                .addAllResources(resources)
-                .build();
-
-        return client.createAccessToken(payload.build());
-    }
-
-    /**
-     * Creates an address access token
-     *
-     * @param redeemer the redeemer alias
-     * @param addressId an optional address id
-     * @return the address access token created
-     */
-    public Observable<Token> createAddressAccessToken(
-            String redeemer,
-            @Nullable String addressId) {
-        Resource.Address.Builder address = Resource.Address.newBuilder();
-        if(addressId != null) {
-            address.setAddressId(addressId);
-        }
-        Resource resource = Resource.newBuilder()
-                .setAddress(address.build())
-                .build();
-        return createAccessToken(redeemer, Collections.singletonList(resource));
-    }
-
-    /**
-     * Creates an account access token
-     *
-     * @param redeemer the redeemer alias
-     * @param accountId an optional account id
-     * @return the account access token created
-     */
-    public Observable<Token> createAccountAccessToken(
-            String redeemer,
-            @Nullable String  accountId) {
-        Resource.Account.Builder account = Resource.Account.newBuilder();
-        if(accountId != null) {
-            account.setAccountId(accountId);
-        }
-        Resource resource = Resource.newBuilder()
-                .setAccount(account.build())
-                .build();
-        return createAccessToken(redeemer, Collections.singletonList(resource));
-    }
-
-    /**
-     * Creates a transaction access token
-     *
-     * @param redeemer the redeemer alias
-     * @param accountId an optional account id
-     * @return the transaction access token created
-     */
-    public Observable<Token> createTransactionAccessToken(
-            String redeemer,
-            @Nullable String accountId) {
-        Resource.Transaction.Builder transaction = Resource.Transaction.newBuilder();
-        if(accountId != null) {
-            transaction.setAccountId(accountId);
-        }
-        Resource resource = Resource.newBuilder()
-                .setTransaction(transaction.build())
-                .build();
-        return createAccessToken(redeemer, Collections.singletonList(resource));
     }
 
     @Override

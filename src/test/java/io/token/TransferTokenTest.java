@@ -16,7 +16,7 @@ public class TransferTokenTest {
 
     @Test
     public void createTransferToken() {
-        Token token = payer.createTransferToken(
+        Token token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
@@ -33,8 +33,8 @@ public class TransferTokenTest {
 
     @Test
     public void getTransferToken() {
-        Token token = payer.createTransferToken(100.0, "USD", payerAccount.id());
-        assertThat(payer.getTransferToken(token.getId()))
+        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        assertThat(payer.getToken(token.getId()))
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
@@ -43,9 +43,9 @@ public class TransferTokenTest {
 
     @Test
     public void getTransferTokens() {
-        Token token1 = payer.createTransferToken(123.45, "EUR", payerAccount.id());
-        Token token2 = payer.createTransferToken(678.90, "USD", payerAccount.id());
-        Token token3 = payer.createTransferToken(100.99, "USD", payerAccount.id());
+        Token token1 = payer.createToken(123.45, "EUR", payerAccount.id());
+        Token token2 = payer.createToken(678.90, "USD", payerAccount.id());
+        Token token3 = payer.createToken(100.99, "USD", payerAccount.id());
 
         assertThat(payer.getTransferTokens(0, 100))
                 .hasSize(3)
@@ -54,8 +54,8 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferToken() {
-        Token token = payer.createTransferToken(100.0, "USD", payerAccount.id());
-        token = payer.endorseTransferToken(token);
+        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        token = payer.endorseToken(token);
 
         assertThat(token)
                 .hasNSignatures(2)
@@ -67,8 +67,8 @@ public class TransferTokenTest {
 
     @Test
     public void cancelTransferToken() {
-        Token token = payer.createTransferToken(100.0, "USD", payerAccount.id());
-        token = payer.cancelTransferToken(token);
+        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        token = payer.cancelToken(token);
 
         assertThat(token)
                 .hasNSignatures(2)
