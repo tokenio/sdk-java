@@ -211,21 +211,6 @@ public final class Client {
                 .map(GetSubscriberResponse::getSubscriber);
     }
 
-         /**
-     * Removes a subscriber, to stop receiving notifications
-     *
-     * @param subscriberId id of the subscriber
-     * @return nothing
-     */
-    public Observable<Void> unsubscribeDevice(
-            String subscriberId) {
-        return toObservable(gateway.unsubscribeFromNotifications(
-                UnsubscribeFromNotificationsRequest.newBuilder()
-                        .setSubscriberId(subscriberId)
-                        .build()))
-                .map(empty -> null);
-    }
-
      /**
      * Removes a subscriber, to stop receiving notifications
      *
@@ -308,24 +293,11 @@ public final class Client {
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
-    public Observable<Token> createTransferToken(TokenPayload payload) {
-        return toObservable(gateway.createTransferToken(CreateTransferTokenRequest.newBuilder()
+    public Observable<Token> createToken(TokenPayload payload) {
+        return toObservable(gateway.createToken(CreateTokenRequest.newBuilder()
                 .setPayload(payload)
                 .build())
-        ).map(CreateTransferTokenResponse::getToken);
-    }
-
-    /**
-     * Creates a new access token.
-     *
-     * @param payload information token payload
-     * @return the token returned by the server
-     */
-    public Observable<Token> createAccessToken(TokenPayload payload) {
-        return toObservable(gateway.createAccessToken(CreateAccessTokenRequest.newBuilder()
-                .setPayload(payload)
-                .build())
-        ).map(CreateAccessTokenResponse::getToken);
+        ).map(CreateTokenResponse::getToken);
     }
 
     /**
@@ -334,11 +306,11 @@ public final class Client {
      * @param tokenId token id
      * @return token returned by the server
      */
-    public Observable<Token> getTransferToken(String tokenId) {
-        return toObservable(gateway.getTransferToken(GetTransferTokenRequest.newBuilder()
+    public Observable<Token> getToken(String tokenId) {
+        return toObservable(gateway.getToken(GetTokenRequest.newBuilder()
                 .setTokenId(tokenId)
                 .build())
-        ).map(GetTransferTokenResponse::getToken);
+        ).map(GetTokenResponse::getToken);
     }
 
     /**
@@ -348,13 +320,14 @@ public final class Client {
      * @param limit max number of records to return
      * @return token returned by the server
      */
-    public Observable<List<Token>> getTransferTokens(int offset, int limit) {
-        return toObservable(gateway.getTransferTokens(GetTransferTokensRequest.newBuilder()
+    public Observable<List<Token>> getTokens(GetTokensRequest.Type type, int offset, int limit) {
+        return toObservable(gateway.getTokens(GetTokensRequest.newBuilder()
+                .setType(type)
                 .setPage(Page.newBuilder()
                     .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
                     .setLimit(limit))
                 .build())
-        ).map(GetTransferTokensResponse::getTokensList);
+        ).map(GetTokensResponse::getTokensList);
     }
 
     /**
@@ -363,14 +336,14 @@ public final class Client {
      * @param token token to endorse
      * @return endorsed token returned by the server
      */
-    public Observable<Token> endorseTransferToken(Token token) {
-        return toObservable(gateway.endorseTransferToken(EndorseTransferTokenRequest.newBuilder()
+    public Observable<Token> endorseToken(Token token) {
+        return toObservable(gateway.endorseToken(EndorseTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, ENDORSED)))
                 .build())
-        ).map(EndorseTransferTokenResponse::getToken);
+        ).map(EndorseTokenResponse::getToken);
     }
 
     /**
@@ -379,30 +352,14 @@ public final class Client {
      * @param token token to cancel
      * @return cancelled token returned by the server
      */
-    public Observable<Token> cancelTransferToken(Token token) {
-        return toObservable(gateway.cancelTransferToken(CancelTransferTokenRequest.newBuilder()
+    public Observable<Token> cancelToken(Token token) {
+        return toObservable(gateway.cancelToken(CancelTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, CANCELLED)))
                 .build())
-        ).map(CancelTransferTokenResponse::getToken);
-    }
-
-    /**
-     * Redeems a transfer token.
-     *
-     * @param transfer transfer parameters, such as amount, currency, etc
-     * @return transfer record
-     */
-    public Observable<Transfer> redeemTransferToken(Transfer.Payload transfer) {
-        return toObservable(gateway.redeemTransferToken(RedeemTransferTokenRequest.newBuilder()
-                .setPayload(transfer)
-                .setPayloadSignature(Signature.newBuilder()
-                        .setKeyId(key.getId())
-                        .setSignature(sign(key, transfer)))
-                .build())
-        ).map(RedeemTransferTokenResponse::getTransfer);
+        ).map(CancelTokenResponse::getToken);
     }
 
     /**
@@ -417,6 +374,22 @@ public final class Client {
                 .setAccountId(accountId)
                 .build())
         ).map(GetBalanceResponse::getCurrent);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param transfer transfer parameters, such as amount, currency, etc
+     * @return transfer record
+     */
+    public Observable<Transfer> createTransfer(Transfer.Payload transfer) {
+        return toObservable(gateway.createTransfer(CreateTransferRequest.newBuilder()
+                .setPayload(transfer)
+                .setPayloadSignature(Signature.newBuilder()
+                        .setKeyId(key.getId())
+                        .setSignature(sign(key, transfer)))
+                .build())
+        ).map(CreateTransferResponse::getTransfer);
     }
 
     /**
