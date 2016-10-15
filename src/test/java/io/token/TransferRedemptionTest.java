@@ -19,15 +19,15 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemToken() {
-        Token token = payer.createTransferToken(
+        Token token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "book purchase");
-        token = payer.endorseTransferToken(token);
+        token = payer.endorseToken(token);
 
-        Transfer transfer = payee.redeemTransferToken(token);
+        Transfer transfer = payee.redeemToken(token);
         assertThat(transfer)
                 .hasAmount(100.0)
                 .hasCurrency("USD")
@@ -37,15 +37,15 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemToken_withParams() {
-        Token token = payer.createTransferToken(
+        Token token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "book purchase");
-        token = payer.endorseTransferToken(token);
+        token = payer.endorseToken(token);
 
-        Transfer transfer = payee.redeemTransferToken(token, 99.0, "USD");
+        Transfer transfer = payee.redeemToken(token, 99.0, "USD");
         assertThat(transfer)
                 .hasAmount(99.0)
                 .hasCurrency("USD")
@@ -55,32 +55,32 @@ public class TransferRedemptionTest {
 
     @Test
     public void getTransfer() {
-        Token token = payer.createTransferToken(
+        Token token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "book purchase");
-        token = payer.endorseTransferToken(token);
+        token = payer.endorseToken(token);
 
-        Transfer transfer = payee.redeemTransferToken(token);
+        Transfer transfer = payee.redeemToken(token);
         Transfer lookedUp = payer.getTransfer(transfer.getId());
         assertThat(lookedUp).isEqualTo(transfer);
     }
 
     @Test
     public void getTransfers() {
-        Token token = payer.createTransferToken(
+        Token token = payer.createToken(
                 100.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 "book purchase");
-        token = payer.endorseTransferToken(token);
+        token = payer.endorseToken(token);
 
-        Transfer transfer1 = payee.redeemTransferToken(token, 10.0, "USD");
-        Transfer transfer2 = payee.redeemTransferToken(token, 20.0, "USD");
-        Transfer transfer3 = payee.redeemTransferToken(token, 70.0, "USD");
+        Transfer transfer1 = payee.redeemToken(token, 10.0, "USD");
+        Transfer transfer2 = payee.redeemToken(token, 20.0, "USD");
+        Transfer transfer3 = payee.redeemToken(token, 70.0, "USD");
 
         assertThat(transfer1)
                 .hasAmount(10.0)

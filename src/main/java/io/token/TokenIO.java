@@ -3,8 +3,6 @@ package io.token;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.SecretKey;
 
-import java.util.List;
-
 import static java.lang.String.format;
 
 /**

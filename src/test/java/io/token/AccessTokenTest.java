@@ -137,14 +137,14 @@ public class AccessTokenTest {
     private Transaction getTransaction(Account payerAccount, Account payeeAccount) {
         Member payer = payerAccount.member();
         Member payee = payeeAccount.member();
-        Token token = payer.createTransferToken(
+        Token token = payer.createToken(
                 10.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstAlias(),
                 string());
-        token = payer.endorseTransferToken(token);
-        Transfer transfer = payee.redeemTransferToken(token, 1.0, "USD");
+        token = payer.endorseToken(token);
+        Transfer transfer = payee.redeemToken(token, 1.0, "USD");
         return payerAccount.getTransaction(transfer.getReferenceId());
     }
 }
