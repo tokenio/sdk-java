@@ -1,5 +1,7 @@
 package io.token;
 
+import com.google.common.collect.ImmutableSet;
+import io.token.proto.PagedList;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -7,8 +9,6 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
 
 import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -129,9 +129,33 @@ public class AccessTokenTest {
                 null);
 
         member1.useAccessToken(accessToken.getId());
-        List<Transaction> result = member1.getTransactions(payerAccount.id(), 0, 1);
+        PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, 1);
 
-        assertThat(result).contains(transaction);
+        assertThat(result.getList()).contains(transaction);
+        assertThat(result.getOffset()).isNotEmpty();
+    }
+
+    @Test
+    public void accountAccess_getTransactionsPaged() {
+        Token accessToken = payerAccount.member().createTransactionAccessToken(
+                member1.firstAlias(),
+                null);
+
+        int num = 10;
+        for (int i = 0; i < num; i++) {
+            getTransaction(payerAccount, payeeAccount);
+        }
+
+        int limit = 2;
+        ImmutableSet.Builder<Transaction> builder = ImmutableSet.builder();
+        member1.useAccessToken(accessToken.getId());
+        PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, 2);
+        for (int i = 0; i < num / limit; i++) {
+            builder.addAll(result.getList());
+            result = member1.getTransactions(payerAccount.id(), result.getOffset(), 2);
+        }
+
+        assertThat(builder.build().size()).isEqualTo(num);
     }
 
     private Transaction getTransaction(Account payerAccount, Account payeeAccount) {

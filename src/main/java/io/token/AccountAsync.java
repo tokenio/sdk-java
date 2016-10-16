@@ -1,12 +1,13 @@
 package io.token;
 
+import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.rpc.Client;
 import rx.Observable;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Represents a funding account in the Token system.
@@ -96,7 +97,9 @@ public final class AccountAsync {
      * @param limit max number of records to return
      * @return list of transactions
      */
-    public Observable<List<Transaction>> getTransactions(int offset, int limit) {
+    public Observable<PagedList<Transaction, String>> getTransactions(
+            @Nullable String offset,
+            int limit) {
         return client.getTransactions(account.getId(), offset, limit);
     }
 }

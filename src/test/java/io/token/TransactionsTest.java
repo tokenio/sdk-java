@@ -1,6 +1,8 @@
 package io.token;
 
+import com.google.common.collect.ImmutableSet;
 import io.token.asserts.TransactionAssertion;
+import io.token.proto.PagedList;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -28,12 +30,7 @@ public class TransactionsTest {
 
     @Test
     public void getTransaction() {
-        Token token = payer.createToken(
-                1000.0,
-                "USD",
-                payerAccount.id(),
-                payee.firstAlias(),
-                "Multi charge token");
+        Token token =token();
         token = payer.endorseToken(token);
         Transfer transfer = payee.redeemToken(token, 100.0, "USD");
 
@@ -47,21 +44,18 @@ public class TransactionsTest {
 
     @Test
     public void getTransactions() {
-        Token token = payer.createToken(
-                1000.0,
-                "USD",
-                payerAccount.id(),
-                payee.firstAlias(),
-                "Multi charge token");
+        Token token = token();
         token = payer.endorseToken(token);
 
         Transfer transfer1 = payee.redeemToken(token, 100.0, "USD");
         Transfer transfer2 = payee.redeemToken(token, 200.0, "USD");
         Transfer transfer3 = payee.redeemToken(token, 300.0, "USD");
 
-        List<Transaction> transactions = payerAccount.getTransactions(0, 3).stream()
+        PagedList<Transaction, String> result = payerAccount.getTransactions(null, 3);
+        List<Transaction> transactions = result.getList().stream()
                 .sorted((t1, t2) -> t1.getAmount().getValue().compareTo(t2.getAmount().getValue()))
                 .collect(toList());
+        assertThat(result.getOffset()).isNotEmpty();
 
         assertThat(transactions).hasSize(3);
         TransactionAssertion.assertThat(transactions.get(0))
@@ -79,5 +73,35 @@ public class TransactionsTest {
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer3.getId());
+    }
+
+    @Test
+    public void getTransactionsPaged() {
+        Token token = token();
+        token = payer.endorseToken(token);
+
+        int num = 10;
+        for (int i = 0; i < num; i++) {
+            payee.redeemToken(token, 100.0, "USD");
+        }
+
+        int limit = 2;
+        ImmutableSet.Builder<Transaction> builder = ImmutableSet.builder();
+        PagedList<Transaction, String> result = payerAccount.getTransactions(null, limit);
+        for (int i = 0; i < num / limit; i++) {
+            builder.addAll(result.getList());
+            result = payerAccount.getTransactions(result.getOffset(), limit);
+        }
+
+        assertThat(builder.build().size()).isEqualTo(num);
+    }
+
+    private Token token() {
+        return payer.createToken(
+                1000.0,
+                "USD",
+                payerAccount.id(),
+                payee.firstAlias(),
+                "Multi charge token");
     }
 }
