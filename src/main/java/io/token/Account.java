@@ -1,9 +1,10 @@
 package io.token;
 
+import io.token.proto.PagedList;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 
-import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Represents a funding account in the Token system.
@@ -78,11 +79,11 @@ public final class Account {
     /**
      * Looks up existing transactions by using an access token
      *
-     * @param offset offset to start at
+     * @param offset optional offset to start at
      * @param limit max number of records to return
      * @return list of transactions
      */
-    public List<Transaction> getTransactions(int offset, int limit) {
+    public PagedList<Transaction, String> getTransactions(@Nullable String offset, int limit) {
         return async.getTransactions(offset, limit).toBlocking().single();
     }
 }

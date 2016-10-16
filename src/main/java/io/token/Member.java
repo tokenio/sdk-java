@@ -1,5 +1,6 @@
 package io.token;
 
+import io.token.proto.PagedList;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
@@ -244,12 +245,15 @@ public final class Member {
     /**
      * Looks up existing token transfers.
      *
-     * @param offset offset to start at
+     * @param offset optional offset to start at
      * @param limit max number of records to return
      * @param tokenId optional token id to restrict the search
      * @return transfer record
      */
-    public List<Transfer> getTransfers(int offset, int limit, @Nullable String tokenId) {
+    public PagedList<Transfer, String> getTransfers(
+            @Nullable String offset,
+            int limit,
+            @Nullable String tokenId) {
         return async.getTransfers(offset, limit, tokenId).toBlocking().single();
     }
 
@@ -390,22 +394,22 @@ public final class Member {
     /**
      * Looks up tokens owned by the member.
      *
-     * @param offset offset to start at
+     * @param offset optional offset to start at
      * @param limit max number of records to return
      * @return transfer tokens owned by the member
      */
-    public List<Token> getTransferTokens(int offset, int limit) {
+    public PagedList<Token, String> getTransferTokens(@Nullable String offset, int limit) {
         return async.getTransferTokens(offset, limit).toBlocking().single();
     }
 
     /**
      * Looks up tokens owned by the member.
      *
-     * @param offset offset to start at
+     * @param offset optional offset offset to start at
      * @param limit max number of records to return
      * @return transfer tokens owned by the member
      */
-    public List<Token> getAccessTokens(int offset, int limit) {
+    public PagedList<Token, String> getAccessTokens(@Nullable String offset, int limit) {
         return async.getAccessTokens(offset, limit).toBlocking().single();
     }
 
@@ -470,9 +474,14 @@ public final class Member {
      * Looks up transactions for a given account
      *
      * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
      * @return a list of transaction record
      */
-    public List<Transaction> getTransactions(String accountId, int offset, int limit) {
+    public PagedList<Transaction, String> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit) {
         return async.getTransactions(accountId, offset, limit)
                 .toBlocking()
                 .single();
