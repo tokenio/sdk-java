@@ -23,11 +23,24 @@ public class AccessTokenTest {
     private Account payeeAccount = rule.account();
 
     @Test
+    public void addressAccessToken_failNonEndorsed() {
+        Address address = member1.addAddress(string(), string());
+        Token accessToken = member1.createAddressAccessToken(
+                member2.firstAlias(),
+                address.getId());
+        member2.useAccessToken(accessToken.getId());
+        assertThatExceptionThrownBy( () ->
+                member2.getAddress(address.getId())
+        );
+    }
+
+    @Test
     public void addressAccessToken() {
         Address address1 = member1.addAddress(string(), string());
         Token accessToken = member1.createAddressAccessToken(
                 member2.firstAlias(),
                 address1.getId());
+        member1.endorseToken(accessToken);
 
         assertThatExceptionThrownBy( () ->
                 member2.getAddress(address1.getId())
@@ -50,6 +63,7 @@ public class AccessTokenTest {
         Token accessToken = member1.createAddressAccessToken(
                 member2.firstAlias(),
                 address1.getId());
+        member1.endorseToken(accessToken);
         member2.useAccessToken(accessToken.getId());
         assertThatExceptionThrownBy( () ->
                 member2.getAddress(address2.getId())
@@ -63,6 +77,7 @@ public class AccessTokenTest {
         Token accessToken = member1.createAddressAccessToken(
                 member2.firstAlias(),
                 null);
+        member1.endorseToken(accessToken);
         member2.useAccessToken(accessToken.getId());
         Address result = member2.getAddress(address2.getId());
         assertThat(result).isEqualTo(address2);
@@ -76,6 +91,7 @@ public class AccessTokenTest {
         Token accessToken = accountMember.createAccountAccessToken(
                 member1.firstAlias(),
                 account.id());
+        accountMember.endorseToken(accessToken);
 
         assertThatExceptionThrownBy( () ->
                 member1.getAccount(account.id())
@@ -99,7 +115,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
                 payerAccount.id());
-
+        payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
         Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId());
 
@@ -113,7 +129,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
                 null);
-
+        payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
         Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId());
 
@@ -127,7 +143,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
                 null);
-
+        payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
         PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, 1);
 
@@ -140,6 +156,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createTransactionAccessToken(
                 member1.firstAlias(),
                 null);
+        payerAccount.member().endorseToken(accessToken);
 
         int num = 10;
         for (int i = 0; i < num; i++) {
@@ -149,10 +166,10 @@ public class AccessTokenTest {
         int limit = 2;
         ImmutableSet.Builder<Transaction> builder = ImmutableSet.builder();
         member1.useAccessToken(accessToken.getId());
-        PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, 2);
+        PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, limit);
         for (int i = 0; i < num / limit; i++) {
             builder.addAll(result.getList());
-            result = member1.getTransactions(payerAccount.id(), result.getOffset(), 2);
+            result = member1.getTransactions(payerAccount.id(), result.getOffset(), limit);
         }
 
         assertThat(builder.build().size()).isEqualTo(num);
