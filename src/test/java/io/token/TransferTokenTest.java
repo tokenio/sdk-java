@@ -1,5 +1,7 @@
 package io.token;
 
+import com.google.common.collect.ImmutableSet;
+import io.token.proto.PagedList;
 import io.token.proto.common.token.TokenProtos.Token;
 import org.junit.Rule;
 import org.junit.Test;
@@ -47,9 +49,27 @@ public class TransferTokenTest {
         Token token2 = payer.createToken(678.90, "USD", payerAccount.id());
         Token token3 = payer.createToken(100.99, "USD", payerAccount.id());
 
-        assertThat(payer.getTransferTokens(0, 100))
-                .hasSize(3)
-                .containsOnly(token1, token2, token3);
+        PagedList<Token, String> res = payer.getTransferTokens(null, 3);
+        assertThat(res.getList()).containsOnly(token1, token2, token3);
+        assertThat(res.getOffset()).isNotEmpty();
+    }
+
+    @Test
+    public void getTransferTokensPaged() {
+        int num = 10;
+        for (int i = 0; i < num; i++) {
+            payer.createToken(100.0 + i, "EUR", payerAccount.id());
+        }
+
+        int limit = 2;
+        ImmutableSet.Builder<Token> builder = ImmutableSet.builder();
+        PagedList<Token, String> result = payer.getTransferTokens(null, limit);
+        for (int i = 0; i < num / limit; i++) {
+            builder.addAll(result.getList());
+            result = payer.getTransferTokens(result.getOffset(), limit);
+        }
+
+        assertThat(builder.build().size()).isEqualTo(num);
     }
 
     @Test

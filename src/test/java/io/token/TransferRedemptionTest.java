@@ -1,11 +1,10 @@
 package io.token;
 
+import io.token.proto.PagedList;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
 
 import static io.token.asserts.TransferAssertion.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,12 +18,7 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemToken() {
-        Token token = payer.createToken(
-                100.0,
-                "USD",
-                payerAccount.id(),
-                payee.firstAlias(),
-                "book purchase");
+        Token token = token();
         token = payer.endorseToken(token);
 
         Transfer transfer = payee.redeemToken(token);
@@ -37,12 +31,7 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemToken_withParams() {
-        Token token = payer.createToken(
-                100.0,
-                "USD",
-                payerAccount.id(),
-                payee.firstAlias(),
-                "book purchase");
+        Token token = token();
         token = payer.endorseToken(token);
 
         Transfer transfer = payee.redeemToken(token, 99.0, "USD");
@@ -55,12 +44,7 @@ public class TransferRedemptionTest {
 
     @Test
     public void getTransfer() {
-        Token token = payer.createToken(
-                100.0,
-                "USD",
-                payerAccount.id(),
-                payee.firstAlias(),
-                "book purchase");
+        Token token = token();
         token = payer.endorseToken(token);
 
         Transfer transfer = payee.redeemToken(token);
@@ -70,12 +54,7 @@ public class TransferRedemptionTest {
 
     @Test
     public void getTransfers() {
-        Token token = payer.createToken(
-                100.0,
-                "USD",
-                payerAccount.id(),
-                payee.firstAlias(),
-                "book purchase");
+        Token token = token();
         token = payer.endorseToken(token);
 
         Transfer transfer1 = payee.redeemToken(token, 10.0, "USD");
@@ -92,7 +71,17 @@ public class TransferRedemptionTest {
                 .hasAmount(70.0)
                 .hasCurrency("USD");
 
-        List<Transfer> lookedUp = payer.getTransfers(0, 100, token.getId());
-        assertThat(lookedUp).containsOnly(transfer1, transfer2, transfer3);
+        PagedList<Transfer, String> lookedUp = payer.getTransfers(null, 100, token.getId());
+        assertThat(lookedUp.getList()).containsOnly(transfer1, transfer2, transfer3);
+        assertThat(lookedUp.getOffset()).isNotEmpty();
+    }
+
+    private Token token() {
+        return payer.createToken(
+                100.0,
+                "USD",
+                payerAccount.id(),
+                payee.firstAlias(),
+                "book purchase");
     }
 }

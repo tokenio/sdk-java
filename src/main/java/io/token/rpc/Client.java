@@ -1,10 +1,10 @@
 package io.token.rpc;
 
+import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.money.MoneyProtos.Money;
-import io.token.proto.common.paging.PagingProtos.Page;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
@@ -316,18 +316,19 @@ public final class Client {
     /**
      * Looks up a list of existing token.
      *
-     * @param offset offset to start at
+     * @param offset optional offset to start at
      * @param limit max number of records to return
      * @return token returned by the server
      */
-    public Observable<List<Token>> getTokens(GetTokensRequest.Type type, int offset, int limit) {
+    public Observable<PagedList<Token, String>> getTokens(
+            GetTokensRequest.Type type,
+            @Nullable String offset,
+            int limit) {
         return toObservable(gateway.getTokens(GetTokensRequest.newBuilder()
                 .setType(type)
-                .setPage(Page.newBuilder()
-                    .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
-                    .setLimit(limit))
+                .setPage(pageBuilder(offset, limit))
                 .build())
-        ).map(GetTokensResponse::getTokensList);
+        ).map(res -> PagedList.create(res.getTokensList(), res.getOffset()));
     }
 
     /**
@@ -408,26 +409,24 @@ public final class Client {
     /**
      * Looks up a list of existing transfers.
      *
-     * @param offset offset to start at
+     * @param offset optional offset to start at
      * @param limit max number of records to return
      * @param tokenId optional token id to restrict the search
      * @return transfer record
      */
-    public Observable<List<Transfer>> getTransfers(
-            int offset,
+    public Observable<PagedList<Transfer, String>> getTransfers(
+            @Nullable String offset,
             int limit,
             @Nullable String tokenId) {
         GetTransfersRequest.Builder request = GetTransfersRequest.newBuilder()
-                .setPage(Page.newBuilder()
-                        .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
-                        .setLimit(limit));
+                .setPage(pageBuilder(offset, limit));
 
         if (tokenId != null) {
             request.setTokenId(tokenId);
         }
 
         return toObservable(gateway.getTransfers(request.build()))
-                .map(GetTransfersResponse::getTransfersList);
+                .map(res -> PagedList.create(res.getTransfersList(), res.getOffset()));
     }
 
     /**
@@ -453,22 +452,20 @@ public final class Client {
      * being a subset.
      *
      * @param accountId ID of the account
-     * @param offset offset to start at
+     * @param offset optional offset to start at
      * @param limit max number of records to return
      * @return transaction record
      */
-    public Observable<List<Transaction>> getTransactions(
+    public Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
-            int offset,
+            @Nullable String offset,
             int limit) {
         setAuthenticationContext();
         return toObservable(gateway.getTransactions(GetTransactionsRequest.newBuilder()
                 .setAccountId(accountId)
-                .setPage(Page.newBuilder()
-                        .setOffset(Integer.toString(offset)) // TODO(maxim): Fix me
-                        .setLimit(limit))
+                .setPage(pageBuilder(offset, limit))
                 .build())
-        ).map(GetTransactionsResponse::getTransactionsList);
+        ).map(res -> PagedList.create(res.getTransactionsList(), res.getOffset()));
     }
 
     /**
@@ -544,5 +541,15 @@ public final class Client {
         if(onBehalfOf != null) {
             AuthenticationContext.setOnBehalfOf(onBehalfOf);
         }
+    }
+
+    private Page.Builder pageBuilder(@Nullable String offset, int limit) {
+        Page.Builder page = Page.newBuilder()
+                .setLimit(limit);
+        if (offset != null) {
+            page.setOffset(offset);
+        }
+
+        return page;
     }
 }
