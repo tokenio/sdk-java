@@ -1,5 +1,6 @@
 package io.token;
 
+import io.token.proto.PagedList;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
@@ -14,7 +15,6 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Source;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferInstructions;
-import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.SecretKey;
@@ -276,12 +276,15 @@ public final class MemberAsync {
     /**
      * Looks up existing token transfers.
      *
-     * @param offset offset to start at
+     * @param offset optional offset to start at
      * @param limit max number of records to return
      * @param tokenId optional token id to restrict the search
      * @return transfer record
      */
-    public Observable<List<Transfer>> getTransfers(int offset, int limit, @Nullable String tokenId) {
+    public Observable<PagedList<Transfer, String>> getTransfers(
+            @Nullable String offset,
+            int limit,
+            @Nullable String tokenId) {
         return client.getTransfers(offset, limit, tokenId);
     }
 
@@ -477,22 +480,26 @@ public final class MemberAsync {
     /**
      * Looks up transfer tokens owned by the member.
      *
-     * @param offset offset to start at
+     * @param offset optional offset to start at
      * @param limit max number of records to return
      * @return transfer tokens owned by the member
      */
-    public Observable<List<Token>> getTransferTokens(int offset, int limit) {
+    public Observable<PagedList<Token, String>> getTransferTokens(
+            @Nullable String offset,
+            int limit) {
         return client.getTokens(GetTokensRequest.Type.TRANSFER, offset, limit);
     }
 
     /**
      * Looks up access tokens owned by the member.
      *
-     * @param offset offset to start at
+     * @param offset optional offset to start at
      * @param limit max number of records to return
      * @return transfer tokens owned by the member
      */
-    public Observable<List<Token>> getAccessTokens(int offset, int limit) {
+    public Observable<PagedList<Token, String>> getAccessTokens(
+            @Nullable String offset,
+            int limit) {
         return client.getTokens(GetTokensRequest.Type.ACCESS, offset, limit);
     }
 
@@ -566,9 +573,14 @@ public final class MemberAsync {
      * Looks up transactions for a given account
      *
      * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
      * @return a list of transaction records
      */
-    public Observable<List<Transaction>> getTransactions(String accountId, int offset, int limit) {
+    public Observable<PagedList<Transaction, String>> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit) {
         return client.getTransactions(accountId, offset, limit);
     }
 
