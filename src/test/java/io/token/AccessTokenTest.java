@@ -29,7 +29,7 @@ public class AccessTokenTest {
                 member2.firstAlias(),
                 address1.getId());
 
-        assertThatExceptionThrownBy( () ->
+        assertThatExceptionThrownBy(() ->
                 member2.getAddress(address1.getId())
         );
 
@@ -38,7 +38,7 @@ public class AccessTokenTest {
         assertThat(result).isEqualTo(address1);
 
         member2.clearAccessTokenOf();
-        assertThatExceptionThrownBy( () ->
+        assertThatExceptionThrownBy(() ->
                 member2.getAddress(address1.getId())
         );
     }
@@ -51,7 +51,7 @@ public class AccessTokenTest {
                 member2.firstAlias(),
                 address1.getId());
         member2.useAccessToken(accessToken.getId());
-        assertThatExceptionThrownBy( () ->
+        assertThatExceptionThrownBy(() ->
                 member2.getAddress(address2.getId())
         );
     }
@@ -77,7 +77,7 @@ public class AccessTokenTest {
                 member1.firstAlias(),
                 account.id());
 
-        assertThatExceptionThrownBy( () ->
+        assertThatExceptionThrownBy(() ->
                 member1.getAccount(account.id())
         );
 
@@ -92,7 +92,7 @@ public class AccessTokenTest {
     public void accountAccess_getTransaction() {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
-        assertThatExceptionThrownBy( () ->
+        assertThatExceptionThrownBy(() ->
             member1.getTransaction(payerAccount.id(), transaction.getId())
         );
 
