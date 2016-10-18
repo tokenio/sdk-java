@@ -35,6 +35,7 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
         metadata.put(Metadata.Key.of("token-key-id", ASCII_STRING_MARSHALLER), key.getId());
         metadata.put(Metadata.Key.of("token-signature", ASCII_STRING_MARSHALLER), signature);
 
+
         if (!Strings.isNullOrEmpty(memberId)) {
             metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
         } else {
