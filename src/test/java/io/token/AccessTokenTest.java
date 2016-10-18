@@ -10,6 +10,8 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.List;
+
 import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
@@ -21,6 +23,35 @@ public class AccessTokenTest {
     private Member member2 = rule.member();
     private Account payerAccount = rule.account();
     private Account payeeAccount = rule.account();
+
+
+    @Test
+    public void getAccessToken() {
+        Address address = member1.addAddress(string(), string());
+        Token accessToken = member1.createAddressAccessToken(
+                member2.firstUsername(),
+                address.getId());
+        Token result = member1.getToken(accessToken.getId());
+        assertThat(result).isEqualTo(accessToken);
+    }
+
+
+    @Test
+    public void getAccessTokens() {
+        Address address1 = member1.addAddress(string(), string());
+        Address address2 = member1.addAddress(string(), string());
+
+        Token accessToken1 = member1.createAddressAccessToken(
+                member2.firstUsername(),
+                address1.getId());
+
+        Token accessToken2 = member1.createAddressAccessToken(
+                member2.firstUsername(),
+                address2.getId());
+
+        PagedList<Token, String> result = member1.getAccessTokens(null, 2);
+        assertThat(result.getList()).contains(accessToken1, accessToken2);
+    }
 
     @Test
     public void addressAccessToken_failNonEndorsed() {
@@ -51,6 +82,24 @@ public class AccessTokenTest {
         assertThat(result).isEqualTo(address1);
 
         member2.clearAccessTokenOf();
+        assertThatExceptionThrownBy(() ->
+                member2.getAddress(address1.getId())
+        );
+    }
+
+    @Test
+    public void addressAccessToken_canceled() {
+        Address address1 = member1.addAddress(string(), string());
+        Token accessToken = member1.createAddressAccessToken(
+                member2.firstUsername(),
+                address1.getId());
+        member1.endorseToken(accessToken);
+
+        member2.useAccessToken(accessToken.getId());
+        Address result = member2.getAddress(address1.getId());
+        assertThat(result).isEqualTo(address1);
+
+        member1.cancelToken(accessToken);
         assertThatExceptionThrownBy(() ->
                 member2.getAddress(address1.getId())
         );
