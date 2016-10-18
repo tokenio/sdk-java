@@ -23,12 +23,12 @@ public class NotificationsTest {
     @Test
     public void sendNotification() {
         SecretKey key = Crypto.generateSecretKey();
-        String alias = member.aliases().get(0);
+        String username = member.usernames().get(0);
         String target = "8E8E256A58DE0F62F4A427202DF8CB07C6BD644AFFE93210BC49B8E5F9402554000";
         Subscriber subscriber = member.subscribeToNotifications("Token", target, Platform.IOS);
 
         byte[] data = ProtoJson.toJson(AccountsLinkPayload.newBuilder()
-                        .setAlias(alias)
+                        .setUsername(username)
                         .addAccounts(AccountsLinkPayload.NamedAccount.newBuilder()
                                 .setName("Checking")
                                 .setAccountNumber("iban:checking"))
@@ -38,10 +38,10 @@ public class NotificationsTest {
                         .build()).getBytes();
         String accountLinkPayload = ByteEncoding.serialize(data);
 
-        rule.token().notifyLinkAccounts(alias, "BofA", accountLinkPayload);
-        rule.token().notifyAddKey(alias, key.getPublicKey(), "Chrome 52.0");
+        rule.token().notifyLinkAccounts(username, "BofA", accountLinkPayload);
+        rule.token().notifyAddKey(username, key.getPublicKey(), "Chrome 52.0");
         rule.token().notifyLinkAccountsAndAddKey(
-                alias,
+                username,
                 "BofA",
                 accountLinkPayload,
                 key.getPublicKey(),
@@ -58,7 +58,7 @@ public class NotificationsTest {
 
 
         assertThatExceptionThrownBy(() -> {
-            rule.token().notifyAddKey(alias, key.getPublicKey(), "Chrome 52.0");
+            rule.token().notifyAddKey(username, key.getPublicKey(), "Chrome 52.0");
             return 0;
         }).hasMessageContaining("NOT_FOUND");
     }

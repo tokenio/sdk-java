@@ -45,24 +45,24 @@ public class TokenRule extends ExternalResource {
     }
 
     public Member member() {
-        String alias = "alias-" + Util.generateNonce();
-        return token.createMember(alias);
+        String username = "username-" + Util.generateNonce();
+        return token.createMember(username);
     }
 
     public Account account() {
         Member member = member();
 
-        String alias = member.firstAlias();
+        String username = member.firstUsername();
         String bankAccountNumber = "iban:" + randomInt(7);
 
-        if (alias == null) {
-            throw new IllegalStateException("Member doesn't have an alias");
+        if (username == null) {
+            throw new IllegalStateException("Member doesn't have an username");
         }
 
         Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
         bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
         String accountLinkingPayload = bankClient.startAccountsLinking(
-                alias,
+                username,
                 Optional.empty(),
                 Collections.singletonList(bankAccountNumber));
 

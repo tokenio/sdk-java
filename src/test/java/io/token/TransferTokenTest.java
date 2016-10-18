@@ -22,12 +22,12 @@ public class TransferTokenTest {
                 100.0,
                 "USD",
                 payerAccount.id(),
-                payee.firstAlias(),
+                payee.firstUsername(),
                 "book purchase");
 
         assertThat(token)
                 .hasFrom(payer)
-                .hasRedeemerAlias(payee.firstAlias())
+                .hasRedeemerUsername(payee.firstUsername())
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasNoSignatures();

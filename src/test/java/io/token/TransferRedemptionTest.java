@@ -81,7 +81,7 @@ public class TransferRedemptionTest {
                 100.0,
                 "USD",
                 payerAccount.id(),
-                payee.firstAlias(),
+                payee.firstUsername(),
                 "book purchase");
     }
 }

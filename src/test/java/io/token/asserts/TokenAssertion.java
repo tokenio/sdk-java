@@ -32,10 +32,10 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
         return this;
     }
 
-    public TokenAssertion hasRedeemerAlias(String alias) {
+    public TokenAssertion hasRedeemerUsername(String username) {
         Assertions
-                .assertThat(actual.getPayload().getTransfer().getRedeemer().getAlias())
-                .isEqualTo(alias);
+                .assertThat(actual.getPayload().getTransfer().getRedeemer().getUsername())
+                .isEqualTo(username);
         return this;
     }
 

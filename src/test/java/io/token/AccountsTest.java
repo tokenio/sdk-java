@@ -18,11 +18,11 @@ public class AccountsTest {
 
     @Test
     public void linkAccounts() {
-        String alias = member.aliases().get(0);
+        String username = member.usernames().get(0);
         String bankId = "bank-id";
 
         byte[] data = ProtoJson.toJson(AccountsLinkPayload.newBuilder()
-                .setAlias(alias)
+                .setUsername(username)
                 .addAccounts(AccountsLinkPayload.NamedAccount.newBuilder()
                         .setName("Checking")
                         .setAccountNumber("iban:checking"))
