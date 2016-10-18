@@ -26,7 +26,7 @@ public class AccessTokenTest {
     public void addressAccessToken_failNonEndorsed() {
         Address address = member1.addAddress(string(), string());
         Token accessToken = member1.createAddressAccessToken(
-                member2.firstAlias(),
+                member2.firstUsername(),
                 address.getId());
         member2.useAccessToken(accessToken.getId());
         assertThatExceptionThrownBy( () ->
@@ -38,7 +38,7 @@ public class AccessTokenTest {
     public void addressAccessToken() {
         Address address1 = member1.addAddress(string(), string());
         Token accessToken = member1.createAddressAccessToken(
-                member2.firstAlias(),
+                member2.firstUsername(),
                 address1.getId());
         member1.endorseToken(accessToken);
 
@@ -61,7 +61,7 @@ public class AccessTokenTest {
         Address address1 = member1.addAddress(string(), string());
         Address address2 = member1.addAddress(string(), string());
         Token accessToken = member1.createAddressAccessToken(
-                member2.firstAlias(),
+                member2.firstUsername(),
                 address1.getId());
         member1.endorseToken(accessToken);
         member2.useAccessToken(accessToken.getId());
@@ -75,7 +75,7 @@ public class AccessTokenTest {
         Address address1 = member1.addAddress(string(), string());
         Address address2 = member1.addAddress(string(), string());
         Token accessToken = member1.createAddressAccessToken(
-                member2.firstAlias(),
+                member2.firstUsername(),
                 null);
         member1.endorseToken(accessToken);
         member2.useAccessToken(accessToken.getId());
@@ -89,7 +89,7 @@ public class AccessTokenTest {
         Account account = rule.account();
         Member accountMember = account.member();
         Token accessToken = accountMember.createAccountAccessToken(
-                member1.firstAlias(),
+                member1.firstUsername(),
                 account.id());
         accountMember.endorseToken(accessToken);
 
@@ -113,7 +113,7 @@ public class AccessTokenTest {
         );
 
         Token accessToken = payerAccount.member().createTransactionAccessToken(
-                member1.firstAlias(),
+                member1.firstUsername(),
                 payerAccount.id());
         payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
@@ -127,7 +127,7 @@ public class AccessTokenTest {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
         Token accessToken = payerAccount.member().createTransactionAccessToken(
-                member1.firstAlias(),
+                member1.firstUsername(),
                 null);
         payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
@@ -141,7 +141,7 @@ public class AccessTokenTest {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
         Token accessToken = payerAccount.member().createTransactionAccessToken(
-                member1.firstAlias(),
+                member1.firstUsername(),
                 null);
         payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
@@ -154,7 +154,7 @@ public class AccessTokenTest {
     @Test
     public void accountAccess_getTransactionsPaged() {
         Token accessToken = payerAccount.member().createTransactionAccessToken(
-                member1.firstAlias(),
+                member1.firstUsername(),
                 null);
         payerAccount.member().endorseToken(accessToken);
 
@@ -182,7 +182,7 @@ public class AccessTokenTest {
                 10.0,
                 "USD",
                 payerAccount.id(),
-                payee.firstAlias(),
+                payee.firstUsername(),
                 string());
         token = payer.endorseToken(token);
         Transfer transfer = payee.redeemToken(token, 1.0, "USD");

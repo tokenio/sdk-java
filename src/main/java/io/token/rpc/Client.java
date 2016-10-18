@@ -117,51 +117,51 @@ public final class Client {
     }
 
     /**
-     * Checks if a given alias already exists.
+     * Checks if a given username already exists.
      *
-     * @param alias alias to check
-     * @return {@code true} if alias already exists, {@code false} otherwise
+     * @param username username to check
+     * @return {@code true} if username already exists, {@code false} otherwise
      */
-    public Observable<Boolean> aliasExists(String alias) {
-        return toObservable(gateway.aliasExists(AliasExistsRequest.newBuilder()
-                .setAlias(alias)
+    public Observable<Boolean> usernameExists(String username) {
+        return toObservable(gateway.usernameExists(UsernameExistsRequest.newBuilder()
+                .setUsername(username)
                 .build()))
-                .map(AliasExistsResponse::getExists);
+                .map(UsernameExistsResponse::getExists);
     }
 
     /**
-     * Adds an alias for a given user.
+     * Adds an username for a given user.
      *
      * @param member member to add the key to
-     * @param alias new unique alias to add
+     * @param username new unique username to add
      * @return member information
      */
-    public Observable<Member> addAlias(
+    public Observable<Member> addUsername(
             Member member,
-            String alias) {
+            String username) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .setAddAlias(MemberAliasOperation.newBuilder()
-                        .setAlias(alias))
+                .setAddUsername(MemberUsernameOperation.newBuilder()
+                        .setUsername(username))
                 .build());
     }
 
     /**
-     * Removes an existing alias for a given user.
+     * Removes an existing username for a given user.
      *
      * @param member member to add the key to
-     * @param alias new unique alias to add
+     * @param username new unique username to add
      * @return member information
      */
-    public Observable<Member> removeAlias(
+    public Observable<Member> removeUsername(
             Member member,
-            String alias) {
+            String username) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .setRemoveAlias(MemberAliasOperation.newBuilder()
-                        .setAlias(alias))
+                .setRemoveUsername(MemberUsernameOperation.newBuilder()
+                        .setUsername(username))
                 .build());
     }
 

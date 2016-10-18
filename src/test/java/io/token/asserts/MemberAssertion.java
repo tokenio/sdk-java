@@ -16,26 +16,26 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
         super(actual, MemberAssertion.class);
     }
 
-    public MemberAssertion hasAlias(String alias) {
-        Assertions.assertThat(actual.aliases()).contains(alias);
+    public MemberAssertion hasUsername(String username) {
+        Assertions.assertThat(actual.usernames()).contains(username);
         return this;
     }
 
-    public MemberAssertion hasAliases(String ... aliases) {
-        return hasAliases(Arrays.asList(aliases));
+    public MemberAssertion hasUsernames(String ... usernames) {
+        return hasUsernames(Arrays.asList(usernames));
     }
 
-    public MemberAssertion hasAliases(Collection<String> aliases) {
-        Assertions.assertThat(actual.aliases()).containsOnlyElementsOf(aliases);
+    public MemberAssertion hasUsernames(Collection<String> usernames) {
+        Assertions.assertThat(actual.usernames()).containsOnlyElementsOf(usernames);
         return this;
     }
 
-    public MemberAssertion hasOneAlias() {
-        return hasNAliases(1);
+    public MemberAssertion hasOneUsername() {
+        return hasNUsernames(1);
     }
 
-    public MemberAssertion hasNAliases(int count) {
-        Assertions.assertThat(actual.aliases()).hasSize(count);
+    public MemberAssertion hasNUsernames(int count) {
+        Assertions.assertThat(actual.usernames()).hasSize(count);
         return this;
     }
 

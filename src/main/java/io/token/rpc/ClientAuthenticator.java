@@ -18,12 +18,12 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
  */
 final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, ResT> {
     private final String memberId;
-    private final String alias;
+    private final String username;
     private final SecretKey key;
 
-    ClientAuthenticator(String memberId, String alias, SecretKey key) {
+    ClientAuthenticator(String memberId, String username, SecretKey key) {
         this.memberId = memberId;
-        this.alias = alias;
+        this.username = username;
         this.key = key;
     }
 
@@ -38,7 +38,7 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
         if (!Strings.isNullOrEmpty(memberId)) {
             metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
         } else {
-            metadata.put(Metadata.Key.of("token-alias", ASCII_STRING_MARSHALLER), alias);
+            metadata.put(Metadata.Key.of("token-username", ASCII_STRING_MARSHALLER), username);
         }
 
         String onBehalfOf = AuthenticationContext.clearOnBehalfOf();

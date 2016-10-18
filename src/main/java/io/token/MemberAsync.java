@@ -71,17 +71,17 @@ public final class MemberAsync {
     }
 
     /**
-     * @return first alias owned by the user
+     * @return first username owned by the user
      */
-    public String firstAlias() {
-        return member.getAliasesCount() == 0 ? null : member.getAliases(0);
+    public String firstUsername() {
+        return member.getUsernamesCount() == 0 ? null : member.getUsernames(0);
     }
 
     /**
-     * @return list of aliases owned by the member
+     * @return list of usernames owned by the member
      */
-    public List<String> aliases() {
-        return member.getAliasesList();
+    public List<String> usernames() {
+        return member.getUsernamesList();
     }
 
     /**
@@ -113,23 +113,23 @@ public final class MemberAsync {
     }
 
     /**
-     * Checks if a given alias already exists.
+     * Checks if a given username already exists.
      *
-     * @param alias alias to check
-     * @return {@code true} if alias exists, {@code false} otherwise
+     * @param username username to check
+     * @return {@code true} if username exists, {@code false} otherwise
      */
-    public Observable<Boolean> aliasExists(String alias) {
-        return client.aliasExists(alias);
+    public Observable<Boolean> usernameExists(String username) {
+        return client.usernameExists(username);
     }
 
     /**
-     * Adds a new alias for the member.
+     * Adds a new username for the member.
      *
-     * @param alias alias, e.g. 'john', must be unique
+     * @param username username, e.g. 'john', must be unique
      */
-    public Observable<Void> addAlias(String alias) {
+    public Observable<Void> addUsername(String username) {
         return client
-                .addAlias(member.build(), alias)
+                .addUsername(member.build(), username)
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -137,13 +137,13 @@ public final class MemberAsync {
     }
 
     /**
-     * Removes an alias for the member.
+     * Removes an username for the member.
      *
-     * @param alias alias, e.g. 'john'
+     * @param username username, e.g. 'john'
      */
-    public Observable<Void> removeAlias(String alias) {
+    public Observable<Void> removeUsername(String username) {
         return client
-                .removeAlias(member.build(), alias)
+                .removeUsername(member.build(), username)
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -343,7 +343,7 @@ public final class MemberAsync {
      *
      * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
-     * @param redeemer redeemer alias
+     * @param redeemer redeemer username
      * @param description transfer description, optional
      * @return transfer token returned by the server
      */
@@ -366,7 +366,7 @@ public final class MemberAsync {
                                         .setAccountId(accountId))));
 
         if (redeemer != null) {
-            payload.getTransferBuilder().setRedeemer(TokenMember.newBuilder().setAlias(redeemer));
+            payload.getTransferBuilder().setRedeemer(TokenMember.newBuilder().setUsername(redeemer));
         }
         if (description != null) {
             payload.setDescription(description);
@@ -377,7 +377,7 @@ public final class MemberAsync {
     /**
      * Creates an access token for a list of resources.
      *
-     * @param redeemer the redeemer alias
+     * @param redeemer the redeemer username
      * @param resources a list of resources
      * @return the access token created
      */
@@ -388,7 +388,7 @@ public final class MemberAsync {
                 .setFrom(TokenMember.newBuilder()
                         .setId(member.getId()))
                 .setTo(TokenMember.newBuilder()
-                        .setAlias(redeemer));
+                        .setUsername(redeemer));
 
         payload.getAccessBuilder()
                 .addAllResources(resources)
@@ -400,7 +400,7 @@ public final class MemberAsync {
     /**
      * Creates an address access token.
      *
-     * @param redeemer the redeemer alias
+     * @param redeemer the redeemer username
      * @param addressId an optional address id
      * @return the address access token created
      */
@@ -420,7 +420,7 @@ public final class MemberAsync {
     /**
      * Creates an account access token.
      *
-     * @param redeemer the redeemer alias
+     * @param redeemer the redeemer username
      * @param accountId an optional account id
      * @return the account access token created
      */
@@ -440,7 +440,7 @@ public final class MemberAsync {
     /**
      * Creates a transaction access token.
      *
-     * @param redeemer the redeemer alias
+     * @param redeemer the redeemer username
      * @param accountId an optional account id
      * @return the transaction access token created
      */

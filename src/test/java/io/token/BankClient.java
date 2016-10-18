@@ -48,11 +48,11 @@ public final class BankClient {
     }
 
     public String startAccountsLinking(
-            String alias,
+            String username,
             Optional<String> secret,
             List<String> accountNumbers) {
         AuthorizeLinkAccountsRequest request = AuthorizeLinkAccountsRequest.newBuilder()
-                .setAlias(alias)
+                .setUsername(username)
                 .addAllAccounts(accountNumbers)
                 .setSecret(secret.orElse(""))
                 .build();

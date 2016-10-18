@@ -15,10 +15,10 @@ public class MemberRegistrationTest {
 
     @Test
     public void createMember() {
-        String alias = "alexey-" + Util.generateNonce();
-        Member member = rule.token().createMember(alias);
+        String username = "alexey-" + Util.generateNonce();
+        Member member = rule.token().createMember(username);
         assertThat(member)
-                .hasAlias(alias)
+                .hasUsername(username)
                 .hasOneKey();
     }
 
@@ -27,7 +27,7 @@ public class MemberRegistrationTest {
         Member member = rule.member();
         Member loggedIn = rule.token().login(member.memberId(), member.key());
         assertThat(loggedIn)
-                .hasAliases(member.aliases())
+                .hasUsernames(member.usernames())
                 .hasOneKey();
     }
 
@@ -41,7 +41,7 @@ public class MemberRegistrationTest {
         member.approveKey(key3.getPublicKey(), Level.PRIVILEGED);
 
         assertThat(member)
-                .hasOneAlias()
+                .hasOneUsername()
                 .hasNKeys(3)
                 .hasKey(key2.getPublicKey())
                 .hasKey(key3.getPublicKey());
@@ -59,50 +59,50 @@ public class MemberRegistrationTest {
 
         member.removeKey(key2.getId());
         assertThat(member)
-                .hasOneAlias()
+                .hasOneUsername()
                 .hasOneKey();
     }
 
     @Test
-    public void addAlias() {
-        String alias1 = "alexey-" + Util.generateNonce();
-        String alias2 = "alex-" + Util.generateNonce();
-        String alias3 = "ak-" + Util.generateNonce();
+    public void addUsername() {
+        String username1 = "alexey-" + Util.generateNonce();
+        String username2 = "alex-" + Util.generateNonce();
+        String username3 = "ak-" + Util.generateNonce();
 
-        Member member = rule.token().createMember(alias1);
-        member.addAlias(alias2);
-        member.addAlias(alias3);
+        Member member = rule.token().createMember(username1);
+        member.addUsername(username2);
+        member.addUsername(username3);
 
         assertThat(member)
-                .hasAliases(alias1, alias2, alias3)
+                .hasUsernames(username1, username2, username3)
                 .hasOneKey();
     }
 
     @Test
-    public void removeAlias() {
-        String alias1 = "alexey-" + Util.generateNonce();
-        String alias2 = "alex-" + Util.generateNonce();
+    public void removeUsername() {
+        String username1 = "alexey-" + Util.generateNonce();
+        String username2 = "alex-" + Util.generateNonce();
 
-        Member member = rule.token().createMember(alias1);
+        Member member = rule.token().createMember(username1);
 
-        member.addAlias(alias2);
-        assertThat(member).hasAliases(alias1, alias2);
+        member.addUsername(username2);
+        assertThat(member).hasUsernames(username1, username2);
 
-        member.removeAlias(alias2);
+        member.removeUsername(username2);
         assertThat(member)
-                .hasAliases(alias1)
+                .hasUsernames(username1)
                 .hasOneKey();
     }
 
     @Test
-    public void aliasDoesNotExist() {
-        Assertions.assertThat(rule.member().aliasExists("john" + Util.generateNonce())).isFalse();
+    public void usernameDoesNotExist() {
+        Assertions.assertThat(rule.member().usernameExists("john" + Util.generateNonce())).isFalse();
     }
 
     @Test
-    public void aliasExists() {
-        String alias = "john-" + Util.generateNonce();
-        rule.token().createMember(alias);
-        Assertions.assertThat(rule.member().aliasExists(alias)).isTrue();
+    public void usernameExists() {
+        String username = "john-" + Util.generateNonce();
+        rule.token().createMember(username);
+        Assertions.assertThat(rule.member().usernameExists(username)).isTrue();
     }
 }

@@ -53,17 +53,17 @@ public final class Member {
     }
 
     /**
-     * @return first alias owned by the user
+     * @return first username owned by the user
      */
-    public String firstAlias() {
-        return async.firstAlias();
+    public String firstUsername() {
+        return async.firstUsername();
     }
 
     /**
-     * @return list of aliases owned by the member
+     * @return list of usernames owned by the member
      */
-    public List<String> aliases() {
-        return async.aliases();
+    public List<String> usernames() {
+        return async.usernames();
     }
 
     /**
@@ -92,31 +92,31 @@ public final class Member {
     }
 
     /**
-     * Checks if a given alias already exists.
+     * Checks if a given username already exists.
      *
-     * @param alias alias to check
-     * @return {@code true} if alias exists, {@code false} otherwise
+     * @param username username to check
+     * @return {@code true} if username exists, {@code false} otherwise
      */
-    public boolean aliasExists(String alias) {
-        return async.aliasExists(alias).toBlocking().single();
+    public boolean usernameExists(String username) {
+        return async.usernameExists(username).toBlocking().single();
     }
 
     /**
-     * Adds a new alias for the member.
+     * Adds a new username for the member.
      *
-     * @param alias alias, e.g. 'john', must be unique
+     * @param username username, e.g. 'john', must be unique
      */
-    public void addAlias(String alias) {
-        async.addAlias(alias).toBlocking().single();
+    public void addUsername(String username) {
+        async.addUsername(username).toBlocking().single();
     }
 
     /**
-     * Removes an alias for the member.
+     * Removes an username for the member.
      *
-     * @param alias alias, e.g. 'john'
+     * @param username username, e.g. 'john'
      */
-    public void removeAlias(String alias) {
-        async.removeAlias(alias).toBlocking().single();
+    public void removeUsername(String username) {
+        async.removeUsername(username).toBlocking().single();
     }
 
     /**
@@ -314,7 +314,7 @@ public final class Member {
      * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
      * @param accountId the funding account id
-     * @param redeemer redeemer alias
+     * @param redeemer redeemer username
      * @param description transfer description, optional
      * @return transfer token returned by the server
      */
@@ -332,7 +332,7 @@ public final class Member {
     /**
      * Creates an access token for a list of resources.
      *
-     * @param redeemer the redeemer alias
+     * @param redeemer the redeemer username
      * @param resources a list of resources
      * @return the access token created
      */
@@ -345,7 +345,7 @@ public final class Member {
     /**
      * Creates an address access token
      *
-     * @param redeemer the redeemer alias
+     * @param redeemer the redeemer username
      * @param addressId an optional address id
      * @return the address access token created
      */
@@ -358,7 +358,7 @@ public final class Member {
     /**
      * Creates an account access token
      *
-     * @param redeemer the redeemer alias
+     * @param redeemer the redeemer username
      * @param accountId an optional account id
      * @return the account access token created
      */
@@ -371,7 +371,7 @@ public final class Member {
     /**
      * Creates a transaction access token
      *
-     * @param redeemer the redeemer alias
+     * @param redeemer the redeemer username
      * @param accountId an optional account id
      * @return the transaction access token created
      */

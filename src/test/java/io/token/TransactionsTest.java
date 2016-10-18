@@ -101,7 +101,7 @@ public class TransactionsTest {
                 1000.0,
                 "USD",
                 payerAccount.id(),
-                payee.firstAlias(),
+                payee.firstUsername(),
                 "Multi charge token");
     }
 }
