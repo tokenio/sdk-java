@@ -59,16 +59,6 @@ public class AccountsTest {
         AccountAssertion.assertThat(accounts.get(1))
                 .hasId()
                 .hasName("Savings");
-
-        for (Account account : accounts) {
-            account.setAccountName("New " + account.name());
-        }
-        AccountAssertion.assertThat(accounts.get(0))
-                .hasId()
-                .hasName("New Checking");
-        AccountAssertion.assertThat(accounts.get(1))
-                .hasId()
-                .hasName("New Savings");
     }
 
     @Test
