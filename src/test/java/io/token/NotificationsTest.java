@@ -38,11 +38,12 @@ public class NotificationsTest {
                         .build()).getBytes();
         String accountLinkPayload = ByteEncoding.serialize(data);
 
-        rule.token().notifyLinkAccounts(username, "BofA", accountLinkPayload);
+        rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayload);
         rule.token().notifyAddKey(username, key.getPublicKey(), "Chrome 52.0");
         rule.token().notifyLinkAccountsAndAddKey(
                 username,
                 "BofA",
+                "Bank of America",
                 accountLinkPayload,
                 key.getPublicKey(),
                 "Chrome 52.0");
