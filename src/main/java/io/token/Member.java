@@ -126,7 +126,7 @@ public final class Member {
      * of valid keys for the member.
      *
      * @param publicKey public key to add to the approved list
-     * @param level     key security level
+     * @param level key security level
      */
     public void approveKey(byte[] publicKey, Level level) {
         async.approveKey(publicKey, level).toBlocking().single();
@@ -145,7 +145,7 @@ public final class Member {
      * Subscribes a device to receive push notifications
      *
      * @param provider notification provider (e.g. Token)
-     * @param target   notification target (e.g. iOS push token)
+     * @param target notification target (e.g. iOS push token)
      * @param platform platform of the device
      * @return subscriber Subscriber
      */
@@ -196,9 +196,9 @@ public final class Member {
     /**
      * Links a funding bank account to Token and returns it to the caller.
      *
-     * @param bankId             bank id
+     * @param bankId bank id
      * @param accountLinkPayload account link authorization payload generated
-     *                           by the bank
+     * by the bank
      */
     public List<Account> linkAccounts(String bankId, String accountLinkPayload) {
         return async.linkAccounts(bankId, accountLinkPayload)
@@ -249,8 +249,8 @@ public final class Member {
     /**
      * Looks up existing token transfers.
      *
-     * @param offset  optional offset to start at
-     * @param limit   max number of records to return
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
      * @param tokenId optional token id to restrict the search
      * @return transfer record
      */
@@ -264,7 +264,7 @@ public final class Member {
     /**
      * Creates a new member address record.
      *
-     * @param name    the name of the address
+     * @param name the name of the address
      * @param address the address json
      * @return the address record created
      */
@@ -303,8 +303,8 @@ public final class Member {
     /**
      * Creates a new transfer token.
      *
-     * @param amount    transfer amount
-     * @param currency  currency code, e.g. "USD"
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
      * @param accountId the funding account id
      * @return transfer token returned by the server
      */
@@ -315,10 +315,10 @@ public final class Member {
     /**
      * Creates a new transfer token.
      *
-     * @param amount      transfer amount
-     * @param currency    currency code, e.g. "USD"
-     * @param accountId   the funding account id
-     * @param redeemer    redeemer username
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param accountId the funding account id
+     * @param redeemer redeemer username
      * @param description transfer description, optional
      * @return transfer token returned by the server
      */
@@ -336,7 +336,7 @@ public final class Member {
     /**
      * Creates an access token for a list of resources.
      *
-     * @param redeemer  the redeemer username
+     * @param redeemer the redeemer username
      * @param resources a list of resources
      * @return the access token created
      */
@@ -361,7 +361,7 @@ public final class Member {
     /**
      * Creates an address access token for a given address id.
      *
-     * @param redeemer  the redeemer username
+     * @param redeemer the redeemer username
      * @param addressId an address id
      * @return the address access token created
      */
@@ -387,7 +387,7 @@ public final class Member {
     /**
      * Creates an account access token for a given account id.
      *
-     * @param redeemer  the redeemer username
+     * @param redeemer the redeemer username
      * @param accountId an account id
      * @return the account access token created
      */
@@ -413,7 +413,7 @@ public final class Member {
     /**
      * Creates a transaction access token for a given account id.
      *
-     * @param redeemer  the redeemer username
+     * @param redeemer the redeemer username
      * @param accountId an account id
      * @return the transaction access token created
      */
@@ -439,7 +439,7 @@ public final class Member {
     /**
      * Creates a balance access token for a given account id.
      *
-     * @param redeemer  the redeemer username
+     * @param redeemer the redeemer username
      * @param accountId an account id
      * @return the balance access token created
      */
@@ -464,7 +464,7 @@ public final class Member {
      * Looks up tokens owned by the member.
      *
      * @param offset optional offset to start at
-     * @param limit  max number of records to return
+     * @param limit max number of records to return
      * @return transfer tokens owned by the member
      */
     public PagedList<Token, String> getTransferTokens(@Nullable String offset, int limit) {
@@ -475,7 +475,7 @@ public final class Member {
      * Looks up tokens owned by the member.
      *
      * @param offset optional offset offset to start at
-     * @param limit  max number of records to return
+     * @param limit max number of records to return
      * @return transfer tokens owned by the member
      */
     public PagedList<Token, String> getAccessTokens(@Nullable String offset, int limit) {
@@ -517,8 +517,8 @@ public final class Member {
     /**
      * Redeems a transfer token.
      *
-     * @param token    transfer token to redeem
-     * @param amount   transfer amount
+     * @param token transfer token to redeem
+     * @param amount transfer amount
      * @param currency transfer currency code, e.g. "EUR"
      * @return transfer record
      */
@@ -529,7 +529,7 @@ public final class Member {
     /**
      * Looks up an existing transaction for a given account
      *
-     * @param accountId     the account id
+     * @param accountId the account id
      * @param transactionId ID of the transaction
      * @return transaction record
      */
@@ -543,8 +543,8 @@ public final class Member {
      * Looks up transactions for a given account
      *
      * @param accountId the account id
-     * @param offset    optional offset to start at
-     * @param limit     max number of records to return
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
      * @return a list of transaction record
      */
     public PagedList<Transaction, String> getTransactions(
