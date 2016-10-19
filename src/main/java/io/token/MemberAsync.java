@@ -189,8 +189,10 @@ public final class MemberAsync {
      * @param platform platform of the device
      * @return subscriber Subscriber
      */
-    public Observable<Subscriber> subscribeToNotifications(String provider, String target,
-                                                           Platform platform) {
+    public Observable<Subscriber> subscribeToNotifications(
+            String provider,
+            String target,
+            Platform platform) {
         return client.subscribeToNotifications(provider, target, platform);
     }
 
@@ -399,12 +401,12 @@ public final class MemberAsync {
     }
 
     /**
-     * Creates an access token for any account.
+     * Creates an access token for any address.
      *
      * @param redeemer the redeemer username
      * @return the address access token created
      */
-    public Observable<Token> createAddressAccessToken(String redeemer) {
+    public Observable<Token> createAddressesAccessToken(String redeemer) {
         Resource resource = Resource.newBuilder()
                 .setAllAddresses(Resource.AllAddresses.getDefaultInstance())
                 .build();
@@ -435,7 +437,7 @@ public final class MemberAsync {
      * @param redeemer the redeemer username
      * @return the account access token created
      */
-    public Observable<Token> createAccountAccessToken(String redeemer) {
+    public Observable<Token> createAccountsAccessToken(String redeemer) {
         Resource resource = Resource.newBuilder()
                 .setAllAccounts(Resource.AllAccounts.getDefaultInstance())
                 .build();
@@ -466,7 +468,7 @@ public final class MemberAsync {
      * @param redeemer the redeemer username
      * @return the transaction access token created
      */
-    public Observable<Token> createTransactionAccessToken(String redeemer) {
+    public Observable<Token> createTransactionsAccessToken(String redeemer) {
         Resource resource = Resource.newBuilder()
                 .setAllTransactions(Resource.AllAccountTransactions.getDefaultInstance())
                 .build();
@@ -480,7 +482,7 @@ public final class MemberAsync {
      * @param accountId an account id
      * @return the transaction access token created
      */
-    public Observable<Token> createTransactionAccessToken(
+    public Observable<Token> createTransactionsAccessToken(
             String redeemer,
             String accountId) {
         Resource resource = Resource.newBuilder()
@@ -497,7 +499,7 @@ public final class MemberAsync {
      * @param redeemer the redeemer username
      * @return the balance access token created
      */
-    public Observable<Token> createBalanceAccessToken(String redeemer) {
+    public Observable<Token> createBalancesAccessToken(String redeemer) {
         Resource resource = Resource.newBuilder()
                 .setAllBalances(Resource.AllAccountBalances.getDefaultInstance())
                 .build();
@@ -608,7 +610,10 @@ public final class MemberAsync {
      * @param currency transfer currency code, e.g. "EUR"
      * @return transfer record
      */
-    public Observable<Transfer> createTransfer(Token token, @Nullable Double amount, @Nullable String currency) {
+    public Observable<Transfer> createTransfer(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency) {
         Transfer.Payload.Builder payload = Transfer.Payload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());
