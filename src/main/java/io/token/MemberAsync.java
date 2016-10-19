@@ -41,7 +41,7 @@ public final class MemberAsync {
 
     /**
      * @param member internal member representation, fetched from server
-     * @param key    secret/public key pair
+     * @param key secret/public key pair
      * @param client RPC client used to perform operations against the server
      */
     MemberAsync(MemberProtos.Member member, SecretKey key, Client client) {
@@ -156,7 +156,7 @@ public final class MemberAsync {
      * of valid keys for the member.
      *
      * @param publicKey public key to add to the approved list
-     * @param level     key security level
+     * @param level key security level
      */
     public Observable<Void> approveKey(byte[] publicKey, Level level) {
         return client
@@ -185,12 +185,14 @@ public final class MemberAsync {
      * Creates a subscriber to push notifications
      *
      * @param provider notification provider (e.g. Token)
-     * @param target   notification target (e.g IOS push token)
+     * @param target notification target (e.g IOS push token)
      * @param platform platform of the device
      * @return subscriber Subscriber
      */
-    public Observable<Subscriber> subscribeToNotifications(String provider, String target,
-                                                           Platform platform) {
+    public Observable<Subscriber> subscribeToNotifications(
+            String provider,
+            String target,
+            Platform platform) {
         return client.subscribeToNotifications(provider, target, platform);
     }
 
@@ -227,9 +229,9 @@ public final class MemberAsync {
     /**
      * Links a funding bank account to Token and returns it to the caller.
      *
-     * @param bankId             bank id
+     * @param bankId bank id
      * @param accountLinkPayload account link authorization payload generated
-     *                           by the bank
+     * by the bank
      */
     public Observable<List<AccountAsync>> linkAccounts(String bankId, String accountLinkPayload) {
         return client
@@ -277,8 +279,8 @@ public final class MemberAsync {
     /**
      * Looks up existing token transfers.
      *
-     * @param offset  optional offset to start at
-     * @param limit   max number of records to return
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
      * @param tokenId optional token id to restrict the search
      * @return transfer record
      */
@@ -292,7 +294,7 @@ public final class MemberAsync {
     /**
      * Creates a new member address
      *
-     * @param name    the name of the address
+     * @param name the name of the address
      * @param address the address json
      * @return an address record created
      */
@@ -331,7 +333,7 @@ public final class MemberAsync {
     /**
      * Creates a new transfer token.
      *
-     * @param amount   transfer amount
+     * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
      * @return transfer token returned by the server
      */
@@ -342,9 +344,9 @@ public final class MemberAsync {
     /**
      * Creates a new transfer token.
      *
-     * @param amount      transfer amount
-     * @param currency    currency code, e.g. "USD"
-     * @param redeemer    redeemer username
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param redeemer redeemer username
      * @param description transfer description, optional
      * @return transfer token returned by the server
      */
@@ -378,7 +380,7 @@ public final class MemberAsync {
     /**
      * Creates an access token for a list of resources.
      *
-     * @param redeemer  the redeemer username
+     * @param redeemer the redeemer username
      * @param resources a list of resources
      * @return the access token created
      */
@@ -399,87 +401,127 @@ public final class MemberAsync {
     }
 
     /**
-     * Creates an address access token.
+     * Creates an access token for any address.
      *
-     * @param redeemer  the redeemer username
-     * @param addressId an optional address id
+     * @param redeemer the redeemer username
+     * @return the address access token created
+     */
+    public Observable<Token> createAddressesAccessToken(String redeemer) {
+        Resource resource = Resource.newBuilder()
+                .setAllAddresses(Resource.AllAddresses.getDefaultInstance())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates an address access token for a given address id.
+     *
+     * @param redeemer the redeemer username
+     * @param addressId an address id
      * @return the address access token created
      */
     public Observable<Token> createAddressAccessToken(
             String redeemer,
-            @Nullable String addressId) {
-        Resource.Builder resource = Resource.newBuilder();
-        if (addressId == null) {
-            resource.setAllAddresses(Resource.AllAddresses.getDefaultInstance());
-        } else {
-            resource.setAddress(Resource.Address.newBuilder()
-                    .setAddressId(addressId)
-                    .build());
-        }
-        return createToken(redeemer, Collections.singletonList(resource.build()));
+            String addressId) {
+        Resource resource = Resource.newBuilder()
+                .setAddress(Resource.Address.newBuilder()
+                        .setAddressId(addressId)
+                        .build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
     }
 
     /**
-     * Creates an account access token.
+     * Creates an access token for any account.
      *
-     * @param redeemer  the redeemer username
-     * @param accountId an optional account id
+     * @param redeemer the redeemer username
+     * @return the account access token created
+     */
+    public Observable<Token> createAccountsAccessToken(String redeemer) {
+        Resource resource = Resource.newBuilder()
+                .setAllAccounts(Resource.AllAccounts.getDefaultInstance())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates an account access token for a given account id.
+     *
+     * @param redeemer the redeemer username
+     * @param accountId an account id
      * @return the account access token created
      */
     public Observable<Token> createAccountAccessToken(
             String redeemer,
-            @Nullable String accountId) {
-        Resource.Builder resource = Resource.newBuilder();
-        if (accountId == null) {
-            resource.setAllAccounts(Resource.AllAccounts.getDefaultInstance());
-        } else {
-            resource.setAccount(Resource.Account.newBuilder()
-                    .setAccountId(accountId)
-                    .build());
-        }
-        return createToken(redeemer, Collections.singletonList(resource.build()));
+            String accountId) {
+        Resource resource = Resource.newBuilder()
+                .setAccount(Resource.Account.newBuilder()
+                        .setAccountId(accountId)
+                        .build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
     }
 
     /**
-     * Creates a transaction access token.
+     * Creates an access token for any account transactions.
      *
-     * @param redeemer  the redeemer username
-     * @param accountId an optional account id
+     * @param redeemer the redeemer username
      * @return the transaction access token created
      */
-    public Observable<Token> createTransactionAccessToken(
-            String redeemer,
-            @Nullable String accountId) {
-        Resource.Builder resource = Resource.newBuilder();
-        if (accountId == null) {
-            resource.setAllTransactions(Resource.AllAccountTransactions.getDefaultInstance());
-        } else {
-            resource.setTransactions(Resource.AccountTransactions.newBuilder()
-                    .setAccountId(accountId)
-                    .build());
-        }
-        return createToken(redeemer, Collections.singletonList(resource.build()));
+    public Observable<Token> createTransactionsAccessToken(String redeemer) {
+        Resource resource = Resource.newBuilder()
+                .setAllTransactions(Resource.AllAccountTransactions.getDefaultInstance())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
     }
 
     /**
-     * Creates a balance access token.
+     * Creates a transaction access token for a given account id.
      *
-     * @param redeemer  the redeemer username
+     * @param redeemer the redeemer username
+     * @param accountId an account id
+     * @return the transaction access token created
+     */
+    public Observable<Token> createTransactionsAccessToken(
+            String redeemer,
+            String accountId) {
+        Resource resource = Resource.newBuilder()
+                .setTransactions(Resource.AccountTransactions.newBuilder()
+                        .setAccountId(accountId)
+                        .build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates an access token for any account balance.
+     *
+     * @param redeemer the redeemer username
+     * @return the balance access token created
+     */
+    public Observable<Token> createBalancesAccessToken(String redeemer) {
+        Resource resource = Resource.newBuilder()
+                .setAllBalances(Resource.AllAccountBalances.getDefaultInstance())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates a balance access token for a given account id.
+     *
+     * @param redeemer the redeemer username
      * @param accountId an account id
      * @return the balance access token created
      */
     public Observable<Token> createBalanceAccessToken(
             String redeemer,
             String accountId) {
-        Resource.Builder resource = Resource.newBuilder();
-        if (accountId == null) {
-            resource.setAllBalances(Resource.AllAccountBalances.getDefaultInstance());
-        } else {
-            resource.setBalance(Resource.AccountBalance.newBuilder()
-                    .setAccountId(accountId)
-                    .build());
-        }
-        return createToken(redeemer, Collections.singletonList(resource.build()));
+        Resource resource = Resource.newBuilder()
+                .setBalance(Resource.AccountBalance.newBuilder()
+                        .setAccountId(accountId)
+                        .build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
     }
 
     /**
@@ -506,7 +548,7 @@ public final class MemberAsync {
      * Looks up transfer tokens owned by the member.
      *
      * @param offset optional offset to start at
-     * @param limit  max number of records to return
+     * @param limit max number of records to return
      * @return transfer tokens owned by the member
      */
     public Observable<PagedList<Token, String>> getTransferTokens(
@@ -519,7 +561,7 @@ public final class MemberAsync {
      * Looks up access tokens owned by the member.
      *
      * @param offset optional offset to start at
-     * @param limit  max number of records to return
+     * @param limit max number of records to return
      * @return transfer tokens owned by the member
      */
     public Observable<PagedList<Token, String>> getAccessTokens(
@@ -563,12 +605,15 @@ public final class MemberAsync {
     /**
      * Redeems a transfer token.
      *
-     * @param token    transfer token to redeem
-     * @param amount   transfer amount
+     * @param token transfer token to redeem
+     * @param amount transfer amount
      * @param currency transfer currency code, e.g. "EUR"
      * @return transfer record
      */
-    public Observable<Transfer> createTransfer(Token token, @Nullable Double amount, @Nullable String currency) {
+    public Observable<Transfer> createTransfer(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency) {
         Transfer.Payload.Builder payload = Transfer.Payload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());
@@ -586,7 +631,7 @@ public final class MemberAsync {
     /**
      * Looks up an existing transaction for a given account
      *
-     * @param accountId     the account id
+     * @param accountId the account id
      * @param transactionId ID of the transaction
      * @return transaction record
      */
@@ -598,8 +643,8 @@ public final class MemberAsync {
      * Looks up transactions for a given account
      *
      * @param accountId the account id
-     * @param offset    optional offset to start at
-     * @param limit     max number of records to return
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
      * @return a list of transaction records
      */
     public Observable<PagedList<Transaction, String>> getTransactions(
