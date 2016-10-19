@@ -104,7 +104,7 @@ public class AccessTokenTest {
     }
 
     @Test
-    public void addressAccessToken_withAddressId() {
+    public void createAddressAccessToken() {
         Address address1 = member1.addAddress(string(), string());
         Address address2 = member1.addAddress(string(), string());
         Token accessToken = member1.createAddressAccessToken(
@@ -118,10 +118,10 @@ public class AccessTokenTest {
     }
 
     @Test
-    public void addressAccessToken_withoutId() {
+    public void createAddressesAccessToken() {
         Address address1 = member1.addAddress(string(), string());
         Address address2 = member1.addAddress(string(), string());
-        Token accessToken = member1.createAddressAccessToken(
+        Token accessToken = member1.createAddressesAccessToken(
                 member2.firstUsername());
         member1.endorseToken(accessToken);
         member2.useAccessToken(accessToken.getId());
@@ -131,7 +131,48 @@ public class AccessTokenTest {
     }
 
     @Test
-    public void accountAccess_getBalance() {
+    public void createBalancesAccessToken() {
+        Account account = rule.account();
+        Member accountMember = account.member();
+        Token accessToken = accountMember.createBalancesAccessToken(
+                member1.firstUsername());
+        accountMember.endorseToken(accessToken);
+
+        assertThatExceptionThrownBy(() ->
+                member1.getAccount(account.id())
+        );
+
+        member1.useAccessToken(accessToken.getId());
+        Money balance = member1.getBalance(account.id());
+
+        assertThat(balance).isEqualTo(account.getBalance());
+    }
+
+    @Test
+    public void createAccountAccessToken() {
+        Token accessToken = payerAccount.member().createAccountAccessToken(
+                member2.firstUsername(),
+                payerAccount.id());
+        payerAccount.member().endorseToken(accessToken);
+        member2.useAccessToken(accessToken.getId());
+        Account result = member2.getAccount(payerAccount.id());
+
+        assertThat(result.name()).isEqualTo(payerAccount.name());
+    }
+
+    @Test
+    public void createAccountsAccessToken() {
+        Token accessToken = payerAccount.member().createAccountsAccessToken(
+                member2.firstUsername());
+        payerAccount.member().endorseToken(accessToken);
+        member2.useAccessToken(accessToken.getId());
+        Account result = member2.getAccount(payerAccount.id());
+
+        assertThat(result.name()).isEqualTo(payerAccount.name());
+    }
+
+    @Test
+    public void createBalanceAccessToken() {
         Account account = rule.account();
         Member accountMember = account.member();
         Token accessToken = accountMember.createBalanceAccessToken(
@@ -150,14 +191,14 @@ public class AccessTokenTest {
     }
 
     @Test
-    public void accountAccess_getTransaction() {
+    public void createAccountTransactionsAccessToken() {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
         assertThatExceptionThrownBy(() ->
                 member1.getTransaction(payerAccount.id(), transaction.getId())
         );
 
-        Token accessToken = payerAccount.member().createTransactionAccessToken(
+        Token accessToken = payerAccount.member().createTransactionsAccessToken(
                 member1.firstUsername(),
                 payerAccount.id());
         payerAccount.member().endorseToken(accessToken);
@@ -168,10 +209,10 @@ public class AccessTokenTest {
     }
 
     @Test
-    public void accountAccess_getTransaction_wildcard() {
+    public void createAccountsTransactionsAccessToken() {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
-        Token accessToken = payerAccount.member().createTransactionAccessToken(
+        Token accessToken = payerAccount.member().createTransactionsAccessToken(
                 member1.firstUsername());
         payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
@@ -184,7 +225,7 @@ public class AccessTokenTest {
     public void accountAccess_getTransactions() {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
-        Token accessToken = payerAccount.member().createTransactionAccessToken(
+        Token accessToken = payerAccount.member().createTransactionsAccessToken(
                 member1.firstUsername());
         payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
@@ -196,7 +237,7 @@ public class AccessTokenTest {
 
     @Test
     public void accountAccess_getTransactionsPaged() {
-        Token accessToken = payerAccount.member().createTransactionAccessToken(
+        Token accessToken = payerAccount.member().createTransactionsAccessToken(
                 member1.firstUsername());
         payerAccount.member().endorseToken(accessToken);
 

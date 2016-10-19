@@ -149,8 +149,10 @@ public final class Member {
      * @param platform platform of the device
      * @return subscriber Subscriber
      */
-    public Subscriber subscribeToNotifications(String provider, String target,
-                                               Platform platform) {
+    public Subscriber subscribeToNotifications(
+            String provider,
+            String target,
+            Platform platform) {
         return async.subscribeToNotifications(provider, target, platform)
                 .toBlocking()
                 .single();
@@ -345,13 +347,13 @@ public final class Member {
     }
 
     /**
-     * Creates an access token for any account.
+     * Creates an access token for any address.
      *
      * @param redeemer the redeemer username
      * @return the address access token created
      */
-    public Token createAddressAccessToken(String redeemer) {
-        return async.createAddressAccessToken(redeemer)
+    public Token createAddressesAccessToken(String redeemer) {
+        return async.createAddressesAccessToken(redeemer)
                 .toBlocking()
                 .single();
     }
@@ -376,8 +378,8 @@ public final class Member {
      * @param redeemer the redeemer username
      * @return the account access token created
      */
-    public Token createAccountAccessToken(String redeemer) {
-        return async.createAccountAccessToken(redeemer)
+    public Token createAccountsAccessToken(String redeemer) {
+        return async.createAccountsAccessToken(redeemer)
                 .toBlocking()
                 .single();
     }
@@ -402,8 +404,8 @@ public final class Member {
      * @param redeemer the redeemer username
      * @return the transaction access token created
      */
-    public Token createTransactionAccessToken(String redeemer) {
-        return async.createTransactionAccessToken(redeemer)
+    public Token createTransactionsAccessToken(String redeemer) {
+        return async.createTransactionsAccessToken(redeemer)
                 .toBlocking()
                 .single();
     }
@@ -415,9 +417,9 @@ public final class Member {
      * @param accountId an account id
      * @return the transaction access token created
      */
-    public Token createTransactionAccessToken(String redeemer, String accountId) {
+    public Token createTransactionsAccessToken(String redeemer, String accountId) {
         checkNotNull(accountId);
-        return async.createTransactionAccessToken(redeemer, accountId)
+        return async.createTransactionsAccessToken(redeemer, accountId)
                 .toBlocking()
                 .single();
     }
@@ -428,8 +430,8 @@ public final class Member {
      * @param redeemer the redeemer username
      * @return the balance access token created
      */
-    public Token createBalanceAccessToken(String redeemer) {
-        return async.createBalanceAccessToken(redeemer)
+    public Token createBalancesAccessToken(String redeemer) {
+        return async.createBalancesAccessToken(redeemer)
                 .toBlocking()
                 .single();
     }
