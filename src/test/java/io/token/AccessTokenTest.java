@@ -7,11 +7,8 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-
-import java.util.List;
 
 import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -134,7 +131,7 @@ public class AccessTokenTest {
         assertThat(result).isNotEqualTo(address1);
     }
 
-    @Test @Ignore
+    @Test
     public void accountAccess_getBalance() {
         Account account = rule.account();
         Member accountMember = account.member();
@@ -148,8 +145,7 @@ public class AccessTokenTest {
         );
 
         member1.useAccessToken(accessToken.getId());
-        Account resultAccount = member1.getAccount(account.id());
-        Money balance = resultAccount.getBalance();
+        Money balance  = member1.getBalance(account.id());
 
         assertThat(balance).isEqualTo(account.getBalance());
     }
