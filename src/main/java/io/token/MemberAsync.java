@@ -447,12 +447,30 @@ public final class MemberAsync {
     public Observable<Token> createTransactionAccessToken(
             String redeemer,
             @Nullable String accountId) {
-        Resource.Transaction.Builder transaction = Resource.Transaction.newBuilder();
+        Resource.AccountTransactions.Builder transaction = Resource.AccountTransactions.newBuilder();
         if(accountId != null) {
             transaction.setAccountId(accountId);
         }
         Resource resource = Resource.newBuilder()
-                .setTransaction(transaction.build())
+                .setTransactions(transaction.build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates a balance access token.
+     *
+     * @param redeemer the redeemer username
+     * @param accountId an account id
+     * @return the balance access token created
+     */
+    public Observable<Token> createBalanceAccessToken(
+            String redeemer,
+            String accountId) {
+        Resource.AccountBalance.Builder balance = Resource.AccountBalance.newBuilder();
+            balance.setAccountId(accountId);
+        Resource resource = Resource.newBuilder()
+                .setBalance(balance.build())
                 .build();
         return createToken(redeemer, Collections.singletonList(resource));
     }
