@@ -2,6 +2,7 @@ package io.token.rpc;
 
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.Account;
+import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -458,13 +459,13 @@ public final class Client {
      * @param address the address json
      * @return an address record created
      */
-    public Observable<Address> addAddress(
+    public Observable<AddressRecord> addAddress(
             String name,
-            String address) {
+            Address address) {
         return toObservable(gateway.addAddress(AddAddressRequest.newBuilder()
                 .setName(name)
-                .setData(address)
-                .setDataSignature(Signature.newBuilder()
+                .setAddress(address)
+                .setAddressSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, address))
                         .build())
@@ -478,7 +479,7 @@ public final class Client {
      * @param addressId the address id
      * @return an address record
      */
-    public Observable<Address> getAddress(String addressId) {
+    public Observable<AddressRecord> getAddress(String addressId) {
         setAuthenticationContext();
         return toObservable(gateway.getAddress(GetAddressRequest.newBuilder()
                 .setAddressId(addressId)
@@ -491,7 +492,7 @@ public final class Client {
      *
      * @return a list of addresses
      */
-    public Observable<List<Address>> getAddresses() {
+    public Observable<List<AddressRecord>> getAddresses() {
         setAuthenticationContext();
         return toObservable(gateway.getAddresses(GetAddressesRequest.newBuilder()
                 .build())

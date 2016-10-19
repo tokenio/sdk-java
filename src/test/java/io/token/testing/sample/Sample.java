@@ -1,5 +1,6 @@
 package io.token.testing.sample;
 
+import io.token.proto.common.address.AddressProtos.Address;
 import org.apache.commons.lang3.RandomStringUtils;
 
 import java.math.BigDecimal;
@@ -194,5 +195,15 @@ public interface Sample {
     static BigDecimal amount() {
         double d = decimal(0.01, 1000000, 2);
         return BigDecimal.valueOf(d);
+    }
+
+    static Address address() {
+        return Address.newBuilder()
+                .setHouseNumber("425")
+                .setStreet("Broadway")
+                .setCity("Redwood City")
+                .setPostCode("94063")
+                .setCountry("US")
+                .build();
     }
 }

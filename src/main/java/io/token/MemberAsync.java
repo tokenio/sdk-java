@@ -1,9 +1,10 @@
 package io.token;
 
 import io.token.proto.PagedList;
+import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -295,10 +296,10 @@ public final class MemberAsync {
      * Creates a new member address
      *
      * @param name the name of the address
-     * @param address the address json
+     * @param address the address
      * @return an address record created
      */
-    public Observable<Address> addAddress(String name, String address) {
+    public Observable<AddressRecord> addAddress(String name, Address address) {
         return client.addAddress(name, address);
     }
 
@@ -308,7 +309,7 @@ public final class MemberAsync {
      * @param addressId the address id
      * @return an address record
      */
-    public Observable<Address> getAddress(String addressId) {
+    public Observable<AddressRecord> getAddress(String addressId) {
         return client.getAddress(addressId);
     }
 
@@ -317,7 +318,7 @@ public final class MemberAsync {
      *
      * @return a list of addresses
      */
-    public Observable<List<Address>> getAddresses() {
+    public Observable<List<AddressRecord>> getAddresses() {
         return client.getAddresses();
     }
 
