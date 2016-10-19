@@ -2,7 +2,7 @@ package io.token;
 
 import com.google.common.collect.ImmutableSet;
 import io.token.proto.PagedList;
-import io.token.proto.common.member.MemberProtos.Address;
+import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
@@ -10,6 +10,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import org.junit.Rule;
 import org.junit.Test;
 
+import static io.token.testing.sample.Sample.address;
 import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
@@ -25,7 +26,7 @@ public class AccessTokenTest {
 
     @Test
     public void getAccessToken() {
-        Address address = member1.addAddress(string(), string());
+        AddressRecord address = member1.addAddress(string(), address());
         Token accessToken = member1.createAddressAccessToken(
                 member2.firstUsername(),
                 address.getId());
@@ -36,8 +37,8 @@ public class AccessTokenTest {
 
     @Test
     public void getAccessTokens() {
-        Address address1 = member1.addAddress(string(), string());
-        Address address2 = member1.addAddress(string(), string());
+        AddressRecord address1 = member1.addAddress(string(), address());
+        AddressRecord address2 = member1.addAddress(string(), address());
 
         Token accessToken1 = member1.createAddressAccessToken(
                 member2.firstUsername(),
@@ -53,7 +54,7 @@ public class AccessTokenTest {
 
     @Test
     public void addressAccessToken_failNonEndorsed() {
-        Address address = member1.addAddress(string(), string());
+        AddressRecord address = member1.addAddress(string(), address());
         Token accessToken = member1.createAddressAccessToken(
                 member2.firstUsername(),
                 address.getId());
@@ -65,7 +66,7 @@ public class AccessTokenTest {
 
     @Test
     public void addressAccessToken() {
-        Address address1 = member1.addAddress(string(), string());
+        AddressRecord address1 = member1.addAddress(string(), address());
         Token accessToken = member1.createAddressAccessToken(
                 member2.firstUsername(),
                 address1.getId());
@@ -76,7 +77,7 @@ public class AccessTokenTest {
         );
 
         member2.useAccessToken(accessToken.getId());
-        Address result = member2.getAddress(address1.getId());
+        AddressRecord result = member2.getAddress(address1.getId());
         assertThat(result).isEqualTo(address1);
 
         member2.clearAccessTokenOf();
@@ -87,14 +88,14 @@ public class AccessTokenTest {
 
     @Test
     public void addressAccessToken_canceled() {
-        Address address1 = member1.addAddress(string(), string());
+        AddressRecord address1 = member1.addAddress(string(), address());
         Token accessToken = member1.createAddressAccessToken(
                 member2.firstUsername(),
                 address1.getId());
         member1.endorseToken(accessToken);
 
         member2.useAccessToken(accessToken.getId());
-        Address result = member2.getAddress(address1.getId());
+        AddressRecord result = member2.getAddress(address1.getId());
         assertThat(result).isEqualTo(address1);
 
         member1.cancelToken(accessToken);
@@ -105,8 +106,8 @@ public class AccessTokenTest {
 
     @Test
     public void createAddressAccessToken() {
-        Address address1 = member1.addAddress(string(), string());
-        Address address2 = member1.addAddress(string(), string());
+        AddressRecord address1 = member1.addAddress(string(), address());
+        AddressRecord address2 = member1.addAddress(string(), address());
         Token accessToken = member1.createAddressAccessToken(
                 member2.firstUsername(),
                 address1.getId());
@@ -119,13 +120,13 @@ public class AccessTokenTest {
 
     @Test
     public void createAddressesAccessToken() {
-        Address address1 = member1.addAddress(string(), string());
-        Address address2 = member1.addAddress(string(), string());
+        AddressRecord address1 = member1.addAddress(string(), address());
+        AddressRecord address2 = member1.addAddress(string(), address());
         Token accessToken = member1.createAddressesAccessToken(
                 member2.firstUsername());
         member1.endorseToken(accessToken);
         member2.useAccessToken(accessToken.getId());
-        Address result = member2.getAddress(address2.getId());
+        AddressRecord result = member2.getAddress(address2.getId());
         assertThat(result).isEqualTo(address2);
         assertThat(result).isNotEqualTo(address1);
     }
