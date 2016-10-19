@@ -271,23 +271,6 @@ public final class Client {
     }
 
     /**
-     * Sets account name.
-     *
-     * @param accountId account id
-     * @param accountName new name to use
-     * @return updated account info
-     */
-    public Observable<Account> setAccountName(
-            String accountId,
-            String accountName) {
-        return toObservable(gateway.setAccountName(SetAccountNameRequest.newBuilder()
-                .setAccountId(accountId)
-                .setName(accountName)
-                .build())
-        ).map(SetAccountNameResponse::getAccount);
-    }
-
-    /**
      * Creates a new token.
      *
      * @param payload transfer token payload

@@ -48,16 +48,6 @@ public final class Account {
     }
 
     /**
-     * Sets a new bank account.
-     *
-     * @param newName new name to use
-     */
-    public void setAccountName(String newName) {
-        async.setAccountName(newName).toBlocking().single();
-    }
-
-
-    /**
      * Looks up an account balance.
      *
      * @return account balance
