@@ -2,6 +2,7 @@ package io.token;
 
 import io.token.proto.PagedList;
 import io.token.proto.common.member.MemberProtos.Address;
+import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -496,6 +497,18 @@ public final class Member {
             @Nullable String offset,
             int limit) {
         return async.getTransactions(accountId, offset, limit)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Looks up account balance
+     *
+     * @param accountId the account id
+     * @return balance
+     */
+    public Money getBalance(String accountId) {
+        return async.getBalance(accountId)
                 .toBlocking()
                 .single();
     }
