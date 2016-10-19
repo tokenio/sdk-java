@@ -57,20 +57,6 @@ public final class AccountAsync {
     }
 
     /**
-     * Sets a new bank account.
-     *
-     * @param newName new name to use
-     */
-    public Observable<Void> setAccountName(String newName) {
-        return client
-                .setAccountName(account.getId(), newName)
-                .map(a -> {
-                    this.account.clear().mergeFrom(a);
-                    return null;
-                });
-    }
-
-    /**
      * Looks up an account balance.
      *
      * @return account balance
