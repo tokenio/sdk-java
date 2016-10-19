@@ -1,8 +1,8 @@
 package io.token;
 
 import io.token.proto.PagedList;
-import io.token.proto.common.member.MemberProtos.Address;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -16,6 +16,7 @@ import javax.annotation.Nullable;
 import java.util.List;
 
 import static com.google.common.base.Preconditions.checkNotNull;
+import static io.token.proto.common.address.AddressProtos.Address;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
@@ -265,10 +266,10 @@ public final class Member {
      * Creates a new member address record.
      *
      * @param name the name of the address
-     * @param address the address json
+     * @param address the address
      * @return the address record created
      */
-    public Address addAddress(String name, String address) {
+    public AddressRecord addAddress(String name, Address address) {
         return async.addAddress(name, address).toBlocking().single();
     }
 
@@ -278,7 +279,7 @@ public final class Member {
      * @param addressId the address id
      * @return an address record
      */
-    public Address getAddress(String addressId) {
+    public AddressRecord getAddress(String addressId) {
         return async.getAddress(addressId).toBlocking().single();
     }
 
@@ -287,7 +288,7 @@ public final class Member {
      *
      * @return a list of addresses
      */
-    public List<Address> getAddresses() {
+    public List<AddressRecord> getAddresses() {
         return async.getAddresses().toBlocking().single();
     }
 
