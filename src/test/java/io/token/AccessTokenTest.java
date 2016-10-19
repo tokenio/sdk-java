@@ -137,7 +137,7 @@ public class AccessTokenTest {
     public void accountAccess_getBalance() {
         Account account = rule.account();
         Member accountMember = account.member();
-        Token accessToken = accountMember.createAccountAccessToken(
+        Token accessToken = accountMember.createBalanceAccessToken(
                 member1.firstUsername(),
                 account.id());
         accountMember.endorseToken(accessToken);
