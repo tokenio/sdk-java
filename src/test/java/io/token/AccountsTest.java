@@ -13,7 +13,8 @@ import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 public class AccountsTest {
-    @Rule public TokenRule rule = new TokenRule();
+    @Rule
+    public TokenRule rule = new TokenRule();
     private final Member member = rule.member();
 
     @Test
