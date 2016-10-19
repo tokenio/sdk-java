@@ -15,6 +15,7 @@ import io.token.security.SecretKey;
 import javax.annotation.Nullable;
 import java.util.List;
 
+import static com.google.common.base.Preconditions.checkNotNull;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
@@ -344,52 +345,104 @@ public final class Member {
     }
 
     /**
-     * Creates an address access token
+     * Creates an access token for any account.
      *
      * @param redeemer the redeemer username
-     * @param addressId an optional address id
      * @return the address access token created
      */
-    public Token createAddressAccessToken(String redeemer, @Nullable String addressId) {
+    public Token createAddressAccessToken(String redeemer) {
+        return async.createAddressAccessToken(redeemer)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates an address access token for a given address id.
+     *
+     * @param redeemer the redeemer username
+     * @param addressId an address id
+     * @return the address access token created
+     */
+    public Token createAddressAccessToken(String redeemer, String addressId) {
+        checkNotNull(addressId);
         return async.createAddressAccessToken(redeemer, addressId)
                 .toBlocking()
                 .single();
     }
 
     /**
-     * Creates an account access token
+     * Creates an access token for any account.
      *
      * @param redeemer the redeemer username
-     * @param accountId an optional account id
      * @return the account access token created
      */
-    public Token createAccountAccessToken(String redeemer, @Nullable String accountId) {
+    public Token createAccountAccessToken(String redeemer) {
+        return async.createAccountAccessToken(redeemer)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates an account access token for a given account id.
+     *
+     * @param redeemer the redeemer username
+     * @param accountId an account id
+     * @return the account access token created
+     */
+    public Token createAccountAccessToken(String redeemer, String accountId) {
+        checkNotNull(accountId);
         return async.createAccountAccessToken(redeemer, accountId)
                 .toBlocking()
                 .single();
     }
 
     /**
-     * Creates a transaction access token
+     * Creates an access token for any account transactions.
      *
      * @param redeemer the redeemer username
-     * @param accountId an optional account id
      * @return the transaction access token created
      */
-    public Token createTransactionAccessToken(String redeemer, @Nullable String accountId) {
+    public Token createTransactionAccessToken(String redeemer) {
+        return async.createTransactionAccessToken(redeemer)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a transaction access token for a given account id.
+     *
+     * @param redeemer the redeemer username
+     * @param accountId an account id
+     * @return the transaction access token created
+     */
+    public Token createTransactionAccessToken(String redeemer, String accountId) {
+        checkNotNull(accountId);
         return async.createTransactionAccessToken(redeemer, accountId)
                 .toBlocking()
                 .single();
     }
 
     /**
-     * Creates a balance access token
+     * Creates an access token for any account balance.
      *
      * @param redeemer the redeemer username
-     * @param accountId an optional account id
      * @return the balance access token created
      */
-    public Token createBalanceAccessToken(String redeemer, @Nullable String accountId) {
+    public Token createBalanceAccessToken(String redeemer) {
+        return async.createBalanceAccessToken(redeemer)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a balance access token for a given account id.
+     *
+     * @param redeemer the redeemer username
+     * @param accountId an account id
+     * @return the balance access token created
+     */
+    public Token createBalanceAccessToken(String redeemer, String accountId) {
+        checkNotNull(accountId);
         return async.createBalanceAccessToken(redeemer, accountId)
                 .toBlocking()
                 .single();
