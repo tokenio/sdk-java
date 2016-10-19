@@ -414,7 +414,7 @@ public final class MemberAsync {
     /**
      * Creates an address access token for a given address id.
      *
-     * @param redeemer the redeemer username
+     * @param redeemer  the redeemer username
      * @param addressId an address id
      * @return the address access token created
      */
@@ -445,7 +445,7 @@ public final class MemberAsync {
     /**
      * Creates an account access token for a given account id.
      *
-     * @param redeemer the redeemer username
+     * @param redeemer  the redeemer username
      * @param accountId an account id
      * @return the account access token created
      */
@@ -476,7 +476,7 @@ public final class MemberAsync {
     /**
      * Creates a transaction access token for a given account id.
      *
-     * @param redeemer the redeemer username
+     * @param redeemer  the redeemer username
      * @param accountId an account id
      * @return the transaction access token created
      */
@@ -485,8 +485,8 @@ public final class MemberAsync {
             String accountId) {
         Resource resource = Resource.newBuilder()
                 .setTransactions(Resource.AccountTransactions.newBuilder()
-                    .setAccountId(accountId)
-                    .build())
+                        .setAccountId(accountId)
+                        .build())
                 .build();
         return createToken(redeemer, Collections.singletonList(resource));
     }
@@ -507,7 +507,7 @@ public final class MemberAsync {
     /**
      * Creates a balance access token for a given account id.
      *
-     * @param redeemer the redeemer username
+     * @param redeemer  the redeemer username
      * @param accountId an account id
      * @return the balance access token created
      */
@@ -516,8 +516,8 @@ public final class MemberAsync {
             String accountId) {
         Resource resource = Resource.newBuilder()
                 .setBalance(Resource.AccountBalance.newBuilder()
-                    .setAccountId(accountId)
-                    .build())
+                        .setAccountId(accountId)
+                        .build())
                 .build();
         return createToken(redeemer, Collections.singletonList(resource));
     }
