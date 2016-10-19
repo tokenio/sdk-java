@@ -58,7 +58,7 @@ public class AccessTokenTest {
                 member2.firstUsername(),
                 address.getId());
         member2.useAccessToken(accessToken.getId());
-        assertThatExceptionThrownBy( () ->
+        assertThatExceptionThrownBy(() ->
                 member2.getAddress(address.getId())
         );
     }
@@ -144,7 +144,7 @@ public class AccessTokenTest {
         );
 
         member1.useAccessToken(accessToken.getId());
-        Money balance  = member1.getBalance(account.id());
+        Money balance = member1.getBalance(account.id());
 
         assertThat(balance).isEqualTo(account.getBalance());
     }
@@ -154,7 +154,7 @@ public class AccessTokenTest {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
         assertThatExceptionThrownBy(() ->
-            member1.getTransaction(payerAccount.id(), transaction.getId())
+                member1.getTransaction(payerAccount.id(), transaction.getId())
         );
 
         Token accessToken = payerAccount.member().createTransactionAccessToken(
