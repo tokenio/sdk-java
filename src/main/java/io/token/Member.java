@@ -382,6 +382,19 @@ public final class Member {
     }
 
     /**
+     * Creates a balance access token
+     *
+     * @param redeemer the redeemer username
+     * @param accountId an optional account id
+     * @return the balance access token created
+     */
+    public Token createBalanceAccessToken(String redeemer, @Nullable String accountId) {
+        return async.createBalanceAccessToken(redeemer, accountId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
      * Looks up a existing token.
      *
      * @param tokenId token id
