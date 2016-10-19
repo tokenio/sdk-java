@@ -399,87 +399,127 @@ public final class MemberAsync {
     }
 
     /**
-     * Creates an address access token.
+     * Creates an access token for any account.
      *
-     * @param redeemer  the redeemer username
-     * @param addressId an optional address id
+     * @param redeemer the redeemer username
+     * @return the address access token created
+     */
+    public Observable<Token> createAddressAccessToken(String redeemer) {
+        Resource resource = Resource.newBuilder()
+                .setAllAddresses(Resource.AllAddresses.getDefaultInstance())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates an address access token for a given address id.
+     *
+     * @param redeemer the redeemer username
+     * @param addressId an address id
      * @return the address access token created
      */
     public Observable<Token> createAddressAccessToken(
             String redeemer,
-            @Nullable String addressId) {
-        Resource.Builder resource = Resource.newBuilder();
-        if (addressId == null) {
-            resource.setAllAddresses(Resource.AllAddresses.getDefaultInstance());
-        } else {
-            resource.setAddress(Resource.Address.newBuilder()
-                    .setAddressId(addressId)
-                    .build());
-        }
-        return createToken(redeemer, Collections.singletonList(resource.build()));
+            String addressId) {
+        Resource resource = Resource.newBuilder()
+                .setAddress(Resource.Address.newBuilder()
+                        .setAddressId(addressId)
+                        .build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
     }
 
     /**
-     * Creates an account access token.
+     * Creates an access token for any account.
      *
-     * @param redeemer  the redeemer username
-     * @param accountId an optional account id
+     * @param redeemer the redeemer username
+     * @return the account access token created
+     */
+    public Observable<Token> createAccountAccessToken(String redeemer) {
+        Resource resource = Resource.newBuilder()
+                .setAllAccounts(Resource.AllAccounts.getDefaultInstance())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates an account access token for a given account id.
+     *
+     * @param redeemer the redeemer username
+     * @param accountId an account id
      * @return the account access token created
      */
     public Observable<Token> createAccountAccessToken(
             String redeemer,
-            @Nullable String accountId) {
-        Resource.Builder resource = Resource.newBuilder();
-        if (accountId == null) {
-            resource.setAllAccounts(Resource.AllAccounts.getDefaultInstance());
-        } else {
-            resource.setAccount(Resource.Account.newBuilder()
-                    .setAccountId(accountId)
-                    .build());
-        }
-        return createToken(redeemer, Collections.singletonList(resource.build()));
+            String accountId) {
+        Resource resource = Resource.newBuilder()
+                .setAccount(Resource.Account.newBuilder()
+                        .setAccountId(accountId)
+                        .build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
     }
 
     /**
-     * Creates a transaction access token.
+     * Creates an access token for any account transactions.
      *
-     * @param redeemer  the redeemer username
-     * @param accountId an optional account id
+     * @param redeemer the redeemer username
+     * @return the transaction access token created
+     */
+    public Observable<Token> createTransactionAccessToken(String redeemer) {
+        Resource resource = Resource.newBuilder()
+                .setAllTransactions(Resource.AllAccountTransactions.getDefaultInstance())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates a transaction access token for a given account id.
+     *
+     * @param redeemer the redeemer username
+     * @param accountId an account id
      * @return the transaction access token created
      */
     public Observable<Token> createTransactionAccessToken(
             String redeemer,
-            @Nullable String accountId) {
-        Resource.Builder resource = Resource.newBuilder();
-        if (accountId == null) {
-            resource.setAllTransactions(Resource.AllAccountTransactions.getDefaultInstance());
-        } else {
-            resource.setTransactions(Resource.AccountTransactions.newBuilder()
+            String accountId) {
+        Resource resource = Resource.newBuilder()
+                .setTransactions(Resource.AccountTransactions.newBuilder()
                     .setAccountId(accountId)
-                    .build());
-        }
-        return createToken(redeemer, Collections.singletonList(resource.build()));
+                    .build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
     }
 
     /**
-     * Creates a balance access token.
+     * Creates an access token for any account balance.
      *
-     * @param redeemer  the redeemer username
+     * @param redeemer the redeemer username
+     * @return the balance access token created
+     */
+    public Observable<Token> createBalanceAccessToken(String redeemer) {
+        Resource resource = Resource.newBuilder()
+                .setAllBalances(Resource.AllAccountBalances.getDefaultInstance())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
+    }
+
+    /**
+     * Creates a balance access token for a given account id.
+     *
+     * @param redeemer the redeemer username
      * @param accountId an account id
      * @return the balance access token created
      */
     public Observable<Token> createBalanceAccessToken(
             String redeemer,
             String accountId) {
-        Resource.Builder resource = Resource.newBuilder();
-        if (accountId == null) {
-            resource.setAllBalances(Resource.AllAccountBalances.getDefaultInstance());
-        } else {
-            resource.setBalance(Resource.AccountBalance.newBuilder()
+        Resource resource = Resource.newBuilder()
+                .setBalance(Resource.AccountBalance.newBuilder()
                     .setAccountId(accountId)
-                    .build());
-        }
-        return createToken(redeemer, Collections.singletonList(resource.build()));
+                    .build())
+                .build();
+        return createToken(redeemer, Collections.singletonList(resource));
     }
 
     /**

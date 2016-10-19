@@ -122,8 +122,7 @@ public class AccessTokenTest {
         Address address1 = member1.addAddress(string(), string());
         Address address2 = member1.addAddress(string(), string());
         Token accessToken = member1.createAddressAccessToken(
-                member2.firstUsername(),
-                null);
+                member2.firstUsername());
         member1.endorseToken(accessToken);
         member2.useAccessToken(accessToken.getId());
         Address result = member2.getAddress(address2.getId());
@@ -173,8 +172,7 @@ public class AccessTokenTest {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
         Token accessToken = payerAccount.member().createTransactionAccessToken(
-                member1.firstUsername(),
-                null);
+                member1.firstUsername());
         payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
         Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId());
@@ -187,8 +185,7 @@ public class AccessTokenTest {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
         Token accessToken = payerAccount.member().createTransactionAccessToken(
-                member1.firstUsername(),
-                null);
+                member1.firstUsername());
         payerAccount.member().endorseToken(accessToken);
         member1.useAccessToken(accessToken.getId());
         PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, 1);
@@ -200,8 +197,7 @@ public class AccessTokenTest {
     @Test
     public void accountAccess_getTransactionsPaged() {
         Token accessToken = payerAccount.member().createTransactionAccessToken(
-                member1.firstUsername(),
-                null);
+                member1.firstUsername());
         payerAccount.member().endorseToken(accessToken);
 
         int num = 10;
