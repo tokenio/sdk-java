@@ -47,9 +47,11 @@ public final class BankClient {
     }
 
     public List<String> startAccountsLinking(
+            String username,
             String clientId,
             List<String> accountNumbers) {
         AuthorizeLinkAccountsRequest request = AuthorizeLinkAccountsRequest.newBuilder()
+                .setUsername(username)
                 .setClientId(clientId)
                 .addAllAccounts(accountNumbers)
                 .build();

@@ -55,6 +55,7 @@ public class TokenRule extends ExternalResource {
         Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
         bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
         List<String> accountLinkPayloads = bankClient.startAccountsLinking(
+                member.firstUsername(),
                 client.getId(),
                 Collections.singletonList(bankAccountNumber));
 
