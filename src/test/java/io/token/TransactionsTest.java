@@ -30,7 +30,7 @@ public class TransactionsTest {
 
     @Test
     public void getTransaction() {
-        Token token =token();
+        Token token = token();
         token = payer.endorseToken(token);
         Transfer transfer = payee.redeemToken(token, 100.0, "USD");
 
