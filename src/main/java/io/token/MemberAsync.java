@@ -3,8 +3,8 @@ package io.token;
 import io.token.proto.PagedList;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -226,15 +226,16 @@ public final class MemberAsync {
 
 
     /**
-     * Links a funding bank account to Token and returns it to the caller.
+     * Links a funding bank accounts to Token and returns it to the caller.
      *
      * @param bankId bank id
-     * @param accountLinkPayload account link authorization payload generated
-     * by the bank
+     * @param accountLinkPayloads a list of account payloads to be linked
      */
-    public Observable<List<AccountAsync>> linkAccounts(String bankId, String accountLinkPayload) {
+    public Observable<List<AccountAsync>> linkAccounts(
+            String bankId,
+            List<String> accountLinkPayloads) {
         return client
-                .linkAccounts(bankId, accountLinkPayload)
+                .linkAccounts(bankId, accountLinkPayloads)
                 .map(accounts -> accounts.stream()
                         .map(a -> new AccountAsync(this, a, client))
                         .collect(toList()));

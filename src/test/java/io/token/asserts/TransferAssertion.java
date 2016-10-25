@@ -44,8 +44,8 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
 
     public TransferAssertion isSignedBy(Member... members) {
         return hasKeySignatures(Arrays.stream(members)
-                        .map(Member::key)
-                        .collect(toList()));
+                .map(Member::key)
+                .collect(toList()));
     }
 
     public TransferAssertion hasNoSignatures() {
