@@ -25,7 +25,7 @@ public class NotificationsTest {
         SecretKey key = Crypto.generateSecretKey();
         String username = member.usernames().get(0);
         String target = "8E8E256A58DE0F62F4A427202DF8CB07C6BD644AFFE93210BC49B8E5F9402554000";
-        Subscriber subscriber = member.subscribeToNotifications("Token", target, Platform.IOS);
+        Subscriber subscriber = member.subscribeToNotifications(target, Platform.IOS);
 
         byte[] data = ProtoJson.toJson(AccountsLinkPayload.newBuilder()
                         .setUsername(username)
@@ -67,7 +67,7 @@ public class NotificationsTest {
     @Test
     public void getSubscriber() {
         String target = Util.generateNonce();
-        Subscriber subscriber = member.subscribeToNotifications("Token", target, Platform.TEST);
+        Subscriber subscriber = member.subscribeToNotifications(target, Platform.TEST);
 
         Subscriber subscriber2 = member.getSubscriber(subscriber.getId());
         assertThat(subscriber.getId()).isEqualTo(subscriber2.getId());

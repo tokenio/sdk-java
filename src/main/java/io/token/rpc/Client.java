@@ -169,18 +169,15 @@ public final class Client {
     /**
      * Creates a subscriber to receive push notifications
      *
-     * @param provider notification provider (e.g. Token)
      * @param target notification target (e.g. iOS push token)
      * @param platform platform of the device
      * @return subscriber subscriber
      */
     public Observable<Subscriber> subscribeToNotifications(
-            String provider,
             String target,
             Platform platform) {
         return toObservable(gateway.subscribeToNotifications(
                 SubscribeToNotificationsRequest.newBuilder()
-                .setProvider(provider)
                 .setTarget(target)
                 .setPlatform(platform)
                 .build()))
