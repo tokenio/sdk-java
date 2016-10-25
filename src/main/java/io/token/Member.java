@@ -145,16 +145,14 @@ public final class Member {
     /**
      * Subscribes a device to receive push notifications
      *
-     * @param provider notification provider (e.g. Token)
      * @param target notification target (e.g. iOS push token)
      * @param platform platform of the device
      * @return subscriber Subscriber
      */
     public Subscriber subscribeToNotifications(
-            String provider,
             String target,
             Platform platform) {
-        return async.subscribeToNotifications(provider, target, platform)
+        return async.subscribeToNotifications(target, platform)
                 .toBlocking()
                 .single();
     }

@@ -185,16 +185,14 @@ public final class MemberAsync {
     /**
      * Creates a subscriber to push notifications
      *
-     * @param provider notification provider (e.g. Token)
      * @param target notification target (e.g IOS push token)
      * @param platform platform of the device
      * @return subscriber Subscriber
      */
     public Observable<Subscriber> subscribeToNotifications(
-            String provider,
             String target,
             Platform platform) {
-        return client.subscribeToNotifications(provider, target, platform);
+        return client.subscribeToNotifications(target, platform);
     }
 
     /**
