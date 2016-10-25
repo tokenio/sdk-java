@@ -12,7 +12,6 @@ import io.token.proto.common.money.MoneyProtos;
 import io.token.rpc.client.RpcChannelFactory;
 
 import java.util.List;
-import java.util.Optional;
 
 import static java.lang.String.format;
 
@@ -47,16 +46,14 @@ public final class BankClient {
         return response.getAccount();
     }
 
-    public String startAccountsLinking(
-            String username,
-            Optional<String> secret,
+    public List<String> startAccountsLinking(
+            String clientId,
             List<String> accountNumbers) {
         AuthorizeLinkAccountsRequest request = AuthorizeLinkAccountsRequest.newBuilder()
-                .setUsername(username)
+                .setClientId(clientId)
                 .addAllAccounts(accountNumbers)
-                .setSecret(secret.orElse(""))
                 .build();
         AuthorizeLinkAccountsResponse response = accountLinking.authorizeLinkAccounts(request);
-        return response.getAccountsLinkPayload();
+        return response.getAccountLinkPayloadsList();
     }
 }

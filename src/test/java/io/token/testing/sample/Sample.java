@@ -56,9 +56,9 @@ public interface Sample {
      * @param <V> the type of values
      * @return a sample map
      */
-    static <K,V> Map<K,V> map(Supplier<K> keySample, Supplier<V> valueSample) {
-        Map<K,V> map = new HashMap<>();
-        for(int i=0; i<5; i++){
+    static <K, V> Map<K, V> map(Supplier<K> keySample, Supplier<V> valueSample) {
+        Map<K, V> map = new HashMap<>();
+        for (int i = 0; i < 5; i++) {
             map.put(keySample.get(), valueSample.get());
         }
         return map;
@@ -85,7 +85,7 @@ public interface Sample {
      * @return a randomly picked value from the list
      */
     static <T> T pick(List<T> list) {
-        return list.get(integer(0, list.size()-1));
+        return list.get(integer(0, list.size() - 1));
     }
 
     /**

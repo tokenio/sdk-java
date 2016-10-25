@@ -21,7 +21,7 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
         return this;
     }
 
-    public MemberAssertion hasUsernames(String ... usernames) {
+    public MemberAssertion hasUsernames(String... usernames) {
         return hasUsernames(Arrays.asList(usernames));
     }
 
@@ -44,7 +44,7 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
         return this;
     }
 
-    public MemberAssertion hasKeys(byte[] ... publicKeys) {
+    public MemberAssertion hasKeys(byte[]... publicKeys) {
         Assertions.assertThat(actual.publicKeys()).containsOnlyElementsOf(Arrays.asList(publicKeys));
         return this;
     }

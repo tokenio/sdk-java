@@ -69,7 +69,7 @@ public class AddressTest {
         assertThatExceptionThrownBy(() -> member.getAddress(fakeAddressId))
                 .isInstanceOf(StatusRuntimeException.class)
                 .matches(ex ->
-                        ((StatusRuntimeException)ex).getStatus().getCode() == Status.Code.NOT_FOUND);
+                        ((StatusRuntimeException) ex).getStatus().getCode() == Status.Code.NOT_FOUND);
     }
 
     @Test
@@ -84,7 +84,7 @@ public class AddressTest {
         assertThatExceptionThrownBy(() -> member.getAddress(address.getId()))
                 .isInstanceOf(StatusRuntimeException.class)
                 .matches(ex ->
-                        ((StatusRuntimeException)ex).getStatus().getCode() == Status.Code.NOT_FOUND);
+                        ((StatusRuntimeException) ex).getStatus().getCode() == Status.Code.NOT_FOUND);
     }
 
     @Test
@@ -93,6 +93,6 @@ public class AddressTest {
         assertThatExceptionThrownBy(() -> member.getAddress(fakeAddressId))
                 .isInstanceOf(StatusRuntimeException.class)
                 .matches(ex ->
-                        ((StatusRuntimeException)ex).getStatus().getCode() == Status.Code.NOT_FOUND);
+                        ((StatusRuntimeException) ex).getStatus().getCode() == Status.Code.NOT_FOUND);
     }
 }
