@@ -1,8 +1,8 @@
 package io.token;
 
 import io.token.proto.PagedList;
-import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -196,11 +196,10 @@ public final class Member {
      * Links a funding bank account to Token and returns it to the caller.
      *
      * @param bankId bank id
-     * @param accountLinkPayload account link authorization payload generated
-     * by the bank
+     * @param accountLinkPayloads a list of account payloads to be linked
      */
-    public List<Account> linkAccounts(String bankId, String accountLinkPayload) {
-        return async.linkAccounts(bankId, accountLinkPayload)
+    public List<Account> linkAccounts(String bankId, List<String> accountLinkPayloads) {
+        return async.linkAccounts(bankId, accountLinkPayloads)
                 .map(l -> l.stream()
                         .map(AccountAsync::sync)
                         .collect(toList()))

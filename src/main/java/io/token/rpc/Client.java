@@ -40,8 +40,8 @@ public final class Client {
 
     /**
      * @param key secret key that is used to sign payload for certain requests.
-     *            This is generally the same key that is used for
-     *            authentication.
+     * This is generally the same key that is used for
+     * authentication.
      * @param gateway gateway gRPC stub
      */
     public Client(SecretKey key, GatewayServiceFutureStub gateway) {
@@ -178,9 +178,9 @@ public final class Client {
             Platform platform) {
         return toObservable(gateway.subscribeToNotifications(
                 SubscribeToNotificationsRequest.newBuilder()
-                .setTarget(target)
-                .setPlatform(platform)
-                .build()))
+                        .setTarget(target)
+                        .setPlatform(platform)
+                        .build()))
                 .map(SubscribeToNotificationsResponse::getSubscriber);
     }
 
@@ -209,7 +209,7 @@ public final class Client {
                 .map(GetSubscriberResponse::getSubscriber);
     }
 
-     /**
+    /**
      * Removes a subscriber, to stop receiving notifications
      *
      * @param subscriberId id of the subscriber
@@ -228,17 +228,17 @@ public final class Client {
      * Links a funding bank account to Token.
      *
      * @param bankId bank id
-     * @param accountLinkPayload account link authorization payload generated
-     *                           by the bank
+     * @param accountLinkPayloads a list of account payloads to be linked
      * @return list of linked accounts
      */
     public Observable<List<Account>> linkAccounts(
             String bankId,
-            String accountLinkPayload) {
-        return toObservable(gateway.linkAccounts(LinkAccountsRequest.newBuilder()
-                .setBankId(bankId)
-                .setAccountsLinkPayload(accountLinkPayload)
-                .build())
+            List<String> accountLinkPayloads) {
+        return toObservable(gateway
+                .linkAccounts(LinkAccountsRequest.newBuilder()
+                        .setBankId(bankId)
+                        .addAllAccountLinkPayloads(accountLinkPayloads)
+                        .build())
         ).map(LinkAccountsResponse::getAccountsList);
     }
 
@@ -519,7 +519,7 @@ public final class Client {
     }
 
     private void setAuthenticationContext() {
-        if(onBehalfOf != null) {
+        if (onBehalfOf != null) {
             AuthenticationContext.setOnBehalfOf(onBehalfOf);
         }
     }

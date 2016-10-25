@@ -2,12 +2,13 @@ package io.token;
 
 import io.token.asserts.AccountAssertion;
 import io.token.proto.ProtoJson;
-import io.token.proto.common.account.AccountProtos.AccountsLinkPayload;
+import io.token.proto.common.account.AccountProtos.AccountLinkPayload;
 import io.token.util.codec.ByteEncoding;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.util.List;
+import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -19,21 +20,25 @@ public class AccountsTest {
 
     @Test
     public void linkAccounts() {
-        String username = member.usernames().get(0);
         String bankId = "bank-id";
 
-        byte[] data = ProtoJson.toJson(AccountsLinkPayload.newBuilder()
-                .setUsername(username)
-                .addAccounts(AccountsLinkPayload.NamedAccount.newBuilder()
-                        .setName("Checking")
-                        .setAccountNumber("iban:checking"))
-                .addAccounts(AccountsLinkPayload.NamedAccount.newBuilder()
-                        .setName("Savings")
-                        .setAccountNumber("iban:savings"))
+        byte[] checking = ProtoJson.toJson(AccountLinkPayload.newBuilder()
+                .setExpirationMs(System.currentTimeMillis() + 10000)
+                .setAccountName("Checking")
+                .setAccountNumber("iban:checking")
                 .build()).getBytes();
-        String accountLinkingPayload = ByteEncoding.serialize(data);
 
-        List<Account> accounts = member.linkAccounts(bankId, accountLinkingPayload);
+        byte[] saving = ProtoJson.toJson(AccountLinkPayload.newBuilder()
+                .setExpirationMs(System.currentTimeMillis() + 10000)
+                .setAccountName("Saving")
+                .setAccountNumber("iban:saving")
+                .build()).getBytes();
+
+        List<String> payloads = Stream.of(checking, saving)
+                .map(ByteEncoding::serialize)
+                .collect(toList());
+
+        List<Account> accounts = member.linkAccounts(bankId, payloads);
 
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0))
@@ -41,7 +46,7 @@ public class AccountsTest {
                 .hasName("Checking");
         AccountAssertion.assertThat(accounts.get(1))
                 .hasId()
-                .hasName("Savings");
+                .hasName("Saving");
     }
 
     @Test
@@ -59,7 +64,7 @@ public class AccountsTest {
                 .hasName("Checking");
         AccountAssertion.assertThat(accounts.get(1))
                 .hasId()
-                .hasName("Savings");
+                .hasName("Saving");
     }
 
     @Test

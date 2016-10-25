@@ -49,5 +49,6 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
     }
 
     @Override
-    public void onComplete(Status status, ReqT req, Optional<ResT> res, Optional<Metadata> trailers) {}
+    public void onComplete(Status status, ReqT req, Optional<ResT> res, Optional<Metadata> trailers) {
+    }
 }

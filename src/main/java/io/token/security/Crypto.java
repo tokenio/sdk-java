@@ -63,5 +63,6 @@ public final class Crypto {
         return new SecretKey(privateKey, publicKey);
     }
 
-    private Crypto() {}
+    private Crypto() {
+    }
 }

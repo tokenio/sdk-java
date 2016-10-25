@@ -37,7 +37,9 @@ public class AuthenticationContext {
      *
      * @return an optional On-Behalf-Of value
      */
-    public static @Nullable String clearOnBehalfOf() {
+    public static
+    @Nullable
+    String clearOnBehalfOf() {
         String tokenId = onBehalfOf.get();
         onBehalfOf.remove();
         return tokenId;
