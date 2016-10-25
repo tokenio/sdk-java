@@ -14,9 +14,9 @@ import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.common.transfer.TransferProtos.Source;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transfer.TransferProtos.TransferInstructions;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.SecretKey;
@@ -365,7 +365,7 @@ public final class MemberAsync {
                         .setCurrency(currency)
                         .setAmount(Double.toString(amount))
                         .setInstructions(TransferInstructions.newBuilder()
-                                .setSource(Source.newBuilder()
+                                .setSource(TransferInstructionsProtos.Source.newBuilder()
                                         .setAccountId(accountId))));
 
         if (redeemer != null) {
