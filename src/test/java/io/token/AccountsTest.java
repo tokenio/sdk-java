@@ -23,12 +23,14 @@ public class AccountsTest {
         String bankId = "bank-id";
 
         byte[] checking = ProtoJson.toJson(AccountLinkPayload.newBuilder()
+                .setUsername(member.firstUsername())
                 .setExpirationMs(System.currentTimeMillis() + 10000)
                 .setAccountName("Checking")
                 .setAccountNumber("iban:checking")
                 .build()).getBytes();
 
         byte[] saving = ProtoJson.toJson(AccountLinkPayload.newBuilder()
+                .setUsername(member.firstUsername())
                 .setExpirationMs(System.currentTimeMillis() + 10000)
                 .setAccountName("Saving")
                 .setAccountNumber("iban:saving")
