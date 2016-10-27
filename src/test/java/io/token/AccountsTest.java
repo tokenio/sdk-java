@@ -40,7 +40,7 @@ public class AccountsTest {
                 .map(ByteEncoding::serialize)
                 .collect(toList());
 
-        List<Account> accounts = member.linkAccounts(bankId, payloads);
+        List<Account> accounts = link(bankId, payloads);
 
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0))
@@ -83,5 +83,11 @@ public class AccountsTest {
         AccountAssertion.assertThat(account)
                 .hasId()
                 .hasName("Checking");
+    }
+
+    private List<Account> link(String bankId, List<String> payloads) {
+        List<Account> accounts = member.linkAccounts(bankId, payloads);
+        accounts.sort((a1, a2) -> a1.name().compareTo(a2.name()));
+        return accounts;
     }
 }
