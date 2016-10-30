@@ -32,7 +32,7 @@ public class TransferRedemptionTest {
     @Test
     public void redeemToken_withParams() {
         Token token = token();
-        token = payer.endorseToken(token);
+        token = payer.endorseToken(token).getToken();
 
         Transfer transfer = payee.redeemToken(token, 99.0, "USD");
         assertThat(transfer)
@@ -45,7 +45,7 @@ public class TransferRedemptionTest {
     @Test
     public void getTransfer() {
         Token token = token();
-        token = payer.endorseToken(token);
+        token = payer.endorseToken(token).getToken();
 
         Transfer transfer = payee.redeemToken(token);
         Transfer lookedUp = payer.getTransfer(transfer.getId());
@@ -55,7 +55,7 @@ public class TransferRedemptionTest {
     @Test
     public void getTransfers() {
         Token token = token();
-        token = payer.endorseToken(token);
+        token = payer.endorseToken(token).getToken();
 
         Transfer transfer1 = payee.redeemToken(token, 10.0, "USD");
         Transfer transfer2 = payee.redeemToken(token, 20.0, "USD");

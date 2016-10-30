@@ -6,6 +6,7 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
@@ -485,9 +486,9 @@ public final class Member {
      * with the token.
      *
      * @param token token to endorse
-     * @return endorsed token
+     * @return result of endorse token
      */
-    public Token endorseToken(Token token) {
+    public TokenOperationResult endorseToken(Token token) {
         return async.endorseToken(token).toBlocking().single();
     }
 
@@ -496,9 +497,9 @@ public final class Member {
      * with the token.
      *
      * @param token token to cancel
-     * @return cancelled token
+     * @return result of endorsed token
      */
-    public Token cancelToken(Token token) {
+    public TokenOperationResult cancelToken(Token token) {
         return async.cancelToken(token).toBlocking().single();
     }
 

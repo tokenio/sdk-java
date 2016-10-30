@@ -2,7 +2,12 @@ package io.token;
 
 import com.google.common.collect.ImmutableSet;
 import io.token.proto.PagedList;
+import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.security.Crypto;
+import io.token.security.SecretKey;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -75,9 +80,9 @@ public class TransferTokenTest {
     @Test
     public void endorseTransferToken() {
         Token token = payer.createToken(100.0, "USD", payerAccount.id());
-        token = payer.endorseToken(token);
-
-        assertThat(token)
+        TokenOperationResult result = payer.endorseToken(token);
+        assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
+        assertThat(result.getToken())
                 .hasNSignatures(2)
                 .isEndorsedBy(payer)
                 .hasFrom(payer)
@@ -88,11 +93,29 @@ public class TransferTokenTest {
     @Test
     public void cancelTransferToken() {
         Token token = payer.createToken(100.0, "USD", payerAccount.id());
-        token = payer.cancelToken(token);
+        TokenOperationResult result = payer.cancelToken(token);
+        assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
 
-        assertThat(token)
+        assertThat(result.getToken())
                 .hasNSignatures(2)
                 .isCancelledBy(payer)
+                .hasFrom(payer)
+                .hasAmount(100.0)
+                .hasCurrency("USD");
+    }
+
+    @Test
+    public void endorseTransferTokenMoreSignaturesNeeded() {
+        SecretKey key2 = Crypto.generateSecretKey();
+        payer.approveKey(key2.getPublicKey(), SecurityProtos.Key.Level.LOW);
+        Member low = rule.token().login(payer.memberId(), key2);
+
+        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        TokenOperationResult result = low.endorseToken(token);
+        assertThat(result.getStatus()).isEqualTo(Status.MORE_SIGNATURES_NEEDED);
+        assertThat(result.getToken())
+                .hasNSignatures(2)
+                .isEndorsedBy(payer)
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD");
