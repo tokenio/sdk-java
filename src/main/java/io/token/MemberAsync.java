@@ -8,6 +8,7 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
@@ -575,9 +576,9 @@ public final class MemberAsync {
      * with the token.
      *
      * @param token token to endorse
-     * @return endorsed token
+     * @return result of endorse token
      */
-    public Observable<Token> endorseToken(Token token) {
+    public Observable<TokenOperationResult> endorseToken(Token token) {
         return client.endorseToken(token);
     }
 
@@ -586,9 +587,9 @@ public final class MemberAsync {
      * with the token.
      *
      * @param token token to cancel
-     * @return cancelled token
+     * @return result of cancel token
      */
-    public Observable<Token> cancelToken(Token token) {
+    public Observable<TokenOperationResult> cancelToken(Token token) {
         return client.cancelToken(token);
     }
 

@@ -10,6 +10,7 @@ import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
@@ -316,32 +317,32 @@ public final class Client {
      * Endorses a token.
      *
      * @param token token to endorse
-     * @return endorsed token returned by the server
+     * @return result of the endorse operation, returned by the server
      */
-    public Observable<Token> endorseToken(Token token) {
+    public Observable<TokenOperationResult> endorseToken(Token token) {
         return toObservable(gateway.endorseToken(EndorseTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, ENDORSED)))
                 .build())
-        ).map(EndorseTokenResponse::getToken);
+        ).map(EndorseTokenResponse::getResult);
     }
 
     /**
      * Cancels a token.
      *
      * @param token token to cancel
-     * @return cancelled token returned by the server
+     * @return result of the cancel operation, returned by the server
      */
-    public Observable<Token> cancelToken(Token token) {
+    public Observable<TokenOperationResult> cancelToken(Token token) {
         return toObservable(gateway.cancelToken(CancelTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, CANCELLED)))
                 .build())
-        ).map(CancelTokenResponse::getToken);
+        ).map(CancelTokenResponse::getResult);
     }
 
     /**
