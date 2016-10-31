@@ -2,8 +2,10 @@ package io.token;
 
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos;
 import io.token.security.Crypto;
 import io.token.security.SecretKey;
 import io.token.util.Util;
@@ -20,13 +22,16 @@ import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
 public class NotificationsTest {
     @Rule public TokenRule rule = new TokenRule();
-    private final Member member = rule.member();
+    private final Account payerAccount = rule.account();
+    private final Account payeeAccount = rule.account();
+    private final Member member = payerAccount.member();
+    private final Member payee = payeeAccount.member();
 
     @Test
     public void sendNotification() {
         SecretKey key = Crypto.generateSecretKey();
         String username = member.usernames().get(0);
-        String target = "8E8E256A58DE0F62F4A427202DF8CB07C6BD644AFFE93210BC49B8E5F9402554000";
+        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
         Subscriber subscriber = member.subscribeToNotifications(target, Platform.IOS);
 
         byte[] checking = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
@@ -67,6 +72,33 @@ public class NotificationsTest {
             rule.token().notifyAddKey(username, key.getPublicKey(), "Chrome 52.0");
             return 0;
         }).hasMessageContaining("NOT_FOUND");
+    }
+
+    @Test
+    public void sendStepUpNotification() {
+        Account payerAccount = rule.account();
+        Member member = payerAccount.member();
+        SecretKey key = Crypto.generateSecretKey();
+        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
+        member.subscribeToNotifications(target, Platform.IOS);
+        member.approveKey(key.getPublicKey(), SecurityProtos.Key.Level.LOW);
+        Member memberLow = rule.token().login(member.memberId(), key);
+        TokenProtos.Token t = memberLow.createToken(56, "USD", payerAccount.id(), payee.firstUsername(), null);
+
+        TokenProtos.TokenOperationResult res = memberLow.endorseToken(t);
+        assertThat(res.getStatus() == TokenProtos.TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
+    }
+
+    @Test
+    public void sendTransferProcessedNotification() {
+        Account payerAccount = rule.account();
+        Member member = payerAccount.member();
+        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
+        member.subscribeToNotifications(target, Platform.IOS);
+        TokenProtos.Token t = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
+
+        TokenProtos.Token endorsed = member.endorseToken(t).getToken();
+        payee.redeemToken(endorsed);
     }
 
     @Test
