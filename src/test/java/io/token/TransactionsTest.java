@@ -31,7 +31,7 @@ public class TransactionsTest {
     @Test
     public void getTransaction() {
         Token token = token();
-        token = payer.endorseToken(token);
+        token = payer.endorseToken(token).getToken();
         Transfer transfer = payee.redeemToken(token, 100.0, "USD");
 
         Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
@@ -45,7 +45,7 @@ public class TransactionsTest {
     @Test
     public void getTransactions() {
         Token token = token();
-        token = payer.endorseToken(token);
+        token = payer.endorseToken(token).getToken();
 
         Transfer transfer1 = payee.redeemToken(token, 100.0, "USD");
         Transfer transfer2 = payee.redeemToken(token, 200.0, "USD");
@@ -78,7 +78,7 @@ public class TransactionsTest {
     @Test
     public void getTransactionsPaged() {
         Token token = token();
-        token = payer.endorseToken(token);
+        token = payer.endorseToken(token).getToken();
 
         int num = 10;
         for (int i = 0; i < num; i++) {

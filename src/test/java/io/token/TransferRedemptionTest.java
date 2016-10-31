@@ -19,7 +19,7 @@ public class TransferRedemptionTest {
     @Test
     public void redeemToken() {
         Token token = token();
-        token = payer.endorseToken(token);
+        token = payer.endorseToken(token).getToken();
 
         Transfer transfer = payee.redeemToken(token);
         assertThat(transfer)
