@@ -31,7 +31,7 @@ public class NotificationsTest {
     public void sendNotification() {
         SecretKey key = Crypto.generateSecretKey();
         String username = member.usernames().get(0);
-        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
+        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
         Subscriber subscriber = member.subscribeToNotifications(target, Platform.IOS);
 
         byte[] checking = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
@@ -79,7 +79,7 @@ public class NotificationsTest {
         Account payerAccount = rule.account();
         Member member = payerAccount.member();
         SecretKey key = Crypto.generateSecretKey();
-        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
+        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
         member.subscribeToNotifications(target, Platform.IOS);
         member.approveKey(key.getPublicKey(), SecurityProtos.Key.Level.LOW);
         Member memberLow = rule.token().login(member.memberId(), key);
@@ -93,7 +93,7 @@ public class NotificationsTest {
     public void sendTransferProcessedNotification() {
         Account payerAccount = rule.account();
         Member member = payerAccount.member();
-        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
+        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
         member.subscribeToNotifications(target, Platform.IOS);
         TokenProtos.Token t = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
 
