@@ -4,6 +4,8 @@ import com.google.common.collect.ImmutableSet;
 import io.token.proto.PagedList;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -70,7 +72,8 @@ public class AccessTokenTest {
         Token accessToken = member1.createAddressAccessToken(
                 member2.firstUsername(),
                 address1.getId());
-        member1.endorseToken(accessToken);
+        TokenOperationResult res = member1.endorseToken(accessToken);
+        assertThat(res.getStatus()).isEqualTo(Status.SUCCESS);
 
         assertThatExceptionThrownBy(() ->
                 member2.getAddress(address1.getId())
@@ -98,7 +101,9 @@ public class AccessTokenTest {
         AddressRecord result = member2.getAddress(address1.getId());
         assertThat(result).isEqualTo(address1);
 
-        member1.cancelToken(accessToken);
+        TokenOperationResult res = member1.cancelToken(accessToken);
+        assertThat(res.getStatus()).isEqualTo(Status.SUCCESS);
+
         assertThatExceptionThrownBy(() ->
                 member2.getAddress(address1.getId())
         );
@@ -259,6 +264,29 @@ public class AccessTokenTest {
         assertThat(builder.build().size()).isEqualTo(num);
     }
 
+    @Test
+    public void accessTokenStepup() {
+        Token accessToken = payerAccount.member().createTransactionsAccessToken(
+                member1.firstUsername());
+        payerAccount.member().endorseToken(accessToken);
+
+        int num = 10;
+        for (int i = 0; i < num; i++) {
+            getTransaction(payerAccount, payeeAccount);
+        }
+
+        int limit = 2;
+        ImmutableSet.Builder<Transaction> builder = ImmutableSet.builder();
+        member1.useAccessToken(accessToken.getId());
+        PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, limit);
+        for (int i = 0; i < num / limit; i++) {
+            builder.addAll(result.getList());
+            result = member1.getTransactions(payerAccount.id(), result.getOffset(), limit);
+        }
+
+        assertThat(builder.build().size()).isEqualTo(num);
+    }
+
     private Transaction getTransaction(Account payerAccount, Account payeeAccount) {
         Member payer = payerAccount.member();
         Member payee = payeeAccount.member();
@@ -268,8 +296,9 @@ public class AccessTokenTest {
                 payerAccount.id(),
                 payee.firstUsername(),
                 string());
-        token = payer.endorseToken(token);
+        token = payer.endorseToken(token).getToken();
         Transfer transfer = payee.redeemToken(token, 1.0, "USD");
         return payerAccount.getTransaction(transfer.getReferenceId());
     }
+
 }

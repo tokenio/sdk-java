@@ -114,8 +114,8 @@ public class TransferTokenTest {
         TokenOperationResult result = low.endorseToken(token);
         assertThat(result.getStatus()).isEqualTo(Status.MORE_SIGNATURES_NEEDED);
         assertThat(result.getToken())
-                .hasNSignatures(2)
-                .isEndorsedBy(payer)
+                .hasNSignatures(1)
+                .isEndorsedBy(low)
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD");
