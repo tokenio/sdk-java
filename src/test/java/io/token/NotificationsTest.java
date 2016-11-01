@@ -79,11 +79,26 @@ public class NotificationsTest {
         Account payerAccount = rule.account();
         Member member = payerAccount.member();
         SecretKey key = Crypto.generateSecretKey();
-        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
+        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
         member.subscribeToNotifications(target, Platform.IOS);
         member.approveKey(key.getPublicKey(), SecurityProtos.Key.Level.LOW);
         Member memberLow = rule.token().login(member.memberId(), key);
         TokenProtos.Token t = memberLow.createToken(56, "USD", payerAccount.id(), payee.firstUsername(), null);
+
+        TokenProtos.TokenOperationResult res = memberLow.endorseToken(t);
+        assertThat(res.getStatus() == TokenProtos.TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
+    }
+
+    @Test
+    public void sendStepUpAccessNotification() {
+        Account payerAccount = rule.account();
+        Member member = payerAccount.member();
+        SecretKey key = Crypto.generateSecretKey();
+        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
+        member.subscribeToNotifications(target, Platform.IOS);
+        member.approveKey(key.getPublicKey(), SecurityProtos.Key.Level.LOW);
+        Member memberLow = rule.token().login(member.memberId(), key);
+        TokenProtos.Token t = memberLow.createAccountsAccessToken(payee.firstUsername());
 
         TokenProtos.TokenOperationResult res = memberLow.endorseToken(t);
         assertThat(res.getStatus() == TokenProtos.TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
