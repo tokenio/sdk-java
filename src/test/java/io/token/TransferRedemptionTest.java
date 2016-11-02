@@ -74,6 +74,11 @@ public class TransferRedemptionTest {
         PagedList<Transfer, String> lookedUp = payer.getTransfers(null, 100, token.getId());
         assertThat(lookedUp.getList()).containsOnly(transfer1, transfer2, transfer3);
         assertThat(lookedUp.getOffset()).isNotEmpty();
+
+        // Make sure the same results are returned if no token ID was provided
+        lookedUp = payer.getTransfers(null, 100, null);
+        assertThat(lookedUp.getList()).containsOnly(transfer1, transfer2, transfer3);
+        assertThat(lookedUp.getOffset()).isNotEmpty();
     }
 
     private Token token() {
