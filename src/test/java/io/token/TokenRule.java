@@ -60,7 +60,7 @@ public class TokenRule extends ExternalResource {
                 Collections.singletonList(bankAccountNumber));
 
         return member
-                .linkAccounts("bank-id", accountLinkPayloads)
+                .linkAccounts("iron", accountLinkPayloads)
                 .get(0);
     }
 

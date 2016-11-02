@@ -264,29 +264,6 @@ public class AccessTokenTest {
         assertThat(builder.build().size()).isEqualTo(num);
     }
 
-    @Test
-    public void accessTokenStepup() {
-        Token accessToken = payerAccount.member().createTransactionsAccessToken(
-                member1.firstUsername());
-        payerAccount.member().endorseToken(accessToken);
-
-        int num = 10;
-        for (int i = 0; i < num; i++) {
-            getTransaction(payerAccount, payeeAccount);
-        }
-
-        int limit = 2;
-        ImmutableSet.Builder<Transaction> builder = ImmutableSet.builder();
-        member1.useAccessToken(accessToken.getId());
-        PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, limit);
-        for (int i = 0; i < num / limit; i++) {
-            builder.addAll(result.getList());
-            result = member1.getTransactions(payerAccount.id(), result.getOffset(), limit);
-        }
-
-        assertThat(builder.build().size()).isEqualTo(num);
-    }
-
     private Transaction getTransaction(Account payerAccount, Account payeeAccount) {
         Member payer = payerAccount.member();
         Member payee = payeeAccount.member();

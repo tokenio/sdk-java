@@ -20,7 +20,7 @@ public class AccountsTest {
 
     @Test
     public void linkAccounts() {
-        String bankId = "bank-id";
+        String bankId = "iron";
 
         byte[] checking = ProtoJson.toJson(AccountLinkPayload.newBuilder()
                 .setUsername(member.firstUsername())
