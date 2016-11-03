@@ -36,17 +36,20 @@ import static io.token.security.Crypto.sign;
  * easier to use.
  */
 public final class Client {
+    private final String memberId;
     private final SecretKey key;
     private final GatewayServiceFutureStub gateway;
     private String onBehalfOf;
 
     /**
+     * @param memberId member id
      * @param key secret key that is used to sign payload for certain requests.
      * This is generally the same key that is used for
      * authentication.
      * @param gateway gateway gRPC stub
      */
-    public Client(SecretKey key, GatewayServiceFutureStub gateway) {
+    public Client(String memberId, SecretKey key, GatewayServiceFutureStub gateway) {
+        this.memberId = memberId;
         this.key = key;
         this.gateway = gateway;
     }
@@ -324,6 +327,7 @@ public final class Client {
         return toObservable(gateway.endorseToken(EndorseTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
+                        .setMemberId(memberId)
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, ENDORSED)))
                 .build())
@@ -340,6 +344,7 @@ public final class Client {
         return toObservable(gateway.cancelToken(CancelTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
+                        .setMemberId(memberId)
                         .setKeyId(key.getId())
                         .setSignature(sign(key, token, CANCELLED)))
                 .build())
@@ -370,6 +375,7 @@ public final class Client {
         return toObservable(gateway.createTransfer(CreateTransferRequest.newBuilder()
                 .setPayload(transfer)
                 .setPayloadSignature(Signature.newBuilder()
+                        .setMemberId(memberId)
                         .setKeyId(key.getId())
                         .setSignature(sign(key, transfer)))
                 .build())
@@ -458,13 +464,12 @@ public final class Client {
      * @param address the address json
      * @return an address record created
      */
-    public Observable<AddressRecord> addAddress(
-            String name,
-            Address address) {
+    public Observable<AddressRecord> addAddress(String name, Address address) {
         return toObservable(gateway.addAddress(AddAddressRequest.newBuilder()
                 .setName(name)
                 .setAddress(address)
                 .setAddressSignature(Signature.newBuilder()
+                        .setMemberId(memberId)
                         .setKeyId(key.getId())
                         .setSignature(sign(key, address))
                         .build())
@@ -514,6 +519,7 @@ public final class Client {
         return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
                 .setUpdate(update)
                 .setUpdateSignature(Signature.newBuilder()
+                        .setMemberId(memberId)
                         .setKeyId(key.getId())
                         .setSignature(sign(key, update)))
                 .build())
