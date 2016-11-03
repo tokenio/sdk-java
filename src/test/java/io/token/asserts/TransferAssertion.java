@@ -33,6 +33,11 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
         return this;
     }
 
+    public TransferAssertion hasNoAmount() {
+        Assertions.assertThat(actual.getPayload().hasAmount()).isFalse();
+        return this;
+    }
+
     public TransferAssertion hasCurrency(String currency) {
         Assertions.assertThat(actual.getPayload().getAmount().getCurrency()).isEqualTo(currency);
         return this;
