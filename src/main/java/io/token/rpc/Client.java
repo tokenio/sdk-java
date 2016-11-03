@@ -10,11 +10,12 @@ import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.gateway.Gateway.*;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.SecretKey;
@@ -365,7 +366,7 @@ public final class Client {
      * @param transfer transfer parameters, such as amount, currency, etc
      * @return transfer record
      */
-    public Observable<Transfer> createTransfer(Transfer.Payload transfer) {
+    public Observable<Transfer> createTransfer(TransferPayload transfer) {
         return toObservable(gateway.createTransfer(CreateTransferRequest.newBuilder()
                 .setPayload(transfer)
                 .setPayloadSignature(Signature.newBuilder()
