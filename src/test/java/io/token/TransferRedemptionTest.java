@@ -23,8 +23,7 @@ public class TransferRedemptionTest {
 
         Transfer transfer = payee.redeemToken(token);
         assertThat(transfer)
-                .hasAmount(100.0)
-                .hasCurrency("USD")
+                .hasNoAmount()
                 .hasNSignatures(2)
                 .isSignedBy(payee);
     }
