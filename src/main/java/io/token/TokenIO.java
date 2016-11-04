@@ -93,6 +93,16 @@ public final class TokenIO {
     }
 
     /**
+     * Checks if a given username already exists.
+     *
+     * @param username username to check
+     * @return {@code true} if username exists, {@code false} otherwise
+     */
+    public boolean usernameExists(String username) {
+        return async.usernameExists(username).toBlocking().single();
+    }
+
+    /**
      * Creates a new Token member with a pair of auto generated keys and the
      * given username.
      *

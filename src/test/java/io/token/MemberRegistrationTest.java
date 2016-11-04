@@ -96,13 +96,13 @@ public class MemberRegistrationTest {
 
     @Test
     public void usernameDoesNotExist() {
-        Assertions.assertThat(rule.member().usernameExists("john" + Util.generateNonce())).isFalse();
+        Assertions.assertThat(rule.token().usernameExists("john" + Util.generateNonce())).isFalse();
     }
 
     @Test
     public void usernameExists() {
         String username = "john-" + Util.generateNonce();
         rule.token().createMember(username);
-        Assertions.assertThat(rule.member().usernameExists(username)).isTrue();
+        Assertions.assertThat(rule.token().usernameExists(username)).isTrue();
     }
 }

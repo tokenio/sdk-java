@@ -37,6 +37,19 @@ public final class UnauthenticatedClient {
     }
 
     /**
+     * Checks if a given username already exists.
+     *
+     * @param username username to check
+     * @return {@code true} if username already exists, {@code false} otherwise
+     */
+    public Observable<Boolean> usernameExists(String username) {
+        return toObservable(gateway.usernameExists(UsernameExistsRequest.newBuilder()
+                .setUsername(username)
+                .build()))
+                .map(UsernameExistsResponse::getExists);
+    }
+
+    /**
      * Creates new member ID. After the method returns the ID is reserved on
      * the server.
      *

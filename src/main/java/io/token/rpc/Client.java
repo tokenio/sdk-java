@@ -119,19 +119,6 @@ public final class Client {
     }
 
     /**
-     * Checks if a given username already exists.
-     *
-     * @param username username to check
-     * @return {@code true} if username already exists, {@code false} otherwise
-     */
-    public Observable<Boolean> usernameExists(String username) {
-        return toObservable(gateway.usernameExists(UsernameExistsRequest.newBuilder()
-                .setUsername(username)
-                .build()))
-                .map(UsernameExistsResponse::getExists);
-    }
-
-    /**
      * Adds an username for a given user.
      *
      * @param member member to add the key to
