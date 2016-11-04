@@ -8,14 +8,11 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
-import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.token.TokenProtos.TokenMember;
-import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.proto.common.token.TokenProtos.TransferBody;
+import io.token.proto.common.token.TokenProtos.*;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -606,7 +603,7 @@ public final class MemberAsync {
             Token token,
             @Nullable Double amount,
             @Nullable String currency) {
-        Transfer.Payload.Builder payload = Transfer.Payload.newBuilder()
+        TransferPayload.Builder payload = TransferPayload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());
 

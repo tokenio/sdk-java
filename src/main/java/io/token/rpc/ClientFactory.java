@@ -34,6 +34,6 @@ public interface ClientFactory {
                         new ClientAuthenticatorFactory(memberId, username, key)
                 )
         );
-        return new Client(key, stub);
+        return new Client(memberId, key, stub);
     }
 }
