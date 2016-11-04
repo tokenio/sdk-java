@@ -115,15 +115,6 @@ public final class MemberAsync {
         this.client.clearAccessToken();
     }
 
-    /**
-     * Checks if a given username already exists.
-     *
-     * @param username username to check
-     * @return {@code true} if username exists, {@code false} otherwise
-     */
-    public Observable<Boolean> usernameExists(String username) {
-        return client.usernameExists(username);
-    }
 
     /**
      * Adds a new username for the member.

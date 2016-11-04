@@ -35,6 +35,17 @@ public final class TokenIOAsync {
     }
 
     /**
+     * Checks if a given username already exists.
+     *
+     * @param username username to check
+     * @return {@code true} if username exists, {@code false} otherwise
+     */
+    public Observable<Boolean> usernameExists(String username) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.usernameExists(username);
+    }
+
+    /**
      * Creates a new Token member with a pair of auto generated keys and the
      * given username.
      *

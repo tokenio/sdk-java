@@ -96,16 +96,6 @@ public final class Member {
     }
 
     /**
-     * Checks if a given username already exists.
-     *
-     * @param username username to check
-     * @return {@code true} if username exists, {@code false} otherwise
-     */
-    public boolean usernameExists(String username) {
-        return async.usernameExists(username).toBlocking().single();
-    }
-
-    /**
      * Adds a new username for the member.
      *
      * @param username username, e.g. 'john', must be unique
