@@ -7,6 +7,7 @@ import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
 import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.gateway.Gateway.*;
@@ -96,9 +97,9 @@ public final class UnauthenticatedClient {
      * @param bankId id of the bank owning the accounts
      * @param bankName name of the bank owning the accounts
      * @param accountLinkPayloads a list of account payloads to be linked
-     * @return nothing
+     * @return status status of the notification
      */
-    public Observable<Void> notifyLinkAccounts(
+    public Observable<NotifyStatus> notifyLinkAccounts(
             String username,
             String bankId,
             String bankName,
@@ -114,7 +115,7 @@ public final class UnauthenticatedClient {
                                         .build())
                                 .build())
                         .build()))
-                .map(x -> null);
+                .map(NotifyResponse::getStatus);
     }
 
 
@@ -123,9 +124,9 @@ public final class UnauthenticatedClient {
      *
      * @param username username of the member
      * @param publicKey public key to be added
-     * @return nothing
+     * @return status status of the notification
      */
-    public Observable<Void> notifyAddKey(
+    public Observable<NotifyStatus> notifyAddKey(
             String username,
             byte[] publicKey,
             String name) {
@@ -139,7 +140,7 @@ public final class UnauthenticatedClient {
                                         .build())
                                 .build())
                         .build()))
-                .map(x -> null);
+                .map(NotifyResponse::getStatus);
     }
 
     /**
@@ -150,9 +151,9 @@ public final class UnauthenticatedClient {
      * @param bankName name of the bank owning the accounts
      * @param accountLinkPayloads a list of account payloads to be linked
      * @param publicKey public key to be added
-     * @return nothing
+     * @return status status of the notification
      */
-    public Observable<Void> notifyLinkAccountsAndAddKey(
+    public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
             String username,
             String bankId,
             String bankName,
@@ -176,6 +177,6 @@ public final class UnauthenticatedClient {
                                         .build())
                                 .build())
                         .build()))
-                .map(x -> null);
+                .map(NotifyResponse::getStatus);
     }
 }
