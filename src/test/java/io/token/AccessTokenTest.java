@@ -39,19 +39,14 @@ public class AccessTokenTest {
 
     @Test
     public void getAccessTokens() {
-        AddressRecord address1 = member1.addAddress(string(), address());
-        AddressRecord address2 = member1.addAddress(string(), address());
+        AddressRecord address = member1.addAddress(string(), address());
 
-        Token accessToken1 = member1.createAddressAccessToken(
-                member2.firstUsername(),
-                address1.getId());
-
-        Token accessToken2 = member1.createAddressAccessToken(
-                member2.firstUsername(),
-                address2.getId());
+        Token accessToken = member1.createAddressAccessToken(
+                member1.firstUsername(),
+                address.getId());
 
         PagedList<Token, String> result = member1.getAccessTokens(null, 2);
-        assertThat(result.getList()).contains(accessToken1, accessToken2);
+        assertThat(result.getList()).contains(accessToken);
     }
 
     @Test
