@@ -71,11 +71,7 @@ public class NotificationsTest {
         List<Subscriber> subscriberList2 = member.getSubscribers();
         assertThat(subscriberList2.size()).isEqualTo(0);
 
-
-        assertThatExceptionThrownBy(() -> {
-            rule.token().notifyAddKey(username, key.getPublicKey(), "Chrome 52.0");
-            return 0;
-        }).hasMessageContaining("NOT_FOUND");
+        rule.token().notifyAddKey(username, key.getPublicKey(), "Chrome 52.0");
     }
 
     @Test
