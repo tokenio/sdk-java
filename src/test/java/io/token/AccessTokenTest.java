@@ -1,6 +1,7 @@
 package io.token;
 
 import com.google.common.collect.ImmutableSet;
+import io.grpc.StatusRuntimeException;
 import io.token.proto.PagedList;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -25,7 +26,6 @@ public class AccessTokenTest {
     private Account payerAccount = rule.account();
     private Account payeeAccount = rule.account();
 
-
     @Test
     public void getAccessToken() {
         AddressRecord address = member1.addAddress(string(), address());
@@ -35,7 +35,6 @@ public class AccessTokenTest {
         Token result = member1.getToken(accessToken.getId());
         assertThat(result).isEqualTo(accessToken);
     }
-
 
     @Test
     public void getAccessTokens() {
@@ -47,6 +46,14 @@ public class AccessTokenTest {
 
         PagedList<Token, String> result = member1.getAccessTokens(null, 2);
         assertThat(result.getList()).contains(accessToken);
+    }
+
+    @Test(expected = StatusRuntimeException.class)
+    public void onlyOneAccessTokenAllowed() {
+        AddressRecord address = member1.addAddress(string(), address());
+
+        member1.createAddressAccessToken(member1.firstUsername(), address.getId());
+        member1.createAddressAccessToken(member1.firstUsername(), address.getId());
     }
 
     @Test
