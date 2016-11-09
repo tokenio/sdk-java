@@ -1,6 +1,10 @@
 package io.token;
 
 import io.grpc.ManagedChannel;
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.gateway.Gateway;
+import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
@@ -102,9 +106,9 @@ public final class TokenIOAsync {
      * @param bankId bank ID to link
      * @param bankName bank name to link
      * @param accountLinkPayloads a list of account payloads to be linked
-     * @return nothing
+     * @return status of the notification
      */
-    public Observable<Void> notifyLinkAccounts(
+    public Observable<NotifyStatus> notifyLinkAccounts(
             String username,
             String bankId,
             String bankName,
@@ -119,9 +123,9 @@ public final class TokenIOAsync {
      *
      * @param username username to notify
      * @param publicKey public key to add
-     * @return nothing
+     * @return status of the notification
      */
-    public Observable<Void> notifyAddKey(String username, byte[] publicKey, String name) {
+    public Observable<NotifyStatus> notifyAddKey(String username, byte[] publicKey, String name) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .notifyAddKey(username, publicKey, name);
@@ -135,9 +139,9 @@ public final class TokenIOAsync {
      * @param bankName bank name to link
      * @param accountLinkPayloads a list of account payloads to be linked
      * @param publicKey public key to add
-     * @return nothing
+     * @return status of the notification
      */
-    public Observable<Void> notifyLinkAccountsAndAddKey(
+    public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
             String username,
             String bankId,
             String bankName,
