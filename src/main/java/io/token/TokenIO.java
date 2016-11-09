@@ -1,5 +1,7 @@
 package io.token;
 
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.SecretKey;
 
@@ -152,13 +154,12 @@ public final class TokenIO {
      * @param bankName bank name to link
      * @param accountLinkPayloads a list of account payloads to be linked
      */
-    public void notifyLinkAccounts(
+    public NotifyStatus notifyLinkAccounts(
             String username,
             String bankId,
             String bankName,
             List<String> accountLinkPayloads) {
-        async.notifyLinkAccounts(username, bankId, bankName, accountLinkPayloads)
-                .map(empty -> null)
+        return async.notifyLinkAccounts(username, bankId, bankName, accountLinkPayloads)
                 .toBlocking()
                 .single();
     }
@@ -168,11 +169,10 @@ public final class TokenIO {
      *
      * @param username username to notify
      * @param publicKey public key to add
-     * @return nothing
+     * @return status of the notification
      */
-    public void notifyAddKey(String username, byte[] publicKey, String name) {
-        async.notifyAddKey(username, publicKey, name)
-                .map(empty -> null)
+    public NotifyStatus notifyAddKey(String username, byte[] publicKey, String name) {
+        return async.notifyAddKey(username, publicKey, name)
                 .toBlocking()
                 .single();
     }
@@ -185,23 +185,22 @@ public final class TokenIO {
      * @param bankName bank name to link
      * @param accountLinkPayloads a list of account payloads to be linked
      * @param publicKey public key to add
-     * @return nothing
+     * @return status of the notification
      */
-    public void notifyLinkAccountsAndAddKey(
+    public NotifyStatus notifyLinkAccountsAndAddKey(
             String username,
             String bankId,
             String bankName,
             List<String> accountLinkPayloads,
             byte[] publicKey,
             String name) {
-        async.notifyLinkAccountsAndAddKey(
+        return async.notifyLinkAccountsAndAddKey(
                 username,
                 bankId,
                 bankName,
                 accountLinkPayloads,
                 publicKey,
                 name)
-                .map(empty -> null)
                 .toBlocking()
                 .single();
     }

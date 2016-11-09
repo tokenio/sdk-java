@@ -2,6 +2,8 @@ package io.token;
 
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -13,6 +15,7 @@ import io.token.util.codec.ByteEncoding;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
+import org.omg.PortableInterceptor.SUCCESSFUL;
 
 import java.util.List;
 import java.util.stream.Stream;
@@ -51,14 +54,14 @@ public class NotificationsTest {
 
         rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
         rule.token().notifyAddKey(username, key.getPublicKey(), "Chrome 52.0");
-        rule.token().notifyLinkAccountsAndAddKey(
+        NotifyStatus res = rule.token().notifyLinkAccountsAndAddKey(
                 username,
                 "BofA",
                 "Bank of America",
                 accountLinkPayloads,
                 key.getPublicKey(),
                 "Chrome 52.0");
-
+        assertThat(res).isEqualTo(NotifyStatus.SENT);
         List<Subscriber> subscriberList = member.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
 
