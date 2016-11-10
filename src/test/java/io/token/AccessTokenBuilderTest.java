@@ -20,7 +20,7 @@ public class AccessTokenBuilderTest {
     @Test
     public void allValidationsPass() {
         TokenProtos.TokenPayload payload =
-                AccessTokenBuilder.create("username").from("member").toAllAccounts().build();
+                AccessTokenBuilder.create("username").from("member").forAllAccounts().build();
         assertThat(payload).isNotNull();
     }
 }
