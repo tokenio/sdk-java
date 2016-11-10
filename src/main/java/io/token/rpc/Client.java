@@ -17,6 +17,8 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.gateway.Gateway.*;
+import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
+import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.SecretKey;
 import io.token.util.codec.ByteEncoding;
@@ -336,6 +338,40 @@ public final class Client {
                         .setSignature(sign(key, token, CANCELLED)))
                 .build())
         ).map(CancelTokenResponse::getResult);
+    }
+
+    /**
+     * Cancels the existing token, creates a replacement and optionally endorses it.
+     * Supported only for access tokens.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate new token to create
+     * @param endorseNewToken endorses a new token if {@code true}
+     * @return result of the replacement operation, returned by the server
+     */
+    public Observable<TokenOperationResult> replaceToken(
+            Token tokenToCancel,
+            TokenPayload tokenToCreate,
+            boolean endorseNewToken) {
+
+        CreateToken.Builder createToken = CreateToken.newBuilder().setPayload(tokenToCreate);
+        if (endorseNewToken) {
+            createToken.setPayloadSignature(Signature.newBuilder()
+                    .setMemberId(memberId)
+                    .setKeyId(key.getId())
+                    .setSignature(sign(key, tokenToCreate, ENDORSED)));
+        }
+
+        return toObservable(gateway.replaceToken(ReplaceTokenRequest.newBuilder()
+                .setCancelToken(CancelToken.newBuilder()
+                        .setTokenId(tokenToCancel.getId())
+                        .setSignature(Signature.newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(key.getId())
+                                .setSignature(sign(key, tokenToCancel, CANCELLED))))
+                .setCreateToken(createToken)
+                .build())
+        ).map(ReplaceTokenResponse::getResult);
     }
 
     /**
