@@ -98,7 +98,7 @@ public class NotificationsTest {
         Member memberLow = rule.token().login(member.memberId(), key);
         TokenProtos.Token t = memberLow.createAccessToken(AccessTokenBuilder
                 .create(payee.firstUsername())
-                .toAllAccounts());
+                .forAllAccounts());
 
         TokenProtos.TokenOperationResult res = memberLow.endorseToken(t);
         assertThat(res.getStatus() == TokenProtos.TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);

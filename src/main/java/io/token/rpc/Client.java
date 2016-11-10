@@ -341,37 +341,36 @@ public final class Client {
     }
 
     /**
-     * Cancels the existing token, creates a replacement and optionally endorses it.
+     * Cancels the existing token and creates a replacement for it.
      * Supported only for access tokens.
      *
      * @param tokenToCancel old token to cancel
      * @param tokenToCreate new token to create
-     * @param endorseNewToken endorses a new token if {@code true}
      * @return result of the replacement operation, returned by the server
      */
     public Observable<TokenOperationResult> replaceToken(
             Token tokenToCancel,
-            TokenPayload tokenToCreate,
-            boolean endorseNewToken) {
+            TokenPayload tokenToCreate) {
+        return replaceToken(tokenToCancel, CreateToken.newBuilder().setPayload(tokenToCreate));
+    }
 
+    /**
+     * Cancels the existing token, creates a replacement and endorses it.
+     * Supported only for access tokens.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate new token to create
+     * @return result of the replacement operation, returned by the server
+     */
+    public Observable<TokenOperationResult> replaceAndEndorseToken(
+            Token tokenToCancel,
+            TokenPayload tokenToCreate) {
         CreateToken.Builder createToken = CreateToken.newBuilder().setPayload(tokenToCreate);
-        if (endorseNewToken) {
-            createToken.setPayloadSignature(Signature.newBuilder()
-                    .setMemberId(memberId)
-                    .setKeyId(key.getId())
-                    .setSignature(sign(key, tokenToCreate, ENDORSED)));
-        }
-
-        return toObservable(gateway.replaceToken(ReplaceTokenRequest.newBuilder()
-                .setCancelToken(CancelToken.newBuilder()
-                        .setTokenId(tokenToCancel.getId())
-                        .setSignature(Signature.newBuilder()
-                                .setMemberId(memberId)
-                                .setKeyId(key.getId())
-                                .setSignature(sign(key, tokenToCancel, CANCELLED))))
-                .setCreateToken(createToken)
-                .build())
-        ).map(ReplaceTokenResponse::getResult);
+        createToken.setPayloadSignature(Signature.newBuilder()
+                .setMemberId(memberId)
+                .setKeyId(key.getId())
+                .setSignature(sign(key, tokenToCreate, ENDORSED)));
+        return replaceToken(tokenToCancel, createToken);
     }
 
     /**
@@ -536,6 +535,21 @@ public final class Client {
                 .setAddressId(addressId)
                 .build())
         ).map(empty -> null);
+    }
+
+    private Observable<TokenOperationResult> replaceToken(
+            Token tokenToCancel,
+            CreateToken.Builder createToken) {
+        return toObservable(gateway.replaceToken(ReplaceTokenRequest.newBuilder()
+                .setCancelToken(CancelToken.newBuilder()
+                        .setTokenId(tokenToCancel.getId())
+                        .setSignature(Signature.newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(key.getId())
+                                .setSignature(sign(key, tokenToCancel, CANCELLED))))
+                .setCreateToken(createToken)
+                .build())
+        ).map(ReplaceTokenResponse::getResult);
     }
 
     private Observable<Member> updateMember(MemberUpdate update) {

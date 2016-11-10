@@ -443,21 +443,33 @@ public final class MemberAsync {
     }
 
     /**
-     * Cancels the existing access token, creates a replacement and optionally endorses it.
+     * Cancels the existing access token and creates a replacement for it.
      *
      * @param tokenToCancel old token to cancel
      * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
-     * @param endorseNewToken endorses a new token if {@code true}
      * @return result of the replacement operation
      */
     public Observable <TokenOperationResult> replaceAccessToken(
             Token tokenToCancel,
-            AccessTokenBuilder tokenToCreate,
-            boolean endorseNewToken) {
+            AccessTokenBuilder tokenToCreate) {
         return client.replaceToken(
                 tokenToCancel,
-                tokenToCreate.from(memberId()).build(),
-                endorseNewToken);
+                tokenToCreate.from(memberId()).build());
+    }
+
+    /**
+     * Cancels the existing access token, creates a replacement and endorses it.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @return result of the replacement operation
+     */
+    public Observable <TokenOperationResult> replaceAndEndorseAccessToken(
+            Token tokenToCancel,
+            AccessTokenBuilder tokenToCreate) {
+        return client.replaceAndEndorseToken(
+                tokenToCancel,
+                tokenToCreate.from(memberId()).build());
     }
 
     /**

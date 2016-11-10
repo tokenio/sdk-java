@@ -389,15 +389,29 @@ public final class Member {
      *
      * @param tokenToCancel old token to cancel
      * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
-     * @param endorseNewToken endorses a new token if {@code true}
      * @return result of the replacement operation
      */
     public TokenOperationResult replaceAccessToken(
             Token tokenToCancel,
-            AccessTokenBuilder tokenToCreate,
-            boolean endorseNewToken) {
+            AccessTokenBuilder tokenToCreate) {
         return async
-                .replaceAccessToken(tokenToCancel, tokenToCreate, endorseNewToken)
+                .replaceAccessToken(tokenToCancel, tokenToCreate)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Cancels the existing access token, creates a replacement and optionally endorses it.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @return result of the replacement operation
+     */
+    public TokenOperationResult replaceAndEndorseAccessToken(
+            Token tokenToCancel,
+            AccessTokenBuilder tokenToCreate) {
+        return async
+                .replaceAndEndorseAccessToken(tokenToCancel, tokenToCreate)
                 .toBlocking()
                 .single();
     }
