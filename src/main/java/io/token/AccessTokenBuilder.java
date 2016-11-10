@@ -19,12 +19,13 @@ import static io.token.util.Util.generateNonce;
  * Helps building an access token payload.
  */
 public final class AccessTokenBuilder {
-    private TokenPayload.Builder payload = TokenPayload.newBuilder()
-            .setVersion("1.0")
-            .setNonce(generateNonce())
-            .setAccess(AccessBody.getDefaultInstance());
+    private final TokenPayload.Builder payload;
 
     private AccessTokenBuilder() {
+        payload = TokenPayload.newBuilder()
+                .setVersion("1.0")
+                .setNonce(generateNonce())
+                .setAccess(AccessBody.getDefaultInstance());
     }
 
     private AccessTokenBuilder(TokenPayload.Builder payload) {
