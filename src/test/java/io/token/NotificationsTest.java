@@ -2,7 +2,6 @@ package io.token;
 
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
@@ -15,14 +14,12 @@ import io.token.util.codec.ByteEncoding;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
-import org.omg.PortableInterceptor.SUCCESSFUL;
 
 import java.util.List;
 import java.util.stream.Stream;
 
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
 public class NotificationsTest {
     @Rule public TokenRule rule = new TokenRule();
@@ -99,7 +96,9 @@ public class NotificationsTest {
         member.subscribeToNotifications(target, Platform.IOS);
         member.approveKey(key.getPublicKey(), SecurityProtos.Key.Level.LOW);
         Member memberLow = rule.token().login(member.memberId(), key);
-        TokenProtos.Token t = memberLow.createAccountsAccessToken(payee.firstUsername());
+        TokenProtos.Token t = memberLow.createAccessToken(AccessTokenBuilder
+                .create(payee.firstUsername())
+                .forAllAccounts());
 
         TokenProtos.TokenOperationResult res = memberLow.endorseToken(t);
         assertThat(res.getStatus() == TokenProtos.TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);

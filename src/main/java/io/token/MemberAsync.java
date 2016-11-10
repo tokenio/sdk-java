@@ -8,7 +8,6 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.*;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -22,7 +21,6 @@ import io.token.util.codec.ByteEncoding;
 import rx.Observable;
 
 import javax.annotation.Nullable;
-import java.util.Collections;
 import java.util.List;
 
 import static io.token.util.Util.generateNonce;
@@ -367,150 +365,13 @@ public final class MemberAsync {
     }
 
     /**
-     * Creates an access token for a list of resources.
+     * Creates an access token built from a given {@link AccessTokenBuilder}.
      *
-     * @param redeemer the redeemer username
-     * @param resources a list of resources
+     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
      * @return the access token created
      */
-    public Observable<Token> createToken(String redeemer, List<Resource> resources) {
-        TokenPayload.Builder payload = TokenPayload.newBuilder()
-                .setVersion("1.0")
-                .setNonce(generateNonce())
-                .setFrom(TokenMember.newBuilder()
-                        .setId(member.getId()))
-                .setTo(TokenMember.newBuilder()
-                        .setUsername(redeemer));
-
-        payload.getAccessBuilder()
-                .addAllResources(resources)
-                .build();
-
-        return createToken(payload.build());
-    }
-
-    /**
-     * Creates an access token for any address.
-     *
-     * @param redeemer the redeemer username
-     * @return the address access token created
-     */
-    public Observable<Token> createAddressesAccessToken(String redeemer) {
-        Resource resource = Resource.newBuilder()
-                .setAllAddresses(Resource.AllAddresses.getDefaultInstance())
-                .build();
-        return createToken(redeemer, Collections.singletonList(resource));
-    }
-
-    /**
-     * Creates an address access token for a given address id.
-     *
-     * @param redeemer the redeemer username
-     * @param addressId an address id
-     * @return the address access token created
-     */
-    public Observable<Token> createAddressAccessToken(
-            String redeemer,
-            String addressId) {
-        Resource resource = Resource.newBuilder()
-                .setAddress(Resource.Address.newBuilder()
-                        .setAddressId(addressId)
-                        .build())
-                .build();
-        return createToken(redeemer, Collections.singletonList(resource));
-    }
-
-    /**
-     * Creates an access token for any account.
-     *
-     * @param redeemer the redeemer username
-     * @return the account access token created
-     */
-    public Observable<Token> createAccountsAccessToken(String redeemer) {
-        Resource resource = Resource.newBuilder()
-                .setAllAccounts(Resource.AllAccounts.getDefaultInstance())
-                .build();
-        return createToken(redeemer, Collections.singletonList(resource));
-    }
-
-    /**
-     * Creates an account access token for a given account id.
-     *
-     * @param redeemer the redeemer username
-     * @param accountId an account id
-     * @return the account access token created
-     */
-    public Observable<Token> createAccountAccessToken(
-            String redeemer,
-            String accountId) {
-        Resource resource = Resource.newBuilder()
-                .setAccount(Resource.Account.newBuilder()
-                        .setAccountId(accountId)
-                        .build())
-                .build();
-        return createToken(redeemer, Collections.singletonList(resource));
-    }
-
-    /**
-     * Creates an access token for any account transactions.
-     *
-     * @param redeemer the redeemer username
-     * @return the transaction access token created
-     */
-    public Observable<Token> createTransactionsAccessToken(String redeemer) {
-        Resource resource = Resource.newBuilder()
-                .setAllTransactions(Resource.AllAccountTransactions.getDefaultInstance())
-                .build();
-        return createToken(redeemer, Collections.singletonList(resource));
-    }
-
-    /**
-     * Creates a transaction access token for a given account id.
-     *
-     * @param redeemer the redeemer username
-     * @param accountId an account id
-     * @return the transaction access token created
-     */
-    public Observable<Token> createTransactionsAccessToken(
-            String redeemer,
-            String accountId) {
-        Resource resource = Resource.newBuilder()
-                .setTransactions(Resource.AccountTransactions.newBuilder()
-                        .setAccountId(accountId)
-                        .build())
-                .build();
-        return createToken(redeemer, Collections.singletonList(resource));
-    }
-
-    /**
-     * Creates an access token for any account balance.
-     *
-     * @param redeemer the redeemer username
-     * @return the balance access token created
-     */
-    public Observable<Token> createBalancesAccessToken(String redeemer) {
-        Resource resource = Resource.newBuilder()
-                .setAllBalances(Resource.AllAccountBalances.getDefaultInstance())
-                .build();
-        return createToken(redeemer, Collections.singletonList(resource));
-    }
-
-    /**
-     * Creates a balance access token for a given account id.
-     *
-     * @param redeemer the redeemer username
-     * @param accountId an account id
-     * @return the balance access token created
-     */
-    public Observable<Token> createBalanceAccessToken(
-            String redeemer,
-            String accountId) {
-        Resource resource = Resource.newBuilder()
-                .setBalance(Resource.AccountBalance.newBuilder()
-                        .setAccountId(accountId)
-                        .build())
-                .build();
-        return createToken(redeemer, Collections.singletonList(resource));
+    public Observable<Token> createAccessToken(AccessTokenBuilder accessTokenBuilder) {
+        return createToken(accessTokenBuilder.from(memberId()).build());
     }
 
     /**
@@ -579,6 +440,36 @@ public final class MemberAsync {
      */
     public Observable<TokenOperationResult> cancelToken(Token token) {
         return client.cancelToken(token);
+    }
+
+    /**
+     * Cancels the existing access token and creates a replacement for it.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @return result of the replacement operation
+     */
+    public Observable <TokenOperationResult> replaceAccessToken(
+            Token tokenToCancel,
+            AccessTokenBuilder tokenToCreate) {
+        return client.replaceToken(
+                tokenToCancel,
+                tokenToCreate.from(memberId()).build());
+    }
+
+    /**
+     * Cancels the existing access token, creates a replacement and endorses it.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @return result of the replacement operation
+     */
+    public Observable <TokenOperationResult> replaceAndEndorseAccessToken(
+            Token tokenToCancel,
+            AccessTokenBuilder tokenToCreate) {
+        return client.replaceAndEndorseToken(
+                tokenToCancel,
+                tokenToCreate.from(memberId()).build());
     }
 
     /**

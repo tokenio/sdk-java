@@ -7,7 +7,6 @@ import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -16,7 +15,6 @@ import io.token.security.SecretKey;
 import javax.annotation.Nullable;
 import java.util.List;
 
-import static com.google.common.base.Preconditions.checkNotNull;
 import static io.token.proto.common.address.AddressProtos.Address;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
@@ -323,120 +321,13 @@ public final class Member {
     }
 
     /**
-     * Creates an access token for a list of resources.
+     * Creates an access token built from a given {@link AccessTokenBuilder}.
      *
-     * @param redeemer the redeemer username
-     * @param resources a list of resources
+     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
      * @return the access token created
      */
-    public Token createToken(String redeemer, List<Resource> resources) {
-        return async.createToken(redeemer, resources)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates an access token for any address.
-     *
-     * @param redeemer the redeemer username
-     * @return the address access token created
-     */
-    public Token createAddressesAccessToken(String redeemer) {
-        return async.createAddressesAccessToken(redeemer)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates an address access token for a given address id.
-     *
-     * @param redeemer the redeemer username
-     * @param addressId an address id
-     * @return the address access token created
-     */
-    public Token createAddressAccessToken(String redeemer, String addressId) {
-        checkNotNull(addressId);
-        return async.createAddressAccessToken(redeemer, addressId)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates an access token for any account.
-     *
-     * @param redeemer the redeemer username
-     * @return the account access token created
-     */
-    public Token createAccountsAccessToken(String redeemer) {
-        return async.createAccountsAccessToken(redeemer)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates an account access token for a given account id.
-     *
-     * @param redeemer the redeemer username
-     * @param accountId an account id
-     * @return the account access token created
-     */
-    public Token createAccountAccessToken(String redeemer, String accountId) {
-        checkNotNull(accountId);
-        return async.createAccountAccessToken(redeemer, accountId)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates an access token for any account transactions.
-     *
-     * @param redeemer the redeemer username
-     * @return the transaction access token created
-     */
-    public Token createTransactionsAccessToken(String redeemer) {
-        return async.createTransactionsAccessToken(redeemer)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates a transaction access token for a given account id.
-     *
-     * @param redeemer the redeemer username
-     * @param accountId an account id
-     * @return the transaction access token created
-     */
-    public Token createTransactionsAccessToken(String redeemer, String accountId) {
-        checkNotNull(accountId);
-        return async.createTransactionsAccessToken(redeemer, accountId)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates an access token for any account balance.
-     *
-     * @param redeemer the redeemer username
-     * @return the balance access token created
-     */
-    public Token createBalancesAccessToken(String redeemer) {
-        return async.createBalancesAccessToken(redeemer)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates a balance access token for a given account id.
-     *
-     * @param redeemer the redeemer username
-     * @param accountId an account id
-     * @return the balance access token created
-     */
-    public Token createBalanceAccessToken(String redeemer, String accountId) {
-        checkNotNull(accountId);
-        return async.createBalanceAccessToken(redeemer, accountId)
-                .toBlocking()
-                .single();
+    public Token createAccessToken(AccessTokenBuilder accessTokenBuilder) {
+        return async.createAccessToken(accessTokenBuilder).toBlocking().single();
     }
 
     /**
@@ -491,6 +382,38 @@ public final class Member {
      */
     public TokenOperationResult cancelToken(Token token) {
         return async.cancelToken(token).toBlocking().single();
+    }
+
+    /**
+     * Cancels the existing access token, creates a replacement and optionally endorses it.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @return result of the replacement operation
+     */
+    public TokenOperationResult replaceAccessToken(
+            Token tokenToCancel,
+            AccessTokenBuilder tokenToCreate) {
+        return async
+                .replaceAccessToken(tokenToCancel, tokenToCreate)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Cancels the existing access token, creates a replacement and optionally endorses it.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @return result of the replacement operation
+     */
+    public TokenOperationResult replaceAndEndorseAccessToken(
+            Token tokenToCancel,
+            AccessTokenBuilder tokenToCreate) {
+        return async
+                .replaceAndEndorseAccessToken(tokenToCancel, tokenToCreate)
+                .toBlocking()
+                .single();
     }
 
     /**

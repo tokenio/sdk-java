@@ -17,6 +17,8 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.gateway.Gateway.*;
+import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
+import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.SecretKey;
 import io.token.util.codec.ByteEncoding;
@@ -339,6 +341,39 @@ public final class Client {
     }
 
     /**
+     * Cancels the existing token and creates a replacement for it.
+     * Supported only for access tokens.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate new token to create
+     * @return result of the replacement operation, returned by the server
+     */
+    public Observable<TokenOperationResult> replaceToken(
+            Token tokenToCancel,
+            TokenPayload tokenToCreate) {
+        return replaceToken(tokenToCancel, CreateToken.newBuilder().setPayload(tokenToCreate));
+    }
+
+    /**
+     * Cancels the existing token, creates a replacement and endorses it.
+     * Supported only for access tokens.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate new token to create
+     * @return result of the replacement operation, returned by the server
+     */
+    public Observable<TokenOperationResult> replaceAndEndorseToken(
+            Token tokenToCancel,
+            TokenPayload tokenToCreate) {
+        CreateToken.Builder createToken = CreateToken.newBuilder().setPayload(tokenToCreate);
+        createToken.setPayloadSignature(Signature.newBuilder()
+                .setMemberId(memberId)
+                .setKeyId(key.getId())
+                .setSignature(sign(key, tokenToCreate, ENDORSED)));
+        return replaceToken(tokenToCancel, createToken);
+    }
+
+    /**
      * Looks up account balance.
      *
      * @param accountId account id
@@ -500,6 +535,21 @@ public final class Client {
                 .setAddressId(addressId)
                 .build())
         ).map(empty -> null);
+    }
+
+    private Observable<TokenOperationResult> replaceToken(
+            Token tokenToCancel,
+            CreateToken.Builder createToken) {
+        return toObservable(gateway.replaceToken(ReplaceTokenRequest.newBuilder()
+                .setCancelToken(CancelToken.newBuilder()
+                        .setTokenId(tokenToCancel.getId())
+                        .setSignature(Signature.newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(key.getId())
+                                .setSignature(sign(key, tokenToCancel, CANCELLED))))
+                .setCreateToken(createToken)
+                .build())
+        ).map(ReplaceTokenResponse::getResult);
     }
 
     private Observable<Member> updateMember(MemberUpdate update) {
