@@ -43,6 +43,11 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
         return this;
     }
 
+    public TransferAssertion hasDescription(String description) {
+        Assertions.assertThat(actual.getPayload().getDescription()).isEqualTo(description);
+        return this;
+    }
+
     public TransferAssertion hasNSignatures(int count) {
         Assertions.assertThat(actual.getPayloadSignaturesCount()).isEqualTo(count);
         return this;

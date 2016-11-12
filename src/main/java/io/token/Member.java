@@ -432,10 +432,15 @@ public final class Member {
      * @param token transfer token to redeem
      * @param amount transfer amount
      * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
      * @return transfer record
      */
-    public Transfer redeemToken(Token token, @Nullable Double amount, @Nullable String currency) {
-        return async.createTransfer(token, amount, currency).toBlocking().single();
+    public Transfer redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description) {
+        return async.createTransfer(token, amount, currency, description).toBlocking().single();
     }
 
     /**

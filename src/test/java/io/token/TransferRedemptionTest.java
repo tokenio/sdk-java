@@ -33,7 +33,7 @@ public class TransferRedemptionTest {
         Token token = token();
         token = payer.endorseToken(token).getToken();
 
-        Transfer transfer = payee.redeemToken(token, 99.0, "USD");
+        Transfer transfer = payee.redeemToken(token, 99.0, "USD", "transfer description");
         assertThat(transfer)
                 .hasAmount(99.0)
                 .hasCurrency("USD")
@@ -56,19 +56,22 @@ public class TransferRedemptionTest {
         Token token = token();
         token = payer.endorseToken(token).getToken();
 
-        Transfer transfer1 = payee.redeemToken(token, 10.0, "USD");
-        Transfer transfer2 = payee.redeemToken(token, 20.0, "USD");
-        Transfer transfer3 = payee.redeemToken(token, 70.0, "USD");
+        Transfer transfer1 = payee.redeemToken(token, 10.0, "USD", "first");
+        Transfer transfer2 = payee.redeemToken(token, 20.0, "USD", "second");
+        Transfer transfer3 = payee.redeemToken(token, 70.0, "USD", "third");
 
         assertThat(transfer1)
                 .hasAmount(10.0)
-                .hasCurrency("USD");
+                .hasCurrency("USD")
+                .hasDescription("first");
         assertThat(transfer2)
                 .hasAmount(20.0)
-                .hasCurrency("USD");
+                .hasCurrency("USD")
+                .hasDescription("second");
         assertThat(transfer3)
                 .hasAmount(70.0)
-                .hasCurrency("USD");
+                .hasCurrency("USD")
+                .hasDescription("third");
 
         PagedList<Transfer, String> lookedUp = payer.getTransfers(null, 100, token.getId());
         assertThat(lookedUp.getList()).containsOnly(transfer1, transfer2, transfer3);
