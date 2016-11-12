@@ -22,4 +22,9 @@ public final class AccountAssertion extends AbstractAssert<AccountAssertion, Acc
         Assertions.assertThat(actual.name()).isEqualTo(name);
         return this;
     }
+
+    public AccountAssertion hasBankId(String bankId) {
+        Assertions.assertThat(actual.bankId()).isEqualTo(bankId);
+        return this;
+    }
 }
