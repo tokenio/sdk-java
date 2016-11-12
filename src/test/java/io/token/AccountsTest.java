@@ -63,9 +63,11 @@ public class AccountsTest {
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0))
                 .hasId()
+                .hasBankId("iron")
                 .hasName("Checking");
         AccountAssertion.assertThat(accounts.get(1))
                 .hasId()
+                .hasBankId("iron")
                 .hasName("Saving");
     }
 
