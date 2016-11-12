@@ -57,6 +57,13 @@ public final class AccountAsync {
     }
 
     /**
+     * @return bank ID
+     */
+    public String bankId() {
+        return account.getBankId();
+    }
+
+    /**
      * Looks up an account balance.
      *
      * @return account balance
