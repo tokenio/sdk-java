@@ -6,6 +6,8 @@ import io.token.proto.PagedList;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.DestinationIban;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -32,7 +34,7 @@ public class TransactionsTest {
     public void getTransaction() {
         Token token = token();
         token = payer.endorseToken(token).getToken();
-        Transfer transfer = payee.redeemToken(token, 100.0, "USD", null);
+        Transfer transfer = payee.redeemToken(token, 100.0, "USD", null, null);
 
         Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
         TransactionAssertion.assertThat(transaction)
@@ -47,17 +49,23 @@ public class TransactionsTest {
         Token token = token();
         token = payer.endorseToken(token).getToken();
 
-        Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", null);
-        Transfer transfer2 = payee.redeemToken(token, 200.0, "USD", null);
-        Transfer transfer3 = payee.redeemToken(token, 300.0, "USD", "three hundred");
+        Destination destination = Destination.newBuilder()
+                .setIban(DestinationIban.getDefaultInstance())
+                .build();
 
-        PagedList<Transaction, String> result = payerAccount.getTransactions(null, 3);
+        Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", null, null);
+        Transfer transfer2 = payee.redeemToken(token, 200.0, "USD", null, null);
+        Transfer transfer3 = payee.redeemToken(token, 300.0, "USD", "three hundred");
+        Transfer transfer4 = payee.redeemToken(token, 400.0, "USD", destination);
+        Transfer transfer5 = payee.redeemToken(token, 500.0, "USD", "five hundred", destination);
+
+        PagedList<Transaction, String> result = payerAccount.getTransactions(null, 5);
         List<Transaction> transactions = result.getList().stream()
                 .sorted((t1, t2) -> t1.getAmount().getValue().compareTo(t2.getAmount().getValue()))
                 .collect(toList());
         assertThat(result.getOffset()).isNotEmpty();
 
-        assertThat(transactions).hasSize(3);
+        assertThat(transactions).hasSize(5);
         TransactionAssertion.assertThat(transactions.get(0))
                 .hasAmount(100.0)
                 .hasCurrency("USD")
@@ -74,6 +82,17 @@ public class TransactionsTest {
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer3.getId())
                 .containsDescription("three hundred");
+        TransactionAssertion.assertThat(transactions.get(3))
+                .hasAmount(400.0)
+                .hasCurrency("USD")
+                .hasTokenId(token.getId())
+                .hasTokenTransferId(transfer4.getId());
+        TransactionAssertion.assertThat(transactions.get(4))
+                .hasAmount(500.0)
+                .hasCurrency("USD")
+                .hasTokenId(token.getId())
+                .hasTokenTransferId(transfer5.getId())
+                .containsDescription("five hundred");
     }
 
     @Test
@@ -83,7 +102,7 @@ public class TransactionsTest {
 
         int num = 10;
         for (int i = 0; i < num; i++) {
-            payee.redeemToken(token, 100.0, "USD", null);
+            payee.redeemToken(token, 100.0, "USD", null, null);
         }
 
         int limit = 2;
