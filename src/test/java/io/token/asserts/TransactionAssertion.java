@@ -32,5 +32,10 @@ public final class TransactionAssertion extends AbstractAssert<TransactionAssert
         Assertions.assertThat(actual.getTokenTransferId()).isEqualTo(tokenTransferId);
         return this;
     }
+
+    public TransactionAssertion containsDescription(String description) {
+        Assertions.assertThat(actual.getDescription()).contains(description);
+        return this;
+    }
 }
 
