@@ -329,7 +329,7 @@ public class AccessTokenTest {
                 payee.firstUsername(),
                 string());
         token = payer.endorseToken(token).getToken();
-        Transfer transfer = payee.redeemToken(token, 1.0, "USD");
+        Transfer transfer = payee.redeemToken(token, 1.0, "USD", "one");
         return payerAccount.getTransaction(transfer.getReferenceId());
     }
 

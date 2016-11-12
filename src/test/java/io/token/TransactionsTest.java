@@ -32,7 +32,7 @@ public class TransactionsTest {
     public void getTransaction() {
         Token token = token();
         token = payer.endorseToken(token).getToken();
-        Transfer transfer = payee.redeemToken(token, 100.0, "USD");
+        Transfer transfer = payee.redeemToken(token, 100.0, "USD", null);
 
         Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
         TransactionAssertion.assertThat(transaction)
@@ -47,9 +47,9 @@ public class TransactionsTest {
         Token token = token();
         token = payer.endorseToken(token).getToken();
 
-        Transfer transfer1 = payee.redeemToken(token, 100.0, "USD");
-        Transfer transfer2 = payee.redeemToken(token, 200.0, "USD");
-        Transfer transfer3 = payee.redeemToken(token, 300.0, "USD");
+        Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", null);
+        Transfer transfer2 = payee.redeemToken(token, 200.0, "USD", null);
+        Transfer transfer3 = payee.redeemToken(token, 300.0, "USD", "three hundred");
 
         PagedList<Transaction, String> result = payerAccount.getTransactions(null, 3);
         List<Transaction> transactions = result.getList().stream()
@@ -72,7 +72,8 @@ public class TransactionsTest {
                 .hasAmount(300.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
-                .hasTokenTransferId(transfer3.getId());
+                .hasTokenTransferId(transfer3.getId())
+                .containsDescription("three hundred");
     }
 
     @Test
@@ -82,7 +83,7 @@ public class TransactionsTest {
 
         int num = 10;
         for (int i = 0; i < num; i++) {
-            payee.redeemToken(token, 100.0, "USD");
+            payee.redeemToken(token, 100.0, "USD", null);
         }
 
         int limit = 2;

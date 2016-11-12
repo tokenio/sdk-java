@@ -479,7 +479,7 @@ public final class MemberAsync {
      * @return transfer record
      */
     public Observable<Transfer> createTransfer(Token token) {
-        return createTransfer(token, null, null);
+        return createTransfer(token, null, null, null);
     }
 
     /**
@@ -488,12 +488,14 @@ public final class MemberAsync {
      * @param token transfer token to redeem
      * @param amount transfer amount
      * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
      * @return transfer record
      */
     public Observable<Transfer> createTransfer(
             Token token,
             @Nullable Double amount,
-            @Nullable String currency) {
+            @Nullable String currency,
+            @Nullable String description) {
         TransferPayload.Builder payload = TransferPayload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId());
@@ -503,6 +505,9 @@ public final class MemberAsync {
         }
         if (currency != null) {
             payload.getAmountBuilder().setCurrency(currency);
+        }
+        if (description != null) {
+            payload.setDescription(description);
         }
 
         return client.createTransfer(payload.build());
