@@ -13,6 +13,7 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
@@ -449,7 +450,7 @@ public final class MemberAsync {
      * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
      * @return result of the replacement operation
      */
-    public Observable <TokenOperationResult> replaceAccessToken(
+    public Observable<TokenOperationResult> replaceAccessToken(
             Token tokenToCancel,
             AccessTokenBuilder tokenToCreate) {
         return client.replaceToken(
@@ -464,7 +465,7 @@ public final class MemberAsync {
      * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
      * @return result of the replacement operation
      */
-    public Observable <TokenOperationResult> replaceAndEndorseAccessToken(
+    public Observable<TokenOperationResult> replaceAndEndorseAccessToken(
             Token tokenToCancel,
             AccessTokenBuilder tokenToCreate) {
         return client.replaceAndEndorseToken(
@@ -479,7 +480,7 @@ public final class MemberAsync {
      * @return transfer record
      */
     public Observable<Transfer> createTransfer(Token token) {
-        return createTransfer(token, null, null, null);
+        return createTransfer(token, null, null, null, null);
     }
 
     /**
@@ -489,17 +490,25 @@ public final class MemberAsync {
      * @param amount transfer amount
      * @param currency transfer currency code, e.g. "EUR"
      * @param description transfer description
+     * @param destination the transfer instruction destination
      * @return transfer record
      */
     public Observable<Transfer> createTransfer(
             Token token,
             @Nullable Double amount,
             @Nullable String currency,
-            @Nullable String description) {
+            @Nullable String description,
+            @Nullable Destination destination) {
         TransferPayload.Builder payload = TransferPayload.newBuilder()
                 .setNonce(generateNonce())
-                .setTokenId(token.getId());
+                .setTokenId(token.getId())
+                .setDescription(token
+                        .getPayload()
+                        .getDescription());
 
+        if (destination != null) {
+            payload.addDestinations(destination);
+        }
         if (amount != null) {
             payload.getAmountBuilder().setValue(Double.toString(amount));
         }
@@ -508,6 +517,9 @@ public final class MemberAsync {
         }
         if (description != null) {
             payload.setDescription(description);
+        }
+        if (destination != null) {
+            payload.addDestinations(destination);
         }
 
         return client.createTransfer(payload.build());
