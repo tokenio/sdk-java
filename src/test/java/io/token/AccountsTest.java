@@ -52,6 +52,15 @@ public class AccountsTest {
     }
 
     @Test
+    public void linkAccounts_relinking() {
+        linkAccounts();
+        linkAccounts();
+        linkAccounts();
+
+        assertThat(member.getAccounts()).hasSize(2);
+    }
+
+    @Test
     public void getAccounts() {
         linkAccounts();
 
