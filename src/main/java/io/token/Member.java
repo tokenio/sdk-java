@@ -425,7 +425,7 @@ public final class Member {
      */
     public Transfer redeemToken(Token token) {
         return async
-                .createTransfer(token)
+                .redeemToken(token)
                 .toBlocking()
                 .single();
     }
@@ -445,7 +445,7 @@ public final class Member {
             @Nullable String currency,
             @Nullable String description) {
         return async
-                .createTransfer(token, amount, currency, description, null)
+                .redeemToken(token, amount, currency, description, null)
                 .toBlocking()
                 .single();
     }
@@ -465,7 +465,7 @@ public final class Member {
             @Nullable String currency,
             @Nullable Destination destination) {
         return async
-                .createTransfer(token, amount, currency, null, destination)
+                .redeemToken(token, amount, currency, null, destination)
                 .toBlocking()
                 .single();
     }
@@ -487,7 +487,7 @@ public final class Member {
             @Nullable String description,
             @Nullable Destination destination) {
         return async
-                .createTransfer(token, amount, currency, description, destination)
+                .redeemToken(token, amount, currency, description, destination)
                 .toBlocking()
                 .single();
     }
