@@ -1,10 +1,7 @@
 package io.token;
 
 import io.grpc.ManagedChannel;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.gateway.Gateway;
-import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
