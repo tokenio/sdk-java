@@ -479,8 +479,8 @@ public final class MemberAsync {
      * @param token transfer token to redeem
      * @return transfer record
      */
-    public Observable<Transfer> createTransfer(Token token) {
-        return createTransfer(token, null, null, null, null);
+    public Observable<Transfer> redeemToken(Token token) {
+        return redeemToken(token, null, null, null, null);
     }
 
     /**
@@ -493,7 +493,7 @@ public final class MemberAsync {
      * @param destination the transfer instruction destination
      * @return transfer record
      */
-    public Observable<Transfer> createTransfer(
+    public Observable<Transfer> redeemToken(
             Token token,
             @Nullable Double amount,
             @Nullable String currency,
