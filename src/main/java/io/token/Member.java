@@ -6,10 +6,11 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.security.SecretKey;
 
 import javax.annotation.Nullable;
@@ -423,7 +424,10 @@ public final class Member {
      * @return transfer record
      */
     public Transfer redeemToken(Token token) {
-        return async.createTransfer(token).toBlocking().single();
+        return async
+                .redeemToken(token)
+                .toBlocking()
+                .single();
     }
 
     /**
@@ -440,7 +444,52 @@ public final class Member {
             @Nullable Double amount,
             @Nullable String currency,
             @Nullable String description) {
-        return async.createTransfer(token, amount, currency, description).toBlocking().single();
+        return async
+                .redeemToken(token, amount, currency, description, null)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable Destination destination) {
+        return async
+                .redeemToken(token, amount, currency, null, destination)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable Destination destination) {
+        return async
+                .redeemToken(token, amount, currency, description, destination)
+                .toBlocking()
+                .single();
     }
 
     /**

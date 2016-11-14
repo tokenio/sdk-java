@@ -1,6 +1,5 @@
 package io.token;
 
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.SecretKey;
