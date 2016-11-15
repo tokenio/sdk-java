@@ -43,7 +43,9 @@ public final class AccessTokenBuilder {
      * @return instance of {@link AccessTokenBuilder}
      */
     public static AccessTokenBuilder from(TokenPayload payload) {
-        TokenPayload.Builder builder = payload.toBuilder().clearAccess();
+        TokenPayload.Builder builder = payload.toBuilder()
+                .clearAccess()
+                .setNonce(generateNonce());
         return new AccessTokenBuilder(builder);
     }
 
