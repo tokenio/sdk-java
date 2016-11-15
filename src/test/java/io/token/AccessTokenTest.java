@@ -312,9 +312,10 @@ public class AccessTokenTest {
         Money balance = member1.getBalance(account.id());
         assertThat(balance).isEqualTo(account.getBalance());
 
-        TokenOperationResult result = accountMember.replaceAccessToken(
-                accessToken,
-                AccessTokenBuilder.from(accessToken.getPayload()).forAll());
+        AccessTokenBuilder builder = AccessTokenBuilder.from(accessToken.getPayload()).forAll();
+        assertThat(accessToken.getPayload().getNonce()).isNotEqualTo(builder.build().getNonce());
+
+        TokenOperationResult result = accountMember.replaceAccessToken(accessToken, builder);
         assertThat(result.getStatus()).isEqualTo(Status.MORE_SIGNATURES_NEEDED);
         assertThat(result.getToken().getPayloadSignaturesList().isEmpty()).isTrue();
     }
