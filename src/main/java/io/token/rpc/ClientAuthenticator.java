@@ -1,13 +1,16 @@
 package io.token.rpc;
 
 import com.google.common.base.Strings;
+import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import io.grpc.Metadata;
 import io.grpc.Status;
+import io.token.proto.gateway.Auth.GRpcAuthPayload;
 import io.token.rpc.interceptor.SimpleInterceptor;
 import io.token.security.Crypto;
 import io.token.security.SecretKey;
 
+import java.time.Instant;
 import java.util.Optional;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
@@ -29,11 +32,20 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
 
     @Override
     public void onStart(ReqT reqT, Metadata metadata) {
-        String signature = Crypto.sign(key, (Message) reqT);
+        Instant now = Instant.now();
+        GRpcAuthPayload payload = GRpcAuthPayload.newBuilder()
+                .setRequest(ByteString.copyFrom(((Message) reqT).toByteArray()))
+                .setCreatedAtMs(now.toEpochMilli())
+                .build();
+        String signature = Crypto.sign(key, payload);
+
         metadata.put(Metadata.Key.of("token-realm", ASCII_STRING_MARSHALLER), "Token");
         metadata.put(Metadata.Key.of("token-scheme", ASCII_STRING_MARSHALLER), "Token-Ed25519-SHA512");
         metadata.put(Metadata.Key.of("token-key-id", ASCII_STRING_MARSHALLER), key.getId());
         metadata.put(Metadata.Key.of("token-signature", ASCII_STRING_MARSHALLER), signature);
+        metadata.put(
+                Metadata.Key.of("token-created-at-ms", ASCII_STRING_MARSHALLER),
+                Long.toString(now.toEpochMilli()));
 
 
         if (!Strings.isNullOrEmpty(memberId)) {
