@@ -5,6 +5,8 @@ import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -212,6 +214,14 @@ public final class MemberAsync {
                 .map(empty -> null);
     }
 
+    /**
+     * Gets a list of the member's notifications
+     *
+     * @return list of notifications
+     */
+    public Observable<List<Notification>> getNotifications() {
+        return client.getNotifications();
+    }
 
     /**
      * Links a funding bank accounts to Token and returns it to the caller.
