@@ -100,7 +100,7 @@ public class TransactionsTest {
         Token token = token();
         token = payer.endorseToken(token).getToken();
 
-        int num = 10;
+        int num = 14;
         for (int i = 0; i < num; i++) {
             payee.redeemToken(token, 100.0, "USD", null, null);
         }
@@ -118,7 +118,7 @@ public class TransactionsTest {
 
     private Token token() {
         return payer.createToken(
-                1000.0,
+                1500.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
