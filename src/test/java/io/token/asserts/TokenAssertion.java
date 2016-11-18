@@ -41,7 +41,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
 
     public TokenAssertion hasAmount(double amount) {
         Assertions
-                .assertThat(actual.getPayload().getTransfer().getAmount())
+                .assertThat(actual.getPayload().getTransfer().getLifetimeAmount())
                 .isEqualTo(Double.toString(amount));
         return this;
     }

@@ -351,7 +351,7 @@ public final class MemberAsync {
                         .setId(member.getId()))
                 .setTransfer(TransferBody.newBuilder()
                         .setCurrency(currency)
-                        .setAmount(Double.toString(amount))
+                        .setLifetimeAmount(Double.toString(amount))
                         .setInstructions(TransferInstructions.newBuilder()
                                 .setSource(TransferInstructionsProtos.Source.newBuilder()
                                         .setAccountId(accountId))));
