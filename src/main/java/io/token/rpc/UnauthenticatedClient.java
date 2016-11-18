@@ -3,11 +3,7 @@ package io.token.rpc;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
-import io.token.proto.common.notification.NotificationProtos;
-import io.token.proto.common.notification.NotificationProtos.AddKey;
-import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
-import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
-import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.*;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.gateway.Gateway.*;
@@ -107,7 +103,7 @@ public final class UnauthenticatedClient {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
-                        .setNotification(NotificationProtos.Notification.newBuilder()
+                        .setBody(NotifyBody.newBuilder()
                                 .setLinkAccounts(LinkAccounts.newBuilder()
                                         .setBankId(bankId)
                                         .setBankName(bankName)
@@ -133,7 +129,7 @@ public final class UnauthenticatedClient {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
-                        .setNotification(NotificationProtos.Notification.newBuilder()
+                        .setBody(NotifyBody.newBuilder()
                                 .setAddKey(AddKey.newBuilder()
                                         .setPublicKey(ByteEncoding.serialize(publicKey))
                                         .setName(name)
@@ -163,7 +159,7 @@ public final class UnauthenticatedClient {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
-                        .setNotification(NotificationProtos.Notification.newBuilder()
+                        .setBody(NotifyBody.newBuilder()
                                 .setLinkAccountsAndAddKey(LinkAccountsAndAddKey.newBuilder()
                                         .setLinkAccounts(LinkAccounts.newBuilder()
                                                 .setBankId(bankId)
