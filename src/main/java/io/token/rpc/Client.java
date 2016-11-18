@@ -6,6 +6,8 @@ import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
@@ -216,6 +218,18 @@ public final class Client {
                         .setSubscriberId(subscriberId)
                         .build()))
                 .map(empty -> null);
+    }
+
+    /**
+     * Gets a list of the member's notifications
+     *
+     * @return list of notifications
+     */
+    public Observable<List<Notification>> getNotifications() {
+        return toObservable(gateway.getNotifications(
+                GetNotificationsRequest.newBuilder()
+                        .build()))
+                .map(GetNotificationsResponse::getNotificationsList);
     }
 
     /**
