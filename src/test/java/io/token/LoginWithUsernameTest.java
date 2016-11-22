@@ -21,7 +21,7 @@ public class LoginWithUsernameTest {
         assertThatExceptionThrownBy(() -> {
             rule.token().loginWithUsername(username, key);
             return 0;
-        }).hasMessageContaining("INTERNAL");
+        }).hasMessageContaining("PERMISSION_DENIED");
 
         member.approveKey(key.getPublicKey(), SecurityProtos.Key.Level.PRIVILEGED);
         Member loggedIn = rule.token().loginWithUsername(username, key);
