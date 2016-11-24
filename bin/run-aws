@@ -1,0 +1,10 @@
+#!/bin/bash
+
+GATEWAY_HOST=a53b3fa8eb1e911e69b95069ba61a0e7-91541491.us-west-2.elb.amazonaws.com
+BANK_HOST=a6dc3eb21b1ea11e69b95069ba61a0e7-1347249532.us-west-2.elb.amazonaws.com
+
+./gradlew \
+  -DTOKEN_GATEWAY=${GATEWAY_HOST}:9000 \
+  -DTOKEN_BANK=${BANK_HOST}:9100 \
+  cleanTest test $@
+
