@@ -5,17 +5,17 @@ import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.testing.Sample;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.security.Crypto;
 import io.token.security.SecretKey;
+import io.token.security.cipher.noop.NoopCipher;
 import io.token.util.Util;
-import io.token.util.codec.ByteEncoding;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,26 +34,33 @@ public class NotificationsTest {
     private final Member member = payerAccount.member();
     private final Member payee = payeeAccount.member();
 
+    private List<SealedMessage> accountLinkPayloads;
+
+    @Before
+    public void setup() {
+        NoopCipher cipher = new NoopCipher();
+
+        String checking = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
+                .setAccountName("Checking")
+                .setAccountNumber("iban:checking")
+                .build());
+
+        String saving = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
+                .setAccountName("Saving")
+                .setAccountNumber("iban:saving")
+                .build());
+
+        accountLinkPayloads = Stream.of(checking, saving)
+                .map(cipher::encrypt)
+                .collect(toList());
+    }
+
     @Test
     public void sendNotification() {
         SecretKey key = Crypto.generateSecretKey();
         String username = member.usernames().get(0);
         String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
         Subscriber subscriber = member.subscribeToNotifications(target, Platform.IOS);
-
-        byte[] checking = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
-                .setAccountName("Checking")
-                .setAccountNumber("iban:checking")
-                .build()).getBytes();
-
-        byte[] saving = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
-                .setAccountName("Saving")
-                .setAccountNumber("iban:saving")
-                .build()).getBytes();
-
-        List<String> accountLinkPayloads = Stream.of(checking, saving)
-                .map(ByteEncoding::serialize)
-                .collect(toList());
 
         rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
         rule.token().notifyAddKey(username, key.getPublicKey(), "Chrome 52.0");
@@ -180,20 +187,6 @@ public class NotificationsTest {
         String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
         member.subscribeToNotifications(target, Platform.TEST);
         member.subscribeToNotifications(target + "1", Platform.TEST);
-
-        byte[] checking = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
-                .setAccountName("Checking")
-                .setAccountNumber("iban:checking")
-                .build()).getBytes();
-
-        byte[] saving = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
-                .setAccountName("Saving")
-                .setAccountNumber("iban:saving")
-                .build()).getBytes();
-
-        List<String> accountLinkPayloads = Stream.of(checking, saving)
-                .map(ByteEncoding::serialize)
-                .collect(toList());
 
         rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
         Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);

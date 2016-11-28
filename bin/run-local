@@ -1,6 +1,0 @@
-#!/bin/bash
-
-./gradlew \
-  -DTOKEN_GATEWAY=localhost \
-  -DTOKEN_BANK=localhost \
-  cleanTest test $@

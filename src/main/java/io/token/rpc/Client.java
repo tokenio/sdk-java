@@ -6,9 +6,9 @@ import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.*;
 import io.token.proto.common.money.MoneyProtos.Money;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -241,7 +241,7 @@ public final class Client {
      */
     public Observable<List<Account>> linkAccounts(
             String bankId,
-            List<String> accountLinkPayloads) {
+            List<SealedMessage> accountLinkPayloads) {
         return toObservable(gateway
                 .linkAccounts(LinkAccountsRequest.newBuilder()
                         .setBankId(bankId)

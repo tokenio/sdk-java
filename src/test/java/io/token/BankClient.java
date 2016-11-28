@@ -9,6 +9,7 @@ import io.token.proto.bankapi.Fank;
 import io.token.proto.bankapi.FankServiceGrpc;
 import io.token.proto.bankapi.FankServiceGrpc.FankServiceBlockingStub;
 import io.token.proto.common.money.MoneyProtos;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
 
 import java.util.List;
@@ -46,7 +47,7 @@ public final class BankClient {
         return response.getAccount();
     }
 
-    public List<String> startAccountsLinking(
+    public List<SealedMessage> startAccountsLinking(
             String username,
             String clientId,
             List<String> accountNumbers) {
