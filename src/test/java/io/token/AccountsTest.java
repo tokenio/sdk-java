@@ -1,15 +1,17 @@
 package io.token;
 
 import io.token.asserts.AccountAssertion;
-import io.token.proto.ProtoJson;
-import io.token.proto.common.account.AccountProtos.AccountLinkPayload;
-import io.token.util.codec.ByteEncoding;
+import io.token.proto.bankapi.Fank;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.List;
-import java.util.stream.Stream;
 
+import static io.token.testing.sample.Sample.integer;
+import static io.token.testing.sample.Sample.string;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -17,28 +19,32 @@ public class AccountsTest {
     @Rule
     public TokenRule rule = new TokenRule();
     private final Member member = rule.member();
+    private final int randomized = integer(1000000, 9999999);
+    private final BankClient fank = rule.bankClient();
+    private final Fank.Client client = fank.addClient(string(), string());
 
     @Test
     public void linkAccounts() {
         String bankId = "iron";
 
-        byte[] checking = ProtoJson.toJson(AccountLinkPayload.newBuilder()
-                .setUsername(member.firstUsername())
-                .setExpirationMs(System.currentTimeMillis() + 10000)
-                .setAccountName("Checking")
-                .setAccountNumber("iban:checking")
-                .build()).getBytes();
+        Fank.Account checking = fank.addAccount(
+                client,
+                "Checking",
+                "iban:checking-" + randomized,
+                1000000.0,
+                "USD");
 
-        byte[] saving = ProtoJson.toJson(AccountLinkPayload.newBuilder()
-                .setUsername(member.firstUsername())
-                .setExpirationMs(System.currentTimeMillis() + 10000)
-                .setAccountName("Saving")
-                .setAccountNumber("iban:saving")
-                .build()).getBytes();
+        Fank.Account saving = fank.addAccount(
+                client,
+                "Saving",
+                "iban:saving-" + randomized,
+                1000000.0,
+                "USD");
 
-        List<String> payloads = Stream.of(checking, saving)
-                .map(ByteEncoding::serialize)
-                .collect(toList());
+        List<SealedMessage> payloads = fank.startAccountsLinking(
+                member.firstUsername(),
+                client.getId(),
+                Arrays.asList(checking.getAccountNumber(), saving.getAccountNumber()));
 
         List<Account> accounts = link(bankId, payloads);
 
@@ -66,7 +72,7 @@ public class AccountsTest {
 
         List<Account> accounts = member.getAccounts()
                 .stream()
-                .sorted((a1, a2) -> a1.name().compareTo(a2.name()))
+                .sorted(Comparator.comparing(Account::name))
                 .collect(toList());
 
         assertThat(accounts).hasSize(2);
@@ -86,7 +92,7 @@ public class AccountsTest {
 
         List<Account> accounts = member.getAccounts()
                 .stream()
-                .sorted((a1, a2) -> a1.name().compareTo(a2.name()))
+                .sorted(Comparator.comparing(Account::name))
                 .collect(toList());
         assertThat(accounts).hasSize(2);
 
@@ -96,9 +102,9 @@ public class AccountsTest {
                 .hasName("Checking");
     }
 
-    private List<Account> link(String bankId, List<String> payloads) {
+    private List<Account> link(String bankId, List<SealedMessage> payloads) {
         List<Account> accounts = member.linkAccounts(bankId, payloads);
-        accounts.sort((a1, a2) -> a1.name().compareTo(a2.name()));
+        accounts.sort(Comparator.comparing(Account::name));
         return accounts;
     }
 }

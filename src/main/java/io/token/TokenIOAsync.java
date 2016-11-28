@@ -2,6 +2,7 @@ package io.token;
 
 import io.grpc.ManagedChannel;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
@@ -109,7 +110,7 @@ public final class TokenIOAsync {
             String username,
             String bankId,
             String bankName,
-            List<String> accountLinkPayloads) {
+            List<SealedMessage> accountLinkPayloads) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .notifyLinkAccounts(username, bankId, bankName, accountLinkPayloads);
@@ -142,7 +143,7 @@ public final class TokenIOAsync {
             String username,
             String bankId,
             String bankName,
-            List<String> accountLinkPayloads,
+            List<SealedMessage> accountLinkPayloads,
             byte[] publicKey,
             String name) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);

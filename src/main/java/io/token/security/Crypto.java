@@ -14,7 +14,7 @@ import static java.util.stream.Collectors.joining;
  * Set of helper methods.
  */
 public final class Crypto {
-    private static final DSA dsa = new EdDSA();
+    private static final Dsa dsa = new EdDsa();
 
     /**
      * Signs the supplied protobuf message with the specified key.
