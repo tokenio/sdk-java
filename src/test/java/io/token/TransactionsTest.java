@@ -11,6 +11,7 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Des
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.util.Comparator;
 import java.util.List;
 
 import static java.lang.Double.parseDouble;
@@ -61,7 +62,7 @@ public class TransactionsTest {
 
         PagedList<Transaction, String> result = payerAccount.getTransactions(null, 5);
         List<Transaction> transactions = result.getList().stream()
-                .sorted((t1, t2) -> t1.getAmount().getValue().compareTo(t2.getAmount().getValue()))
+                .sorted(Comparator.comparing(t -> t.getAmount().getValue()))
                 .collect(toList());
         assertThat(result.getOffset()).isNotEmpty();
 
