@@ -5,9 +5,9 @@ import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.*;
@@ -231,7 +231,7 @@ public final class MemberAsync {
      */
     public Observable<List<AccountAsync>> linkAccounts(
             String bankId,
-            List<String> accountLinkPayloads) {
+            List<SealedMessage> accountLinkPayloads) {
         return client
                 .linkAccounts(bankId, accountLinkPayloads)
                 .map(accounts -> accounts.stream()

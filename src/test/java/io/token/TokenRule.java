@@ -2,6 +2,7 @@ package io.token;
 
 import com.google.common.net.HostAndPort;
 import io.token.proto.bankapi.Fank;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.util.Util;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
@@ -54,7 +55,7 @@ public class TokenRule extends ExternalResource {
         String bankAccountNumber = "iban:" + randomInt(7);
         Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
         bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
-        List<String> accountLinkPayloads = bankClient.startAccountsLinking(
+        List<SealedMessage> accountLinkPayloads = bankClient.startAccountsLinking(
                 member.firstUsername(),
                 client.getId(),
                 Collections.singletonList(bankAccountNumber));
@@ -62,6 +63,10 @@ public class TokenRule extends ExternalResource {
         return member
                 .linkAccounts("iron", accountLinkPayloads)
                 .get(0);
+    }
+
+    public BankClient bankClient() {
+        return bankClient;
     }
 
     @Override

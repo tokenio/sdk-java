@@ -5,6 +5,7 @@ import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.*;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.gateway.Gateway.*;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -99,7 +100,7 @@ public final class UnauthenticatedClient {
             String username,
             String bankId,
             String bankName,
-            List<String> accountLinkPayloads) {
+            List<SealedMessage> accountLinkPayloads) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
@@ -153,7 +154,7 @@ public final class UnauthenticatedClient {
             String username,
             String bankId,
             String bankName,
-            List<String> accountLinkPayloads,
+            List<SealedMessage> accountLinkPayloads,
             byte[] publicKey,
             String name) {
         return toObservable(gateway.notify(

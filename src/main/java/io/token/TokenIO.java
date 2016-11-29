@@ -1,6 +1,7 @@
 package io.token;
 
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.SecretKey;
 
@@ -157,7 +158,7 @@ public final class TokenIO {
             String username,
             String bankId,
             String bankName,
-            List<String> accountLinkPayloads) {
+            List<SealedMessage> accountLinkPayloads) {
         return async.notifyLinkAccounts(username, bankId, bankName, accountLinkPayloads)
                 .toBlocking()
                 .single();
@@ -190,7 +191,7 @@ public final class TokenIO {
             String username,
             String bankId,
             String bankName,
-            List<String> accountLinkPayloads,
+            List<SealedMessage> accountLinkPayloads,
             byte[] publicKey,
             String name) {
         return async.notifyLinkAccountsAndAddKey(

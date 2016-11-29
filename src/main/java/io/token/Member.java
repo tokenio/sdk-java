@@ -5,6 +5,7 @@ import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -201,7 +202,7 @@ public final class Member {
      * @param bankId bank id
      * @param accountLinkPayloads a list of account payloads to be linked
      */
-    public List<Account> linkAccounts(String bankId, List<String> accountLinkPayloads) {
+    public List<Account> linkAccounts(String bankId, List<SealedMessage> accountLinkPayloads) {
         return async.linkAccounts(bankId, accountLinkPayloads)
                 .map(l -> l.stream()
                         .map(AccountAsync::sync)
