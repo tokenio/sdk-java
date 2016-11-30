@@ -1,0 +1,8 @@
+#!/bin/bash
+
+HOST=stg.api.token.io
+
+./gradlew \
+  -DTOKEN_GATEWAY=${HOST}:90 \
+  -DTOKEN_BANK=${HOST}:91 \
+  cleanTest test $@
