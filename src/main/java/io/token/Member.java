@@ -1,5 +1,9 @@
 package io.token;
 
+import static io.token.proto.common.address.AddressProtos.Address;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
+
 import io.token.proto.PagedList;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -13,14 +17,10 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.security.SecretKey;
+import io.token.security.Signer;
 
-import javax.annotation.Nullable;
 import java.util.List;
-
-import static io.token.proto.common.address.AddressProtos.Address;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
+import javax.annotation.Nullable;
 
 /**
  * Represents a Member in the Token system. Each member has an active secret
@@ -51,10 +51,10 @@ public final class Member {
     }
 
     /**
-     * @return secret/public keys associated with this member instance
+     * @return the signer associated with this member instance
      */
-    public SecretKey key() {
-        return async.key();
+    public Signer signer() {
+        return async.signer();
     }
 
     /**

@@ -3,7 +3,6 @@ package io.token.asserts;
 import io.token.Member;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
-import io.token.security.SecretKey;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
@@ -61,7 +60,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
     public TokenAssertion isEndorsedBy(Member... members) {
         return hasKeySignatures(
                 Arrays.stream(members)
-                        .map(Member::key)
+                        .map(member -> member.signer().getKeyId())
                         .collect(toList()),
                 ENDORSED);
     }
@@ -69,7 +68,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
     public TokenAssertion isCancelledBy(Member... members) {
         return hasKeySignatures(
                 Arrays.stream(members)
-                        .map(Member::key)
+                        .map(member -> member.signer().getKeyId())
                         .collect(toList()),
                 CANCELLED);
     }
@@ -79,9 +78,8 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
         return this;
     }
 
-    private TokenAssertion hasKeySignatures(Collection<SecretKey> keys, @Nullable Action action) {
-        List<String> members = keys.stream().map(SecretKey::getId).collect(toList());
-        return hasKeySignatures(members.toArray(new String[members.size()]), action);
+    private TokenAssertion hasKeySignatures(Collection<String> keyIds, @Nullable Action action) {
+        return hasKeySignatures(keyIds.toArray(new String[keyIds.size()]), action);
     }
 
     private TokenAssertion hasKeySignatures(String[] keyIds, @Nullable Action action) {
