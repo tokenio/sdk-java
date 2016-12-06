@@ -1,18 +1,22 @@
 package io.token;
 
+import static io.token.asserts.TokenAssertion.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.common.collect.ImmutableSet;
 import io.token.proto.PagedList;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
-import io.token.security.Crypto;
-import io.token.security.SecretKey;
+import io.token.security.Keys;
+import io.token.security.Signer;
+import io.token.security.keystore.SecretKeyStore;
+import io.token.security.keystore.SelfGeneratedSecretKeyStore;
+
+import java.security.PublicKey;
 import org.junit.Rule;
 import org.junit.Test;
-
-import static io.token.asserts.TokenAssertion.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransferTokenTest {
     @Rule public TokenRule rule = new TokenRule();
@@ -106,9 +110,12 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenMoreSignaturesNeeded() {
-        SecretKey key2 = Crypto.generateSecretKey();
-        payer.approveKey(key2.getPublicKey(), SecurityProtos.Key.Level.LOW);
-        Member low = rule.token().login(payer.memberId(), key2);
+        SecretKeyStore keyStore = new SelfGeneratedSecretKeyStore();
+        PublicKey publicKey = keyStore.activeKey().getPublic();
+        Signer signer = keyStore.createSigner();
+
+        payer.approveKey(Keys.encodeKey(publicKey), SecurityProtos.Key.Level.LOW);
+        Member low = rule.token().login(payer.memberId(), signer);
 
         Token token = payer.createToken(100.0, "USD", payerAccount.id());
         TokenOperationResult result = low.endorseToken(token);

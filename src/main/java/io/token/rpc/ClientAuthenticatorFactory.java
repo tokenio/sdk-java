@@ -3,7 +3,7 @@ package io.token.rpc;
 import io.grpc.MethodDescriptor;
 import io.token.rpc.interceptor.InterceptorFactory;
 import io.token.rpc.interceptor.SimpleInterceptor;
-import io.token.security.SecretKey;
+import io.token.security.Signer;
 
 /**
  * Responsible for creation of {@link ClientAuthenticator} instances which
@@ -12,16 +12,16 @@ import io.token.security.SecretKey;
 final class ClientAuthenticatorFactory implements InterceptorFactory {
     private final String memberId;
     private final String username;
-    private final SecretKey key;
+    private final Signer signer;
 
-    public ClientAuthenticatorFactory(String memberId, String username, SecretKey key) {
+    public ClientAuthenticatorFactory(String memberId, String username, Signer signer) {
         this.memberId = memberId;
         this.username = username;
-        this.key = key;
+        this.signer = signer;
     }
 
     @Override
     public <ReqT, ResT> SimpleInterceptor<ReqT, ResT> create(MethodDescriptor<ReqT, ResT> ignore) {
-        return new ClientAuthenticator<>(memberId, username, key);
+        return new ClientAuthenticator<>(memberId, username, signer);
     }
 }
