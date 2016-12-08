@@ -1,16 +1,17 @@
 package io.token;
 
+import static org.assertj.core.util.Strings.isNullOrEmpty;
+
 import com.google.common.net.HostAndPort;
 import io.token.proto.bankapi.Fank;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.util.Util;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.rules.ExternalResource;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-
-import static org.assertj.core.util.Strings.isNullOrEmpty;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.rules.ExternalResource;
 
 /**
  * One can control what gateway the tests run against by setting system property on the
@@ -38,6 +39,7 @@ public class TokenRule extends ExternalResource {
         this.token = TokenIO.builder()
                 .hostName(gateway.getHostText())
                 .port(gateway.getPort())
+                .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
                 .build();
     }
 
