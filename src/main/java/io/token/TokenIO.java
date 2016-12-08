@@ -1,13 +1,15 @@
 package io.token;
 
+import static java.lang.String.format;
+
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
+import io.token.rpc.client.RpcClientConfig;
 import io.token.security.SecretKey;
 
+import java.time.Duration;
 import java.util.List;
-
-import static java.lang.String.format;
 
 /**
  * Main entry point to the Token SDK. Use {@link io.token.TokenIO.Builder}
@@ -24,8 +26,18 @@ public final class TokenIO {
      * Used to create a new {@link TokenIO} instances.
      */
     public static final class Builder {
+        private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
+
         private String hostName;
         private int port;
+        private Duration timeout;
+
+        /**
+         * Creates new builder instance with the defaults initialized.
+         */
+        public Builder() {
+            this.timeout = DEFAULT_TIMEOUT;
+        }
 
         /**
          * Sets the host name of the Token Gateway Service to connect to.
@@ -50,6 +62,17 @@ public final class TokenIO {
         }
 
         /**
+         * Sets timeout that is used for the RPC calls.
+         *
+         * @param timeout RPC call timeout
+         * @return this builder instance
+         */
+        public Builder timeout(Duration timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        /**
          * Builds and returns a new {@link TokenIO} instance.
          *
          * @return {@link TokenIO} instance
@@ -64,7 +87,10 @@ public final class TokenIO {
          * @return {@link TokenIO} instance
          */
         public TokenIOAsync buildAsync() {
-            return new TokenIOAsync(RpcChannelFactory.forTarget(format("dns:///%s:%d/", hostName, port)));
+            return new TokenIOAsync(RpcChannelFactory
+                    .builder(hostName, port)
+                    .withTimeout(timeout)
+                    .build());
         }
     }
 
