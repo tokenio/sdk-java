@@ -1,5 +1,9 @@
 package io.token;
 
+import static io.token.util.Util.generateNonce;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
+
 import io.token.proto.PagedList;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
@@ -10,7 +14,11 @@ import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos.*;
+import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenMember;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
@@ -19,33 +27,29 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Des
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
-import io.token.security.SecretKey;
+import io.token.security.Signer;
 import io.token.util.codec.ByteEncoding;
-import rx.Observable;
 
-import javax.annotation.Nullable;
 import java.util.List;
-
-import static io.token.util.Util.generateNonce;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
+import javax.annotation.Nullable;
+import rx.Observable;
 
 /**
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
 public final class MemberAsync {
-    private final SecretKey key;
+    private final Signer signer;
     private final Client client;
     private final MemberProtos.Member.Builder member;
 
     /**
      * @param member internal member representation, fetched from server
-     * @param key secret/public key pair
+     * @param signer the signer to be used with this member
      * @param client RPC client used to perform operations against the server
      */
-    MemberAsync(MemberProtos.Member member, SecretKey key, Client client) {
-        this.key = key;
+    MemberAsync(MemberProtos.Member member, Signer signer, Client client) {
+        this.signer = signer;
         this.client = client;
         this.member = member.toBuilder();
     }
@@ -65,10 +69,10 @@ public final class MemberAsync {
     }
 
     /**
-     * @return secret/public keys associated with this member instance
+     * @return the signer associated with this member instance
      */
-    public SecretKey key() {
-        return key;
+    public Signer signer() {
+        return signer;
     }
 
     /**

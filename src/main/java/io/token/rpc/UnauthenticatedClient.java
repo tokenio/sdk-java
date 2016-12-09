@@ -9,14 +9,15 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.gateway.Gateway.*;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.security.SecretKey;
+import io.token.security.Keys;
+import io.token.security.Signer;
 import io.token.util.codec.ByteEncoding;
 import rx.Observable;
 
+import java.security.PublicKey;
 import java.util.List;
 
 import static io.token.rpc.util.Converters.toObservable;
-import static io.token.security.Crypto.sign;
 import static io.token.util.Util.generateNonce;
 
 /**
@@ -65,24 +66,24 @@ public final class UnauthenticatedClient {
      * Adds first key to be linked with the specified member id.
      *
      * @param memberId member id
-     * @param key adds first key to be linked with the member id
+     * @param publicKey adds first key to be linked with the member id
+     * @param signer the signer
      * @return member information
      */
-    public Observable<Member> addFirstKey(String memberId, SecretKey key) {
+    public Observable<Member> addFirstKey(String memberId, PublicKey publicKey, Signer signer) {
         MemberUpdate update = MemberUpdate.newBuilder()
                 .setMemberId(memberId)
                 .setAddKey(MemberAddKeyOperation.newBuilder()
                         .setLevel(Level.PRIVILEGED)
-                        .setPublicKey(ByteEncoding.serialize(key.getPublicKey())))
+                        .setPublicKey(Keys.serializeKey(publicKey)))
                 .build();
-
         return
                 toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
                         .setUpdate(update)
                         .setUpdateSignature(Signature.newBuilder()
                                 .setMemberId(memberId)
-                                .setKeyId(key.getId())
-                                .setSignature(sign(key, update)))
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(update)))
                         .build()))
                         .map(UpdateMemberResponse::getMember);
     }

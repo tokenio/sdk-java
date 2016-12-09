@@ -4,7 +4,6 @@ import io.token.Member;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
-import io.token.security.SecretKey;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
@@ -55,7 +54,7 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
 
     public TransferAssertion isSignedBy(Member... members) {
         return hasKeySignatures(Arrays.stream(members)
-                .map(Member::key)
+                .map(member -> member.signer().getKeyId())
                 .collect(toList()));
     }
 
@@ -64,9 +63,8 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
         return this;
     }
 
-    private TransferAssertion hasKeySignatures(Collection<SecretKey> keys) {
-        List<String> members = keys.stream().map(SecretKey::getId).collect(toList());
-        return hasKeySignatures(members.toArray(new String[members.size()]));
+    private TransferAssertion hasKeySignatures(Collection<String> keyIds) {
+        return hasKeySignatures(keyIds.toArray(new String[keyIds.size()]));
     }
 
     private TransferAssertion hasKeySignatures(String[] keyIds) {

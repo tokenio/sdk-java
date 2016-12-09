@@ -1,12 +1,9 @@
 package io.token;
 
-import static java.lang.String.format;
-
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
-import io.token.rpc.client.RpcClientConfig;
-import io.token.security.SecretKey;
+import io.token.security.Signer;
 
 import java.time.Duration;
 import java.util.List;
@@ -148,11 +145,11 @@ public final class TokenIO {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
-     * @param key secret/public key pair to use
+     * @param signer the signer to use
      * @return logged in member
      */
-    public Member login(String memberId, SecretKey key) {
-        return async.login(memberId, key)
+    public Member login(String memberId, Signer signer) {
+        return async.login(memberId, signer)
                 .map(MemberAsync::sync)
                 .toBlocking()
                 .single();
@@ -162,11 +159,11 @@ public final class TokenIO {
      * Logs in an existing member to the system, using the username
      *
      * @param username member id
-     * @param key secret/public key pair to use
+     * @param signer the signer to use
      * @return logged in member
      */
-    public Member loginWithUsername(String username, SecretKey key) {
-        return async.loginWithUsername(username, key)
+    public Member loginWithUsername(String username, Signer signer) {
+        return async.loginWithUsername(username, signer)
                 .map(MemberAsync::sync)
                 .toBlocking()
                 .single();
