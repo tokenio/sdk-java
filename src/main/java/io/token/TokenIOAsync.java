@@ -6,11 +6,13 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
-import io.token.security.Crypto;
-import io.token.security.SecretKey;
-import rx.Observable;
+import io.token.security.Signer;
+import io.token.security.keystore.SecretKeyStore;
+import io.token.security.keystore.SelfGeneratedSecretKeyStore;
 
+import java.security.PublicKey;
 import java.util.List;
+import rx.Observable;
 
 /**
  * Use this class to create to create a new member using {@link #createMember}
@@ -55,17 +57,24 @@ public final class TokenIOAsync {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(String username) {
-        SecretKey key = Crypto.generateSecretKey();
+        SecretKeyStore keyStore = new SelfGeneratedSecretKeyStore();
+        PublicKey publicKey = keyStore.activeKey().getPublic();
+        Signer signer = keyStore.createSigner();
+
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
 
         return unauthenticated
                 .createMemberId()
-                .flatMap(memberId -> unauthenticated.addFirstKey(memberId, key))
+                .flatMap(memberId -> unauthenticated.addFirstKey(memberId, publicKey, signer))
                 .flatMap(member -> {
-                    Client client = ClientFactory.authenticated(channel, member.getId(), null, key);
+                    Client client = ClientFactory.authenticated(
+                            channel,
+                            member.getId(),
+                            null,
+                            signer);
                     return client
                             .addUsername(member, username)
-                            .map(m -> new MemberAsync(m, key, client));
+                            .map(m -> new MemberAsync(m, signer, client));
                 });
     }
 
@@ -73,28 +82,28 @@ public final class TokenIOAsync {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
-     * @param key secret/public key pair to use
+     * @param signer the signer to use
      * @return logged in member
      */
-    public Observable<MemberAsync> login(String memberId, SecretKey key) {
-        Client client = ClientFactory.authenticated(channel, memberId, null, key);
+    public Observable<MemberAsync> login(String memberId, Signer signer) {
+        Client client = ClientFactory.authenticated(channel, memberId, null, signer);
         return client
                 .getMember()
-                .map(member -> new MemberAsync(member, key, client));
+                .map(member -> new MemberAsync(member, signer, client));
     }
 
     /**
      * Logs in an existing member to the system, using an username
      *
      * @param username username
-     * @param key secret/public key pair to use
+     * @param signer the signer to use
      * @return logged in member
      */
-    public Observable<MemberAsync> loginWithUsername(String username, SecretKey key) {
-        Client client = ClientFactory.authenticated(channel, null, username, key);
+    public Observable<MemberAsync> loginWithUsername(String username, Signer signer) {
+        Client client = ClientFactory.authenticated(channel, null, username, signer);
         return client
                 .getMember()
-                .map(member -> new MemberAsync(member, key, client));
+                .map(member -> new MemberAsync(member, signer, client));
     }
 
     /**
