@@ -7,12 +7,16 @@ import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
 public final class TransactionAssertion extends AbstractAssert<TransactionAssertion, Transaction> {
+    private TransactionAssertion(Transaction actual) {
+        super(actual, TransactionAssertion.class);
+    }
+
     public static TransactionAssertion assertThat(Transaction transaction) {
         return new TransactionAssertion(transaction);
     }
 
-    private TransactionAssertion(Transaction actual) {
-        super(actual, TransactionAssertion.class);
+    private static BigDecimal normalize(BigDecimal decimal) {
+        return decimal.setScale(2, BigDecimal.ROUND_UNNECESSARY);
     }
 
     public TransactionAssertion hasAmount(double amount) {
@@ -40,10 +44,6 @@ public final class TransactionAssertion extends AbstractAssert<TransactionAssert
     public TransactionAssertion containsDescription(String description) {
         Assertions.assertThat(actual.getDescription()).contains(description);
         return this;
-    }
-
-    private static BigDecimal normalize(BigDecimal decimal) {
-        return decimal.setScale(2, BigDecimal.ROUND_UNNECESSARY);
     }
 }
 

@@ -63,7 +63,6 @@ public class NotificationsTest {
         byte[] encodedKey = Keys.encodeKey(key);
         String username = member.usernames().get(0);
         String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
-        Subscriber subscriber = member.subscribeToNotifications(target, Platform.IOS);
 
         rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
         rule.token().notifyAddKey(username, encodedKey, "Chrome 52.0");
@@ -78,6 +77,7 @@ public class NotificationsTest {
         List<Subscriber> subscriberList = member.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
 
+        Subscriber subscriber = member.subscribeToNotifications(target, Platform.IOS);
         member.unsubscribeFromNotifications(subscriber.getId());
 
 
@@ -97,9 +97,14 @@ public class NotificationsTest {
         member.subscribeToNotifications(target, Platform.IOS);
         member.approveKey(Keys.encodeKey(key), SecurityProtos.Key.Level.LOW);
         Member memberLow = rule.token().login(member.memberId(), signer);
-        Token t = memberLow.createToken(56, "USD", payerAccount.id(), payee.firstUsername(), null);
+        Token token = memberLow.createToken(
+                56,
+                "USD",
+                payerAccount.id(),
+                payee.firstUsername(),
+                null);
 
-        TokenOperationResult res = memberLow.endorseToken(t);
+        TokenOperationResult res = memberLow.endorseToken(token);
         assertThat(res.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
     }
 
@@ -114,11 +119,11 @@ public class NotificationsTest {
         member.subscribeToNotifications(target, Platform.IOS);
         member.approveKey(Keys.encodeKey(key), SecurityProtos.Key.Level.LOW);
         Member memberLow = rule.token().login(member.memberId(), signer);
-        Token t = memberLow.createAccessToken(AccessTokenBuilder
+        Token token = memberLow.createAccessToken(AccessTokenBuilder
                 .create(payee.firstUsername())
                 .forAllAccounts());
 
-        TokenOperationResult res = memberLow.endorseToken(t);
+        TokenOperationResult res = memberLow.endorseToken(token);
         assertThat(res.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
     }
 
@@ -128,9 +133,9 @@ public class NotificationsTest {
         Member member = payerAccount.member();
         String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
         member.subscribeToNotifications(target, Platform.IOS);
-        Token t = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
+        Token token = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
 
-        Token endorsed = member.endorseToken(t).getToken();
+        Token endorsed = member.endorseToken(token).getToken();
         payee.redeemToken(endorsed);
     }
 
@@ -152,9 +157,9 @@ public class NotificationsTest {
         String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
         member.subscribeToNotifications(target, Platform.TEST);
         member.subscribeToNotifications(target + "1", Platform.TEST);
-        Token t = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
+        Token token = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
         Token t2 = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
-        Token endorsed = member.endorseToken(t).getToken();
+        Token endorsed = member.endorseToken(token).getToken();
         Token endorsed2 = member.endorseToken(t2).getToken();
         payee.redeemToken(endorsed);
         payee.redeemToken(endorsed2);
@@ -173,11 +178,21 @@ public class NotificationsTest {
         member.subscribeToNotifications(target + "1", Platform.TEST);
         member.approveKey(Keys.encodeKey(key), SecurityProtos.Key.Level.LOW);
         Member memberLow = rule.token().login(member.memberId(), signer);
-        Token t = memberLow.createToken(56, "USD", payerAccount.id(), payee.firstUsername(), null);
-        Token t2 = memberLow.createToken(57, "USD", payerAccount.id(), payee.firstUsername(), null);
+        Token token = memberLow.createToken(
+                56,
+                "USD",
+                payerAccount.id(),
+                payee.firstUsername(),
+                null);
+        Token token2 = memberLow.createToken(
+                57,
+                "USD",
+                payerAccount.id(),
+                payee.firstUsername(),
+                null);
 
-        TokenOperationResult res = memberLow.endorseToken(t);
-        TokenOperationResult res2 = memberLow.endorseToken(t2);
+        TokenOperationResult res = memberLow.endorseToken(token);
+        TokenOperationResult res2 = memberLow.endorseToken(token2);
         assertThat(res.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
         assertThat(res2.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
         Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);

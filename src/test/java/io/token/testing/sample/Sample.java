@@ -1,16 +1,21 @@
 package io.token.testing.sample;
 
 import io.token.proto.common.address.AddressProtos.Address;
-import org.apache.commons.lang3.RandomStringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.function.Supplier;
+import org.apache.commons.lang3.RandomStringUtils;
 
 public interface Sample {
     /**
-     * Returns a random alphanumeric string of a given length
+     * Returns a random alphanumeric string of a given length.
      *
      * @return a random string
      */
@@ -19,7 +24,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random alphanumeric string of a given length
+     * Returns a random alphanumeric string of a given length.
      *
      * @param length the length of the string
      * @return a random string
@@ -29,9 +34,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a list of supplied values
-     * Example:
-     * List<String> list = Sample.list(Sample::string)
+     * Returns a list of supplied values.
      *
      * @param sample the sample of values
      * @param <T> the type of the sample
@@ -46,9 +49,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a map of sample key/value pairs
-     * Example:
-     * Map<String,Integer> map = Sample.map(Sample::string, Sample::integer)
+     * Returns a map of sample key/value pairs.
      *
      * @param keySample the sample of key values
      * @param valueSample the sample of values
@@ -65,9 +66,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random optional value of the provided sample
-     * Example:
-     * Optional<String> maybeString = Sample.optional(Sample::string)
+     * Returns a random optional value of the provided sample.
      *
      * @param sample the sample source
      * @param <T> the type of the sample
@@ -78,7 +77,7 @@ public interface Sample {
     }
 
     /**
-     * Picks a random value from the provided list
+     * Picks a random value from the provided list.
      *
      * @param list the source sample list
      * @param <T> the type of the sample
@@ -89,9 +88,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random value from an Enum type
-     * Example:
-     * DayOfWeek randomDayOfWeek = Sample.pick(DayOfWeek.class)
+     * Returns a random value from an Enum type.
      *
      * @param cls the Enum class to be used as the sample source
      * @param <T> the type of the sample
@@ -103,7 +100,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random integer value
+     * Returns a random integer value.
      *
      * @return a random integer
      */
@@ -112,8 +109,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random integer within specified boundaries
-     * where integer i :: min >= i <= max
+     * Returns a random integer within specified boundaries.
      *
      * @param min the minimum integer value
      * @param max the maximum integer value
@@ -124,7 +120,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random double
+     * Returns a random double.
      *
      * @return a random double
      */
@@ -133,7 +129,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random double withing the specified boundaries
+     * Returns a random double withing the specified boundaries.
      *
      * @param min the minimum value
      * @param max the maximum value
@@ -144,7 +140,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random double withing the specified boundaries
+     * Returns a random double withing the specified boundaries.
      *
      * @param min the minimum value
      * @param max the maximum value
@@ -159,7 +155,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random BigDecimal
+     * Returns a random BigDecimal.
      *
      * @return a random BigDecimal
      */
@@ -168,7 +164,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random BigDecimal withing the specified boundaries
+     * Returns a random BigDecimal withing the specified boundaries.
      *
      * @param min the minimum value
      * @param max the maximum value
@@ -180,7 +176,7 @@ public interface Sample {
     }
 
     /**
-     * Returns a random BigDecimal withing the specified boundaries
+     * Returns a random BigDecimal withing the specified boundaries.
      *
      * @param min the minimum value
      * @param max the maximum value
@@ -193,8 +189,7 @@ public interface Sample {
     }
 
     static BigDecimal amount() {
-        double d = decimal(0.01, 1000000, 2);
-        return BigDecimal.valueOf(d);
+        return BigDecimal.valueOf(decimal(0.01, 1000000, 2));
     }
 
     static Address address() {
