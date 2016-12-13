@@ -1,13 +1,19 @@
 package io.token;
 
+import static io.token.util.Util.generateNonce;
+
 import com.google.common.base.Strings;
 import io.token.proto.common.token.TokenProtos.AccessBody;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
-import io.token.proto.common.token.TokenProtos.AccessBody.Resource.*;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountBalance;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountTransactions;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.Address;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccountBalances;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccountTransactions;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccounts;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAddresses;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-
-import static io.token.util.Util.generateNonce;
 
 /**
  * Helps building an access token payload.
@@ -42,7 +48,7 @@ public final class AccessTokenBuilder {
      * @param payload payload to initialize from
      * @return instance of {@link AccessTokenBuilder}
      */
-    public static AccessTokenBuilder from(TokenPayload payload) {
+    public static AccessTokenBuilder fromPayload(TokenPayload payload) {
         TokenPayload.Builder builder = payload.toBuilder()
                 .clearAccess()
                 .setNonce(generateNonce());

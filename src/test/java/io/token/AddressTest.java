@@ -1,20 +1,22 @@
 package io.token;
 
+import static io.token.testing.sample.Sample.address;
+import static io.token.testing.sample.Sample.map;
+import static io.token.testing.sample.Sample.string;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
+
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.testing.sample.Sample;
-import org.junit.Rule;
-import org.junit.Test;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import static io.token.testing.sample.Sample.*;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class AddressTest {
     @Rule
@@ -69,7 +71,9 @@ public class AddressTest {
         assertThatExceptionThrownBy(() -> member.getAddress(fakeAddressId))
                 .isInstanceOf(StatusRuntimeException.class)
                 .matches(ex ->
-                        ((StatusRuntimeException) ex).getStatus().getCode() == Status.Code.NOT_FOUND);
+                        ((StatusRuntimeException) ex)
+                                .getStatus()
+                                .getCode() == Status.Code.NOT_FOUND);
     }
 
     @Test
@@ -84,7 +88,9 @@ public class AddressTest {
         assertThatExceptionThrownBy(() -> member.getAddress(address.getId()))
                 .isInstanceOf(StatusRuntimeException.class)
                 .matches(ex ->
-                        ((StatusRuntimeException) ex).getStatus().getCode() == Status.Code.NOT_FOUND);
+                        ((StatusRuntimeException) ex)
+                                .getStatus()
+                                .getCode() == Status.Code.NOT_FOUND);
     }
 
     @Test
@@ -93,6 +99,8 @@ public class AddressTest {
         assertThatExceptionThrownBy(() -> member.getAddress(fakeAddressId))
                 .isInstanceOf(StatusRuntimeException.class)
                 .matches(ex ->
-                        ((StatusRuntimeException) ex).getStatus().getCode() == Status.Code.NOT_FOUND);
+                        ((StatusRuntimeException) ex)
+                                .getStatus()
+                                .getCode() == Status.Code.NOT_FOUND);
     }
 }

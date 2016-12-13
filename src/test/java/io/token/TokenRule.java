@@ -20,7 +20,7 @@ import org.junit.rules.ExternalResource;
  * ./gradlew -DTOKEN_GATEWAY=some-ip -DTOKEN_BANK=some-ip test
  */
 public class TokenRule extends ExternalResource {
-    private final TokenIO token;
+    private final Token token;
     private final BankClient bankClient;
 
     public TokenRule() {
@@ -36,14 +36,43 @@ public class TokenRule extends ExternalResource {
                 bank.getHostText(),
                 bank.getPort());
 
-        this.token = TokenIO.builder()
+        this.token = Token.builder()
                 .hostName(gateway.getHostText())
                 .port(gateway.getPort())
                 .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
                 .build();
     }
 
-    public TokenIO token() {
+    private static String getHostPortString(String name, String defaultValue) {
+        String override = System.getenv(name);
+        if (!isNullOrEmpty(override)) {
+            return override;
+        }
+
+        override = System.getProperty(name);
+        if (!isNullOrEmpty(override)) {
+            return override;
+        }
+
+        return defaultValue;
+    }
+
+    private static String string() {
+        int length = randomInt(3, 7);
+        return RandomStringUtils.randomAlphabetic(length);
+    }
+
+    private static int randomInt(int digits) {
+        return randomInt(
+                (int) Math.pow(10, digits),
+                (int) Math.pow(10, digits + 1) - 1);
+    }
+
+    private static int randomInt(int min, int max) {
+        return (int) (Math.random() * (max - min)) + min;
+    }
+
+    public Token token() {
         return token;
     }
 
@@ -74,34 +103,5 @@ public class TokenRule extends ExternalResource {
     @Override
     protected void before() throws Throwable {
         super.before();
-    }
-
-    private static String getHostPortString(String name, String defaultValue) {
-        String override = System.getenv(name);
-        if (!isNullOrEmpty(override)) {
-            return override;
-        }
-
-        override = System.getProperty(name);
-        if (!isNullOrEmpty(override)) {
-            return override;
-        }
-
-        return defaultValue;
-    }
-
-    private static String string() {
-        int length = randomInt(3, 7);
-        return RandomStringUtils.randomAlphabetic(length);
-    }
-
-    private static int randomInt(int digits) {
-        return randomInt(
-                (int) Math.pow(10, digits),
-                (int) Math.pow(10, digits + 1) - 1);
-    }
-
-    private static int randomInt(int min, int max) {
-        return (int) (Math.random() * (max - min)) + min;
     }
 }

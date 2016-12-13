@@ -1,5 +1,10 @@
 package io.token;
 
+import static io.token.testing.sample.Sample.address;
+import static io.token.testing.sample.Sample.string;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
+
 import com.google.common.collect.ImmutableSet;
 import io.grpc.StatusRuntimeException;
 import io.token.proto.PagedList;
@@ -11,13 +16,9 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+
 import org.junit.Rule;
 import org.junit.Test;
-
-import static io.token.testing.sample.Sample.address;
-import static io.token.testing.sample.Sample.string;
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
 public class AccessTokenTest {
     @Rule
@@ -145,13 +146,13 @@ public class AccessTokenTest {
 
     @Test
     public void createAddressesAccessToken() {
-        AddressRecord address1 = member1.addAddress(string(), address());
-        AddressRecord address2 = member1.addAddress(string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAllAddresses());
         member1.endorseToken(accessToken);
         member2.useAccessToken(accessToken.getId());
+        AddressRecord address1 = member1.addAddress(string(), address());
+        AddressRecord address2 = member1.addAddress(string(), address());
         AddressRecord result = member2.getAddress(address2.getId());
         assertThat(result).isEqualTo(address2);
         assertThat(result).isNotEqualTo(address1);
@@ -281,7 +282,10 @@ public class AccessTokenTest {
         int limit = 2;
         ImmutableSet.Builder<Transaction> builder = ImmutableSet.builder();
         member1.useAccessToken(accessToken.getId());
-        PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, limit);
+        PagedList<Transaction, String> result = member1.getTransactions(
+                payerAccount.id(),
+                null,
+                limit);
         for (int i = 0; i < num / limit; i++) {
             builder.addAll(result.getList());
             result = member1.getTransactions(payerAccount.id(), result.getOffset(), limit);
@@ -305,7 +309,7 @@ public class AccessTokenTest {
 
         TokenOperationResult result = accountMember.replaceAndEndorseAccessToken(
                 accessToken,
-                AccessTokenBuilder.from(accessToken.getPayload()).forAll());
+                AccessTokenBuilder.fromPayload(accessToken.getPayload()).forAll());
         assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
         assertThat(result.getToken().getPayloadSignaturesList()
                 .stream()
@@ -327,10 +331,10 @@ public class AccessTokenTest {
 
         accountMember.replaceAndEndorseAccessToken(
                 accessToken,
-                AccessTokenBuilder.from(accessToken.getPayload()).forAll());
+                AccessTokenBuilder.fromPayload(accessToken.getPayload()).forAll());
         accountMember.replaceAndEndorseAccessToken(
                 accessToken,
-                AccessTokenBuilder.from(accessToken.getPayload()).forAll());
+                AccessTokenBuilder.fromPayload(accessToken.getPayload()).forAll());
         assertThat(member1.getAccessTokens(null, 2).getList().size()).isEqualTo(1);
     }
 
@@ -347,10 +351,13 @@ public class AccessTokenTest {
         Money balance = member1.getBalance(account.id());
         assertThat(balance).isEqualTo(account.getBalance());
 
-        AccessTokenBuilder builder = AccessTokenBuilder.from(accessToken.getPayload()).forAll();
+        AccessTokenBuilder builder = AccessTokenBuilder
+                .fromPayload(accessToken.getPayload())
+                .forAll();
         accountMember.replaceAndEndorseAccessToken(accessToken, builder);
         accountMember.replaceAndEndorseAccessToken(accessToken, builder);
-        assertThat(accountMember.getAccessTokens(null, 2).getList().size()).isEqualTo(1);
+        assertThat(accountMember.getAccessTokens(null, 2).getList().size())
+                .isEqualTo(1);
     }
 
     @Test
@@ -369,7 +376,7 @@ public class AccessTokenTest {
 
         Token replacedToken = accountMember.replaceAndEndorseAccessToken(
                 originalToken,
-                AccessTokenBuilder.from(originalToken.getPayload()).forAll()).getToken();
+                AccessTokenBuilder.fromPayload(originalToken.getPayload()).forAll()).getToken();
 
         member1.useAccessToken(replacedToken.getId());
         balance = member1.getBalance(account.id());
@@ -377,7 +384,8 @@ public class AccessTokenTest {
 
         Token likeOriginal = accountMember.replaceAndEndorseAccessToken(
                 replacedToken,
-                AccessTokenBuilder.from(replacedToken.getPayload()).forAllBalances()).getToken();
+                AccessTokenBuilder.fromPayload(replacedToken.getPayload()).forAllBalances())
+                .getToken();
 
         member1.useAccessToken(likeOriginal.getId());
         balance = member1.getBalance(account.id());
@@ -397,7 +405,8 @@ public class AccessTokenTest {
         Money balance = member1.getBalance(account.id());
         assertThat(balance).isEqualTo(account.getBalance());
 
-        AccessTokenBuilder builder = AccessTokenBuilder.from(accessToken.getPayload()).forAll();
+        AccessTokenBuilder builder = AccessTokenBuilder.fromPayload(accessToken.getPayload())
+                .forAll();
         assertThat(accessToken.getPayload().getNonce()).isNotEqualTo(builder.build().getNonce());
 
         TokenOperationResult result = accountMember.replaceAccessToken(accessToken, builder);

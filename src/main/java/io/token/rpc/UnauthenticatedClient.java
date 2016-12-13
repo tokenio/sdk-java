@@ -1,24 +1,35 @@
 package io.token.rpc;
 
+import static io.token.rpc.util.Converters.toObservable;
+import static io.token.util.Util.generateNonce;
+
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
-import io.token.proto.common.notification.NotificationProtos.*;
+import io.token.proto.common.notification.NotificationProtos.AddKey;
+import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
+import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
+import io.token.proto.common.notification.NotificationProtos.NotifyBody;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.gateway.Gateway.*;
+import io.token.proto.gateway.Gateway.CreateMemberRequest;
+import io.token.proto.gateway.Gateway.CreateMemberResponse;
+import io.token.proto.gateway.Gateway.NotifyRequest;
+import io.token.proto.gateway.Gateway.NotifyResponse;
+import io.token.proto.gateway.Gateway.UpdateMemberRequest;
+import io.token.proto.gateway.Gateway.UpdateMemberResponse;
+import io.token.proto.gateway.Gateway.UsernameExistsRequest;
+import io.token.proto.gateway.Gateway.UsernameExistsResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.Keys;
 import io.token.security.Signer;
 import io.token.util.codec.ByteEncoding;
-import rx.Observable;
 
 import java.security.PublicKey;
 import java.util.List;
-
-import static io.token.rpc.util.Converters.toObservable;
-import static io.token.util.Util.generateNonce;
+import rx.Observable;
 
 /**
  * Similar to {@link Client} but is only used for a handful of requests that
@@ -29,7 +40,7 @@ public final class UnauthenticatedClient {
     private final GatewayServiceFutureStub gateway;
 
     /**
-     * @param gateway gateway gRPC stub
+     * @param gateway gateway gRPC stub.
      */
     public UnauthenticatedClient(GatewayServiceFutureStub gateway) {
         this.gateway = gateway;
@@ -89,7 +100,7 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Notifies subscribed devices that accounts should be linked
+     * Notifies subscribed devices that accounts should be linked.
      *
      * @param username username of the member
      * @param bankId id of the bank owning the accounts
@@ -118,7 +129,7 @@ public final class UnauthenticatedClient {
 
 
     /**
-     * Notifies subscribed devices that a key should be added
+     * Notifies subscribed devices that a key should be added.
      *
      * @param username username of the member
      * @param publicKey public key to be added
@@ -142,7 +153,7 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Notifies subscribed devices that a key should be added
+     * Notifies subscribed devices that a key should be added.
      *
      * @param username username of the member
      * @param bankId id of the bank owning the accounts

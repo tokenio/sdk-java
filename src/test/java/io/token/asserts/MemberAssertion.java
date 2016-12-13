@@ -1,19 +1,19 @@
 package io.token.asserts;
 
 import io.token.Member;
-import org.assertj.core.api.AbstractAssert;
-import org.assertj.core.api.Assertions;
 
 import java.util.Arrays;
 import java.util.Collection;
+import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.api.Assertions;
 
 public final class MemberAssertion extends AbstractAssert<MemberAssertion, Member> {
-    public static MemberAssertion assertThat(Member member) {
-        return new MemberAssertion(member);
-    }
-
     private MemberAssertion(Member actual) {
         super(actual, MemberAssertion.class);
+    }
+
+    public static MemberAssertion assertThat(Member member) {
+        return new MemberAssertion(member);
     }
 
     public MemberAssertion hasUsername(String username) {
@@ -45,7 +45,9 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
     }
 
     public MemberAssertion hasKeys(byte[]... publicKeys) {
-        Assertions.assertThat(actual.publicKeys()).containsOnlyElementsOf(Arrays.asList(publicKeys));
+        Assertions
+                .assertThat(actual.publicKeys())
+                .containsOnlyElementsOf(Arrays.asList(publicKeys));
         return this;
     }
 

@@ -30,6 +30,8 @@ public final class Member {
     private final MemberAsync async;
 
     /**
+     * Creates an instance with a {@link MemberAsync} all calls are delegated to.
+     *
      * @param async real implementation that the calls are delegated to
      */
     public Member(MemberAsync async) {
@@ -37,6 +39,8 @@ public final class Member {
     }
 
     /**
+     * Gets a {@link MemberAsync} delegate.
+     *
      * @return asynchronous version of the account API
      */
     public MemberAsync async() {
@@ -44,6 +48,8 @@ public final class Member {
     }
 
     /**
+     * Gets member ID.
+     *
      * @return a unique ID that identifies the member in the Token system
      */
     public String memberId() {
@@ -51,6 +57,8 @@ public final class Member {
     }
 
     /**
+     * Gets the signer instance.
+     *
      * @return the signer associated with this member instance
      */
     public Signer signer() {
@@ -58,6 +66,8 @@ public final class Member {
     }
 
     /**
+     * Gets user first username.
+     *
      * @return first username owned by the user
      */
     public String firstUsername() {
@@ -65,6 +75,8 @@ public final class Member {
     }
 
     /**
+     * Gets a list of all usernames owned by the member.
+     *
      * @return list of usernames owned by the member
      */
     public List<String> usernames() {
@@ -72,6 +84,8 @@ public final class Member {
     }
 
     /**
+     * Gets all public keys for this member.
+     *
      * @return list of public keys that are approved for this member
      */
     public List<byte[]> publicKeys() {
@@ -135,7 +149,7 @@ public final class Member {
     }
 
     /**
-     * Subscribes a device to receive push notifications
+     * Subscribes a device to receive push notifications.
      *
      * @param target notification target (e.g. iOS push token)
      * @param platform platform of the device
@@ -150,7 +164,7 @@ public final class Member {
     }
 
     /**
-     * Removes a subscriber by Id
+     * Removes a subscriber by Id.
      *
      * @return subscribers Subscribers
      */
@@ -161,7 +175,7 @@ public final class Member {
     }
 
     /**
-     * Gets a subscriber by Id
+     * Gets a subscriber by Id.
      *
      * @param subscriberId subscriberId
      * @return subscribers Subscribers
@@ -173,10 +187,9 @@ public final class Member {
     }
 
     /**
-     * Removes a subscriber by Id
+     * Removes a subscriber by Id.
      *
      * @param subscriberId subscriberId
-     * @return nothing
      */
     public void unsubscribeFromNotifications(String subscriberId) {
         async.unsubscribeFromNotifications(subscriberId)
@@ -186,7 +199,7 @@ public final class Member {
 
 
     /**
-     * Gets a list of the member's notifications
+     * Gets a list of the member's notifications.
      *
      * @return list of notifications
      */
@@ -507,7 +520,7 @@ public final class Member {
     }
 
     /**
-     * Looks up an existing transaction for a given account
+     * Looks up an existing transaction for a given account.
      *
      * @param accountId the account id
      * @param transactionId ID of the transaction
@@ -520,7 +533,7 @@ public final class Member {
     }
 
     /**
-     * Looks up transactions for a given account
+     * Looks up transactions for a given account.
      *
      * @param accountId the account id
      * @param offset optional offset to start at
@@ -537,7 +550,7 @@ public final class Member {
     }
 
     /**
-     * Looks up account balance
+     * Looks up account balance.
      *
      * @param accountId the account id
      * @return balance
