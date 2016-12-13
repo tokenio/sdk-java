@@ -100,9 +100,10 @@ public final class Client {
     private String onBehalfOf;
 
     /**
+     * This is generally the same key that is used for authentication.
+     *
      * @param memberId member id
      * @param signer the signer used to sign payload for certain requests.
-     * This is generally the same key that is used for authentication.
      * @param gateway gateway gRPC stub
      */
     public Client(String memberId, Signer signer, GatewayServiceFutureStub gateway) {
@@ -234,7 +235,7 @@ public final class Client {
     }
 
     /**
-     * Gets all subscribers for the member
+     * Gets all subscribers for the member.
      *
      * @return subscribers Subscribers
      */
@@ -246,7 +247,7 @@ public final class Client {
     }
 
     /**
-     * Gets a subscriber by Id
+     * Gets a subscriber by Id.
      *
      * @return subscriber Subscriber
      */
@@ -259,7 +260,7 @@ public final class Client {
     }
 
     /**
-     * Removes a subscriber, to stop receiving notifications
+     * Removes a subscriber, to stop receiving notifications.
      *
      * @param subscriberId id of the subscriber
      * @return nothing
@@ -274,7 +275,7 @@ public final class Client {
     }
 
     /**
-     * Gets a list of the member's notifications
+     * Gets a list of the member's notifications.
      *
      * @return list of notifications
      */
@@ -415,10 +416,10 @@ public final class Client {
      * @param tokenToCreate new token to create
      * @return result of the replacement operation, returned by the server
      */
-    public Observable<TokenOperationResult> replaceToken(
+    public Observable<TokenOperationResult> replace(
             Token tokenToCancel,
             TokenPayload tokenToCreate) {
-        return replaceToken(tokenToCancel, CreateToken.newBuilder().setPayload(tokenToCreate));
+        return cancelAndReplace(tokenToCancel, CreateToken.newBuilder().setPayload(tokenToCreate));
     }
 
     /**
@@ -437,7 +438,7 @@ public final class Client {
                 .setMemberId(memberId)
                 .setKeyId(signer.getKeyId())
                 .setSignature(signer.sign(tokenAction(tokenToCreate, ENDORSED))));
-        return replaceToken(tokenToCancel, createToken);
+        return cancelAndReplace(tokenToCancel, createToken);
     }
 
     /**
@@ -567,7 +568,7 @@ public final class Client {
     }
 
     /**
-     * Looks up an address by id
+     * Looks up an address by id.
      *
      * @param addressId the address id
      * @return an address record
@@ -581,7 +582,7 @@ public final class Client {
     }
 
     /**
-     * Looks up member addresses
+     * Looks up member addresses.
      *
      * @return a list of addresses
      */
@@ -593,7 +594,7 @@ public final class Client {
     }
 
     /**
-     * Deletes a member address by its id
+     * Deletes a member address by its id.
      *
      * @param addressId the id of the address
      */
@@ -604,7 +605,7 @@ public final class Client {
         ).map(empty -> null);
     }
 
-    private Observable<TokenOperationResult> replaceToken(
+    private Observable<TokenOperationResult> cancelAndReplace(
             Token tokenToCancel,
             CreateToken.Builder createToken) {
         return toObservable(gateway.replaceToken(ReplaceTokenRequest.newBuilder()

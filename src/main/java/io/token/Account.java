@@ -13,6 +13,8 @@ public final class Account {
     private final AccountAsync async;
 
     /**
+     * Creates an instance.
+     *
      * @param async real implementation that the calls are delegated to
      */
     Account(AccountAsync async) {
@@ -20,6 +22,8 @@ public final class Account {
     }
 
     /**
+     * Returns an async version of the API.
+     *
      * @return asynchronous version of the account API
      */
     public AccountAsync async() {
@@ -27,6 +31,8 @@ public final class Account {
     }
 
     /**
+     * Gets a sync version of the Member API.
+     *
      * @return account owner
      */
     public Member member() {
@@ -34,6 +40,8 @@ public final class Account {
     }
 
     /**
+     * Gets an acount id.
+     *
      * @return account id
      */
     public String id() {
@@ -41,6 +49,8 @@ public final class Account {
     }
 
     /**
+     * Gets an account name.
+     *
      * @return account name
      */
     public String name() {
@@ -48,6 +58,8 @@ public final class Account {
     }
 
     /**
+     * Gets a bank ID.
+     *
      * @return bank ID
      */
     public String bankId() {
@@ -74,7 +86,7 @@ public final class Account {
     }
 
     /**
-     * Looks up existing transactions by using an access token
+     * Looks up existing transactions by using an access token.
      *
      * @param offset optional offset to start at
      * @param limit max number of records to return

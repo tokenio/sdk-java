@@ -1,5 +1,9 @@
 package io.token;
 
+import static java.lang.Double.parseDouble;
+import static java.util.stream.Collectors.toList;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.google.common.collect.ImmutableSet;
 import io.token.asserts.TransactionAssertion;
 import io.token.proto.PagedList;
@@ -8,15 +12,11 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.DestinationIban;
-import org.junit.Rule;
-import org.junit.Test;
 
 import java.util.Comparator;
 import java.util.List;
-
-import static java.lang.Double.parseDouble;
-import static java.util.stream.Collectors.toList;
-import static org.assertj.core.api.Assertions.assertThat;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class TransactionsTest {
     @Rule public TokenRule rule = new TokenRule();

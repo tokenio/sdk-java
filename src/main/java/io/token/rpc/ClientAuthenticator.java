@@ -1,5 +1,7 @@
 package io.token.rpc;
 
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+
 import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
@@ -11,8 +13,6 @@ import io.token.security.Signer;
 
 import java.time.Instant;
 import java.util.Optional;
-
-import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
 /**
  * gRPC interceptor that performs Token authentication by signing the request
@@ -39,7 +39,9 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
         String signature = signer.sign(payload);
 
         metadata.put(Metadata.Key.of("token-realm", ASCII_STRING_MARSHALLER), "Token");
-        metadata.put(Metadata.Key.of("token-scheme", ASCII_STRING_MARSHALLER), "Token-Ed25519-SHA512");
+        metadata.put(
+                Metadata.Key.of("token-scheme", ASCII_STRING_MARSHALLER),
+                "Token-Ed25519-SHA512");
         metadata.put(Metadata.Key.of("token-key-id", ASCII_STRING_MARSHALLER), signer.getKeyId());
         metadata.put(Metadata.Key.of("token-signature", ASCII_STRING_MARSHALLER), signature);
         metadata.put(
@@ -55,11 +57,17 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
 
         String onBehalfOf = AuthenticationContext.clearOnBehalfOf();
         if (!Strings.isNullOrEmpty(onBehalfOf)) {
-            metadata.put(Metadata.Key.of("token-on-behalf-of", ASCII_STRING_MARSHALLER), onBehalfOf);
+            metadata.put(
+                    Metadata.Key.of("token-on-behalf-of", ASCII_STRING_MARSHALLER),
+                    onBehalfOf);
         }
     }
 
     @Override
-    public void onComplete(Status status, ReqT req, Optional<ResT> res, Optional<Metadata> trailers) {
+    public void onComplete(
+            Status status,
+            ReqT req,
+            Optional<ResT> res,
+            Optional<Metadata> trailers) {
     }
 }

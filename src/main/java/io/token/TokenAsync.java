@@ -17,25 +17,25 @@ import rx.Observable;
 /**
  * Use this class to create to create a new member using {@link #createMember}
  * method or login an existing member using {@link #login}.
- * <p>
- * <p>
- * The class provides async API with {@link TokenIO} providing a synchronous
- * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
+ * <p></p>The class provides async API with {@link Token} providing a synchronous
+ * version. {@link Token} instance can be obtained by calling {@link #sync}
  * method.
  * </p>
  */
-public final class TokenIOAsync {
+public final class TokenAsync {
     private final ManagedChannel channel;
 
-    TokenIOAsync(ManagedChannel channel) {
+    TokenAsync(ManagedChannel channel) {
         this.channel = channel;
     }
 
     /**
+     * Returns a sync version of the API.
+     *
      * @return synchronous version of the account API
      */
-    public TokenIO sync() {
-        return new TokenIO(this);
+    public Token sync() {
+        return new Token(this);
     }
 
     /**
@@ -93,7 +93,7 @@ public final class TokenIOAsync {
     }
 
     /**
-     * Logs in an existing member to the system, using an username
+     * Logs in an existing member to the system, using an username.
      *
      * @param username username
      * @param signer the signer to use
@@ -107,7 +107,7 @@ public final class TokenIOAsync {
     }
 
     /**
-     * Notifies to link an account
+     * Notifies to link an account.
      *
      * @param username username to notify
      * @param bankId bank ID to link
@@ -126,7 +126,7 @@ public final class TokenIOAsync {
     }
 
     /**
-     * Notifies to add a key
+     * Notifies to add a key.
      *
      * @param username username to notify
      * @param publicKey public key to add
@@ -139,7 +139,7 @@ public final class TokenIOAsync {
     }
 
     /**
-     * Notifies to link accounts and add a key
+     * Notifies to link accounts and add a key.
      *
      * @param username username to notify
      * @param bankId bank ID to link
