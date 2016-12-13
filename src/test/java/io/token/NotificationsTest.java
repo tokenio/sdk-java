@@ -63,7 +63,7 @@ public class NotificationsTest {
         byte[] encodedKey = Keys.encodeKey(key);
         String username = member.usernames().get(0);
         String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
-
+        final Subscriber subscriber = member.subscribeToNotifications(target, Platform.IOS);
         rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
         rule.token().notifyAddKey(username, encodedKey, "Chrome 52.0");
         NotifyStatus res = rule.token().notifyLinkAccountsAndAddKey(
@@ -77,7 +77,6 @@ public class NotificationsTest {
         List<Subscriber> subscriberList = member.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
 
-        Subscriber subscriber = member.subscribeToNotifications(target, Platform.IOS);
         member.unsubscribeFromNotifications(subscriber.getId());
 
 
