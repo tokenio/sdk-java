@@ -1,19 +1,19 @@
 package io.token;
 
-import io.token.asserts.AccountAssertion;
-import io.token.proto.bankapi.Fank;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
-import org.junit.Rule;
-import org.junit.Test;
-
-import java.util.Arrays;
-import java.util.Comparator;
-import java.util.List;
-
 import static io.token.testing.sample.Sample.integer;
 import static io.token.testing.sample.Sample.string;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+
+import io.token.asserts.AccountAssertion;
+import io.token.proto.bankapi.Fank;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
+
+import java.util.Arrays;
+import java.util.Comparator;
+import java.util.List;
+import org.junit.Rule;
+import org.junit.Test;
 
 public class AccountsTest {
     @Rule

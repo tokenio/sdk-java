@@ -1,25 +1,25 @@
 package io.token.asserts;
 
+import static java.util.stream.Collectors.toList;
+
 import io.token.Member;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
-import org.assertj.core.api.AbstractAssert;
-import org.assertj.core.api.Assertions;
 
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-
-import static java.util.stream.Collectors.toList;
+import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.api.Assertions;
 
 public final class TransferAssertion extends AbstractAssert<TransferAssertion, Transfer> {
-    public static TransferAssertion assertThat(Transfer transfer) {
-        return new TransferAssertion(transfer);
-    }
-
     private TransferAssertion(Transfer actual) {
         super(actual, TransferAssertion.class);
+    }
+
+    public static TransferAssertion assertThat(Transfer transfer) {
+        return new TransferAssertion(transfer);
     }
 
     public TransferAssertion hasPayload(TransferPayload payload) {
@@ -28,7 +28,9 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
     }
 
     public TransferAssertion hasAmount(double amount) {
-        Assertions.assertThat(actual.getPayload().getAmount().getValue()).isEqualTo(Double.toString(amount));
+        Assertions
+                .assertThat(actual.getPayload().getAmount().getValue())
+                .isEqualTo(Double.toString(amount));
         return this;
     }
 

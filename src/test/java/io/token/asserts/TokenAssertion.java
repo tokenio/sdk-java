@@ -1,27 +1,27 @@
 package io.token.asserts;
 
-import io.token.Member;
-import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
-import org.assertj.core.api.AbstractAssert;
-import org.assertj.core.api.Assertions;
-
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static java.util.stream.Collectors.toList;
 
-public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> {
-    public static TokenAssertion assertThat(Token token) {
-        return new TokenAssertion(token);
-    }
+import io.token.Member;
+import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.Nullable;
+import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.api.Assertions;
+
+public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> {
     private TokenAssertion(Token actual) {
         super(actual, TokenAssertion.class);
+    }
+
+    public static TokenAssertion assertThat(Token token) {
+        return new TokenAssertion(token);
     }
 
     public TokenAssertion hasFrom(Member member) {

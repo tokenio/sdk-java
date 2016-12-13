@@ -1,13 +1,14 @@
 package io.token;
 
+import static io.token.asserts.TransferAssertion.assertThat;
+import static org.assertj.core.api.Assertions.assertThat;
+
 import io.token.proto.PagedList;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+
 import org.junit.Rule;
 import org.junit.Test;
-
-import static io.token.asserts.TransferAssertion.assertThat;
-import static org.assertj.core.api.Assertions.assertThat;
 
 public class TransferRedemptionTest {
     @Rule public TokenRule rule = new TokenRule();
