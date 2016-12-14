@@ -14,6 +14,10 @@ buildscript {
 apply plugin: 'io.token.gradle.lib'
 apply plugin: 'io.token.gradle.publish'
 
+base {
+    failOnCheckstyleFailures = true
+}
+
 group = 'io.token.sdk'
 version = '1.0.0'
 
