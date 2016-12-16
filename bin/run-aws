@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if [ "$#" -eq 0 ] ; then
-  echo "Defaulting to aws.dev. Use '$0 prd' for aws.prd or '$0 stg' for aws.stg"
+  echo "Defaulting to dev. Use '$0 prd' for prd or '$0 stg' for stg"
 fi
 
 env=${1:-dev}
@@ -12,8 +12,8 @@ if [ "${env}" != "prd" ] && [ "${env}" != "stg" ] && [ "${env}" != "dev" ] ; the
 fi
 
 
-GATEWAY_HOST=aws.${env}.api.token.io
-BANK_HOST=aws.fank.${env}.api.token.io
+GATEWAY_HOST=grpc.${env}.api.token.io
+BANK_HOST=grpc.fank.${env}.api.token.io
 
 echo "Gateway: ${GATEWAY_HOST}"
 echo "Fank: ${BANK_HOST}"
