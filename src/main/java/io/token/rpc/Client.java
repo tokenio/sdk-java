@@ -52,6 +52,8 @@ import io.token.proto.gateway.Gateway.GetBalanceRequest;
 import io.token.proto.gateway.Gateway.GetBalanceResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.GetNotificationRequest;
+import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
 import io.token.proto.gateway.Gateway.GetNotificationsResponse;
 import io.token.proto.gateway.Gateway.GetSubscriberRequest;
@@ -284,6 +286,20 @@ public final class Client {
                 GetNotificationsRequest.newBuilder()
                         .build()))
                 .map(GetNotificationsResponse::getNotificationsList);
+    }
+
+    /**
+     * Gets a notification.
+     *
+     * @param notificationId id of the notification
+     * @return notification
+     */
+    public Observable<Notification> getNotification(String notificationId) {
+        return toObservable(gateway.getNotification(
+                GetNotificationRequest.newBuilder()
+                        .setNotificationId(notificationId)
+                        .build()))
+                .map(GetNotificationResponse::getNotification);
     }
 
     /**
