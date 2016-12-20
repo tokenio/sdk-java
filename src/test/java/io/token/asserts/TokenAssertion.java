@@ -1,28 +1,27 @@
 package io.token.asserts;
 
-import io.token.Member;
-import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
-import io.token.security.SecretKey;
-import org.assertj.core.api.AbstractAssert;
-import org.assertj.core.api.Assertions;
-
-import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.List;
-
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static java.util.stream.Collectors.toList;
 
-public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> {
-    public static TokenAssertion assertThat(Token token) {
-        return new TokenAssertion(token);
-    }
+import io.token.Member;
+import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import javax.annotation.Nullable;
+import org.assertj.core.api.AbstractAssert;
+import org.assertj.core.api.Assertions;
+
+public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> {
     private TokenAssertion(Token actual) {
         super(actual, TokenAssertion.class);
+    }
+
+    public static TokenAssertion assertThat(Token token) {
+        return new TokenAssertion(token);
     }
 
     public TokenAssertion hasFrom(Member member) {
@@ -61,7 +60,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
     public TokenAssertion isEndorsedBy(Member... members) {
         return hasKeySignatures(
                 Arrays.stream(members)
-                        .map(Member::key)
+                        .map(member -> member.signer().getKeyId())
                         .collect(toList()),
                 ENDORSED);
     }
@@ -69,7 +68,7 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
     public TokenAssertion isCancelledBy(Member... members) {
         return hasKeySignatures(
                 Arrays.stream(members)
-                        .map(Member::key)
+                        .map(member -> member.signer().getKeyId())
                         .collect(toList()),
                 CANCELLED);
     }
@@ -79,9 +78,8 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
         return this;
     }
 
-    private TokenAssertion hasKeySignatures(Collection<SecretKey> keys, @Nullable Action action) {
-        List<String> members = keys.stream().map(SecretKey::getId).collect(toList());
-        return hasKeySignatures(members.toArray(new String[members.size()]), action);
+    private TokenAssertion hasKeySignatures(Collection<String> keyIds, @Nullable Action action) {
+        return hasKeySignatures(keyIds.toArray(new String[keyIds.size()]), action);
     }
 
     private TokenAssertion hasKeySignatures(String[] keyIds, @Nullable Action action) {

@@ -3,74 +3,34 @@ package io.token;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
-import io.token.security.SecretKey;
+import io.token.security.Signer;
 
+import java.time.Duration;
 import java.util.List;
 
-import static java.lang.String.format;
-
 /**
- * Main entry point to the Token SDK. Use {@link io.token.TokenIO.Builder}
- * class to create an instance of the {@link TokenIOAsync} or {@link TokenIO}.
- * <p>
- * <p>
- * The class provides synchronous API with {@link TokenIOAsync} providing an
- * asynchronous version. {@link TokenIOAsync} instance can be obtained by
+ * Main entry point to the Token SDK. Use {@link Token.Builder}
+ * class to create an instance of the {@link TokenAsync} or {@link Token}.
+ * <p>The class provides synchronous API with {@link TokenAsync} providing an
+ * asynchronous version. {@link TokenAsync} instance can be obtained by
  * calling {@link #async} method.
  * </p>
  */
-public final class TokenIO {
+public final class Token {
+    private final TokenAsync async;
+
     /**
-     * Used to create a new {@link TokenIO} instances.
+     * Creates an instance of Token.
+     *
+     * @param async real implementation that the calls are delegated to
      */
-    public static final class Builder {
-        private String hostName;
-        private int port;
-
-        /**
-         * Sets the host name of the Token Gateway Service to connect to.
-         *
-         * @param hostName host name, e.g. 'api.token.io'
-         * @return this builder instance
-         */
-        public Builder hostName(String hostName) {
-            this.hostName = hostName;
-            return this;
-        }
-
-        /**
-         * Sets the port of the Token Gateway Service to connect to.
-         *
-         * @param port port number
-         * @return this builder instance
-         */
-        public Builder port(int port) {
-            this.port = port;
-            return this;
-        }
-
-        /**
-         * Builds and returns a new {@link TokenIO} instance.
-         *
-         * @return {@link TokenIO} instance
-         */
-        public TokenIO build() {
-            return buildAsync().sync();
-        }
-
-        /**
-         * Builds and returns a new {@link TokenIOAsync} instance.
-         *
-         * @return {@link TokenIO} instance
-         */
-        public TokenIOAsync buildAsync() {
-            return new TokenIOAsync(RpcChannelFactory.forTarget(format("dns:///%s:%d/", hostName, port)));
-        }
+    Token(TokenAsync async) {
+        this.async = async;
     }
 
     /**
      * Creates a new {@link Builder} instance that is used to configure and
-     * build a {@link TokenIO} instance.
+     * build a {@link Token} instance.
      *
      * @return builder
      */
@@ -78,19 +38,12 @@ public final class TokenIO {
         return new Builder();
     }
 
-    private final TokenIOAsync async;
-
     /**
-     * @param async real implementation that the calls are delegated to
-     */
-    TokenIO(TokenIOAsync async) {
-        this.async = async;
-    }
-
-    /**
+     * Returns an async version of the API.
+     *
      * @return asynchronous version of the account API
      */
-    public TokenIOAsync async() {
+    public TokenAsync async() {
         return async;
     }
 
@@ -122,32 +75,32 @@ public final class TokenIO {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
-     * @param key secret/public key pair to use
+     * @param signer the signer to use
      * @return logged in member
      */
-    public Member login(String memberId, SecretKey key) {
-        return async.login(memberId, key)
+    public Member login(String memberId, Signer signer) {
+        return async.login(memberId, signer)
                 .map(MemberAsync::sync)
                 .toBlocking()
                 .single();
     }
 
     /**
-     * Logs in an existing member to the system, using the username
+     * Logs in an existing member to the system, using the username.
      *
      * @param username member id
-     * @param key secret/public key pair to use
+     * @param signer the signer to use
      * @return logged in member
      */
-    public Member loginWithUsername(String username, SecretKey key) {
-        return async.loginWithUsername(username, key)
+    public Member loginWithUsername(String username, Signer signer) {
+        return async.loginWithUsername(username, signer)
                 .map(MemberAsync::sync)
                 .toBlocking()
                 .single();
     }
 
     /**
-     * Notifies to link accounts
+     * Notifies to link accounts.
      *
      * @param username username to notify
      * @param bankId bank ID to link
@@ -165,7 +118,7 @@ public final class TokenIO {
     }
 
     /**
-     * Notifies to add a key
+     * Notifies to add a key.
      *
      * @param username username to notify
      * @param publicKey public key to add
@@ -178,7 +131,7 @@ public final class TokenIO {
     }
 
     /**
-     * Notifies to link accounts and add a key
+     * Notifies to link accounts and add a key.
      *
      * @param username username to notify
      * @param bankId bank ID to link
@@ -203,5 +156,77 @@ public final class TokenIO {
                 name)
                 .toBlocking()
                 .single();
+    }
+
+    /**
+     * Used to create a new {@link Token} instances.
+     */
+    public static final class Builder {
+        private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
+
+        private String hostName;
+        private int port;
+        private Duration timeout;
+
+        /**
+         * Creates new builder instance with the defaults initialized.
+         */
+        public Builder() {
+            this.timeout = DEFAULT_TIMEOUT;
+        }
+
+        /**
+         * Sets the host name of the Token Gateway Service to connect to.
+         *
+         * @param hostName host name, e.g. 'api.token.io'
+         * @return this builder instance
+         */
+        public Builder hostName(String hostName) {
+            this.hostName = hostName;
+            return this;
+        }
+
+        /**
+         * Sets the port of the Token Gateway Service to connect to.
+         *
+         * @param port port number
+         * @return this builder instance
+         */
+        public Builder port(int port) {
+            this.port = port;
+            return this;
+        }
+
+        /**
+         * Sets timeout that is used for the RPC calls.
+         *
+         * @param timeout RPC call timeout
+         * @return this builder instance
+         */
+        public Builder timeout(Duration timeout) {
+            this.timeout = timeout;
+            return this;
+        }
+
+        /**
+         * Builds and returns a new {@link Token} instance.
+         *
+         * @return {@link Token} instance
+         */
+        public Token build() {
+            return buildAsync().sync();
+        }
+
+        /**
+         * Builds and returns a new {@link TokenAsync} instance.
+         *
+         * @return {@link Token} instance
+         */
+        public TokenAsync buildAsync() {
+            return new TokenAsync(RpcChannelFactory
+                    .builder(hostName, port)
+                    .withTimeout(timeout)
+                    .build());
+        }
     }
 }

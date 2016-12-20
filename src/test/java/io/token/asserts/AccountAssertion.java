@@ -1,16 +1,17 @@
 package io.token.asserts;
 
 import io.token.Account;
+
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
 public final class AccountAssertion extends AbstractAssert<AccountAssertion, Account> {
-    public static AccountAssertion assertThat(Account account) {
-        return new AccountAssertion(account);
-    }
-
     private AccountAssertion(Account actual) {
         super(actual, AccountAssertion.class);
+    }
+
+    public static AccountAssertion assertThat(Account account) {
+        return new AccountAssertion(account);
     }
 
     public AccountAssertion hasId() {

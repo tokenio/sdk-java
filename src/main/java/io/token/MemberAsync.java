@@ -1,5 +1,9 @@
 package io.token;
 
+import static io.token.util.Util.generateNonce;
+import static java.util.stream.Collectors.toList;
+import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
+
 import io.token.proto.PagedList;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
@@ -10,7 +14,11 @@ import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos.*;
+import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenMember;
+import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
@@ -19,38 +27,38 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Des
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
-import io.token.security.SecretKey;
+import io.token.security.Signer;
 import io.token.util.codec.ByteEncoding;
-import rx.Observable;
 
-import javax.annotation.Nullable;
 import java.util.List;
-
-import static io.token.util.Util.generateNonce;
-import static java.util.stream.Collectors.toList;
-import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
+import javax.annotation.Nullable;
+import rx.Observable;
 
 /**
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
 public final class MemberAsync {
-    private final SecretKey key;
+    private final Signer signer;
     private final Client client;
     private final MemberProtos.Member.Builder member;
 
     /**
+     * Creates an instance of {@link MemberAsync}.
+     *
      * @param member internal member representation, fetched from server
-     * @param key secret/public key pair
+     * @param signer the signer to be used with this member
      * @param client RPC client used to perform operations against the server
      */
-    MemberAsync(MemberProtos.Member member, SecretKey key, Client client) {
-        this.key = key;
+    MemberAsync(MemberProtos.Member member, Signer signer, Client client) {
+        this.signer = signer;
         this.client = client;
         this.member = member.toBuilder();
     }
 
     /**
+     * Gets a sync version of the account API.
+     *
      * @return synchronous version of the account API
      */
     public Member sync() {
@@ -58,6 +66,8 @@ public final class MemberAsync {
     }
 
     /**
+     * Gets member ID.
+     *
      * @return a unique ID that identifies the member in the Token system
      */
     public String memberId() {
@@ -65,13 +75,17 @@ public final class MemberAsync {
     }
 
     /**
-     * @return secret/public keys associated with this member instance
+     * Gets {@link Signer} instance.
+     *
+     * @return the signer associated with this member instance
      */
-    public SecretKey key() {
-        return key;
+    public Signer signer() {
+        return signer;
     }
 
     /**
+     * Gets the first username owner by the user.
+     *
      * @return first username owned by the user
      */
     public String firstUsername() {
@@ -79,6 +93,8 @@ public final class MemberAsync {
     }
 
     /**
+     * Gets all usernames owned by the member.
+     *
      * @return list of usernames owned by the member
      */
     public List<String> usernames() {
@@ -86,6 +102,8 @@ public final class MemberAsync {
     }
 
     /**
+     * Gets all public keys for this member.
+     *
      * @return list of public keys that are approved for this member
      */
     public List<byte[]> publicKeys() {
@@ -186,7 +204,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Gets subscribers
+     * Gets subscribers.
      *
      * @return subscribers
      */
@@ -195,7 +213,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Gets a subscriber by id
+     * Gets a subscriber by id.
      *
      * @param subscriberId Id of the subscriber
      * @return subscriber
@@ -205,7 +223,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Removes a subscriber
+     * Removes a subscriber.
      *
      * @param subscriberId subscriberId
      */
@@ -215,7 +233,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Gets a list of the member's notifications
+     * Gets a list of the member's notifications.
      *
      * @return list of notifications
      */
@@ -224,7 +242,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Gets a notification by id
+     * Gets a notification by id.
      *
      * @param notificationId Id of the notification
      * @return notification
@@ -300,7 +318,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Creates a new member address
+     * Creates a new member address.
      *
      * @param name the name of the address
      * @param address the address
@@ -311,7 +329,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up an address by id
+     * Looks up an address by id.
      *
      * @param addressId the address id
      * @return an address record
@@ -321,7 +339,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up member addresses
+     * Looks up member addresses.
      *
      * @return a list of addresses
      */
@@ -330,7 +348,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Deletes a member address by its id
+     * Deletes a member address by its id.
      *
      * @param addressId the id of the address
      */
@@ -377,22 +395,14 @@ public final class MemberAsync {
                                         .setAccountId(accountId))));
 
         if (redeemer != null) {
-            payload.getTransferBuilder().setRedeemer(TokenMember.newBuilder().setUsername(redeemer));
+            payload
+                    .getTransferBuilder()
+                    .setRedeemer(TokenMember.newBuilder().setUsername(redeemer));
         }
         if (description != null) {
             payload.setDescription(description);
         }
         return createToken(payload.build());
-    }
-
-    /**
-     * Creates an access token built from a given {@link AccessTokenBuilder}.
-     *
-     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
-     * @return the access token created
-     */
-    public Observable<Token> createAccessToken(AccessTokenBuilder accessTokenBuilder) {
-        return createToken(accessTokenBuilder.from(memberId()).build());
     }
 
     /**
@@ -403,6 +413,16 @@ public final class MemberAsync {
      */
     public Observable<Token> createToken(TokenPayload payload) {
         return client.createToken(payload);
+    }
+
+    /**
+     * Creates an access token built from a given {@link AccessTokenBuilder}.
+     *
+     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
+     * @return the access token created
+     */
+    public Observable<Token> createAccessToken(AccessTokenBuilder accessTokenBuilder) {
+        return createToken(accessTokenBuilder.from(memberId()).build());
     }
 
     /**
@@ -473,7 +493,7 @@ public final class MemberAsync {
     public Observable<TokenOperationResult> replaceAccessToken(
             Token tokenToCancel,
             AccessTokenBuilder tokenToCreate) {
-        return client.replaceToken(
+        return client.replace(
                 tokenToCancel,
                 tokenToCreate.from(memberId()).build());
     }
@@ -546,7 +566,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up an existing transaction for a given account
+     * Looks up an existing transaction for a given account.
      *
      * @param accountId the account id
      * @param transactionId ID of the transaction
@@ -557,7 +577,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up transactions for a given account
+     * Looks up transactions for a given account.
      *
      * @param accountId the account id
      * @param offset optional offset to start at
@@ -572,7 +592,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up account balance
+     * Looks up account balance.
      *
      * @param accountId the account id
      * @return balance

@@ -1,20 +1,28 @@
 package io.token.asserts;
 
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
+
+import java.math.BigDecimal;
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
 public final class TransactionAssertion extends AbstractAssert<TransactionAssertion, Transaction> {
-    public static TransactionAssertion assertThat(Transaction transaction) {
-        return new TransactionAssertion(transaction);
-    }
-
     private TransactionAssertion(Transaction actual) {
         super(actual, TransactionAssertion.class);
     }
 
+    public static TransactionAssertion assertThat(Transaction transaction) {
+        return new TransactionAssertion(transaction);
+    }
+
+    private static BigDecimal normalize(BigDecimal decimal) {
+        return decimal.setScale(2, BigDecimal.ROUND_UNNECESSARY);
+    }
+
     public TransactionAssertion hasAmount(double amount) {
-        Assertions.assertThat(actual.getAmount().getValue()).isEqualTo(Double.toString(amount));
+        Assertions
+                .assertThat(normalize(new BigDecimal(actual.getAmount().getValue())))
+                .isEqualTo(normalize(BigDecimal.valueOf(amount)));
         return this;
     }
 

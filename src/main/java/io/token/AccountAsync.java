@@ -5,9 +5,9 @@ import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.rpc.Client;
-import rx.Observable;
 
 import javax.annotation.Nullable;
+import rx.Observable;
 
 /**
  * Represents a funding account in the Token system.
@@ -18,6 +18,8 @@ public final class AccountAsync {
     private final Client client;
 
     /**
+     * Creates an instance.
+     *
      * @param member account owner
      * @param account account information
      * @param client RPC client used to perform operations against the server
@@ -29,6 +31,8 @@ public final class AccountAsync {
     }
 
     /**
+     * Returns a sync version of the account API.
+     *
      * @return synchronous version of the account API
      */
     public Account sync() {
@@ -36,6 +40,8 @@ public final class AccountAsync {
     }
 
     /**
+     * Gets an account owner.
+     *
      * @return account owner
      */
     public MemberAsync member() {
@@ -43,6 +49,8 @@ public final class AccountAsync {
     }
 
     /**
+     * Gets an account ID.
+     *
      * @return account id
      */
     public String id() {
@@ -50,6 +58,8 @@ public final class AccountAsync {
     }
 
     /**
+     * Gets an account name.
+     *
      * @return account name
      */
     public String name() {
@@ -57,6 +67,8 @@ public final class AccountAsync {
     }
 
     /**
+     * Gets a bank ID.
+     *
      * @return bank ID
      */
     public String bankId() {

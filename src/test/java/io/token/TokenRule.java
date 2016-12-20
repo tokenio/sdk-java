@@ -1,16 +1,17 @@
 package io.token;
 
+import static org.assertj.core.util.Strings.isNullOrEmpty;
+
 import com.google.common.net.HostAndPort;
 import io.token.proto.bankapi.Fank;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.util.Util;
-import org.apache.commons.lang3.RandomStringUtils;
-import org.junit.rules.ExternalResource;
 
+import java.time.Duration;
 import java.util.Collections;
 import java.util.List;
-
-import static org.assertj.core.util.Strings.isNullOrEmpty;
+import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.rules.ExternalResource;
 
 /**
  * One can control what gateway the tests run against by setting system property on the
@@ -19,7 +20,7 @@ import static org.assertj.core.util.Strings.isNullOrEmpty;
  * ./gradlew -DTOKEN_GATEWAY=some-ip -DTOKEN_BANK=some-ip test
  */
 public class TokenRule extends ExternalResource {
-    private final TokenIO token;
+    private final Token token;
     private final BankClient bankClient;
 
     public TokenRule() {
@@ -35,13 +36,43 @@ public class TokenRule extends ExternalResource {
                 bank.getHostText(),
                 bank.getPort());
 
-        this.token = TokenIO.builder()
+        this.token = Token.builder()
                 .hostName(gateway.getHostText())
                 .port(gateway.getPort())
+                .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
                 .build();
     }
 
-    public TokenIO token() {
+    private static String getHostPortString(String name, String defaultValue) {
+        String override = System.getenv(name);
+        if (!isNullOrEmpty(override)) {
+            return override;
+        }
+
+        override = System.getProperty(name);
+        if (!isNullOrEmpty(override)) {
+            return override;
+        }
+
+        return defaultValue;
+    }
+
+    private static String string() {
+        int length = randomInt(3, 7);
+        return RandomStringUtils.randomAlphabetic(length);
+    }
+
+    private static int randomInt(int digits) {
+        return randomInt(
+                (int) Math.pow(10, digits),
+                (int) Math.pow(10, digits + 1) - 1);
+    }
+
+    private static int randomInt(int min, int max) {
+        return (int) (Math.random() * (max - min)) + min;
+    }
+
+    public Token token() {
         return token;
     }
 
@@ -72,34 +103,5 @@ public class TokenRule extends ExternalResource {
     @Override
     protected void before() throws Throwable {
         super.before();
-    }
-
-    private static String getHostPortString(String name, String defaultValue) {
-        String override = System.getenv(name);
-        if (!isNullOrEmpty(override)) {
-            return override;
-        }
-
-        override = System.getProperty(name);
-        if (!isNullOrEmpty(override)) {
-            return override;
-        }
-
-        return defaultValue;
-    }
-
-    private static String string() {
-        int length = randomInt(3, 7);
-        return RandomStringUtils.randomAlphabetic(length);
-    }
-
-    private static int randomInt(int digits) {
-        return randomInt(
-                (int) Math.pow(10, digits),
-                (int) Math.pow(10, digits + 1) - 1);
-    }
-
-    private static int randomInt(int min, int max) {
-        return (int) (Math.random() * (max - min)) + min;
     }
 }
