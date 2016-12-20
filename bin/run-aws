@@ -1,10 +1,25 @@
 #!/bin/bash
 
-GATEWAY_HOST=a53b3fa8eb1e911e69b95069ba61a0e7-91541491.us-west-2.elb.amazonaws.com
-BANK_HOST=a6dc3eb21b1ea11e69b95069ba61a0e7-1347249532.us-west-2.elb.amazonaws.com
+if [ "$#" -eq 0 ] ; then
+  echo "Defaulting to dev. Use '$0 prd' for prd or '$0 stg' for stg"
+fi
+
+env=${1:-dev}
+
+if [ "${env}" != "prd" ] && [ "${env}" != "stg" ] && [ "${env}" != "dev" ] ; then
+  echo "Invalid env $env. Supported environments: prd, stg and dev (default)"
+  exit 1
+fi
+
+
+GATEWAY_HOST=grpc.${env}.api.token.io
+BANK_HOST=grpc.fank.${env}.api.token.io
+
+echo "Gateway: ${GATEWAY_HOST}"
+echo "Fank: ${BANK_HOST}"
 
 ./gradlew \
   -DTOKEN_GATEWAY=${GATEWAY_HOST}:9000 \
   -DTOKEN_BANK=${BANK_HOST}:9100 \
-  cleanTest test $@
+  cleanTest test
 

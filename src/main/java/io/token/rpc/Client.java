@@ -1,10 +1,20 @@
 package io.token.rpc;
 
+import static io.token.proto.ProtoJson.toJson;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
+import static io.token.rpc.util.Converters.toObservable;
+import static java.util.stream.Collectors.joining;
+
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.member.MemberProtos.*;
+import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Member;
+import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
+import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
@@ -15,24 +25,70 @@ import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
-import io.token.proto.gateway.Gateway.*;
+import io.token.proto.gateway.Gateway.AddAddressRequest;
+import io.token.proto.gateway.Gateway.AddAddressResponse;
+import io.token.proto.gateway.Gateway.CancelTokenRequest;
+import io.token.proto.gateway.Gateway.CancelTokenResponse;
+import io.token.proto.gateway.Gateway.CreateTokenRequest;
+import io.token.proto.gateway.Gateway.CreateTokenResponse;
+import io.token.proto.gateway.Gateway.CreateTransferRequest;
+import io.token.proto.gateway.Gateway.CreateTransferResponse;
+import io.token.proto.gateway.Gateway.DeleteAddressRequest;
+import io.token.proto.gateway.Gateway.EndorseTokenRequest;
+import io.token.proto.gateway.Gateway.EndorseTokenResponse;
+import io.token.proto.gateway.Gateway.GetAccountRequest;
+import io.token.proto.gateway.Gateway.GetAccountResponse;
+import io.token.proto.gateway.Gateway.GetAccountsRequest;
+import io.token.proto.gateway.Gateway.GetAccountsResponse;
+import io.token.proto.gateway.Gateway.GetAddressRequest;
+import io.token.proto.gateway.Gateway.GetAddressResponse;
+import io.token.proto.gateway.Gateway.GetAddressesRequest;
+import io.token.proto.gateway.Gateway.GetAddressesResponse;
+import io.token.proto.gateway.Gateway.GetBalanceRequest;
+import io.token.proto.gateway.Gateway.GetBalanceResponse;
+import io.token.proto.gateway.Gateway.GetMemberRequest;
+import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.GetNotificationRequest;
+import io.token.proto.gateway.Gateway.GetNotificationResponse;
+import io.token.proto.gateway.Gateway.GetNotificationsRequest;
+import io.token.proto.gateway.Gateway.GetNotificationsResponse;
+import io.token.proto.gateway.Gateway.GetSubscriberRequest;
+import io.token.proto.gateway.Gateway.GetSubscriberResponse;
+import io.token.proto.gateway.Gateway.GetSubscribersRequest;
+import io.token.proto.gateway.Gateway.GetSubscribersResponse;
+import io.token.proto.gateway.Gateway.GetTokenRequest;
+import io.token.proto.gateway.Gateway.GetTokenResponse;
+import io.token.proto.gateway.Gateway.GetTokensRequest;
+import io.token.proto.gateway.Gateway.GetTransactionRequest;
+import io.token.proto.gateway.Gateway.GetTransactionResponse;
+import io.token.proto.gateway.Gateway.GetTransactionsRequest;
+import io.token.proto.gateway.Gateway.GetTransferRequest;
+import io.token.proto.gateway.Gateway.GetTransferResponse;
+import io.token.proto.gateway.Gateway.GetTransfersRequest;
+import io.token.proto.gateway.Gateway.LinkAccountsRequest;
+import io.token.proto.gateway.Gateway.LinkAccountsResponse;
+import io.token.proto.gateway.Gateway.Page;
+import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
+import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
+import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
+import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
+import io.token.proto.gateway.Gateway.UpdateMemberRequest;
+import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.security.SecretKey;
+import io.token.security.Signer;
 import io.token.util.codec.ByteEncoding;
-import rx.Observable;
 
-import javax.annotation.Nullable;
 import java.util.List;
-
-import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
-import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
-import static io.token.rpc.util.Converters.toObservable;
-import static io.token.security.Crypto.sign;
+import java.util.stream.Stream;
+import javax.annotation.Nullable;
+import rx.Observable;
 
 /**
  * An authenticated RPC client that is used to talk to Token gateway. The
@@ -41,20 +97,20 @@ import static io.token.security.Crypto.sign;
  */
 public final class Client {
     private final String memberId;
-    private final SecretKey key;
+    private final Signer signer;
     private final GatewayServiceFutureStub gateway;
     private String onBehalfOf;
 
     /**
+     * This is generally the same key that is used for authentication.
+     *
      * @param memberId member id
-     * @param key secret key that is used to sign payload for certain requests.
-     * This is generally the same key that is used for
-     * authentication.
+     * @param signer the signer used to sign payload for certain requests.
      * @param gateway gateway gRPC stub
      */
-    public Client(String memberId, SecretKey key, GatewayServiceFutureStub gateway) {
+    public Client(String memberId, Signer signer, GatewayServiceFutureStub gateway) {
         this.memberId = memberId;
-        this.key = key;
+        this.signer = signer;
         this.gateway = gateway;
     }
 
@@ -181,7 +237,7 @@ public final class Client {
     }
 
     /**
-     * Gets all subscribers for the member
+     * Gets all subscribers for the member.
      *
      * @return subscribers Subscribers
      */
@@ -193,7 +249,7 @@ public final class Client {
     }
 
     /**
-     * Gets a subscriber by Id
+     * Gets a subscriber by Id.
      *
      * @return subscriber Subscriber
      */
@@ -206,7 +262,7 @@ public final class Client {
     }
 
     /**
-     * Removes a subscriber, to stop receiving notifications
+     * Removes a subscriber, to stop receiving notifications.
      *
      * @param subscriberId id of the subscriber
      * @return nothing
@@ -221,7 +277,7 @@ public final class Client {
     }
 
     /**
-     * Gets a list of the member's notifications
+     * Gets a list of the member's notifications.
      *
      * @return list of notifications
      */
@@ -241,6 +297,7 @@ public final class Client {
     public Observable<Notification> getNotification(String notificationId) {
         return toObservable(gateway.getNotification(
                 GetNotificationRequest.newBuilder()
+                        .setNotificationId(notificationId)
                         .build()))
                 .map(GetNotificationResponse::getNotification);
     }
@@ -344,8 +401,8 @@ public final class Client {
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setMemberId(memberId)
-                        .setKeyId(key.getId())
-                        .setSignature(sign(key, token, ENDORSED)))
+                        .setKeyId(signer.getKeyId())
+                        .setSignature(signer.sign(tokenAction(token, ENDORSED))))
                 .build())
         ).map(EndorseTokenResponse::getResult);
     }
@@ -361,8 +418,8 @@ public final class Client {
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
                         .setMemberId(memberId)
-                        .setKeyId(key.getId())
-                        .setSignature(sign(key, token, CANCELLED)))
+                        .setKeyId(signer.getKeyId())
+                        .setSignature(signer.sign(tokenAction(token, CANCELLED))))
                 .build())
         ).map(CancelTokenResponse::getResult);
     }
@@ -375,10 +432,10 @@ public final class Client {
      * @param tokenToCreate new token to create
      * @return result of the replacement operation, returned by the server
      */
-    public Observable<TokenOperationResult> replaceToken(
+    public Observable<TokenOperationResult> replace(
             Token tokenToCancel,
             TokenPayload tokenToCreate) {
-        return replaceToken(tokenToCancel, CreateToken.newBuilder().setPayload(tokenToCreate));
+        return cancelAndReplace(tokenToCancel, CreateToken.newBuilder().setPayload(tokenToCreate));
     }
 
     /**
@@ -395,9 +452,9 @@ public final class Client {
         CreateToken.Builder createToken = CreateToken.newBuilder().setPayload(tokenToCreate);
         createToken.setPayloadSignature(Signature.newBuilder()
                 .setMemberId(memberId)
-                .setKeyId(key.getId())
-                .setSignature(sign(key, tokenToCreate, ENDORSED)));
-        return replaceToken(tokenToCancel, createToken);
+                .setKeyId(signer.getKeyId())
+                .setSignature(signer.sign(tokenAction(tokenToCreate, ENDORSED))));
+        return cancelAndReplace(tokenToCancel, createToken);
     }
 
     /**
@@ -425,8 +482,8 @@ public final class Client {
                 .setPayload(transfer)
                 .setPayloadSignature(Signature.newBuilder()
                         .setMemberId(memberId)
-                        .setKeyId(key.getId())
-                        .setSignature(sign(key, transfer)))
+                        .setKeyId(signer.getKeyId())
+                        .setSignature(signer.sign(transfer)))
                 .build())
         ).map(CreateTransferResponse::getTransfer);
     }
@@ -519,15 +576,15 @@ public final class Client {
                 .setAddress(address)
                 .setAddressSignature(Signature.newBuilder()
                         .setMemberId(memberId)
-                        .setKeyId(key.getId())
-                        .setSignature(sign(key, address))
+                        .setKeyId(signer.getKeyId())
+                        .setSignature(signer.sign(address))
                         .build())
                 .build())
         ).map(AddAddressResponse::getAddress);
     }
 
     /**
-     * Looks up an address by id
+     * Looks up an address by id.
      *
      * @param addressId the address id
      * @return an address record
@@ -541,7 +598,7 @@ public final class Client {
     }
 
     /**
-     * Looks up member addresses
+     * Looks up member addresses.
      *
      * @return a list of addresses
      */
@@ -553,7 +610,7 @@ public final class Client {
     }
 
     /**
-     * Deletes a member address by its id
+     * Deletes a member address by its id.
      *
      * @param addressId the id of the address
      */
@@ -564,7 +621,7 @@ public final class Client {
         ).map(empty -> null);
     }
 
-    private Observable<TokenOperationResult> replaceToken(
+    private Observable<TokenOperationResult> cancelAndReplace(
             Token tokenToCancel,
             CreateToken.Builder createToken) {
         return toObservable(gateway.replaceToken(ReplaceTokenRequest.newBuilder()
@@ -572,8 +629,8 @@ public final class Client {
                         .setTokenId(tokenToCancel.getId())
                         .setSignature(Signature.newBuilder()
                                 .setMemberId(memberId)
-                                .setKeyId(key.getId())
-                                .setSignature(sign(key, tokenToCancel, CANCELLED))))
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(tokenAction(tokenToCancel, CANCELLED)))))
                 .setCreateToken(createToken)
                 .build())
         ).map(ReplaceTokenResponse::getResult);
@@ -584,8 +641,8 @@ public final class Client {
                 .setUpdate(update)
                 .setUpdateSignature(Signature.newBuilder()
                         .setMemberId(memberId)
-                        .setKeyId(key.getId())
-                        .setSignature(sign(key, update)))
+                        .setKeyId(signer.getKeyId())
+                        .setSignature(signer.sign(update)))
                 .build())
         ).map(UpdateMemberResponse::getMember);
     }
@@ -604,5 +661,15 @@ public final class Client {
         }
 
         return page;
+    }
+
+    private String tokenAction(Token token, Action action) {
+        return tokenAction(token.getPayload(), action);
+    }
+
+    private String tokenAction(TokenPayload tokenPayload, Action action) {
+        return Stream
+                .of(toJson(tokenPayload), action.name().toLowerCase())
+                .collect(joining("."));
     }
 }
