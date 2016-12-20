@@ -16,10 +16,10 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class AccountsTest {
+    private final int randomized = integer(1000000, 9999999);
     @Rule
     public TokenRule rule = new TokenRule();
     private final Member member = rule.member();
-    private final int randomized = integer(1000000, 9999999);
     private final BankClient fank = rule.bankClient();
     private final Fank.Client client = fank.addClient(string(), string());
 
