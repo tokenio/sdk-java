@@ -233,6 +233,19 @@ public final class Client {
     }
 
     /**
+     * Gets a notification.
+     *
+     * @param notificationId id of the notification
+     * @return notification
+     */
+    public Observable<Notification> getNotification(String notificationId) {
+        return toObservable(gateway.getNotification(
+                GetNotificationRequest.newBuilder()
+                        .build()))
+                .map(GetNotificationResponse::getNotification);
+    }
+
+    /**
      * Links a funding bank account to Token.
      *
      * @param bankId bank id

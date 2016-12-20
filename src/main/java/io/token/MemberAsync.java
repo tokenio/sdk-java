@@ -224,6 +224,16 @@ public final class MemberAsync {
     }
 
     /**
+     * Gets a notification by id
+     *
+     * @param notificationId Id of the notification
+     * @return notification
+     */
+    public Observable<Notification> getNotification(String notificationId) {
+        return client.getNotification(notificationId);
+    }
+
+    /**
      * Links a funding bank accounts to Token and returns it to the caller.
      *
      * @param bankId bank id
