@@ -1,5 +1,8 @@
 package io.token;
 
+import static java.lang.Math.pow;
+import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import com.google.common.net.HostAndPort;
@@ -59,13 +62,13 @@ public class TokenRule extends ExternalResource {
 
     private static String string() {
         int length = randomInt(3, 7);
-        return RandomStringUtils.randomAlphabetic(length);
+        return randomAlphabetic(length);
     }
 
     private static int randomInt(int digits) {
         return randomInt(
-                (int) Math.pow(10, digits),
-                (int) Math.pow(10, digits + 1) - 1);
+                (int) pow(10, digits),
+                (int) pow(10, digits + 1) - 1);
     }
 
     private static int randomInt(int min, int max) {
@@ -89,7 +92,7 @@ public class TokenRule extends ExternalResource {
         List<SealedMessage> accountLinkPayloads = bankClient.startAccountsLinking(
                 member.firstUsername(),
                 client.getId(),
-                Collections.singletonList(bankAccountNumber));
+                singletonList(bankAccountNumber));
 
         return member
                 .linkAccounts("iron", accountLinkPayloads)

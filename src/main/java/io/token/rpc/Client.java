@@ -4,6 +4,7 @@ import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.rpc.util.Converters.toObservable;
+import static io.token.util.Util.toProtoAlgorithm;
 import static java.util.stream.Collectors.joining;
 
 import io.token.proto.PagedList;
@@ -83,8 +84,10 @@ import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.Signer;
-import io.token.util.codec.ByteEncoding;
+import io.token.security.crypto.Crypto;
+import io.token.security.crypto.CryptoRegistry;
 
+import java.security.PublicKey;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -154,12 +157,14 @@ public final class Client {
     public Observable<Member> addKey(
             Member member,
             Level level,
-            byte[] publicKey) {
+            PublicKey publicKey) {
+        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(publicKey);
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
                 .setAddKey(MemberAddKeyOperation.newBuilder()
-                        .setPublicKey(ByteEncoding.serialize(publicKey))
+                        .setPublicKey(crypto.serialize(publicKey))
+                        .setAlgorithm(toProtoAlgorithm(publicKey.getAlgorithm()))
                         .setLevel(level))
                 .build());
     }

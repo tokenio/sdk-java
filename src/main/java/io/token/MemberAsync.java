@@ -10,6 +10,7 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
@@ -28,8 +29,9 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.Signer;
-import io.token.util.codec.ByteEncoding;
+import io.token.security.crypto.CryptoRegistry;
 
+import java.security.PublicKey;
 import java.util.List;
 import javax.annotation.Nullable;
 import rx.Observable;
@@ -106,10 +108,10 @@ public final class MemberAsync {
      *
      * @return list of public keys that are approved for this member
      */
-    public List<byte[]> publicKeys() {
+    public List<PublicKey> publicKeys() {
         return member.getKeysBuilderList()
                 .stream()
-                .map(k -> ByteEncoding.parse(k.getPublicKey()))
+                .map(this::toPublicKey)
                 .collect(toList());
     }
 
@@ -167,7 +169,7 @@ public final class MemberAsync {
      * @param publicKey public key to add to the approved list
      * @param level key security level
      */
-    public Observable<Void> approveKey(byte[] publicKey, Level level) {
+    public Observable<Void> approveKey(PublicKey publicKey, Level level) {
         return client
                 .addKey(member.build(), level, publicKey)
                 .map(m -> {
@@ -604,5 +606,12 @@ public final class MemberAsync {
     @Override
     public String toString() {
         return reflectionToString(this);
+    }
+
+    private PublicKey toPublicKey(SecurityProtos.Key.Builder key) {
+        return CryptoRegistry
+                .getInstance()
+                .cryptoFor(key.getAlgorithm())
+                .toPublicKey(key.getPublicKey());
     }
 }
