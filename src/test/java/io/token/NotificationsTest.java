@@ -3,6 +3,8 @@ package io.token;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
@@ -24,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 
+import static io.token.proto.common.notification.NotificationProtos.Notification.Status.DELIVERED;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -194,8 +197,45 @@ public class NotificationsTest {
     }
 
     @Test
+    public void deliveryTest_LinkAccountsAndAddKey() {
+        Account payerAccount = rule.account();
+        Member member = payerAccount.member();
+        SecretKey key = Crypto.generateSecretKey();
+        String username = RandomStringUtils.randomAlphabetic(30);
+        member.addUsername(username);
+        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
+        member.subscribeToNotifications(target, Platform.TEST);
+        member.subscribeToNotifications(target + "1", Platform.TEST);
+
+        rule.token().notifyLinkAccountsAndAddKey(username, "BofA", "Bank of America", accountLinkPayloads, key.getPublicKey(), "Chrome");
+        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
+        assertThat(member.getNotifications().size()).isEqualTo(2); // 2 subscribers, 2 notifications
+        assertThat(member.getNotifications().get(0).getStatus().equals(DELIVERED));
+        assertThat(member.getNotifications().get(1).getStatus().equals(DELIVERED));
+    }
+
+    @Test
     public void getNotificationsEmpty() {
         Member member = payerAccount.member();
         assertThat(member.getNotifications().size()).isEqualTo(0);
     }
+
+    @Test
+    public void getNotificationFalse() {
+        Member member = payerAccount.member();
+        assertThat(member.getNotification("123456789")).isEqualTo(null);
+    }
+
+    @Test
+    public void getNotificationTrue() {
+        Member member = payerAccount.member();
+        String username = RandomStringUtils.randomAlphabetic(30);
+        member.addUsername(username);
+        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
+        member.subscribeToNotifications(target, Platform.TEST);
+        rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
+        List<Notification> notification = member.getNotifications();
+        assertThat(member.getNotification(notification.get(0).getId()).getId()).isEqualTo(notification.get(0).getId());
+    }
+
 }

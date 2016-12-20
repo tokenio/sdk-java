@@ -197,6 +197,18 @@ public final class Member {
     }
 
     /**
+     * Gets a notification by id
+     *
+     * @param notificationId Id of the notification
+     * @return notification
+     */
+    public Notification getNotification(String notificationId) {
+        return async.getNotification(notificationId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
      * Links a funding bank account to Token and returns it to the caller.
      *
      * @param bankId bank id
