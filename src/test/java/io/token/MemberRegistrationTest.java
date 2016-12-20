@@ -3,7 +3,9 @@ package io.token;
 import static io.token.asserts.MemberAssertion.assertThat;
 
 import io.token.proto.common.security.SecurityProtos.Key.Level;
-import io.token.security.Keys;
+import io.token.security.crypto.Crypto;
+import io.token.security.crypto.EdDsaCrypto;
+import io.token.security.keystore.SecurityConfigHelper;
 import io.token.util.Util;
 
 import java.security.PublicKey;
@@ -13,6 +15,7 @@ import org.junit.Test;
 
 public class MemberRegistrationTest {
     @Rule public TokenRule rule = new TokenRule();
+    private final Crypto crypto = EdDsaCrypto.getInstance();
 
     @Test
     public void createMember() {
@@ -34,35 +37,31 @@ public class MemberRegistrationTest {
 
     @Test
     public void addKey() {
-        PublicKey key2 = Keys.generateEdDsaKeyPair().getPublic();
-        PublicKey key3 = Keys.generateEdDsaKeyPair().getPublic();
-
-        byte[] encodedKey2 = Keys.encodeKey(key2);
-        byte[] encodedKey3 = Keys.encodeKey(key3);
+        PublicKey key2 = crypto.generateKeyPair().getPublic();
+        PublicKey key3 = crypto.generateKeyPair().getPublic();
 
         Member member = rule.member();
-        member.approveKey(encodedKey2, Level.STANDARD);
-        member.approveKey(encodedKey3, Level.PRIVILEGED);
+        member.approveKey(key2, Level.STANDARD);
+        member.approveKey(key3, Level.PRIVILEGED);
 
         assertThat(member)
                 .hasOneUsername()
                 .hasNKeys(3)
-                .hasKey(encodedKey2)
-                .hasKey(encodedKey3);
+                .hasKey(key2)
+                .hasKey(key3);
     }
 
     @Test
     public void removeKey() {
         Member member = rule.member();
 
-        PublicKey publicKey = Keys.generateEdDsaKeyPair().getPublic();
-        String keyId = Keys.keyIdFor(publicKey);
-        byte[] encodedKey = Keys.encodeKey(publicKey);
+        PublicKey publicKey = crypto.generateKeyPair().getPublic();
+        String keyId = SecurityConfigHelper.keyIdFor(publicKey);
 
-        member.approveKey(encodedKey, Level.STANDARD);
+        member.approveKey(publicKey, Level.STANDARD);
         assertThat(member)
                 .hasNKeys(2)
-                .hasKey(encodedKey);
+                .hasKey(publicKey);
 
         member.removeKey(keyId);
         assertThat(member)

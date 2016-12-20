@@ -16,9 +16,8 @@ import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-import io.token.security.Keys;
 import io.token.security.Signer;
-import io.token.security.cipher.noop.NoopCipher;
+import io.token.security.sealed.NoopSealedMessageEncrypter;
 import io.token.security.testing.KeystoreTestRule;
 import io.token.util.Util;
 
@@ -44,8 +43,6 @@ public class NotificationsTest {
 
     @Before
     public void setup() {
-        NoopCipher cipher = new NoopCipher();
-
         String checking = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
                 .setAccountName("Checking")
                 .setAccountNumber("iban:checking")
@@ -56,26 +53,28 @@ public class NotificationsTest {
                 .setAccountNumber("iban:saving")
                 .build());
 
+        NoopSealedMessageEncrypter encrypter = new NoopSealedMessageEncrypter();
+
         accountLinkPayloads = Stream.of(checking, saving)
-                .map(cipher::encrypt)
+                .map(encrypter::encrypt)
                 .collect(toList());
+
     }
 
     @Test
     public void sendNotification() {
         PublicKey key = keystoreRule.getSigningKey().getPublic();
-        byte[] encodedKey = Keys.encodeKey(key);
         String username = member.usernames().get(0);
         String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
         final Subscriber subscriber = member.subscribeToNotifications(target, Platform.IOS);
         rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
-        rule.token().notifyAddKey(username, encodedKey, "Chrome 52.0");
+        rule.token().notifyAddKey(username, key, "Chrome 52.0");
         NotifyStatus res = rule.token().notifyLinkAccountsAndAddKey(
                 username,
                 "BofA",
                 "Bank of America",
                 accountLinkPayloads,
-                encodedKey,
+                key,
                 "Chrome 52.0");
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = member.getSubscribers();
@@ -83,11 +82,10 @@ public class NotificationsTest {
 
         member.unsubscribeFromNotifications(subscriber.getId());
 
-
         List<Subscriber> subscriberList2 = member.getSubscribers();
         assertThat(subscriberList2.size()).isEqualTo(0);
 
-        rule.token().notifyAddKey(username, encodedKey, "Chrome 52.0");
+        rule.token().notifyAddKey(username, key, "Chrome 52.0");
     }
 
     @Test
@@ -98,7 +96,7 @@ public class NotificationsTest {
         Member member = payerAccount.member();
         String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
         member.subscribeToNotifications(target, Platform.IOS);
-        member.approveKey(Keys.encodeKey(key), SecurityProtos.Key.Level.LOW);
+        member.approveKey(key, SecurityProtos.Key.Level.LOW);
         Member memberLow = rule.token().login(member.memberId(), signer);
         Token token = memberLow.createToken(
                 56,
@@ -120,7 +118,7 @@ public class NotificationsTest {
         Member member = payerAccount.member();
         String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
         member.subscribeToNotifications(target, Platform.IOS);
-        member.approveKey(Keys.encodeKey(key), SecurityProtos.Key.Level.LOW);
+        member.approveKey(key, SecurityProtos.Key.Level.LOW);
         Member memberLow = rule.token().login(member.memberId(), signer);
         Token token = memberLow.createAccessToken(AccessTokenBuilder
                 .create(payee.firstUsername())
@@ -179,7 +177,7 @@ public class NotificationsTest {
         String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
         member.subscribeToNotifications(target, Platform.TEST);
         member.subscribeToNotifications(target + "1", Platform.TEST);
-        member.approveKey(Keys.encodeKey(key), SecurityProtos.Key.Level.LOW);
+        member.approveKey(key, SecurityProtos.Key.Level.LOW);
         Member memberLow = rule.token().login(member.memberId(), signer);
         Token token = memberLow.createToken(
                 56,

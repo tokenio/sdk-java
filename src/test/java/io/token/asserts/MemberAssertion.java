@@ -2,6 +2,7 @@ package io.token.asserts;
 
 import io.token.Member;
 
+import java.security.PublicKey;
 import java.util.Arrays;
 import java.util.Collection;
 import org.assertj.core.api.AbstractAssert;
@@ -39,12 +40,12 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
         return this;
     }
 
-    public MemberAssertion hasKey(byte[] publicKey) {
+    public MemberAssertion hasKey(PublicKey publicKey) {
         Assertions.assertThat(actual.publicKeys()).contains(publicKey);
         return this;
     }
 
-    public MemberAssertion hasKeys(byte[]... publicKeys) {
+    public MemberAssertion hasKeys(PublicKey... publicKeys) {
         Assertions
                 .assertThat(actual.publicKeys())
                 .containsOnlyElementsOf(Arrays.asList(publicKeys));

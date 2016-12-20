@@ -9,11 +9,12 @@ import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
-import io.token.security.Keys;
+import io.token.security.SecretKeyStore;
 import io.token.security.Signer;
-import io.token.security.keystore.SecretKeyStore;
-import io.token.security.keystore.SelfGeneratedSecretKeyStore;
+import io.token.security.crypto.EdDsaCrypto;
+import io.token.security.keystore.InMemorySecretKeyStore;
 
+import java.security.KeyPair;
 import java.security.PublicKey;
 import org.junit.Rule;
 import org.junit.Test;
@@ -110,11 +111,12 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenMoreSignaturesNeeded() {
-        SecretKeyStore keyStore = new SelfGeneratedSecretKeyStore();
-        PublicKey publicKey = keyStore.activeKey().getPublic();
+        KeyPair keyPair = EdDsaCrypto.getInstance().generateKeyPair();
+        SecretKeyStore keyStore = new InMemorySecretKeyStore(keyPair);
+        PublicKey publicKey = keyPair.getPublic();
         Signer signer = keyStore.createSigner();
 
-        payer.approveKey(Keys.encodeKey(publicKey), SecurityProtos.Key.Level.LOW);
+        payer.approveKey(publicKey, SecurityProtos.Key.Level.LOW);
         Member low = rule.token().login(payer.memberId(), signer);
 
         Token token = payer.createToken(100.0, "USD", payerAccount.id());
