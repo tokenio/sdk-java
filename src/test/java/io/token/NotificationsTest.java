@@ -226,14 +226,13 @@ public class NotificationsTest {
         member.subscribeToNotifications(target + "1", Platform.TEST);
 
         PublicKey key = keystoreRule.getSigningKey().getPublic();
-        byte[] encodedKey = Keys.encodeKey(key);
         rule
                 .token()
                 .notifyLinkAccountsAndAddKey(username,
                         "BofA",
                         "Bank of America",
                         accountLinkPayloads,
-                        encodedKey,
+                        key,
                         "Chrome");
         Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
         assertThat(member.getNotifications().size()).isEqualTo(2); // 2 subscribers, 2 notifications
