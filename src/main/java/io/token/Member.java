@@ -19,6 +19,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.security.Signer;
 
+import java.security.PublicKey;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -88,7 +89,7 @@ public final class Member {
      *
      * @return list of public keys that are approved for this member
      */
-    public List<byte[]> publicKeys() {
+    public List<PublicKey> publicKeys() {
         return async.publicKeys();
     }
 
@@ -135,7 +136,7 @@ public final class Member {
      * @param publicKey public key to add to the approved list
      * @param level key security level
      */
-    public void approveKey(byte[] publicKey, Level level) {
+    public void approveKey(PublicKey publicKey, Level level) {
         async.approveKey(publicKey, level).toBlocking().single();
     }
 
