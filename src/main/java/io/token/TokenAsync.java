@@ -1,15 +1,20 @@
 package io.token;
 
+import static java.util.Collections.singletonList;
+
 import io.grpc.ManagedChannel;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
+import io.token.security.SecretKeyStore;
 import io.token.security.Signer;
-import io.token.security.keystore.SecretKeyStore;
-import io.token.security.keystore.SelfGeneratedSecretKeyStore;
+import io.token.security.crypto.Crypto;
+import io.token.security.crypto.EdDsaCrypto;
+import io.token.security.keystore.InMemorySecretKeyStore;
 
+import java.security.KeyPair;
 import java.security.PublicKey;
 import java.util.List;
 import rx.Observable;
@@ -57,15 +62,19 @@ public final class TokenAsync {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(String username) {
-        SecretKeyStore keyStore = new SelfGeneratedSecretKeyStore();
-        PublicKey publicKey = keyStore.activeKey().getPublic();
+        Crypto crypto = EdDsaCrypto.getInstance();
+        KeyPair keyPair = crypto.generateKeyPair();
+        SecretKeyStore keyStore = new InMemorySecretKeyStore(keyPair);
         Signer signer = keyStore.createSigner();
 
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
 
         return unauthenticated
                 .createMemberId()
-                .flatMap(memberId -> unauthenticated.addFirstKey(memberId, publicKey, signer))
+                .flatMap(memberId -> unauthenticated.addFirstKey(
+                        memberId,
+                        keyPair.getPublic(),
+                        signer))
                 .flatMap(member -> {
                     Client client = ClientFactory.authenticated(
                             channel,
@@ -132,7 +141,10 @@ public final class TokenAsync {
      * @param publicKey public key to add
      * @return status of the notification
      */
-    public Observable<NotifyStatus> notifyAddKey(String username, byte[] publicKey, String name) {
+    public Observable<NotifyStatus> notifyAddKey(
+            String username,
+            PublicKey publicKey,
+            String name) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .notifyAddKey(username, publicKey, name);
@@ -153,7 +165,7 @@ public final class TokenAsync {
             String bankId,
             String bankName,
             List<SealedMessage> accountLinkPayloads,
-            byte[] publicKey,
+            PublicKey publicKey,
             String name) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated

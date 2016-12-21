@@ -2,6 +2,7 @@ package io.token.rpc;
 
 import static io.token.rpc.util.Converters.toObservable;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.toProtoAlgorithm;
 
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -23,9 +24,9 @@ import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.Gateway.UsernameExistsRequest;
 import io.token.proto.gateway.Gateway.UsernameExistsResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.security.Keys;
 import io.token.security.Signer;
-import io.token.util.codec.ByteEncoding;
+import io.token.security.crypto.Crypto;
+import io.token.security.crypto.CryptoRegistry;
 
 import java.security.PublicKey;
 import java.util.List;
@@ -82,11 +83,13 @@ public final class UnauthenticatedClient {
      * @return member information
      */
     public Observable<Member> addFirstKey(String memberId, PublicKey publicKey, Signer signer) {
+        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(publicKey);
         MemberUpdate update = MemberUpdate.newBuilder()
                 .setMemberId(memberId)
                 .setAddKey(MemberAddKeyOperation.newBuilder()
                         .setLevel(Level.PRIVILEGED)
-                        .setPublicKey(Keys.serializeKey(publicKey)))
+                        .setPublicKey(crypto.serialize(publicKey))
+                        .setAlgorithm(toProtoAlgorithm(publicKey.getAlgorithm())))
                 .build();
         return
                 toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
@@ -137,14 +140,15 @@ public final class UnauthenticatedClient {
      */
     public Observable<NotifyStatus> notifyAddKey(
             String username,
-            byte[] publicKey,
+            PublicKey publicKey,
             String name) {
+        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(publicKey);
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(AddKey.newBuilder()
-                                        .setPublicKey(ByteEncoding.serialize(publicKey))
+                                        .setPublicKey(crypto.serialize(publicKey))
                                         .setName(name)
                                         .build())
                                 .build())
@@ -167,8 +171,9 @@ public final class UnauthenticatedClient {
             String bankId,
             String bankName,
             List<SealedMessage> accountLinkPayloads,
-            byte[] publicKey,
+            PublicKey publicKey,
             String name) {
+        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(publicKey);
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
@@ -180,7 +185,7 @@ public final class UnauthenticatedClient {
                                                 .addAllAccountLinkPayloads(accountLinkPayloads)
                                                 .build())
                                         .setAddKey(AddKey.newBuilder()
-                                                .setPublicKey(ByteEncoding.serialize(publicKey))
+                                                .setPublicKey(crypto.serialize(publicKey))
                                                 .setName(name)
                                                 .build())
                                         .build())
@@ -188,4 +193,6 @@ public final class UnauthenticatedClient {
                         .build()))
                 .map(NotifyResponse::getStatus);
     }
+
+
 }

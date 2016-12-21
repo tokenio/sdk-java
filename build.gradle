@@ -23,10 +23,10 @@ version = '1.0.0'
 
 ext {
     ver = [
-        tokenProto: '1.0.194',
+        tokenProto: '1.0.195',
         tokenRpc: '1.0.32',
-        tokenSecurity: '1.0.19',
-        tokenUtil: '1.0.7',
+        tokenSecurity: '1.0.21',
+        tokenUtil: '1.0.8',
     ]
 }
 

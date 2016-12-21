@@ -5,6 +5,7 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.Signer;
 
+import java.security.PublicKey;
 import java.time.Duration;
 import java.util.List;
 
@@ -124,7 +125,7 @@ public final class Token {
      * @param publicKey public key to add
      * @return status of the notification
      */
-    public NotifyStatus notifyAddKey(String username, byte[] publicKey, String name) {
+    public NotifyStatus notifyAddKey(String username, PublicKey publicKey, String name) {
         return async.notifyAddKey(username, publicKey, name)
                 .toBlocking()
                 .single();
@@ -145,7 +146,7 @@ public final class Token {
             String bankId,
             String bankName,
             List<SealedMessage> accountLinkPayloads,
-            byte[] publicKey,
+            PublicKey publicKey,
             String name) {
         return async.notifyLinkAccountsAndAddKey(
                 username,
