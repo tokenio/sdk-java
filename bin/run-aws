@@ -12,8 +12,8 @@ if [ "${env}" != "prd" ] && [ "${env}" != "stg" ] && [ "${env}" != "dev" ] ; the
 fi
 
 
-GATEWAY_HOST=grpc.${env}.api.token.io
-BANK_HOST=grpc.fank.${env}.api.token.io
+GATEWAY_HOST=api-grpc.${env}.token.io
+BANK_HOST=fank-grpc.${env}.token.io
 
 echo "Gateway: ${GATEWAY_HOST}"
 echo "Fank: ${BANK_HOST}"
