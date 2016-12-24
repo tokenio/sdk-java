@@ -5,6 +5,8 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.token.proto.PagedList;
+import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
@@ -570,6 +572,29 @@ public final class Member {
      */
     public Money getBalance(String accountId) {
         return async.getBalance(accountId)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Returns a list of all token enabled banks.
+     *
+     * @return a list of banks
+     */
+    public List<Bank> getBanks() {
+        return async.getBanks()
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Returns linking information for the specified bank id.
+     *
+     * @param bankId the bank id
+     * @return bank linking information
+     */
+    public BankInfo getBankInfo(String bankId) {
+        return async.getBankInfo(bankId)
                 .toBlocking()
                 .single();
     }
