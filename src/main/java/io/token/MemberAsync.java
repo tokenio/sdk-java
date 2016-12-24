@@ -6,6 +6,8 @@ import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToStrin
 
 import io.token.proto.PagedList;
 import io.token.proto.common.address.AddressProtos.Address;
+import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -601,6 +603,25 @@ public final class MemberAsync {
      */
     public Observable<Money> getBalance(String accountId) {
         return client.getBalance(accountId);
+    }
+
+    /**
+     * Returns a list of all token enabled banks.
+     *
+     * @return a list of banks
+     */
+    public Observable<List<Bank>> getBanks() {
+        return client.getBanks();
+    }
+
+    /**
+     * Returns linking information for the specified bank id.
+     *
+     * @param bankId the bank id
+     * @return bank linking information
+     */
+    public Observable<BankInfo> getBankInfo(String bankId) {
+        return client.getBankInfo(bankId);
     }
 
     @Override

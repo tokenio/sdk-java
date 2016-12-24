@@ -1,5 +1,6 @@
 package io.token;
 
+import static io.token.TokenRule.DEFAULT_BANK_ID;
 import static io.token.testing.sample.Sample.integer;
 import static io.token.testing.sample.Sample.string;
 import static java.util.stream.Collectors.toList;
@@ -25,8 +26,6 @@ public class AccountsTest {
 
     @Test
     public void linkAccounts() {
-        String bankId = "iron";
-
         Fank.Account checking = fank.addAccount(
                 client,
                 "Checking",
@@ -46,7 +45,7 @@ public class AccountsTest {
                 client.getId(),
                 Arrays.asList(checking.getAccountNumber(), saving.getAccountNumber()));
 
-        List<Account> accounts = link(bankId, payloads);
+        List<Account> accounts = link(DEFAULT_BANK_ID, payloads);
 
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0))
@@ -78,11 +77,11 @@ public class AccountsTest {
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0))
                 .hasId()
-                .hasBankId("iron")
+                .hasBankId(DEFAULT_BANK_ID)
                 .hasName("Checking");
         AccountAssertion.assertThat(accounts.get(1))
                 .hasId()
-                .hasBankId("iron")
+                .hasBankId(DEFAULT_BANK_ID)
                 .hasName("Saving");
     }
 
