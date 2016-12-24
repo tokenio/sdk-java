@@ -168,6 +168,7 @@ public final class Token {
         private String hostName;
         private int port;
         private Duration timeout;
+        private boolean useSsl;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -210,6 +211,17 @@ public final class Token {
         }
 
         /**
+         * Sets flag indicating whether ssl should be used for RPC calls.
+         *
+         * @param useSsl ssl flag
+         * @return this builder instance
+         */
+        public Builder useSsl(boolean useSsl) {
+            this.useSsl = useSsl;
+            return this;
+        }
+
+        /**
          * Builds and returns a new {@link Token} instance.
          *
          * @return {@link Token} instance
@@ -225,7 +237,7 @@ public final class Token {
          */
         public TokenAsync buildAsync() {
             return new TokenAsync(RpcChannelFactory
-                    .builder(hostName, port)
+                    .builder(hostName, port, useSsl)
                     .withTimeout(timeout)
                     .build());
         }

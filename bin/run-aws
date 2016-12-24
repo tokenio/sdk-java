@@ -19,7 +19,8 @@ echo "Gateway: ${GATEWAY_HOST}"
 echo "Fank: ${BANK_HOST}"
 
 ./gradlew \
-  -DTOKEN_GATEWAY=${GATEWAY_HOST}:9000 \
-  -DTOKEN_BANK=${BANK_HOST}:9100 \
+  -DTOKEN_GATEWAY=${GATEWAY_HOST}:443 \
+  -DTOKEN_BANK=${BANK_HOST}:443 \
+  -DTOKEN_USE_SSL=true \
   cleanTest test
 
