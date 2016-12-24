@@ -1,7 +1,5 @@
 package io.token;
 
-import static java.lang.String.format;
-
 import io.grpc.ManagedChannel;
 import io.token.proto.bankapi.AccountLinkingServiceGrpc;
 import io.token.proto.bankapi.AccountLinkingServiceGrpc.AccountLinkingServiceBlockingStub;
@@ -21,11 +19,8 @@ public final class BankClient {
     private final FankServiceBlockingStub fank;
     private final AccountLinkingServiceBlockingStub accountLinking;
 
-    public BankClient(String hostName, int port) {
-        ManagedChannel channel = RpcChannelFactory.forTarget(format(
-                "dns:///%s:%d/",
-                hostName,
-                port));
+    public BankClient(String hostName, int port, boolean useSsl) {
+        ManagedChannel channel = RpcChannelFactory.builder(hostName, port, useSsl).build();
         this.fank = FankServiceGrpc.newBlockingStub(channel);
         this.accountLinking = AccountLinkingServiceGrpc.newBlockingStub(channel);
     }
