@@ -11,9 +11,7 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.util.Util;
 
 import java.time.Duration;
-import java.util.Collections;
 import java.util.List;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.rules.ExternalResource;
 
 /**
@@ -28,25 +26,29 @@ public class TokenRule extends ExternalResource {
 
     public TokenRule() {
         HostAndPort gateway = HostAndPort
-                .fromString(getHostPortString("TOKEN_GATEWAY", "localhost"))
+                .fromString(getEnvProperty("TOKEN_GATEWAY", "localhost"))
                 .withDefaultPort(9000);
 
         HostAndPort bank = HostAndPort
-                .fromString(getHostPortString("TOKEN_BANK", "localhost"))
+                .fromString(getEnvProperty("TOKEN_BANK", "localhost"))
                 .withDefaultPort(9100);
+
+        boolean useSsl = Boolean.parseBoolean(getEnvProperty("TOKEN_USE_SSL", "false"));
 
         this.bankClient = new BankClient(
                 bank.getHostText(),
-                bank.getPort());
+                bank.getPort(),
+                useSsl);
 
         this.token = Token.builder()
                 .hostName(gateway.getHostText())
                 .port(gateway.getPort())
                 .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
+                .useSsl(useSsl)
                 .build();
     }
 
-    private static String getHostPortString(String name, String defaultValue) {
+    private static String getEnvProperty(String name, String defaultValue) {
         String override = System.getenv(name);
         if (!isNullOrEmpty(override)) {
             return override;

@@ -21,11 +21,11 @@ public final class BankClient {
     private final FankServiceBlockingStub fank;
     private final AccountLinkingServiceBlockingStub accountLinking;
 
-    public BankClient(String hostName, int port) {
-        ManagedChannel channel = RpcChannelFactory.forTarget(format(
-                "dns:///%s:%d/",
+    public BankClient(String hostName, int port, boolean useSsl) {
+        ManagedChannel channel = RpcChannelFactory.builder(
                 hostName,
-                port));
+                port,
+                useSsl).build();
         this.fank = FankServiceGrpc.newBlockingStub(channel);
         this.accountLinking = AccountLinkingServiceGrpc.newBlockingStub(channel);
     }

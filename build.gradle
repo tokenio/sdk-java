@@ -24,7 +24,7 @@ version = '1.0.0'
 ext {
     ver = [
         tokenProto: '1.0.195',
-        tokenRpc: '1.0.32',
+        tokenRpc: '1.0.34',
         tokenSecurity: '1.0.21',
         tokenUtil: '1.0.8',
     ]
@@ -44,4 +44,5 @@ tasks.withType(Test) {
     // Pipe through the properties that we care about to tests.
     systemProperty 'TOKEN_GATEWAY', System.getProperty('TOKEN_GATEWAY', null)
     systemProperty 'TOKEN_BANK', System.getProperty('TOKEN_BANK', null)
+    systemProperty 'TOKEN_USE_SSL', System.getProperty('TOKEN_USE_SSL', null)
 }
