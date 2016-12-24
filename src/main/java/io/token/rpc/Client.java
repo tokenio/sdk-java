@@ -10,6 +10,8 @@ import static java.util.stream.Collectors.joining;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
+import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
@@ -51,6 +53,10 @@ import io.token.proto.gateway.Gateway.GetAddressesRequest;
 import io.token.proto.gateway.Gateway.GetAddressesResponse;
 import io.token.proto.gateway.Gateway.GetBalanceRequest;
 import io.token.proto.gateway.Gateway.GetBalanceResponse;
+import io.token.proto.gateway.Gateway.GetBankInfoRequest;
+import io.token.proto.gateway.Gateway.GetBankInfoResponse;
+import io.token.proto.gateway.Gateway.GetBanksRequest;
+import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
@@ -624,6 +630,32 @@ public final class Client {
                 .setAddressId(addressId)
                 .build())
         ).map(empty -> null);
+    }
+
+    /**
+     * Returns a list of all token enabled banks.
+     *
+     * @return a list of banks
+     */
+    public Observable<List<Bank>> getBanks() {
+        return toObservable(gateway
+                .getBanks(GetBanksRequest.newBuilder()
+                        .build()))
+                .map(GetBanksResponse::getBanksList);
+    }
+
+    /**
+     * Returns linking information for the specified bank id.
+     *
+     * @param bankId the bank id
+     * @return bank linking information
+     */
+    public Observable<BankInfo> getBankInfo(String bankId) {
+        return toObservable(gateway
+                .getBankInfo(GetBankInfoRequest.newBuilder()
+                        .setBankId(bankId)
+                        .build()))
+                .map(GetBankInfoResponse::getInfo);
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(

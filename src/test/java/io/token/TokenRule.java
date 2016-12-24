@@ -21,6 +21,7 @@ import org.junit.rules.ExternalResource;
  * ./gradlew -DTOKEN_GATEWAY=some-ip -DTOKEN_BANK=some-ip test
  */
 public class TokenRule extends ExternalResource {
+    public static final String DEFAULT_BANK_ID = "iron";
     private final Token token;
     private final BankClient bankClient;
 
@@ -97,7 +98,7 @@ public class TokenRule extends ExternalResource {
                 singletonList(bankAccountNumber));
 
         return member
-                .linkAccounts("iron", accountLinkPayloads)
+                .linkAccounts(DEFAULT_BANK_ID, accountLinkPayloads)
                 .get(0);
     }
 
