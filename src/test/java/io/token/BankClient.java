@@ -1,13 +1,11 @@
 package io.token;
 
 import io.grpc.ManagedChannel;
-import io.token.proto.bankapi.AccountLinkingServiceGrpc;
-import io.token.proto.bankapi.AccountLinkingServiceGrpc.AccountLinkingServiceBlockingStub;
-import io.token.proto.bankapi.Banklink.AuthorizeLinkAccountsRequest;
-import io.token.proto.bankapi.Banklink.AuthorizeLinkAccountsResponse;
 import io.token.proto.bankapi.Fank;
+import io.token.proto.bankapi.Fank.AuthorizeLinkAccountsRequest;
 import io.token.proto.bankapi.FankServiceGrpc;
 import io.token.proto.bankapi.FankServiceGrpc.FankServiceBlockingStub;
+import io.token.proto.banklink.Banklink;
 import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
@@ -17,12 +15,10 @@ import java.util.List;
 
 public final class BankClient {
     private final FankServiceBlockingStub fank;
-    private final AccountLinkingServiceBlockingStub accountLinking;
 
     public BankClient(String hostName, int port, boolean useSsl) {
         ManagedChannel channel = RpcChannelFactory.builder(hostName, port, useSsl).build();
         this.fank = FankServiceGrpc.newBlockingStub(channel);
-        this.accountLinking = AccountLinkingServiceGrpc.newBlockingStub(channel);
     }
 
     public Fank.Client addClient(String firstName, String lastName) {
@@ -59,7 +55,7 @@ public final class BankClient {
                 .setClientId(clientId)
                 .addAllAccounts(accountNumbers)
                 .build();
-        AuthorizeLinkAccountsResponse response = accountLinking.authorizeLinkAccounts(request);
-        return response.getAccountLinkPayloadsList();
+        Banklink.AccountLinkingPayloads response = fank.authorizeLinkAccounts(request);
+        return response.getPayloadsList();
     }
 }
