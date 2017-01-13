@@ -117,6 +117,16 @@ public class TransactionsTest {
         assertThat(builder.build().size()).isEqualTo(num);
     }
 
+    @Test
+    public void testBalanceUpdate() {
+        double initialBalance = parseDouble(payerAccount.getBalance().getValue());
+        Token token = token();
+        token = payer.endorseToken(token).getToken();
+        payee.redeemToken(token, 100.0, "USD", null, null);
+        double finalBalance = parseDouble(payerAccount.getBalance().getValue());
+        assertThat(initialBalance).isGreaterThan(finalBalance);
+    }
+
     private Token token() {
         return payer.createToken(
                 1500.0,
