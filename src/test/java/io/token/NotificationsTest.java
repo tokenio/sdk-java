@@ -256,6 +256,7 @@ public class NotificationsTest {
     }
 
     @Test
+    @Ignore("PR-431")
     public void getNotificationTrue() {
         Member member = payerAccount.member();
         String username = RandomStringUtils.randomAlphabetic(30);
@@ -267,5 +268,4 @@ public class NotificationsTest {
         assertThat(member.getNotification(notification.get(0).getId()).getId()).isEqualTo(
                 notification.get(0).getId());
     }
-
 }
