@@ -2,9 +2,11 @@ package io.token.asserts;
 
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
+import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 import io.token.Member;
+import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 
@@ -60,15 +62,21 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
     public TokenAssertion isEndorsedBy(Member... members) {
         return hasKeySignatures(
                 Arrays.stream(members)
-                        .map(member -> member.signer().getKeyId())
+                        .flatMap(member -> member.keys().stream())
+                        .map(SecurityProtos.Key::getId)
                         .collect(toList()),
                 ENDORSED);
+    }
+
+    public TokenAssertion isEndorsedBy(String keyId) {
+        return hasKeySignatures(singletonList(keyId), ENDORSED);
     }
 
     public TokenAssertion isCancelledBy(Member... members) {
         return hasKeySignatures(
                 Arrays.stream(members)
-                        .map(member -> member.signer().getKeyId())
+                        .flatMap(member -> member.keys().stream())
+                        .map(SecurityProtos.Key::getId)
                         .collect(toList()),
                 CANCELLED);
     }
