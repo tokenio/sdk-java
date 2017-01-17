@@ -59,49 +59,40 @@ public class NotificationsTest {
     }
 
     @Test
-    public void sendNotification() {
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
+    public void testSubscribers() {
         String username = payer.usernames().get(0);
         String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
 
         Subscriber subscriber = payer.subscribeToNotifications(target, Platform.IOS);
-        rule.token().notifyLinkAccounts(
+        NotifyStatus res = rule.token().notifyLinkAccounts(
                 username,
                 "BofA",
                 "Bank of America",
                 accountLinkPayloads);
-        rule.token().notifyAddKey(
-                username,
-                "Chrome 52.0",
-                newKey,
-                Level.STANDARD);
-        NotifyStatus res = rule.token().notifyLinkAccountsAndAddKey(
-                username,
-                "BofA",
-                "Bank of America",
-                accountLinkPayloads,
-                "Chrome 52.0",
-                newKey,
-                Level.STANDARD);
-
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = payer.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
-
         payer.unsubscribeFromNotifications(subscriber.getId());
 
         List<Subscriber> subscriberList2 = payer.getSubscribers();
         assertThat(subscriberList2.size()).isEqualTo(0);
-
-        rule.token().notifyAddKey(
-                username,
-                "Chrome 52.0",
-                newKey,
-                Level.STANDARD);
+        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
+        assertThat(payer.getNotifications().size()).isEqualTo(0);
     }
 
     @Test
-    public void sendStepUpNotification() {
+    public void getSubscriber() {
+        String target = Util.generateNonce();
+        Subscriber subscriber = payer.subscribeToNotifications(target, Platform.TEST);
+
+        Subscriber subscriber2 = payer.getSubscriber(subscriber.getId());
+        assertThat(subscriber.getId()).isEqualTo(subscriber2.getId());
+        assertThat(subscriber.getTarget()).isEqualTo(subscriber2.getTarget());
+        assertThat(subscriber.getPlatform()).isEqualTo(subscriber2.getPlatform());
+    }
+
+    @Test
+    public void triggerStepUpTransferNotification() {
         SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
         payer.approveKey(newKey, Level.LOW);
 
@@ -117,69 +108,15 @@ public class NotificationsTest {
                 null);
 
         TokenOperationResult res = memberLow.endorseToken(token);
+
         assertThat(res.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-    }
-
-    @Ignore("Flaky test")
-    @Test
-    public void sendStepUpAccessNotification() {
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
-        payer.approveKey(newKey, Level.LOW);
-
-        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
-        payer.subscribeToNotifications(target, Platform.IOS);
-        payer.approveKey(newKey, Level.LOW);
-        Member memberLow = rule.token().login(payer.memberId(), newKey);
-        Token token = memberLow.createAccessToken(AccessTokenBuilder
-                .create(payee.firstUsername())
-                .forAllAccounts());
-
-        TokenOperationResult res = memberLow.endorseToken(token);
-        assertThat(res.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-    }
-
-    @Test
-    public void sendTransferProcessedNotification() {
-        Account payerAccount = rule.account();
-        Member member = payerAccount.member();
-        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
-        member.subscribeToNotifications(target, Platform.IOS);
-        Token token = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
-
-        Token endorsed = member.endorseToken(token).getToken();
-        payee.redeemToken(endorsed);
-    }
-
-    @Test
-    public void getSubscriber() {
-        String target = Util.generateNonce();
-        Subscriber subscriber = payer.subscribeToNotifications(target, Platform.TEST);
-
-        Subscriber subscriber2 = payer.getSubscriber(subscriber.getId());
-        assertThat(subscriber.getId()).isEqualTo(subscriber2.getId());
-        assertThat(subscriber.getTarget()).isEqualTo(subscriber2.getTarget());
-        assertThat(subscriber.getPlatform()).isEqualTo(subscriber2.getPlatform());
-    }
-
-    @Test
-    public void deliveryTest_TransferProcessed() {
-        Account payerAccount = rule.account();
-        Member member = payerAccount.member();
-        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
-        member.subscribeToNotifications(target, Platform.TEST);
-        member.subscribeToNotifications(target + "1", Platform.TEST);
-        Token token = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
-        Token t2 = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
-        Token endorsed = member.endorseToken(token).getToken();
-        Token endorsed2 = member.endorseToken(t2).getToken();
-        payee.redeemToken(endorsed);
-        payee.redeemToken(endorsed2);
         Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        assertThat(member.getNotifications().size()).isEqualTo(4); // 2 subscribers, 2 transfers
+        assertThat(payer.getNotifications().size()).isEqualTo(1);
+        assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
     }
 
     @Test
-    public void deliveryTest_StepUp() {
+    public void triggerStepUpTransferNotification_twoSubscribers() {
         SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
         payer.approveKey(newKey, Level.LOW);
 
@@ -210,7 +147,88 @@ public class NotificationsTest {
     }
 
     @Test
-    public void deliveryTest_LinkAccounts() {
+    public void triggerStepUpAccessNotification() {
+        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
+        payer.approveKey(newKey, Level.LOW);
+
+        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
+        payer.subscribeToNotifications(target, Platform.IOS);
+        Member memberLow = rule.token().login(payer.memberId(), newKey);
+        Token token = memberLow.createAccessToken(AccessTokenBuilder
+                .create(payee.firstUsername())
+                .forAllAccounts());
+
+        TokenOperationResult res = memberLow.endorseToken(token);
+        assertThat(res.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
+        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
+        assertThat(payer.getNotifications().size()).isEqualTo(1);
+        assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
+    }
+
+
+    @Test
+    public void triggerTransferProcessedNotification() {
+        Account payerAccount = rule.account();
+        Member member = payerAccount.member();
+        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
+        member.subscribeToNotifications(target, Platform.TEST);
+        member.subscribeToNotifications(target + "1", Platform.TEST);
+        Token token = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
+        Token t2 = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
+        Token endorsed = member.endorseToken(token).getToken();
+        Token endorsed2 = member.endorseToken(t2).getToken();
+        payee.redeemToken(endorsed);
+        payee.redeemToken(endorsed2);
+        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
+        assertThat(member.getNotifications().size()).isEqualTo(4); // 2 subscribers, 2 transfers
+    }
+
+
+
+    @Test
+    public void sendNotifications() {
+        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
+        String username = payer.usernames().get(0);
+        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
+
+        payer.subscribeToNotifications(target, Platform.IOS);
+        rule.token().notifyLinkAccounts(
+                username,
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads);
+        rule.token().notifyAddKey(
+                username,
+                "Chrome 52.0",
+                newKey,
+                Level.STANDARD);
+        NotifyStatus res = rule.token().notifyLinkAccountsAndAddKey(
+                username,
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads,
+                "Chrome 52.0",
+                newKey,
+                Level.STANDARD);
+
+        assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
+        rule.token().notifyAddKey(
+                username,
+                "Chrome 52.0",
+                newKey,
+                Level.STANDARD);
+        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
+        assertThat(payer.getNotifications().size()).isEqualTo(4);
+        assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
+        assertThat(payer.getNotifications().get(1).getStatus().equals(DELIVERED));
+        assertThat(payer.getNotifications().get(2).getStatus().equals(DELIVERED));
+        assertThat(payer.getNotifications().get(3).getStatus().equals(DELIVERED));
+    }
+
+
+
+    @Test
+    public void sendLinkAccounts() {
         Account payerAccount = rule.account();
         Member member = payerAccount.member();
         String username = RandomStringUtils.randomAlphabetic(30);
@@ -225,7 +243,7 @@ public class NotificationsTest {
     }
 
     @Test
-    public void deliveryTest_LinkAccountsAndAddKey() {
+    public void sendLinkAccountsAndAddKey() {
         String username = RandomStringUtils.randomAlphabetic(30);
         payer.addUsername(username);
         String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
@@ -262,13 +280,13 @@ public class NotificationsTest {
     }
 
     @Test
-    @Ignore("PR-431")
     public void getNotificationTrue() {
         String username = RandomStringUtils.randomAlphabetic(30);
         payer.addUsername(username);
         String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
         payer.subscribeToNotifications(target, Platform.TEST);
         rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
+        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
         List<Notification> notification = payer.getNotifications();
         assertThat(payer.getNotification(notification.get(0).getId()).getId()).isEqualTo(
                 notification.get(0).getId());
