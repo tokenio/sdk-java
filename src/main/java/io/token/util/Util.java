@@ -2,10 +2,10 @@ package io.token.util;
 
 import static com.google.common.base.Throwables.propagate;
 import static io.token.proto.common.security.SecurityProtos.Key.Algorithm.ED25519;
-import static io.token.security.crypto.EdDsaCrypto.EDDSA;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
+import io.token.security.crypto.CryptoType;
 
 import java.security.NoSuchAlgorithmException;
 
@@ -20,15 +20,15 @@ public interface Util {
     /**
      * Converts String algorithm into proto representation.
      *
-     * @param algorithm the name of the algorithm
+     * @param cryptoType the type of the algorithm
      * @return a proto algorithm
      */
-    static Algorithm toProtoAlgorithm(String algorithm) {
-        switch (algorithm) {
-            case EDDSA :
+    static Algorithm toProtoAlgorithm(CryptoType cryptoType) {
+        switch (cryptoType) {
+            case EDDSA:
                 return ED25519;
             default:
-                throw propagate(new NoSuchAlgorithmException(algorithm));
+                throw propagate(new NoSuchAlgorithmException(cryptoType.toString()));
         }
     }
 }

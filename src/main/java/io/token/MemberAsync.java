@@ -12,8 +12,7 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
-import io.token.proto.common.security.SecurityProtos;
-import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -30,10 +29,9 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Des
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
-import io.token.security.Signer;
-import io.token.security.crypto.CryptoRegistry;
+import io.token.security.keystore.SecretKeyPair;
+import io.token.util.Util;
 
-import java.security.PublicKey;
 import java.util.List;
 import javax.annotation.Nullable;
 import rx.Observable;
@@ -43,7 +41,6 @@ import rx.Observable;
  * and public key pair that is used to perform authentication.
  */
 public final class MemberAsync {
-    private final Signer signer;
     private final Client client;
     private final MemberProtos.Member.Builder member;
 
@@ -51,11 +48,9 @@ public final class MemberAsync {
      * Creates an instance of {@link MemberAsync}.
      *
      * @param member internal member representation, fetched from server
-     * @param signer the signer to be used with this member
      * @param client RPC client used to perform operations against the server
      */
-    MemberAsync(MemberProtos.Member member, Signer signer, Client client) {
-        this.signer = signer;
+    MemberAsync(MemberProtos.Member member, Client client) {
         this.client = client;
         this.member = member.toBuilder();
     }
@@ -76,15 +71,6 @@ public final class MemberAsync {
      */
     public String memberId() {
         return member.getId();
-    }
-
-    /**
-     * Gets {@link Signer} instance.
-     *
-     * @return the signer associated with this member instance
-     */
-    public Signer signer() {
-        return signer;
     }
 
     /**
@@ -110,11 +96,8 @@ public final class MemberAsync {
      *
      * @return list of public keys that are approved for this member
      */
-    public List<PublicKey> publicKeys() {
-        return member.getKeysBuilderList()
-                .stream()
-                .map(this::toPublicKey)
-                .collect(toList());
+    public List<Key> keys() {
+        return member.getKeysList();
     }
 
     /**
@@ -165,15 +148,30 @@ public final class MemberAsync {
     }
 
     /**
+     * Approves a key owned by this member. The key is added to the list
+     * of valid keys for the member.
+     *
+     * @param key key to add to the approved list
+     * @param level key privilege level
+     */
+    public Observable<Void> approveKey(SecretKeyPair key, Key.Level level) {
+        return approveKey(Key.newBuilder()
+                .setId(key.id())
+                .setAlgorithm(Util.toProtoAlgorithm(key.cryptoType()))
+                .setLevel(level)
+                .setPublicKey(key.publicKeyString())
+                .build());
+    }
+
+    /**
      * Approves a public key owned by this member. The key is added to the list
      * of valid keys for the member.
      *
-     * @param publicKey public key to add to the approved list
-     * @param level key security level
+     * @param key key to add to the approved list
      */
-    public Observable<Void> approveKey(PublicKey publicKey, Level level) {
+    public Observable<Void> approveKey(Key key) {
         return client
-                .addKey(member.build(), level, publicKey)
+                .addKey(member.build(), key)
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -627,12 +625,5 @@ public final class MemberAsync {
     @Override
     public String toString() {
         return reflectionToString(this);
-    }
-
-    private PublicKey toPublicKey(SecurityProtos.Key.Builder key) {
-        return CryptoRegistry
-                .getInstance()
-                .cryptoFor(key.getAlgorithm())
-                .toPublicKey(key.getPublicKey());
     }
 }

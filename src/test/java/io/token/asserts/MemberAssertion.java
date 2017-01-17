@@ -1,8 +1,10 @@
 package io.token.asserts;
 
-import io.token.Member;
+import static java.util.stream.Collectors.toList;
 
-import java.security.PublicKey;
+import io.token.Member;
+import io.token.proto.common.security.SecurityProtos.Key;
+
 import java.util.Arrays;
 import java.util.Collection;
 import org.assertj.core.api.AbstractAssert;
@@ -40,15 +42,16 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
         return this;
     }
 
-    public MemberAssertion hasKey(PublicKey publicKey) {
-        Assertions.assertThat(actual.publicKeys()).contains(publicKey);
+    public MemberAssertion hasKey(Key key) {
+        Assertions.assertThat(actual.keys()).contains(key);
         return this;
     }
 
-    public MemberAssertion hasKeys(PublicKey... publicKeys) {
-        Assertions
-                .assertThat(actual.publicKeys())
-                .containsOnlyElementsOf(Arrays.asList(publicKeys));
+    public MemberAssertion hasKey(String keyId) {
+        Assertions.assertThat(actual.keys()
+                .stream()
+                .map(Key::getId)
+                .collect(toList())).contains(keyId);
         return this;
     }
 
@@ -57,7 +60,7 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
     }
 
     public MemberAssertion hasNKeys(int count) {
-        Assertions.assertThat(actual.publicKeys()).hasSize(count);
+        Assertions.assertThat(actual.keys()).hasSize(count);
         return this;
     }
 }
