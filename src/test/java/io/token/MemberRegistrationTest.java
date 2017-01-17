@@ -1,21 +1,19 @@
 package io.token;
 
 import static io.token.asserts.MemberAssertion.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
 import io.token.proto.common.security.SecurityProtos.Key.Level;
-import io.token.security.crypto.Crypto;
-import io.token.security.crypto.EdDsaCrypto;
-import io.token.security.keystore.SecurityConfigHelper;
+import io.token.security.crypto.CryptoType;
+import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
-import java.security.PublicKey;
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class MemberRegistrationTest {
     @Rule public TokenRule rule = new TokenRule();
-    private final Crypto crypto = EdDsaCrypto.getInstance();
 
     @Test
     public void createMember() {
@@ -29,16 +27,29 @@ public class MemberRegistrationTest {
     @Test
     public void loginMember() {
         Member member = rule.member();
-        Member loggedIn = rule.token().login(member.memberId(), member.signer());
+        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
+        member.approveKey(newKey, Level.PRIVILEGED);
+
+        Member loggedIn = rule.token().login(member.memberId(), newKey);
         assertThat(loggedIn)
                 .hasUsernames(member.usernames())
-                .hasOneKey();
+                .hasNKeys(2);
+    }
+
+    @Test
+    public void loginMember_notAuthorized() {
+        Member member = rule.member();
+        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA); // Key is not approved.
+        assertThatExceptionThrownBy(() -> {
+            rule.token().login(member.memberId(), newKey);
+            return 0;
+        }).hasMessageContaining("PERMISSION_DENIED");
     }
 
     @Test
     public void addKey() {
-        PublicKey key2 = crypto.generateKeyPair().getPublic();
-        PublicKey key3 = crypto.generateKeyPair().getPublic();
+        SecretKeyPair key2 = rule.token().createKey(CryptoType.EDDSA);
+        SecretKeyPair key3 = rule.token().createKey(CryptoType.EDDSA);
 
         Member member = rule.member();
         member.approveKey(key2, Level.STANDARD);
@@ -47,23 +58,22 @@ public class MemberRegistrationTest {
         assertThat(member)
                 .hasOneUsername()
                 .hasNKeys(3)
-                .hasKey(key2)
-                .hasKey(key3);
+                .hasKey(key2.id())
+                .hasKey(key3.id());
     }
 
     @Test
     public void removeKey() {
         Member member = rule.member();
 
-        PublicKey publicKey = crypto.generateKeyPair().getPublic();
-        String keyId = SecurityConfigHelper.keyIdFor(publicKey);
+        SecretKeyPair key = rule.token().createKey(CryptoType.EDDSA);
 
-        member.approveKey(publicKey, Level.STANDARD);
+        member.approveKey(key, Level.STANDARD);
         assertThat(member)
                 .hasNKeys(2)
-                .hasKey(publicKey);
+                .hasKey(key.id());
 
-        member.removeKey(keyId);
+        member.removeKey(key.id());
         assertThat(member)
                 .hasOneUsername()
                 .hasOneKey();

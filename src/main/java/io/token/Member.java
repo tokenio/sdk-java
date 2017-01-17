@@ -10,6 +10,7 @@ import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
@@ -19,9 +20,8 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.security.Signer;
+import io.token.security.keystore.SecretKeyPair;
 
-import java.security.PublicKey;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -60,15 +60,6 @@ public final class Member {
     }
 
     /**
-     * Gets the signer instance.
-     *
-     * @return the signer associated with this member instance
-     */
-    public Signer signer() {
-        return async.signer();
-    }
-
-    /**
      * Gets user first username.
      *
      * @return first username owned by the user
@@ -91,8 +82,8 @@ public final class Member {
      *
      * @return list of public keys that are approved for this member
      */
-    public List<PublicKey> publicKeys() {
-        return async.publicKeys();
+    public List<Key> keys() {
+        return async.keys();
     }
 
     /**
@@ -132,14 +123,24 @@ public final class Member {
     }
 
     /**
+     * Approves a secret key owned by this member. The key is added to the list
+     * of valid keys for the member.
+     *
+     * @param key key to add to the approved list
+     * @param level key privilege level
+     */
+    public void approveKey(SecretKeyPair key, Level level) {
+        async.approveKey(key, level).toBlocking().single();
+    }
+
+    /**
      * Approves a public key owned by this member. The key is added to the list
      * of valid keys for the member.
      *
-     * @param publicKey public key to add to the approved list
-     * @param level key security level
+     * @param key key to add to the approved list
      */
-    public void approveKey(PublicKey publicKey, Level level) {
-        async.approveKey(publicKey, level).toBlocking().single();
+    public void approveKey(Key key) {
+        async.approveKey(key).toBlocking().single();
     }
 
     /**

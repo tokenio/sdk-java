@@ -12,6 +12,7 @@ import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
 import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -27,8 +28,8 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.Signer;
 import io.token.security.crypto.Crypto;
 import io.token.security.crypto.CryptoRegistry;
+import io.token.security.keystore.SecretKeyPair;
 
-import java.security.PublicKey;
 import java.util.List;
 import rx.Observable;
 
@@ -78,18 +79,18 @@ public final class UnauthenticatedClient {
      * Adds first key to be linked with the specified member id.
      *
      * @param memberId member id
-     * @param publicKey adds first key to be linked with the member id
+     * @param key adds first key to be linked with the member id
      * @param signer the signer
      * @return member information
      */
-    public Observable<Member> addFirstKey(String memberId, PublicKey publicKey, Signer signer) {
-        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(publicKey);
+    public Observable<Member> addFirstKey(String memberId, SecretKeyPair key, Signer signer) {
+        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(key.cryptoType());
         MemberUpdate update = MemberUpdate.newBuilder()
                 .setMemberId(memberId)
                 .setAddKey(MemberAddKeyOperation.newBuilder()
                         .setLevel(Level.PRIVILEGED)
-                        .setPublicKey(crypto.serialize(publicKey))
-                        .setAlgorithm(toProtoAlgorithm(publicKey.getAlgorithm())))
+                        .setPublicKey(crypto.serialize(key.publicKey()))
+                        .setAlgorithm(toProtoAlgorithm(key.cryptoType())))
                 .build();
         return
                 toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
@@ -135,21 +136,21 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that a key should be added.
      *
      * @param username username of the member
-     * @param publicKey public key to be added
+     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
+     * @param key the that needs an approval
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyAddKey(
             String username,
-            PublicKey publicKey,
-            String name) {
-        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(publicKey);
+            String name,
+            Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(AddKey.newBuilder()
-                                        .setPublicKey(crypto.serialize(publicKey))
                                         .setName(name)
+                                        .setKey(key)
                                         .build())
                                 .build())
                         .build()))
@@ -163,7 +164,8 @@ public final class UnauthenticatedClient {
      * @param bankId id of the bank owning the accounts
      * @param bankName name of the bank owning the accounts
      * @param accountLinkPayloads a list of account payloads to be linked
-     * @param publicKey public key to be added
+     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
+     * @param key the that needs an approval
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
@@ -171,9 +173,8 @@ public final class UnauthenticatedClient {
             String bankId,
             String bankName,
             List<SealedMessage> accountLinkPayloads,
-            PublicKey publicKey,
-            String name) {
-        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(publicKey);
+            String name,
+            Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
@@ -185,14 +186,12 @@ public final class UnauthenticatedClient {
                                                 .addAllAccountLinkPayloads(accountLinkPayloads)
                                                 .build())
                                         .setAddKey(AddKey.newBuilder()
-                                                .setPublicKey(crypto.serialize(publicKey))
                                                 .setName(name)
+                                                .setKey(key)
                                                 .build())
                                         .build())
                                 .build())
                         .build()))
                 .map(NotifyResponse::getStatus);
     }
-
-
 }
