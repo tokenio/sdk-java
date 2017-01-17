@@ -25,7 +25,9 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.junit.AssumptionViolatedException;
 import org.junit.Before;
+import org.junit.ComparisonFailure;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -37,6 +39,7 @@ public class NotificationsTest {
     private final Member payer = payerAccount.member();
     private final Member payee = rule.member();
     private List<SealedMessage> accountLinkPayloads;
+    private static final int NOTIFICATION_TIMEOUT_MS = 5000;
 
     @Before
     public void setup() {
@@ -58,6 +61,7 @@ public class NotificationsTest {
 
     }
 
+
     @Test
     public void testSubscribers() {
         String username = payer.usernames().get(0);
@@ -76,8 +80,9 @@ public class NotificationsTest {
 
         List<Subscriber> subscriberList2 = payer.getSubscribers();
         assertThat(subscriberList2.size()).isEqualTo(0);
-        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        assertThat(payer.getNotifications().size()).isEqualTo(0);
+        runLoop(() -> {
+            assertThat(payer.getNotifications().size()).isEqualTo(0);
+        }, NOTIFICATION_TIMEOUT_MS);
     }
 
     @Test
@@ -108,11 +113,11 @@ public class NotificationsTest {
                 null);
 
         TokenOperationResult res = memberLow.endorseToken(token);
-
         assertThat(res.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        assertThat(payer.getNotifications().size()).isEqualTo(1);
-        assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
+        runLoop(() -> {
+            assertThat(payer.getNotifications().size()).isEqualTo(1);
+            assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
+        }, NOTIFICATION_TIMEOUT_MS);
     }
 
     @Test
@@ -142,8 +147,9 @@ public class NotificationsTest {
         TokenOperationResult res2 = memberLow.endorseToken(token2);
         assertThat(res.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
         assertThat(res2.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        assertThat(payer.getNotifications().size()).isEqualTo(4); // 2 subscribers, 2 step ups
+        runLoop(() -> {
+            assertThat(payer.getNotifications().size()).isEqualTo(4); // 2 subscribers, 2 step ups
+        }, NOTIFICATION_TIMEOUT_MS);
     }
 
     @Test
@@ -160,9 +166,10 @@ public class NotificationsTest {
 
         TokenOperationResult res = memberLow.endorseToken(token);
         assertThat(res.getStatus() == TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        assertThat(payer.getNotifications().size()).isEqualTo(1);
-        assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
+        runLoop(() -> {
+            assertThat(payer.getNotifications().size()).isEqualTo(1);
+            assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
+        }, NOTIFICATION_TIMEOUT_MS);
     }
 
 
@@ -179,8 +186,9 @@ public class NotificationsTest {
         Token endorsed2 = member.endorseToken(t2).getToken();
         payee.redeemToken(endorsed);
         payee.redeemToken(endorsed2);
-        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        assertThat(member.getNotifications().size()).isEqualTo(4); // 2 subscribers, 2 transfers
+        runLoop(() -> {
+            assertThat(member.getNotifications().size()).isEqualTo(4); // 2 subscribers, 2 transfers
+        }, NOTIFICATION_TIMEOUT_MS);
     }
 
 
@@ -192,17 +200,17 @@ public class NotificationsTest {
         String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
 
         payer.subscribeToNotifications(target, Platform.IOS);
-        rule.token().notifyLinkAccounts(
+        NotifyStatus res1 = rule.token().notifyLinkAccounts(
                 username,
                 "BofA",
                 "Bank of America",
                 accountLinkPayloads);
-        rule.token().notifyAddKey(
+        NotifyStatus res2 = rule.token().notifyAddKey(
                 username,
                 "Chrome 52.0",
                 newKey,
                 Level.STANDARD);
-        NotifyStatus res = rule.token().notifyLinkAccountsAndAddKey(
+        NotifyStatus res3 = rule.token().notifyLinkAccountsAndAddKey(
                 username,
                 "BofA",
                 "Bank of America",
@@ -211,18 +219,21 @@ public class NotificationsTest {
                 newKey,
                 Level.STANDARD);
 
-        assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
+        assertThat(res1).isEqualTo(NotifyStatus.ACCEPTED);
+        assertThat(res2).isEqualTo(NotifyStatus.ACCEPTED);
+        assertThat(res3).isEqualTo(NotifyStatus.ACCEPTED);
         rule.token().notifyAddKey(
                 username,
                 "Chrome 52.0",
                 newKey,
                 Level.STANDARD);
-        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        assertThat(payer.getNotifications().size()).isEqualTo(4);
-        assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
-        assertThat(payer.getNotifications().get(1).getStatus().equals(DELIVERED));
-        assertThat(payer.getNotifications().get(2).getStatus().equals(DELIVERED));
-        assertThat(payer.getNotifications().get(3).getStatus().equals(DELIVERED));
+        runLoop(() -> {
+            assertThat(payer.getNotifications().size()).isEqualTo(4);
+            assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
+            assertThat(payer.getNotifications().get(1).getStatus().equals(DELIVERED));
+            assertThat(payer.getNotifications().get(2).getStatus().equals(DELIVERED));
+            assertThat(payer.getNotifications().get(3).getStatus().equals(DELIVERED));
+        }, NOTIFICATION_TIMEOUT_MS);
     }
 
 
@@ -238,8 +249,9 @@ public class NotificationsTest {
         member.subscribeToNotifications(target + "1", Platform.TEST);
 
         rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
-        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        assertThat(member.getNotifications().size()).isEqualTo(2); // 2 subscribers, 2 step ups
+        runLoop(() -> {
+            assertThat(member.getNotifications().size()).isEqualTo(2); // 2 subscribers, 2 step ups
+        }, NOTIFICATION_TIMEOUT_MS)3;
     }
 
     @Test
@@ -260,10 +272,11 @@ public class NotificationsTest {
                         "Chrome",
                         newKey,
                         Level.STANDARD);
-        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        assertThat(payer.getNotifications().size()).isEqualTo(2); // 2 subscribers, 2 notifications
-        assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
-        assertThat(payer.getNotifications().get(1).getStatus().equals(DELIVERED));
+        runLoop(() -> {
+            assertThat(payer.getNotifications().size()).isEqualTo(2); // 2 subscribers, 2 notifications
+            assertThat(payer.getNotifications().get(0).getStatus().equals(DELIVERED));
+            assertThat(payer.getNotifications().get(1).getStatus().equals(DELIVERED));
+        }, NOTIFICATION_TIMEOUT_MS);
     }
 
     @Test
@@ -286,9 +299,29 @@ public class NotificationsTest {
         String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
         payer.subscribeToNotifications(target, Platform.TEST);
         rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
-        Uninterruptibles.sleepUninterruptibly(500, TimeUnit.MILLISECONDS);
-        List<Notification> notification = payer.getNotifications();
-        assertThat(payer.getNotification(notification.get(0).getId()).getId()).isEqualTo(
-                notification.get(0).getId());
+
+        runLoop(() -> {
+            List<Notification> notifications = payer.getNotifications();
+            assertThat(notifications.size()).isGreaterThan(0);
+            assertThat(payer.getNotification(notifications.get(0).getId()).getId()).isEqualTo(
+                    notifications.get(0).getId());
+        }, NOTIFICATION_TIMEOUT_MS);
     }
+
+    private void runLoop(Runnable function, long timeoutMs) {
+        long start = System.currentTimeMillis();
+        int waitTimeMs = 1;
+        while (System.currentTimeMillis() - start < timeoutMs) {
+            try {
+                function.run();
+            } catch (AssertionError e) {
+                // Notification not delivered yet
+                waitTimeMs *= 2;
+                Uninterruptibles.sleepUninterruptibly(waitTimeMs, TimeUnit.MILLISECONDS);
+                continue;
+            }
+            return;
+        }
+    }
+
 }
