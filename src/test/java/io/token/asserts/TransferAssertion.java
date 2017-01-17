@@ -56,7 +56,8 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
 
     public TransferAssertion isSignedBy(Member... members) {
         return hasKeySignatures(Arrays.stream(members)
-                .map(member -> member.signer().getKeyId())
+                .flatMap(member -> member.keys().stream())
+                .map(SecurityProtos.Key::getId)
                 .collect(toList()));
     }
 

@@ -1,21 +1,17 @@
 package io.token;
 
-import static java.util.Collections.singletonList;
-
 import io.grpc.ManagedChannel;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
-import io.token.security.SecretKeyStore;
 import io.token.security.Signer;
-import io.token.security.crypto.Crypto;
-import io.token.security.crypto.EdDsaCrypto;
-import io.token.security.keystore.InMemorySecretKeyStore;
+import io.token.security.crypto.CryptoRegistry;
+import io.token.security.crypto.CryptoType;
+import io.token.security.keystore.SecretKeyPair;
 
-import java.security.KeyPair;
-import java.security.PublicKey;
 import java.util.List;
 import rx.Observable;
 
@@ -62,18 +58,17 @@ public final class TokenAsync {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(String username) {
-        Crypto crypto = EdDsaCrypto.getInstance();
-        KeyPair keyPair = crypto.generateKeyPair();
-        SecretKeyStore keyStore = new InMemorySecretKeyStore(keyPair);
-        Signer signer = keyStore.createSigner();
+        SecretKeyPair keyPair = SecretKeyPair.create(CryptoType.EDDSA);
+        Signer signer = CryptoRegistry.getInstance()
+                .cryptoFor(keyPair.cryptoType())
+                .signer(keyPair.id(), keyPair.privateKey());
 
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-
         return unauthenticated
                 .createMemberId()
                 .flatMap(memberId -> unauthenticated.addFirstKey(
                         memberId,
-                        keyPair.getPublic(),
+                        keyPair,
                         signer))
                 .flatMap(member -> {
                     Client client = ClientFactory.authenticated(
@@ -83,7 +78,7 @@ public final class TokenAsync {
                             signer);
                     return client
                             .addUsername(member, username)
-                            .map(m -> new MemberAsync(m, signer, client));
+                            .map(m -> new MemberAsync(m, client));
                 });
     }
 
@@ -91,28 +86,36 @@ public final class TokenAsync {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
-     * @param signer the signer to use
+     * @param key key to login with
      * @return logged in member
      */
-    public Observable<MemberAsync> login(String memberId, Signer signer) {
+    public Observable<MemberAsync> login(String memberId, SecretKeyPair key) {
+        Signer signer = CryptoRegistry
+                .getInstance()
+                .cryptoFor(key.cryptoType())
+                .signer(key.id(), key.privateKey());
         Client client = ClientFactory.authenticated(channel, memberId, null, signer);
         return client
                 .getMember()
-                .map(member -> new MemberAsync(member, signer, client));
+                .map(member -> new MemberAsync(member, client));
     }
 
     /**
      * Logs in an existing member to the system, using an username.
      *
      * @param username username
-     * @param signer the signer to use
+     * @param key key to use to login
      * @return logged in member
      */
-    public Observable<MemberAsync> loginWithUsername(String username, Signer signer) {
+    public Observable<MemberAsync> loginWithUsername(String username, SecretKeyPair key) {
+        Signer signer = CryptoRegistry
+                .getInstance()
+                .cryptoFor(key.cryptoType())
+                .signer(key.id(), key.privateKey());
         Client client = ClientFactory.authenticated(channel, null, username, signer);
         return client
                 .getMember()
-                .map(member -> new MemberAsync(member, signer, client));
+                .map(member -> new MemberAsync(member, client));
     }
 
     /**
@@ -138,16 +141,16 @@ public final class TokenAsync {
      * Notifies to add a key.
      *
      * @param username username to notify
-     * @param publicKey public key to add
+     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
+     * @param key key that needs an approval
      * @return status of the notification
      */
     public Observable<NotifyStatus> notifyAddKey(
             String username,
-            PublicKey publicKey,
-            String name) {
+            String name,
+            Key key) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
-                .notifyAddKey(username, publicKey, name);
+        return unauthenticated.notifyAddKey(username, name, key);
     }
 
     /**
@@ -157,7 +160,8 @@ public final class TokenAsync {
      * @param bankId bank ID to link
      * @param bankName bank name to link
      * @param accountLinkPayloads a list of account payloads to be linked
-     * @param publicKey public key to add
+     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
+     * @param key the that needs an approval
      * @return status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
@@ -165,16 +169,15 @@ public final class TokenAsync {
             String bankId,
             String bankName,
             List<SealedMessage> accountLinkPayloads,
-            PublicKey publicKey,
-            String name) {
+            String name,
+            Key key) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
-                .notifyLinkAccountsAndAddKey(
-                        username,
-                        bankId,
-                        bankName,
-                        accountLinkPayloads,
-                        publicKey,
-                        name);
+        return unauthenticated.notifyLinkAccountsAndAddKey(
+                username,
+                bankId,
+                bankName,
+                accountLinkPayloads,
+                name,
+                key);
     }
 }

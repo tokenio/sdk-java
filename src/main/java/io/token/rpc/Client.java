@@ -4,7 +4,6 @@ import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.rpc.util.Converters.toObservable;
-import static io.token.util.Util.toProtoAlgorithm;
 import static java.util.stream.Collectors.joining;
 
 import io.token.proto.PagedList;
@@ -20,7 +19,7 @@ import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
-import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Platform;
@@ -90,10 +89,7 @@ import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.Signer;
-import io.token.security.crypto.Crypto;
-import io.token.security.crypto.CryptoRegistry;
 
-import java.security.PublicKey;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
@@ -156,22 +152,17 @@ public final class Client {
      * Adds a public key to the list of the approved keys.
      *
      * @param member member to add the key to
-     * @param level key level
-     * @param publicKey public key to add to the approved list
+     * @param key key to add to the approved list
      * @return member information
      */
-    public Observable<Member> addKey(
-            Member member,
-            Level level,
-            PublicKey publicKey) {
-        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(publicKey);
+    public Observable<Member> addKey(Member member, Key key) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
                 .setAddKey(MemberAddKeyOperation.newBuilder()
-                        .setPublicKey(crypto.serialize(publicKey))
-                        .setAlgorithm(toProtoAlgorithm(publicKey.getAlgorithm()))
-                        .setLevel(level))
+                        .setPublicKey(key.getPublicKey())
+                        .setAlgorithm(key.getAlgorithm())
+                        .setLevel(key.getLevel()))
                 .build());
     }
 

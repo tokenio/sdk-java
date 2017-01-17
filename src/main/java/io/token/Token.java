@@ -1,11 +1,13 @@
 package io.token;
 
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
-import io.token.security.Signer;
+import io.token.security.crypto.CryptoType;
+import io.token.security.keystore.SecretKeyPair;
+import io.token.util.Util;
 
-import java.security.PublicKey;
 import java.time.Duration;
 import java.util.List;
 
@@ -73,14 +75,24 @@ public final class Token {
     }
 
     /**
+     * Creates a new key that will be used to represent a member account.
+     *
+     * @param type key algorithm type
+     * @return newly created key
+     */
+    public SecretKeyPair createKey(CryptoType type) {
+        return SecretKeyPair.create(type);
+    }
+
+    /**
      * Logs in an existing member to the system.
      *
      * @param memberId member id
-     * @param signer the signer to use
+     * @param key key to login with
      * @return logged in member
      */
-    public Member login(String memberId, Signer signer) {
-        return async.login(memberId, signer)
+    public Member login(String memberId, SecretKeyPair key) {
+        return async.login(memberId, key)
                 .map(MemberAsync::sync)
                 .toBlocking()
                 .single();
@@ -90,11 +102,11 @@ public final class Token {
      * Logs in an existing member to the system, using the username.
      *
      * @param username member id
-     * @param signer the signer to use
+     * @param key key to login with
      * @return logged in member
      */
-    public Member loginWithUsername(String username, Signer signer) {
-        return async.loginWithUsername(username, signer)
+    public Member loginWithUsername(String username, SecretKeyPair key) {
+        return async.loginWithUsername(username, key)
                 .map(MemberAsync::sync)
                 .toBlocking()
                 .single();
@@ -118,17 +130,30 @@ public final class Token {
                 .single();
     }
 
+
     /**
      * Notifies to add a key.
      *
      * @param username username to notify
-     * @param publicKey public key to add
+     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
+     * @param key key that needs an approval
+     * @param level requested key level
      * @return status of the notification
      */
-    public NotifyStatus notifyAddKey(String username, PublicKey publicKey, String name) {
-        return async.notifyAddKey(username, publicKey, name)
-                .toBlocking()
-                .single();
+    public NotifyStatus notifyAddKey(
+            String username,
+            String name,
+            SecretKeyPair key,
+            Key.Level level) {
+        return async.notifyAddKey(
+                username,
+                name,
+                Key.newBuilder()
+                        .setId(key.id())
+                        .setAlgorithm(Util.toProtoAlgorithm(key.cryptoType()))
+                        .setLevel(level)
+                        .setPublicKey(key.publicKeyString())
+                        .build()).toBlocking() .single();
     }
 
     /**
@@ -138,7 +163,9 @@ public final class Token {
      * @param bankId bank ID to link
      * @param bankName bank name to link
      * @param accountLinkPayloads a list of account payloads to be linked
-     * @param publicKey public key to add
+     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
+     * @param key key that needs an approval
+     * @param level requested key level
      * @return status of the notification
      */
     public NotifyStatus notifyLinkAccountsAndAddKey(
@@ -146,17 +173,21 @@ public final class Token {
             String bankId,
             String bankName,
             List<SealedMessage> accountLinkPayloads,
-            PublicKey publicKey,
-            String name) {
+            String name,
+            SecretKeyPair key,
+            Key.Level level) {
         return async.notifyLinkAccountsAndAddKey(
                 username,
                 bankId,
                 bankName,
                 accountLinkPayloads,
-                publicKey,
-                name)
-                .toBlocking()
-                .single();
+                name,
+                Key.newBuilder()
+                        .setId(key.id())
+                        .setAlgorithm(Util.toProtoAlgorithm(key.cryptoType()))
+                        .setLevel(level)
+                        .setPublicKey(key.publicKeyString())
+                        .build()).toBlocking().single();
     }
 
     /**
