@@ -18,12 +18,11 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
+import io.token.proto.gateway.Gateway.GetMemberIdRequest;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
-import io.token.proto.gateway.Gateway.UsernameExistsRequest;
-import io.token.proto.gateway.Gateway.UsernameExistsResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.Signer;
 import io.token.security.crypto.Crypto;
@@ -55,10 +54,11 @@ public final class UnauthenticatedClient {
      * @return {@code true} if username already exists, {@code false} otherwise
      */
     public Observable<Boolean> usernameExists(String username) {
-        return toObservable(gateway.usernameExists(UsernameExistsRequest.newBuilder()
-                .setUsername(username)
-                .build()))
-                .map(UsernameExistsResponse::getExists);
+        return toObservable(
+                gateway.getMemberId(GetMemberIdRequest.newBuilder()
+                        .setUsername(username)
+                        .build()))
+                .map(res -> !res.getMemberId().isEmpty());
     }
 
     /**
