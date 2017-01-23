@@ -3,6 +3,7 @@ package io.token.rpc;
 import static io.token.rpc.util.Converters.toObservable;
 import static io.token.util.Util.generateNonce;
 
+import com.google.common.base.Strings;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
@@ -57,6 +58,20 @@ public final class UnauthenticatedClient {
                         .setUsername(username)
                         .build()))
                 .map(res -> !res.getMemberId().isEmpty());
+    }
+
+    /**
+     * Looks up member id for a given username.
+     *
+     * @param username username to check
+     * @return member id if username already exists, null otherwise
+     */
+    public Observable<String> getMemberId(String username) {
+        return toObservable(
+                gateway.getMemberId(GetMemberIdRequest.newBuilder()
+                        .setUsername(username)
+                        .build()))
+                .map(res -> Strings.emptyToNull(res.getMemberId()));
     }
 
     /**

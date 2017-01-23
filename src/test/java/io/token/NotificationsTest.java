@@ -17,8 +17,6 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-import io.token.security.crypto.CryptoType;
-import io.token.security.keystore.SecretKeyPair;
 import io.token.security.sealed.NoopSealedMessageEncrypter;
 import io.token.util.Util;
 
@@ -178,8 +176,9 @@ public class NotificationsTest {
 
     @Test
     public void sendNotifications() {
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
         String username = payer.firstUsername();
+
+        DeviceInfo deviceInfo = rule.token().provisionDevice(username);
 
         payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
         NotifyStatus res1 = rule.token().notifyLinkAccounts(
@@ -190,16 +189,14 @@ public class NotificationsTest {
         NotifyStatus res2 = rule.token().notifyAddKey(
                 username,
                 "Chrome 52.0",
-                newKey,
-                Level.STANDARD);
+                deviceInfo.getKeys().get(0));
         NotifyStatus res3 = rule.token().notifyLinkAccountsAndAddKey(
                 username,
                 "BofA",
                 "Bank of America",
                 accountLinkPayloads,
                 "Chrome 52.0",
-                newKey,
-                Level.STANDARD);
+                deviceInfo.getKeys().get(0));
 
         assertThat(res1).isEqualTo(NotifyStatus.ACCEPTED);
         assertThat(res2).isEqualTo(NotifyStatus.ACCEPTED);
@@ -207,8 +204,7 @@ public class NotificationsTest {
         rule.token().notifyAddKey(
                 username,
                 "Chrome 52.0",
-                newKey,
-                Level.STANDARD);
+                deviceInfo.getKeys().get(0));
 
         waitUntil(() -> assertThat(payer.getNotifications())
                 .extracting(Notification::getStatus)
@@ -234,7 +230,7 @@ public class NotificationsTest {
     public void sendLinkAccountsAndAddKey() {
         payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
 
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
+        DeviceInfo deviceInfo = rule.token().provisionDevice(payer.firstUsername());
         rule
                 .token()
                 .notifyLinkAccountsAndAddKey(payer.firstUsername(),
@@ -242,8 +238,7 @@ public class NotificationsTest {
                         "Bank of America",
                         accountLinkPayloads,
                         "Chrome",
-                        newKey,
-                        Level.STANDARD);
+                        deviceInfo.getKeys().get(0));
 
         waitUntil(() -> assertThat(payer.getNotifications())
                 .extracting(Notification::getStatus)

@@ -1,8 +1,10 @@
 package io.token;
 
+import static io.grpc.Status.NOT_FOUND;
 import static java.util.Arrays.asList;
 
 import io.grpc.ManagedChannel;
+import io.grpc.StatusRuntimeException;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
@@ -82,6 +84,33 @@ public final class TokenAsync {
                     return client
                             .addUsername(member, username)
                             .map(m -> new MemberAsync(m, client));
+                });
+    }
+
+    /**
+     * Provisions a new device for an existing user. The call generates a set
+     * of keys that are returned back. The keys need to be approved by an
+     * existing device/keys.
+     *
+     * @param username member id to provision the device for
+     * @return device information
+     */
+    public Observable<DeviceInfo> provisionDevice(String username) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated
+                .getMemberId(username)
+                .map(memberId -> {
+                    if (memberId == null) {
+                        throw new StatusRuntimeException(NOT_FOUND);
+                    }
+
+                    CryptoEngine crypto = cryptoFactory.create(memberId);
+                    return new DeviceInfo(
+                            memberId,
+                            asList(
+                                    crypto.generateKey(Key.Level.PRIVILEGED),
+                                    crypto.generateKey(Key.Level.STANDARD),
+                                    crypto.generateKey(Key.Level.LOW)));
                 });
     }
 
