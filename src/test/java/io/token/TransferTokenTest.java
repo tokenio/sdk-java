@@ -5,12 +5,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableSet;
 import io.token.proto.PagedList;
-import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
-import io.token.security.crypto.CryptoType;
-import io.token.security.keystore.SecretKeyPair;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -81,11 +79,11 @@ public class TransferTokenTest {
     @Test
     public void endorseTransferToken() {
         Token token = payer.createToken(100.0, "USD", payerAccount.id());
-        TokenOperationResult result = payer.endorseToken(token);
+        TokenOperationResult result = payer.endorseToken(token, Key.Level.STANDARD);
         assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
         assertThat(result.getToken())
                 .hasNSignatures(2)
-                .isEndorsedBy(payer)
+                .isEndorsedBy(payer, Key.Level.STANDARD)
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD");
@@ -99,7 +97,7 @@ public class TransferTokenTest {
 
         assertThat(result.getToken())
                 .hasNSignatures(2)
-                .isCancelledBy(payer)
+                .isCancelledBy(payer, Key.Level.LOW)
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD");
@@ -108,16 +106,12 @@ public class TransferTokenTest {
     @Test
     public void endorseTransferTokenMoreSignaturesNeeded() {
         Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        TokenOperationResult result = payer.endorseToken(token, Key.Level.LOW);
 
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
-        payer.approveKey(newKey, Level.LOW);
-        Member low = rule.token().login(payer.memberId(), newKey);
-
-        TokenOperationResult result = low.endorseToken(token);
         assertThat(result.getStatus()).isEqualTo(Status.MORE_SIGNATURES_NEEDED);
         assertThat(result.getToken())
                 .hasNSignatures(1)
-                .isEndorsedBy(newKey.id())
+                .isEndorsedBy(payer, Key.Level.LOW)
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD");

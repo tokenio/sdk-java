@@ -4,6 +4,7 @@ import static io.token.asserts.TransferAssertion.assertThat;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.proto.PagedList;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 
@@ -20,32 +21,32 @@ public class TransferRedemptionTest {
     @Test
     public void redeemToken() {
         Token token = token();
-        token = payer.endorseToken(token).getToken();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(token);
         assertThat(transfer)
                 .hasNoAmount()
                 .hasNSignatures(2)
-                .isSignedBy(payee);
+                .isSignedBy(payee, Key.Level.LOW);
     }
 
     @Test
     public void redeemToken_withParams() {
         Token token = token();
-        token = payer.endorseToken(token).getToken();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(token, 99.0, "USD", "transfer description");
         assertThat(transfer)
                 .hasAmount(99.0)
                 .hasCurrency("USD")
                 .hasNSignatures(2)
-                .isSignedBy(payee);
+                .isSignedBy(payee, Key.Level.LOW);
     }
 
     @Test
     public void getTransfer() {
         Token token = token();
-        token = payer.endorseToken(token).getToken();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(token);
         Transfer lookedUp = payer.getTransfer(transfer.getId());
@@ -55,7 +56,7 @@ public class TransferRedemptionTest {
     @Test
     public void getTransfers() {
         Token token = token();
-        token = payer.endorseToken(token).getToken();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Transfer transfer1 = payee.redeemToken(token, 10.0, "USD", "first");
         Transfer transfer2 = payee.redeemToken(token, 20.0, "USD", "second");

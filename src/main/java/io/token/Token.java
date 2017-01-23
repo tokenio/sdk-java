@@ -4,6 +4,10 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
+import io.token.security.CryptoEngineFactory;
+import io.token.security.InMemoryKeyStore;
+import io.token.security.KeyStore;
+import io.token.security.TokenCryptoEngineFactory;
 import io.token.security.crypto.CryptoType;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
@@ -88,25 +92,10 @@ public final class Token {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
-     * @param key key to login with
      * @return logged in member
      */
-    public Member login(String memberId, SecretKeyPair key) {
-        return async.login(memberId, key)
-                .map(MemberAsync::sync)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Logs in an existing member to the system, using the username.
-     *
-     * @param username member id
-     * @param key key to login with
-     * @return logged in member
-     */
-    public Member loginWithUsername(String username, SecretKeyPair key) {
-        return async.loginWithUsername(username, key)
+    public Member login(String memberId) {
+        return async.login(memberId)
                 .map(MemberAsync::sync)
                 .toBlocking()
                 .single();
@@ -267,10 +256,14 @@ public final class Token {
          * @return {@link Token} instance
          */
         public TokenAsync buildAsync() {
-            return new TokenAsync(RpcChannelFactory
-                    .builder(hostName, port, useSsl)
-                    .withTimeout(timeout)
-                    .build());
+            KeyStore keyStore = new InMemoryKeyStore();
+            CryptoEngineFactory cryptoFactory = new TokenCryptoEngineFactory(keyStore);
+            return new TokenAsync(
+                    RpcChannelFactory
+                            .builder(hostName, port, useSsl)
+                            .withTimeout(timeout)
+                            .build(),
+                    cryptoFactory);
         }
     }
 }
