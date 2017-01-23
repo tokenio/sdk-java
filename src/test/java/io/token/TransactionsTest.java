@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.google.common.collect.ImmutableSet;
 import io.token.asserts.TransactionAssertion;
 import io.token.proto.PagedList;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -34,7 +35,7 @@ public class TransactionsTest {
     @Test
     public void getTransaction() {
         Token token = token();
-        token = payer.endorseToken(token).getToken();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         Transfer transfer = payee.redeemToken(token, 100.0, "USD", null, null);
 
         Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
@@ -48,7 +49,7 @@ public class TransactionsTest {
     @Test
     public void getTransactions() {
         Token token = token();
-        token = payer.endorseToken(token).getToken();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Destination destination = Destination.newBuilder()
                 .setIban(DestinationIban.getDefaultInstance())
@@ -99,7 +100,7 @@ public class TransactionsTest {
     @Test
     public void getTransactionsPaged() {
         Token token = token();
-        token = payer.endorseToken(token).getToken();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         int num = 14;
         for (int i = 0; i < num; i++) {
@@ -121,7 +122,7 @@ public class TransactionsTest {
     public void testBalanceUpdate() {
         double initialBalance = parseDouble(payerAccount.getBalance().getValue());
         Token token = token();
-        token = payer.endorseToken(token).getToken();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         payee.redeemToken(token, 100.0, "USD", null, null);
         double finalBalance = parseDouble(payerAccount.getBalance().getValue());
         assertThat(initialBalance).isGreaterThan(finalBalance);

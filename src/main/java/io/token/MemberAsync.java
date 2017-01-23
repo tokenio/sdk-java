@@ -468,10 +468,11 @@ public final class MemberAsync {
      * with the token.
      *
      * @param token token to endorse
+     * @param keyLevel key level to be used to endorse the token
      * @return result of endorse token
      */
-    public Observable<TokenOperationResult> endorseToken(Token token) {
-        return client.endorseToken(token);
+    public Observable<TokenOperationResult> endorseToken(Token token, Key.Level keyLevel) {
+        return client.endorseToken(token, keyLevel);
     }
 
     /**

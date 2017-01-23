@@ -411,10 +411,11 @@ public final class Member {
      * with the token.
      *
      * @param token token to endorse
+     * @param keyLevel key level to be used to endorse the token
      * @return result of endorse token
      */
-    public TokenOperationResult endorseToken(Token token) {
-        return async.endorseToken(token).toBlocking().single();
+    public TokenOperationResult endorseToken(Token token, Key.Level keyLevel) {
+        return async.endorseToken(token, keyLevel).toBlocking().single();
     }
 
     /**

@@ -1,5 +1,7 @@
 package io.token;
 
+import static java.util.Arrays.asList;
+
 import io.grpc.ManagedChannel;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -7,10 +9,9 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
+import io.token.security.CryptoEngine;
+import io.token.security.CryptoEngineFactory;
 import io.token.security.Signer;
-import io.token.security.crypto.CryptoRegistry;
-import io.token.security.crypto.CryptoType;
-import io.token.security.keystore.SecretKeyPair;
 
 import java.util.List;
 import rx.Observable;
@@ -25,9 +26,11 @@ import rx.Observable;
  */
 public final class TokenAsync {
     private final ManagedChannel channel;
+    private final CryptoEngineFactory cryptoFactory;
 
-    TokenAsync(ManagedChannel channel) {
+    TokenAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory) {
         this.channel = channel;
+        this.cryptoFactory = cryptoFactory;
     }
 
     /**
@@ -58,24 +61,24 @@ public final class TokenAsync {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(String username) {
-        SecretKeyPair keyPair = SecretKeyPair.create(CryptoType.EDDSA);
-        Signer signer = CryptoRegistry.getInstance()
-                .cryptoFor(keyPair.cryptoType())
-                .signer(keyPair.id(), keyPair.privateKey());
-
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId()
-                .flatMap(memberId -> unauthenticated.addFirstKey(
-                        memberId,
-                        keyPair,
-                        signer))
+                .flatMap(memberId -> {
+                    CryptoEngine crypto = cryptoFactory.create(memberId);
+                    List<Key> keys = asList(
+                            crypto.generateKey(Key.Level.PRIVILEGED),
+                            crypto.generateKey(Key.Level.STANDARD),
+                            crypto.generateKey(Key.Level.LOW));
+                    Signer signer = crypto.createSigner(Key.Level.PRIVILEGED);
+                    return unauthenticated.addKeys(memberId, keys, signer);
+                })
                 .flatMap(member -> {
+                    CryptoEngine crypto = cryptoFactory.create(member.getId());
                     Client client = ClientFactory.authenticated(
                             channel,
                             member.getId(),
-                            null,
-                            signer);
+                            crypto);
                     return client
                             .addUsername(member, username)
                             .map(m -> new MemberAsync(m, client));
@@ -86,33 +89,11 @@ public final class TokenAsync {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
-     * @param key key to login with
      * @return logged in member
      */
-    public Observable<MemberAsync> login(String memberId, SecretKeyPair key) {
-        Signer signer = CryptoRegistry
-                .getInstance()
-                .cryptoFor(key.cryptoType())
-                .signer(key.id(), key.privateKey());
-        Client client = ClientFactory.authenticated(channel, memberId, null, signer);
-        return client
-                .getMember()
-                .map(member -> new MemberAsync(member, client));
-    }
-
-    /**
-     * Logs in an existing member to the system, using an username.
-     *
-     * @param username username
-     * @param key key to use to login
-     * @return logged in member
-     */
-    public Observable<MemberAsync> loginWithUsername(String username, SecretKeyPair key) {
-        Signer signer = CryptoRegistry
-                .getInstance()
-                .cryptoFor(key.cryptoType())
-                .signer(key.id(), key.privateKey());
-        Client client = ClientFactory.authenticated(channel, null, username, signer);
+    public Observable<MemberAsync> login(String memberId) {
+        CryptoEngine crypto = cryptoFactory.create(memberId);
+        Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client
                 .getMember()
                 .map(member -> new MemberAsync(member, client));

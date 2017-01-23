@@ -1,7 +1,6 @@
 package io.token;
 
 import static io.token.asserts.MemberAssertion.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.security.crypto.CryptoType;
@@ -21,29 +20,16 @@ public class MemberRegistrationTest {
         Member member = rule.token().createMember(username);
         assertThat(member)
                 .hasUsername(username)
-                .hasOneKey();
+                .hasNKeys(3);
     }
 
     @Test
     public void loginMember() {
         Member member = rule.member();
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
-        member.approveKey(newKey, Level.PRIVILEGED);
-
-        Member loggedIn = rule.token().login(member.memberId(), newKey);
+        Member loggedIn = rule.token().login(member.memberId());
         assertThat(loggedIn)
                 .hasUsernames(member.usernames())
-                .hasNKeys(2);
-    }
-
-    @Test
-    public void loginMember_notAuthorized() {
-        Member member = rule.member();
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA); // Key is not approved.
-        assertThatExceptionThrownBy(() -> {
-            rule.token().login(member.memberId(), newKey);
-            return 0;
-        }).hasMessageContaining("PERMISSION_DENIED");
+                .hasNKeys(3);
     }
 
     @Test
@@ -57,7 +43,7 @@ public class MemberRegistrationTest {
 
         assertThat(member)
                 .hasOneUsername()
-                .hasNKeys(3)
+                .hasNKeys(3 + 2)
                 .hasKey(key2.id())
                 .hasKey(key3.id());
     }
@@ -70,13 +56,13 @@ public class MemberRegistrationTest {
 
         member.approveKey(key, Level.STANDARD);
         assertThat(member)
-                .hasNKeys(2)
+                .hasNKeys(4)
                 .hasKey(key.id());
 
         member.removeKey(key.id());
         assertThat(member)
                 .hasOneUsername()
-                .hasOneKey();
+                .hasNKeys(3);
     }
 
     @Test
@@ -91,7 +77,7 @@ public class MemberRegistrationTest {
 
         assertThat(member)
                 .hasUsernames(username1, username2, username3)
-                .hasOneKey();
+                .hasNKeys(3);
     }
 
     @Test
@@ -107,12 +93,14 @@ public class MemberRegistrationTest {
         member.removeUsername(username2);
         assertThat(member)
                 .hasUsernames(username1)
-                .hasOneKey();
+                .hasNKeys(3);
     }
 
     @Test
     public void usernameDoesNotExist() {
-        Assertions.assertThat(rule.token().usernameExists("john" + Util.generateNonce())).isFalse();
+        Assertions
+                .assertThat(rule.token().usernameExists("john" + Util.generateNonce()))
+                .isFalse();
     }
 
     @Test

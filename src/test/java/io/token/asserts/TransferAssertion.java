@@ -4,10 +4,9 @@ import static java.util.stream.Collectors.toList;
 
 import io.token.Member;
 import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import org.assertj.core.api.AbstractAssert;
@@ -20,11 +19,6 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
 
     public static TransferAssertion assertThat(Transfer transfer) {
         return new TransferAssertion(transfer);
-    }
-
-    public TransferAssertion hasPayload(TransferPayload payload) {
-        Assertions.assertThat(actual.getPayload()).isEqualTo(payload);
-        return this;
     }
 
     public TransferAssertion hasAmount(double amount) {
@@ -54,16 +48,12 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
         return this;
     }
 
-    public TransferAssertion isSignedBy(Member... members) {
-        return hasKeySignatures(Arrays.stream(members)
-                .flatMap(member -> member.keys().stream())
-                .map(SecurityProtos.Key::getId)
+    public TransferAssertion isSignedBy(Member member, Key.Level keyLevel) {
+        return hasKeySignatures(member.keys()
+                .stream()
+                .filter(k -> k.getLevel().equals(keyLevel))
+                .map(Key::getId)
                 .collect(toList()));
-    }
-
-    public TransferAssertion hasNoSignatures() {
-        Assertions.assertThat(actual.getPayloadSignaturesList()).isEmpty();
-        return this;
     }
 
     private TransferAssertion hasKeySignatures(Collection<String> keyIds) {
