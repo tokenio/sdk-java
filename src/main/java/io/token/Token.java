@@ -8,9 +8,6 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
-import io.token.security.crypto.CryptoType;
-import io.token.security.keystore.SecretKeyPair;
-import io.token.util.Util;
 
 import java.time.Duration;
 import java.util.List;
@@ -79,13 +76,17 @@ public final class Token {
     }
 
     /**
-     * Creates a new key that will be used to represent a member account.
+     * Provisions a new device for an existing user. The call generates a set
+     * of keys that are returned back. The keys need to be approved by an
+     * existing device/keys.
      *
-     * @param type key algorithm type
-     * @return newly created key
+     * @param username member id to provision the device for
+     * @return device information
      */
-    public SecretKeyPair createKey(CryptoType type) {
-        return SecretKeyPair.create(type);
+    public DeviceInfo provisionDevice(String username) {
+        return async.provisionDevice(username)
+                .toBlocking()
+                .single();
     }
 
     /**
@@ -119,30 +120,22 @@ public final class Token {
                 .single();
     }
 
-
     /**
      * Notifies to add a key.
      *
      * @param username username to notify
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
-     * @param level requested key level
      * @return status of the notification
      */
     public NotifyStatus notifyAddKey(
             String username,
             String name,
-            SecretKeyPair key,
-            Key.Level level) {
+            Key key) {
         return async.notifyAddKey(
                 username,
                 name,
-                Key.newBuilder()
-                        .setId(key.id())
-                        .setAlgorithm(Util.toProtoAlgorithm(key.cryptoType()))
-                        .setLevel(level)
-                        .setPublicKey(key.publicKeyString())
-                        .build()).toBlocking() .single();
+                key).toBlocking().single();
     }
 
     /**
@@ -154,7 +147,6 @@ public final class Token {
      * @param accountLinkPayloads a list of account payloads to be linked
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
-     * @param level requested key level
      * @return status of the notification
      */
     public NotifyStatus notifyLinkAccountsAndAddKey(
@@ -163,20 +155,14 @@ public final class Token {
             String bankName,
             List<SealedMessage> accountLinkPayloads,
             String name,
-            SecretKeyPair key,
-            Key.Level level) {
+            Key key) {
         return async.notifyLinkAccountsAndAddKey(
                 username,
                 bankId,
                 bankName,
                 accountLinkPayloads,
                 name,
-                Key.newBuilder()
-                        .setId(key.id())
-                        .setAlgorithm(Util.toProtoAlgorithm(key.cryptoType()))
-                        .setLevel(level)
-                        .setPublicKey(key.publicKeyString())
-                        .build()).toBlocking().single();
+                key).toBlocking().single();
     }
 
     /**
