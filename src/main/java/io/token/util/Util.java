@@ -12,6 +12,8 @@ import java.security.NoSuchAlgorithmException;
 public interface Util {
     /**
      * Generates a random string.
+     *
+     * @return generated random string
      */
     static String generateNonce() {
         return randomAlphabetic(20);

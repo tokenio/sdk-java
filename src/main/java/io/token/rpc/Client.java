@@ -258,6 +258,7 @@ public final class Client {
     /**
      * Gets a subscriber by Id.
      *
+     * @param subscriberId subscriber id
      * @return subscriber Subscriber
      */
     public Observable<Subscriber> getSubscriber(String subscriberId) {
@@ -382,6 +383,7 @@ public final class Client {
     /**
      * Looks up a list of existing token.
      *
+     * @param type token type
      * @param offset optional offset to start at
      * @param limit max number of records to return
      * @return token returned by the server
@@ -626,6 +628,7 @@ public final class Client {
      * Deletes a member address by its id.
      *
      * @param addressId the id of the address
+     * @return observable that completes when request
      */
     public Observable<Void> deleteAddress(String addressId) {
         return toObservable(gateway.deleteAddress(DeleteAddressRequest.newBuilder()
