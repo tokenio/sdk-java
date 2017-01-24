@@ -6,6 +6,7 @@ import static io.token.util.Util.generateNonce;
 import com.google.common.base.Strings;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
@@ -224,10 +225,9 @@ public final class UnauthenticatedClient {
 
         MemberUpdate.Builder update = MemberUpdate.newBuilder()
                 .setMemberId(memberId)
-                .setAddKey(MemberAddKeyOperation.newBuilder()
-                        .setLevel(key.getLevel())
-                        .setPublicKey(key.getPublicKey())
-                        .setAlgorithm(key.getAlgorithm()));
+                .addOperations(MemberOperation.newBuilder()
+                        .setAddKey(MemberAddKeyOperation.newBuilder()
+                                .setKey(key)));
         lastHash.ifPresent(update::setPrevHash);
 
         Converters
