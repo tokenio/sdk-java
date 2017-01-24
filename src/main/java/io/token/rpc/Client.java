@@ -88,6 +88,7 @@ import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
 import java.util.List;
@@ -102,7 +103,7 @@ import rx.Observable;
  */
 public final class Client {
     private final String memberId;
-    private final Signer signer;
+    private final CryptoEngine crypto;
     private final GatewayServiceFutureStub gateway;
     private String onBehalfOf;
 
@@ -110,12 +111,13 @@ public final class Client {
      * This is generally the same key that is used for authentication.
      *
      * @param memberId member id
-     * @param signer the signer used to sign payload for certain requests.
+     * @param crypto the crypto engine used to sign for authentication, request
+     *      payloads, etc
      * @param gateway gateway gRPC stub
      */
-    public Client(String memberId, Signer signer, GatewayServiceFutureStub gateway) {
+    public Client(String memberId, CryptoEngine crypto, GatewayServiceFutureStub gateway) {
         this.memberId = memberId;
-        this.signer = signer;
+        this.crypto = crypto;
         this.gateway = gateway;
     }
 
@@ -396,9 +398,11 @@ public final class Client {
      * Endorses a token.
      *
      * @param token token to endorse
+     * @param keyLevel key level to be used to endorse the token
      * @return result of the endorse operation, returned by the server
      */
-    public Observable<TokenOperationResult> endorseToken(Token token) {
+    public Observable<TokenOperationResult> endorseToken(Token token, Key.Level keyLevel) {
+        Signer signer = crypto.createSigner(keyLevel);
         return toObservable(gateway.endorseToken(EndorseTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
@@ -416,6 +420,7 @@ public final class Client {
      * @return result of the cancel operation, returned by the server
      */
     public Observable<TokenOperationResult> cancelToken(Token token) {
+        Signer signer = crypto.createSigner(Key.Level.LOW);
         return toObservable(gateway.cancelToken(CancelTokenRequest.newBuilder()
                 .setTokenId(token.getId())
                 .setSignature(Signature.newBuilder()
@@ -451,6 +456,7 @@ public final class Client {
     public Observable<TokenOperationResult> replaceAndEndorseToken(
             Token tokenToCancel,
             TokenPayload tokenToCreate) {
+        Signer signer = crypto.createSigner(Key.Level.STANDARD);
         CreateToken.Builder createToken = CreateToken.newBuilder().setPayload(tokenToCreate);
         createToken.setPayloadSignature(Signature.newBuilder()
                 .setMemberId(memberId)
@@ -480,6 +486,7 @@ public final class Client {
      * @return transfer record
      */
     public Observable<Transfer> createTransfer(TransferPayload transfer) {
+        Signer signer = crypto.createSigner(Key.Level.LOW);
         return toObservable(gateway.createTransfer(CreateTransferRequest.newBuilder()
                 .setPayload(transfer)
                 .setPayloadSignature(Signature.newBuilder()
@@ -573,6 +580,7 @@ public final class Client {
      * @return an address record created
      */
     public Observable<AddressRecord> addAddress(String name, Address address) {
+        Signer signer = crypto.createSigner(Key.Level.LOW);
         return toObservable(gateway.addAddress(AddAddressRequest.newBuilder()
                 .setName(name)
                 .setAddress(address)
@@ -652,6 +660,7 @@ public final class Client {
     private Observable<TokenOperationResult> cancelAndReplace(
             Token tokenToCancel,
             CreateToken.Builder createToken) {
+        Signer signer = crypto.createSigner(Key.Level.LOW);
         return toObservable(gateway.replaceToken(ReplaceTokenRequest.newBuilder()
                 .setCancelToken(CancelToken.newBuilder()
                         .setTokenId(tokenToCancel.getId())
@@ -665,6 +674,7 @@ public final class Client {
     }
 
     private Observable<Member> updateMember(MemberUpdate update) {
+        Signer signer = crypto.createSigner(Key.Level.PRIVILEGED);
         return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
                 .setUpdate(update)
                 .setUpdateSignature(Signature.newBuilder()

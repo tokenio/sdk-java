@@ -10,6 +10,7 @@ import io.grpc.StatusRuntimeException;
 import io.token.proto.PagedList;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
@@ -93,7 +94,7 @@ public class AccessTokenTest {
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAddress(address1.getId()));
-        TokenOperationResult res = member1.endorseToken(accessToken);
+        TokenOperationResult res = member1.endorseToken(accessToken, Key.Level.STANDARD);
         assertThat(res.getStatus()).isEqualTo(Status.SUCCESS);
 
         assertThatExceptionThrownBy(() ->
@@ -116,7 +117,7 @@ public class AccessTokenTest {
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAddress(address1.getId()));
-        member1.endorseToken(accessToken);
+        member1.endorseToken(accessToken, Key.Level.STANDARD);
 
         member2.useAccessToken(accessToken.getId());
         AddressRecord result = member2.getAddress(address1.getId());
@@ -137,7 +138,7 @@ public class AccessTokenTest {
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAddress(address1.getId()));
-        member1.endorseToken(accessToken);
+        member1.endorseToken(accessToken, Key.Level.STANDARD);
         member2.useAccessToken(accessToken.getId());
         assertThatExceptionThrownBy(() ->
                 member2.getAddress(address2.getId())
@@ -149,7 +150,7 @@ public class AccessTokenTest {
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAllAddresses());
-        member1.endorseToken(accessToken);
+        member1.endorseToken(accessToken, Key.Level.STANDARD);
         member2.useAccessToken(accessToken.getId());
         AddressRecord address1 = member1.addAddress(string(), address());
         AddressRecord address2 = member1.addAddress(string(), address());
@@ -165,7 +166,7 @@ public class AccessTokenTest {
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
-        accountMember.endorseToken(accessToken);
+        accountMember.endorseToken(accessToken, Key.Level.STANDARD);
 
         assertThatExceptionThrownBy(() ->
                 member1.getAccount(account.id())
@@ -182,7 +183,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAccount(payerAccount.id()));
-        payerAccount.member().endorseToken(accessToken);
+        payerAccount.member().endorseToken(accessToken, Key.Level.STANDARD);
         member2.useAccessToken(accessToken.getId());
         Account result = member2.getAccount(payerAccount.id());
 
@@ -194,7 +195,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAllAccounts());
-        payerAccount.member().endorseToken(accessToken);
+        payerAccount.member().endorseToken(accessToken, Key.Level.STANDARD);
         member2.useAccessToken(accessToken.getId());
         Account result = member2.getAccount(payerAccount.id());
 
@@ -208,7 +209,7 @@ public class AccessTokenTest {
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAccountBalances(account.id()));
-        accountMember.endorseToken(accessToken);
+        accountMember.endorseToken(accessToken, Key.Level.STANDARD);
 
         assertThatExceptionThrownBy(() ->
                 member1.getAccount(account.id())
@@ -231,7 +232,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAccountTransactions(payerAccount.id()));
-        payerAccount.member().endorseToken(accessToken);
+        payerAccount.member().endorseToken(accessToken, Key.Level.STANDARD);
         member1.useAccessToken(accessToken.getId());
         Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId());
 
@@ -245,7 +246,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllTransactions());
-        payerAccount.member().endorseToken(accessToken);
+        payerAccount.member().endorseToken(accessToken, Key.Level.STANDARD);
         member1.useAccessToken(accessToken.getId());
         Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId());
 
@@ -259,7 +260,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllTransactions());
-        payerAccount.member().endorseToken(accessToken);
+        payerAccount.member().endorseToken(accessToken, Key.Level.STANDARD);
         member1.useAccessToken(accessToken.getId());
         PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, 1);
 
@@ -272,7 +273,7 @@ public class AccessTokenTest {
         Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllTransactions());
-        payerAccount.member().endorseToken(accessToken);
+        payerAccount.member().endorseToken(accessToken, Key.Level.STANDARD);
 
         int num = 10;
         for (int i = 0; i < num; i++) {
@@ -301,7 +302,7 @@ public class AccessTokenTest {
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
-        accountMember.endorseToken(accessToken);
+        accountMember.endorseToken(accessToken, Key.Level.STANDARD);
 
         member1.useAccessToken(accessToken.getId());
         Money balance = member1.getBalance(account.id());
@@ -323,7 +324,7 @@ public class AccessTokenTest {
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
-        accountMember.endorseToken(accessToken);
+        accountMember.endorseToken(accessToken, Key.Level.STANDARD);
 
         member1.useAccessToken(accessToken.getId());
         Money balance = member1.getBalance(account.id());
@@ -345,7 +346,7 @@ public class AccessTokenTest {
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
-        accountMember.endorseToken(accessToken);
+        accountMember.endorseToken(accessToken, Key.Level.STANDARD);
 
         member1.useAccessToken(accessToken.getId());
         Money balance = member1.getBalance(account.id());
@@ -368,7 +369,7 @@ public class AccessTokenTest {
         Token originalToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
-        accountMember.endorseToken(originalToken);
+        accountMember.endorseToken(originalToken, Key.Level.STANDARD);
 
         member1.useAccessToken(originalToken.getId());
         Money balance = member1.getBalance(account.id());
@@ -399,7 +400,7 @@ public class AccessTokenTest {
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
-        accountMember.endorseToken(accessToken);
+        accountMember.endorseToken(accessToken, Key.Level.STANDARD);
 
         member1.useAccessToken(accessToken.getId());
         Money balance = member1.getBalance(account.id());
@@ -423,9 +424,8 @@ public class AccessTokenTest {
                 payerAccount.id(),
                 payee.firstUsername(),
                 string());
-        token = payer.endorseToken(token).getToken();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         Transfer transfer = payee.redeemToken(token, 1.0, "USD", "one");
         return payerAccount.getTransaction(transfer.getReferenceId());
     }
-
 }

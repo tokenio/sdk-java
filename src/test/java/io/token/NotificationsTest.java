@@ -1,6 +1,7 @@
 package io.token;
 
 import static io.token.proto.common.notification.NotificationProtos.Notification.Status.DELIVERED;
+import static io.token.proto.common.subscriber.SubscriberProtos.Platform.TEST;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
@@ -10,21 +11,18 @@ import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
-import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-import io.token.security.crypto.CryptoType;
-import io.token.security.keystore.SecretKeyPair;
 import io.token.security.sealed.NoopSealedMessageEncrypter;
 import io.token.util.Util;
 
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Stream;
-import org.apache.commons.lang3.RandomStringUtils;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -32,7 +30,10 @@ import org.junit.Test;
 public class NotificationsTest {
     @Rule public TokenRule rule = new TokenRule();
 
+    private static final String NOTIFICATION_TARGET
+            = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
     private static final int NOTIFICATION_TIMEOUT_MS = 5000;
+
     private final Account payerAccount = rule.account();
     private final Member payer = payerAccount.member();
     private final Member payee = rule.member();
@@ -55,17 +56,13 @@ public class NotificationsTest {
         accountLinkPayloads = Stream.of(checking, saving)
                 .map(encrypter::encrypt)
                 .collect(toList());
-
     }
 
     @Test
     public void testSubscribers() {
-        String username = payer.usernames().get(0);
-        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
-
-        final Subscriber subscriber = payer.subscribeToNotifications(target, Platform.IOS);
+        Subscriber subscriber = payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
         NotifyStatus res = rule.token().notifyLinkAccounts(
-                username,
+                payer.firstUsername(),
                 "BofA",
                 "Bank of America",
                 accountLinkPayloads);
@@ -83,7 +80,7 @@ public class NotificationsTest {
     @Test
     public void getSubscriber() {
         String target = Util.generateNonce();
-        Subscriber subscriber = payer.subscribeToNotifications(target, Platform.TEST);
+        Subscriber subscriber = payer.subscribeToNotifications(target, TEST);
 
         Subscriber subscriber2 = payer.getSubscriber(subscriber.getId());
         assertThat(subscriber).isEqualTo(subscriber2);
@@ -91,114 +88,99 @@ public class NotificationsTest {
 
     @Test
     public void triggerStepUpTransferNotification() {
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
-        payer.approveKey(newKey, Level.LOW);
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
 
-        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
-        payer.subscribeToNotifications(target, Platform.IOS);
-
-        Member memberLow = rule.token().login(payer.memberId(), newKey);
-        Token token = memberLow.createToken(
+        Token token = payer.createToken(
                 56,
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
                 null);
 
-        TokenOperationResult res = memberLow.endorseToken(token);
+        TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(() -> {
-            assertThat(payer.getNotifications().size()).isEqualTo(1);
-            assertThat(payer.getNotifications().get(0).getStatus()).isEqualTo((DELIVERED));
-        });
+        waitUntil(() -> assertThat(payer.getNotifications())
+                .hasSize(1)
+                .extracting(Notification::getStatus)
+                .containsExactly(DELIVERED));
     }
 
     @Test
     public void triggerStepUpTransferNotification_twoSubscribers() {
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
-        payer.approveKey(newKey, Level.LOW);
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        payer.subscribeToNotifications(NOTIFICATION_TARGET + "1", TEST);
 
-        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
-        payer.subscribeToNotifications(target, Platform.TEST);
-        payer.subscribeToNotifications(target + "1", Platform.TEST);
-        Member memberLow = rule.token().login(payer.memberId(), newKey);
-
-        Token token = memberLow.createToken(
+        Token token = payer.createToken(
                 56,
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
                 null);
-        Token token2 = memberLow.createToken(
+        Token token2 = payer.createToken(
                 57,
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
                 null);
 
-        TokenOperationResult res = memberLow.endorseToken(token);
-        TokenOperationResult res2 = memberLow.endorseToken(token2);
+        TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
+        TokenOperationResult res2 = payer.endorseToken(token2, Key.Level.LOW);
         assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
         assertThat(res2.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(() -> {
-            assertThat(payer.getNotifications().size()).isEqualTo(4); // 2 subscribers, 2 step ups
-            assertThat(payer.getNotifications().get(0).getStatus()).isEqualTo((DELIVERED));
-            assertThat(payer.getNotifications().get(1).getStatus()).isEqualTo((DELIVERED));
-            assertThat(payer.getNotifications().get(2).getStatus()).isEqualTo((DELIVERED));
-            assertThat(payer.getNotifications().get(3).getStatus()).isEqualTo((DELIVERED));
-        });
+
+        // 2 subscribers, 2 step ups
+        waitUntil(() -> assertThat(payer.getNotifications())
+                .extracting(Notification::getStatus)
+                .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
     }
 
     @Test
     public void triggerStepUpAccessNotification() {
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
-        payer.approveKey(newKey, Level.LOW);
-
-        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
-        payer.subscribeToNotifications(target, Platform.IOS);
-        Member memberLow = rule.token().login(payer.memberId(), newKey);
-        Token token = memberLow.createAccessToken(AccessTokenBuilder
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        Token token = payer.createAccessToken(AccessTokenBuilder
                 .create(payee.firstUsername())
                 .forAllAccounts());
 
-        TokenOperationResult res = memberLow.endorseToken(token);
+        TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(() -> {
-            assertThat(payer.getNotifications().size()).isEqualTo(1);
-            assertThat(payer.getNotifications().get(0).getStatus()).isEqualTo((DELIVERED));
-        });
+        waitUntil(() -> assertThat(payer.getNotifications())
+                .hasSize(1)
+                .extracting(Notification::getStatus)
+                .containsExactly(DELIVERED));
     }
-
 
     @Test
     public void triggerTransferProcessedNotification() {
-        Account payerAccount = rule.account();
-        Member member = payerAccount.member();
-        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
-        member.subscribeToNotifications(target, Platform.TEST);
-        member.subscribeToNotifications(target + "1", Platform.TEST);
-        Token token = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
-        Token t2 = member.createToken(20, "USD", payerAccount.id(), payee.firstUsername(), null);
-        Token endorsed = member.endorseToken(token).getToken();
-        Token endorsed2 = member.endorseToken(t2).getToken();
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        Token token = payer.createToken(
+                20,
+                "USD",
+                payerAccount.id(),
+                payee.firstUsername(),
+                null);
+        Token t2 = payer.createToken(
+                20,
+                "USD",
+                payerAccount.id(),
+                payee.firstUsername(),
+                null);
+        Token endorsed = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        Token endorsed2 = payer.endorseToken(t2, Level.STANDARD).getToken();
         payee.redeemToken(endorsed);
         payee.redeemToken(endorsed2);
-        waitUntil(() -> {
-            assertThat(member.getNotifications().size()).isEqualTo(4); // 2 subscribers, 2 transfers
-            assertThat(member.getNotifications().get(0).getStatus()).isEqualTo((DELIVERED));
-            assertThat(member.getNotifications().get(1).getStatus()).isEqualTo((DELIVERED));
-            assertThat(member.getNotifications().get(2).getStatus()).isEqualTo((DELIVERED));
-            assertThat(member.getNotifications().get(3).getStatus()).isEqualTo((DELIVERED));
-        });
+
+        waitUntil(() -> assertThat(payer.getNotifications())
+                .extracting(Notification::getStatus)
+                .containsExactly(DELIVERED, DELIVERED));
     }
 
     @Test
     public void sendNotifications() {
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
-        String username = payer.usernames().get(0);
-        String target = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD00";
+        String username = payer.firstUsername();
 
-        payer.subscribeToNotifications(target, Platform.IOS);
+        DeviceInfo deviceInfo = rule.token().provisionDevice(username);
+
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
         NotifyStatus res1 = rule.token().notifyLinkAccounts(
                 username,
                 "BofA",
@@ -207,16 +189,14 @@ public class NotificationsTest {
         NotifyStatus res2 = rule.token().notifyAddKey(
                 username,
                 "Chrome 52.0",
-                newKey,
-                Level.STANDARD);
+                deviceInfo.getKeys().get(0));
         NotifyStatus res3 = rule.token().notifyLinkAccountsAndAddKey(
                 username,
                 "BofA",
                 "Bank of America",
                 accountLinkPayloads,
                 "Chrome 52.0",
-                newKey,
-                Level.STANDARD);
+                deviceInfo.getKeys().get(0));
 
         assertThat(res1).isEqualTo(NotifyStatus.ACCEPTED);
         assertThat(res2).isEqualTo(NotifyStatus.ACCEPTED);
@@ -224,63 +204,50 @@ public class NotificationsTest {
         rule.token().notifyAddKey(
                 username,
                 "Chrome 52.0",
-                newKey,
-                Level.STANDARD);
-        waitUntil(() -> {
-            assertThat(payer.getNotifications().size()).isEqualTo(4);
-            assertThat(payer.getNotifications().get(0).getStatus()).isEqualTo((DELIVERED));
-            assertThat(payer.getNotifications().get(1).getStatus()).isEqualTo((DELIVERED));
-            assertThat(payer.getNotifications().get(2).getStatus()).isEqualTo((DELIVERED));
-            assertThat(payer.getNotifications().get(3).getStatus()).isEqualTo((DELIVERED));
-        });
+                deviceInfo.getKeys().get(0));
+
+        waitUntil(() -> assertThat(payer.getNotifications())
+                .extracting(Notification::getStatus)
+                .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
     }
 
     @Test
     public void sendLinkAccounts() {
-        Account payerAccount = rule.account();
-        Member member = payerAccount.member();
-        String username = RandomStringUtils.randomAlphabetic(30);
-        member.addUsername(username);
-        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
-        member.subscribeToNotifications(target, Platform.TEST);
-        member.subscribeToNotifications(target + "1", Platform.TEST);
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
 
-        rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
-        waitUntil(() -> {
-            assertThat(member.getNotifications().size()).isEqualTo(2); // 2 subscribers, 2 step ups
-            assertThat(member.getNotifications().get(0).getStatus()).isEqualTo((DELIVERED));
-            assertThat(member.getNotifications().get(1).getStatus()).isEqualTo((DELIVERED));
-        });
+        rule.token().notifyLinkAccounts(
+                payer.firstUsername(),
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads);
+
+        waitUntil(() -> assertThat(payer.getNotifications())
+                .extracting(Notification::getStatus)
+                .containsExactly(DELIVERED));
     }
 
     @Test
     public void sendLinkAccountsAndAddKey() {
-        String username = RandomStringUtils.randomAlphabetic(30);
-        payer.addUsername(username);
-        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
-        payer.subscribeToNotifications(target, Platform.TEST);
-        payer.subscribeToNotifications(target + "1", Platform.TEST);
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
 
-        SecretKeyPair newKey = rule.token().createKey(CryptoType.EDDSA);
+        DeviceInfo deviceInfo = rule.token().provisionDevice(payer.firstUsername());
         rule
                 .token()
-                .notifyLinkAccountsAndAddKey(username,
+                .notifyLinkAccountsAndAddKey(payer.firstUsername(),
                         "BofA",
                         "Bank of America",
                         accountLinkPayloads,
                         "Chrome",
-                        newKey,
-                        Level.STANDARD);
-        waitUntil(() -> {
-            assertThat(payer.getNotifications().size()).isEqualTo(2); // 2 subs, 2 notifications
-            assertThat(payer.getNotifications().get(0).getStatus()).isEqualTo((DELIVERED));
-            assertThat(payer.getNotifications().get(1).getStatus()).isEqualTo((DELIVERED));
-        });
+                        deviceInfo.getKeys().get(0));
+
+        waitUntil(() -> assertThat(payer.getNotifications())
+                .extracting(Notification::getStatus)
+                .containsExactly(DELIVERED));
     }
 
     @Test
     public void getNotificationsEmpty() {
-        assertThat(payer.getNotifications().size()).isEqualTo(0);
+        assertThat(payer.getNotifications()).isEmpty();
     }
 
     @Test
@@ -293,30 +260,34 @@ public class NotificationsTest {
 
     @Test
     public void getNotificationTrue() {
-        String username = RandomStringUtils.randomAlphabetic(30);
-        payer.addUsername(username);
-        String target = "17D6F20C68314B508D71FC382162479746F0C41B9144FAE592162F43175444F4";
-        payer.subscribeToNotifications(target, Platform.TEST);
-        rule.token().notifyLinkAccounts(username, "BofA", "Bank of America", accountLinkPayloads);
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+
+        rule.token().notifyLinkAccounts(
+                payer.firstUsername(),
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads);
 
         waitUntil(() -> {
             List<Notification> notifications = payer.getNotifications();
             assertThat(notifications.size()).isGreaterThan(0);
-            assertThat(payer.getNotification(notifications.get(0).getId()).getId()).isEqualTo(
-                    notifications.get(0).getId());
+            assertThat(payer.getNotification(notifications.get(0).getId()))
+                    .isEqualTo(notifications.get(0));
         });
     }
 
     private void waitUntil(Runnable function) {
-        long start = System.currentTimeMillis();
-        for (int waitTimeMs = 1; System.currentTimeMillis() - start < NOTIFICATION_TIMEOUT_MS;
-                waitTimeMs *= 2) {
+        for (long waitTimeMs = 1, start = System.currentTimeMillis(); ; waitTimeMs *= 2) {
             try {
                 function.run();
                 return;
             } catch (AssertionError caughtError) {
-                // Notification not delivered yet
-                Uninterruptibles.sleepUninterruptibly(waitTimeMs, TimeUnit.MILLISECONDS);
+                if (System.currentTimeMillis() - start < NOTIFICATION_TIMEOUT_MS) {
+                    // Notification not delivered yet
+                    Uninterruptibles.sleepUninterruptibly(waitTimeMs, TimeUnit.MILLISECONDS);
+                } else {
+                    throw caughtError;
+                }
             }
         }
     }

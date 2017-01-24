@@ -20,12 +20,10 @@ import java.util.Optional;
  */
 final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, ResT> {
     private final String memberId;
-    private final String username;
     private final Signer signer;
 
-    ClientAuthenticator(String memberId, String username, Signer signer) {
+    ClientAuthenticator(String memberId, Signer signer) {
         this.memberId = memberId;
-        this.username = username;
         this.signer = signer;
     }
 
@@ -47,13 +45,7 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
         metadata.put(
                 Metadata.Key.of("token-created-at-ms", ASCII_STRING_MARSHALLER),
                 Long.toString(now.toEpochMilli()));
-
-
-        if (!Strings.isNullOrEmpty(memberId)) {
-            metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
-        } else {
-            metadata.put(Metadata.Key.of("token-username", ASCII_STRING_MARSHALLER), username);
-        }
+        metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
 
         String onBehalfOf = AuthenticationContext.clearOnBehalfOf();
         if (!Strings.isNullOrEmpty(onBehalfOf)) {
