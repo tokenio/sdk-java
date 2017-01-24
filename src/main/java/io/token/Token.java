@@ -15,10 +15,10 @@ import java.util.List;
 /**
  * Main entry point to the Token SDK. Use {@link Token.Builder}
  * class to create an instance of the {@link TokenAsync} or {@link Token}.
+ *
  * <p>The class provides synchronous API with {@link TokenAsync} providing an
  * asynchronous version. {@link TokenAsync} instance can be obtained by
  * calling {@link #async} method.
- * </p>
  */
 public final class Token {
     private final TokenAsync async;
@@ -109,6 +109,7 @@ public final class Token {
      * @param bankId bank ID to link
      * @param bankName bank name to link
      * @param accountLinkPayloads a list of account payloads to be linked
+     * @return status of the notification request
      */
     public NotifyStatus notifyLinkAccounts(
             String username,
@@ -126,7 +127,7 @@ public final class Token {
      * @param username username to notify
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
-     * @return status of the notification
+     * @return status of the notification request
      */
     public NotifyStatus notifyAddKey(
             String username,
@@ -147,7 +148,7 @@ public final class Token {
      * @param accountLinkPayloads a list of account payloads to be linked
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
-     * @return status of the notification
+     * @return status of the notification request
      */
     public NotifyStatus notifyLinkAccountsAndAddKey(
             String username,
