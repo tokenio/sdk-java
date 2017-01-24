@@ -4,6 +4,7 @@ import static io.token.util.Util.generateNonce;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
+import com.google.common.collect.ImmutableList;
 import io.token.proto.PagedList;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -118,15 +119,23 @@ public final class MemberAsync {
         this.client.clearAccessToken();
     }
 
-
     /**
      * Adds a new username for the member.
      *
      * @param username username, e.g. 'john', must be unique
      */
     public Observable<Void> addUsername(String username) {
+        return addUsernames(ImmutableList.of(username));
+    }
+
+    /**
+     * Adds new usernames for the member.
+     *
+     * @param usernames usernames, e.g. 'john', must be unique
+     */
+    public Observable<Void> addUsernames(List<String> usernames) {
         return client
-                .addUsername(member.build(), username)
+                .addUsernames(member.build(), usernames)
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -139,8 +148,17 @@ public final class MemberAsync {
      * @param username username, e.g. 'john'
      */
     public Observable<Void> removeUsername(String username) {
+        return removeUsernames(ImmutableList.of(username));
+    }
+
+    /**
+     * Removes usernames for the member.
+     *
+     * @param usernames usernames, e.g. 'john'
+     */
+    public Observable<Void> removeUsernames(List<String> usernames) {
         return client
-                .removeUsername(member.build(), username)
+                .removeUsernames(member.build(), usernames)
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -170,8 +188,18 @@ public final class MemberAsync {
      * @param key key to add to the approved list
      */
     public Observable<Void> approveKey(Key key) {
+        return approveKeys(ImmutableList.of(key));
+    }
+
+    /**
+     * Approves public keys owned by this member. The keys are added to the list
+     * of valid keys for the member.
+     *
+     * @param keys keys to add to the approved list
+     */
+    public Observable<Void> approveKeys(List<Key> keys) {
         return client
-                .addKey(member.build(), key)
+                .addKeys(member.build(), keys)
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -184,8 +212,17 @@ public final class MemberAsync {
      * @param keyId key ID of the key to remove
      */
     public Observable<Void> removeKey(String keyId) {
+        return removeKeys(ImmutableList.of(keyId));
+    }
+
+    /**
+     * Removes public keys owned by this member.
+     *
+     * @param keyIds key IDs of the keys to remove
+     */
+    public Observable<Void> removeKeys(List<String> keyIds) {
         return client
-                .removeKey(member.build(), keyId)
+                .removeKeys(member.build(), keyIds)
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;

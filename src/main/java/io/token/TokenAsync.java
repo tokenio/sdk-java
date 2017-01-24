@@ -3,6 +3,7 @@ package io.token;
 import static io.grpc.Status.NOT_FOUND;
 import static java.util.Arrays.asList;
 
+import com.google.common.collect.ImmutableList;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -82,7 +83,7 @@ public final class TokenAsync {
                             member.getId(),
                             crypto);
                     return client
-                            .addUsername(member, username)
+                            .addUsernames(member, ImmutableList.of(username))
                             .map(m -> new MemberAsync(m, client));
                 });
     }
