@@ -19,8 +19,8 @@ import java.util.List;
 import rx.Observable;
 
 /**
- * Use this class to create to create a new member using {@link #createMember}
- * method or login an existing member using {@link #login}.
+ * Create a new member using the {@link #createMember}  method or log in an
+ * existing member using {@link #login}.
  *
  * <p>The class provides async API with {@link Token} providing a synchronous
  * version. {@link Token} instance can be obtained by calling {@link #sync}
