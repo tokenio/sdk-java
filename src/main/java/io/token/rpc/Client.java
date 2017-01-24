@@ -11,10 +11,11 @@ import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -161,10 +162,9 @@ public final class Client {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .setAddKey(MemberAddKeyOperation.newBuilder()
-                        .setPublicKey(key.getPublicKey())
-                        .setAlgorithm(key.getAlgorithm())
-                        .setLevel(key.getLevel()))
+                .addOperations(MemberOperation.newBuilder()
+                        .setAddKey(MemberAddKeyOperation.newBuilder()
+                                .setKey(key)))
                 .build());
     }
 
@@ -181,8 +181,9 @@ public final class Client {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .setRemoveKey(MemberProtos.MemberRemoveKeyOperation.newBuilder()
-                        .setKeyId(keyId))
+                .addOperations(MemberOperation.newBuilder()
+                        .setRemoveKey(MemberRemoveKeyOperation.newBuilder()
+                                .setKeyId(keyId)))
                 .build());
     }
 
@@ -199,8 +200,9 @@ public final class Client {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .setAddUsername(MemberUsernameOperation.newBuilder()
-                        .setUsername(username))
+                .addOperations(MemberOperation.newBuilder()
+                        .setAddUsername(MemberUsernameOperation.newBuilder()
+                                .setUsername(username)))
                 .build());
     }
 
@@ -217,8 +219,9 @@ public final class Client {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .setRemoveUsername(MemberUsernameOperation.newBuilder()
-                        .setUsername(username))
+                .addOperations(MemberOperation.newBuilder()
+                        .setRemoveUsername(MemberUsernameOperation.newBuilder()
+                                .setUsername(username)))
                 .build());
     }
 
