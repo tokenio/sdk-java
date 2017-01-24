@@ -230,6 +230,7 @@ public final class Member {
      *
      * @param bankId bank id
      * @param accountLinkPayloads a list of account payloads to be linked
+     * @return list of linked accounts
      */
     public List<Account> linkAccounts(String bankId, List<SealedMessage> accountLinkPayloads) {
         return async.linkAccounts(bankId, accountLinkPayloads)
@@ -243,7 +244,7 @@ public final class Member {
     /**
      * Looks up funding bank accounts linked to Token.
      *
-     * @return list of accounts
+     * @return list of linked accounts
      */
     public List<Account> getAccounts() {
         return async.getAccount()
