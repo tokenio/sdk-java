@@ -10,6 +10,9 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
+import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -32,6 +35,7 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import rx.Observable;
@@ -118,7 +122,6 @@ public final class MemberAsync {
         this.client.clearAccessToken();
     }
 
-
     /**
      * Adds a new username for the member.
      *
@@ -126,8 +129,20 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Observable<Void> addUsername(String username) {
+        return addUsernames(Collections.singletonList(username));
+    }
+
+    /**
+     * Adds new usernames for the member.
+     *
+     * @param usernames usernames, e.g. 'john', must be unique
+     */
+    public Observable<Void> addUsernames(List<String> usernames) {
         return client
-                .addUsername(member.build(), username)
+                .updateMember(member.build(), usernames
+                        .stream()
+                        .map(Util::toAddUsernameOperation)
+                        .collect(toList()))
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -141,8 +156,23 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Observable<Void> removeUsername(String username) {
+        return removeUsernames(Collections.singletonList(username));
+    }
+
+    /**
+     * Removes usernames for the member.
+     *
+     * @param usernames usernames, e.g. 'john'
+     */
+    public Observable<Void> removeUsernames(List<String> usernames) {
         return client
-                .removeUsername(member.build(), username)
+                .updateMember(member.build(), usernames
+                        .stream()
+                        .map(u -> MemberOperation.newBuilder()
+                                .setRemoveUsername(MemberUsernameOperation.newBuilder()
+                                        .setUsername(u))
+                                .build())
+                        .collect(toList()))
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -174,8 +204,21 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Observable<Void> approveKey(Key key) {
+        return approveKeys(Collections.singletonList(key));
+    }
+
+    /**
+     * Approves public keys owned by this member. The keys are added to the list
+     * of valid keys for the member.
+     *
+     * @param keys keys to add to the approved list
+     */
+    public Observable<Void> approveKeys(List<Key> keys) {
         return client
-                .addKey(member.build(), key)
+                .updateMember(member.build(), keys
+                        .stream()
+                        .map(Util::toAddKeyOperation)
+                        .collect(toList()))
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -189,8 +232,23 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Observable<Void> removeKey(String keyId) {
+        return removeKeys(Collections.singletonList(keyId));
+    }
+
+    /**
+     * Removes public keys owned by this member.
+     *
+     * @param keyIds key IDs of the keys to remove
+     */
+    public Observable<Void> removeKeys(List<String> keyIds) {
         return client
-                .removeKey(member.build(), keyId)
+                .updateMember(member.build(), keyIds
+                        .stream()
+                        .map(k -> MemberOperation.newBuilder()
+                                .setRemoveKey(MemberRemoveKeyOperation.newBuilder()
+                                        .setKeyId(k))
+                                .build())
+                        .collect(toList()))
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;

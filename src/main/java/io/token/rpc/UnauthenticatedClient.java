@@ -16,6 +16,7 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetMemberIdRequest;
@@ -23,14 +24,11 @@ import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.rpc.util.Converters;
 import io.token.security.Signer;
 
 import java.util.List;
-import java.util.Optional;
+import java.util.stream.Collectors;
 import rx.Observable;
-import rx.Single;
-import rx.SingleSubscriber;
 
 /**
  * Similar to {@link Client} but is only used for a handful of requests that
@@ -90,23 +88,28 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Adds keys to be linked with the specified member id.
+     * Creates a new token member.
      *
-     * @param memberId member id
-     * @param keys keys to add add for the given member
+     * @param memberId member ID
+     * @param operations operations to set up member keys and usernames
      * @param signer the signer used to sign the requests
      * @return member information
      */
-    public Observable<Member> addKeys(String memberId, List<Key> keys, Signer signer) {
-        return Single
-                .<Member>create(subscriber -> addAllKeys(
-                        memberId,
-                        keys,
-                        0,
-                        Optional.empty(),
-                        signer,
-                        subscriber))
-                .toObservable();
+    public Observable<Member> createMember(
+            String memberId,
+            List<MemberOperation> operations,
+            Signer signer) {
+        MemberUpdate.Builder update = MemberUpdate.newBuilder()
+                .setMemberId(memberId)
+                .addAllOperations(operations);
+        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                .setUpdate(update)
+                .setUpdateSignature(Signature.newBuilder()
+                        .setMemberId(memberId)
+                        .setKeyId(signer.getKeyId())
+                        .setSignature(signer.sign(update.build())))
+                .build()))
+                .map(Gateway.UpdateMemberResponse::getMember);
     }
 
     /**
@@ -199,59 +202,5 @@ public final class UnauthenticatedClient {
                                 .build())
                         .build()))
                 .map(NotifyResponse::getStatus);
-    }
-
-    /**
-     * Adds one of the keys in the list to the member. If we have not reached
-     * the end of the list yet then we invoke this function recursively to
-     * add the next key. Otherwise, we stop and invoke the callback.
-     *
-     * @param memberId member id
-     * @param keys keys to be added
-     * @param keyIndex key being added with this invocation
-     * @param lastHash last hash of the directory entry
-     * @param signer signer to use to sign the messages
-     * @param callback callback to invoke when all the keys has been added
-     */
-    // TODO: Replace this with batch call when it is available.
-    private void addAllKeys(
-            String memberId,
-            List<Key> keys,
-            int keyIndex,
-            Optional<String> lastHash,
-            Signer signer,
-            SingleSubscriber<? super Member> callback) {
-        Key key = keys.get(keyIndex);
-
-        MemberUpdate.Builder update = MemberUpdate.newBuilder()
-                .setMemberId(memberId)
-                .addOperations(MemberOperation.newBuilder()
-                        .setAddKey(MemberAddKeyOperation.newBuilder()
-                                .setKey(key)));
-        lastHash.ifPresent(update::setPrevHash);
-
-        Converters
-                .toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
-                        .setUpdate(update)
-                        .setUpdateSignature(Signature.newBuilder()
-                                .setMemberId(memberId)
-                                .setKeyId(signer.getKeyId())
-                                .setSignature(signer.sign(update.build())))
-                        .build()))
-                .subscribe(
-                        response -> {
-                            if (keyIndex == keys.size() - 1) {
-                                callback.onSuccess(response.getMember());
-                            } else {
-                                addAllKeys(
-                                        memberId,
-                                        keys,
-                                        keyIndex + 1,
-                                        Optional.of(response.getMember().getLastHash()),
-                                        signer,
-                                        callback);
-                            }
-                        },
-                        callback::onError);
     }
 }
