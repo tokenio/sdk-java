@@ -60,7 +60,7 @@ public class NotificationsTest {
 
     @Test
     public void testSubscribers() {
-        Subscriber subscriber = payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        final Subscriber subscriber = payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
         NotifyStatus res = rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
                 "BofA",
