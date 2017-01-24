@@ -1,11 +1,16 @@
 package io.token;
 
 import static io.grpc.Status.NOT_FOUND;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.util.Util.toAddKeyOperation;
+import static io.token.util.Util.toAddUsernameOperation;
 import static java.util.Arrays.asList;
 
-import com.google.common.collect.ImmutableList;
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
+import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
@@ -57,8 +62,7 @@ public final class TokenAsync {
     }
 
     /**
-     * Creates a new Token member with a pair of auto generated keys and the
-     * given username.
+     * Creates a new Token member with a set of auto-generated keys and a given username.
      *
      * @param username member username to use, must be unique
      * @return newly created member
@@ -69,12 +73,14 @@ public final class TokenAsync {
                 .createMemberId()
                 .flatMap(memberId -> {
                     CryptoEngine crypto = cryptoFactory.create(memberId);
-                    List<Key> keys = asList(
-                            crypto.generateKey(Key.Level.PRIVILEGED),
-                            crypto.generateKey(Key.Level.STANDARD),
-                            crypto.generateKey(Key.Level.LOW));
-                    Signer signer = crypto.createSigner(Key.Level.PRIVILEGED);
-                    return unauthenticated.addKeys(memberId, keys, signer);
+                    List<MemberOperation> operations = asList(
+                            toAddKeyOperation(crypto.generateKey(PRIVILEGED)),
+                            toAddKeyOperation(crypto.generateKey(STANDARD)),
+                            toAddKeyOperation(crypto.generateKey(LOW)),
+                            toAddUsernameOperation(username));
+
+                    Signer signer = crypto.createSigner(PRIVILEGED);
+                    return unauthenticated.createMember(memberId, operations, signer);
                 })
                 .flatMap(member -> {
                     CryptoEngine crypto = cryptoFactory.create(member.getId());
@@ -82,9 +88,7 @@ public final class TokenAsync {
                             channel,
                             member.getId(),
                             crypto);
-                    return client
-                            .addUsernames(member, ImmutableList.of(username))
-                            .map(m -> new MemberAsync(m, client));
+                    return Observable.just(new MemberAsync(member, client));
                 });
     }
 
@@ -109,9 +113,9 @@ public final class TokenAsync {
                     return new DeviceInfo(
                             memberId,
                             asList(
-                                    crypto.generateKey(Key.Level.PRIVILEGED),
-                                    crypto.generateKey(Key.Level.STANDARD),
-                                    crypto.generateKey(Key.Level.LOW)));
+                                    crypto.generateKey(PRIVILEGED),
+                                    crypto.generateKey(STANDARD),
+                                    crypto.generateKey(LOW)));
                 });
     }
 

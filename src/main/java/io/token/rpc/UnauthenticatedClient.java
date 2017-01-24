@@ -88,21 +88,20 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Adds keys to be linked with the specified member id.
+     * Creates a new token member.
      *
-     * @param memberId member id
-     * @param keys keys to add add for the given member
+     * @param memberId member ID
+     * @param operations operations to set up member keys and usernames
      * @param signer the signer used to sign the requests
      * @return member information
      */
-    public Observable<Member> addKeys(String memberId, List<Key> keys, Signer signer) {
+    public Observable<Member> createMember(
+            String memberId,
+            List<MemberOperation> operations,
+            Signer signer) {
         MemberUpdate.Builder update = MemberUpdate.newBuilder()
                 .setMemberId(memberId)
-                .addAllOperations(keys
-                        .stream()
-                        .map(k -> MemberOperation.newBuilder()
-                                .setAddKey(MemberAddKeyOperation.newBuilder().setKey(k)).build())
-                        .collect(Collectors.toList()));
+                .addAllOperations(operations);
         return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
                 .setUpdate(update)
                 .setUpdateSignature(Signature.newBuilder()
