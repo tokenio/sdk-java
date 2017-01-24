@@ -153,85 +153,29 @@ public final class Client {
     }
 
     /**
-     * Adds public keys to the list of the approved keys.
+     * Updates member by applying the specified operations.
      *
-     * @param member member to add keys to
-     * @param keys keys to add to the approved list
+     * @param member member to update
+     * @param operations operations to apply
      * @return member information
      */
-    public Observable<Member> addKeys(Member member, List<Key> keys) {
-        return updateMember(MemberUpdate.newBuilder()
-                .setMemberId(member.getId())
-                .setPrevHash(member.getLastHash())
-                .addAllOperations(keys
-                        .stream()
-                        .map(k -> MemberOperation.newBuilder()
-                                .setAddKey(MemberAddKeyOperation.newBuilder().setKey(k)).build())
-                        .collect(toList()))
-                .build());
-    }
+    public Observable<Member> updateMember(Member member, List<MemberOperation> operations) {
+        Signer signer = crypto.createSigner(Key.Level.PRIVILEGED);
 
-    /**
-     * Removes public keys from the list of the approved keys.
-     *
-     * @param member member to remove the keys for
-     * @param keyIds key IDs of the keys to remove
-     * @return member information
-     */
-    public Observable<Member> removeKeys(Member member, List<String> keyIds) {
-        return updateMember(MemberUpdate.newBuilder()
+        MemberUpdate update = MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .addAllOperations(keyIds
-                        .stream()
-                        .map(k -> MemberOperation.newBuilder()
-                                .setRemoveKey(MemberRemoveKeyOperation.newBuilder()
-                                        .setKeyId(k))
-                                .build())
-                        .collect(toList()))
-                .build());
-    }
+                .addAllOperations(operations)
+                .build();
 
-    /**
-     * Adds usernames for a given user.
-     *
-     * @param member member to add the usernames to
-     * @param usernames new unique usernames to add
-     * @return member information
-     */
-    public Observable<Member> addUsernames(Member member, List<String> usernames) {
-        return updateMember(MemberUpdate.newBuilder()
-                .setMemberId(member.getId())
-                .setPrevHash(member.getLastHash())
-                .addAllOperations(usernames
-                        .stream()
-                        .map(u -> MemberOperation.newBuilder()
-                                .setAddUsername(MemberUsernameOperation.newBuilder()
-                                        .setUsername(u))
-                                .build())
-                        .collect(toList()))
-                .build());
-    }
-
-    /**
-     * Removes existing usernames for a given user.
-     *
-     * @param member member to add the usernames to
-     * @param usernames new unique username to add
-     * @return member information
-     */
-    public Observable<Member> removeUsernames(Member member, List<String> usernames) {
-        return updateMember(MemberUpdate.newBuilder()
-                .setMemberId(member.getId())
-                .setPrevHash(member.getLastHash())
-                .addAllOperations(usernames
-                        .stream()
-                        .map(u -> MemberOperation.newBuilder()
-                                .setRemoveUsername(MemberUsernameOperation.newBuilder()
-                                        .setUsername(u))
-                                .build())
-                        .collect(toList()))
-                .build());
+        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                .setUpdate(update)
+                .setUpdateSignature(Signature.newBuilder()
+                        .setMemberId(memberId)
+                        .setKeyId(signer.getKeyId())
+                        .setSignature(signer.sign(update)))
+                .build())
+        ).map(UpdateMemberResponse::getMember);
     }
 
     /**
@@ -683,18 +627,6 @@ public final class Client {
                 .setCreateToken(createToken)
                 .build())
         ).map(ReplaceTokenResponse::getResult);
-    }
-
-    private Observable<Member> updateMember(MemberUpdate update) {
-        Signer signer = crypto.createSigner(Key.Level.PRIVILEGED);
-        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
-                .setUpdate(update)
-                .setUpdateSignature(Signature.newBuilder()
-                        .setMemberId(memberId)
-                        .setKeyId(signer.getKeyId())
-                        .setSignature(signer.sign(update)))
-                .build())
-        ).map(UpdateMemberResponse::getMember);
     }
 
     private void setAuthenticationContext() {

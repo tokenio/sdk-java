@@ -4,13 +4,15 @@ import static io.token.util.Util.generateNonce;
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
-import com.google.common.collect.ImmutableList;
 import io.token.proto.PagedList;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
+import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -33,6 +35,7 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
+import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 import rx.Observable;
@@ -125,7 +128,7 @@ public final class MemberAsync {
      * @param username username, e.g. 'john', must be unique
      */
     public Observable<Void> addUsername(String username) {
-        return addUsernames(ImmutableList.of(username));
+        return addUsernames(Collections.singletonList(username));
     }
 
     /**
@@ -135,7 +138,10 @@ public final class MemberAsync {
      */
     public Observable<Void> addUsernames(List<String> usernames) {
         return client
-                .addUsernames(member.build(), usernames)
+                .updateMember(member.build(), usernames
+                        .stream()
+                        .map(Util::toAddUsernameOperation)
+                        .collect(toList()))
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -148,7 +154,7 @@ public final class MemberAsync {
      * @param username username, e.g. 'john'
      */
     public Observable<Void> removeUsername(String username) {
-        return removeUsernames(ImmutableList.of(username));
+        return removeUsernames(Collections.singletonList(username));
     }
 
     /**
@@ -158,7 +164,13 @@ public final class MemberAsync {
      */
     public Observable<Void> removeUsernames(List<String> usernames) {
         return client
-                .removeUsernames(member.build(), usernames)
+                .updateMember(member.build(), usernames
+                        .stream()
+                        .map(u -> MemberOperation.newBuilder()
+                                .setRemoveUsername(MemberUsernameOperation.newBuilder()
+                                        .setUsername(u))
+                                .build())
+                        .collect(toList()))
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -188,7 +200,7 @@ public final class MemberAsync {
      * @param key key to add to the approved list
      */
     public Observable<Void> approveKey(Key key) {
-        return approveKeys(ImmutableList.of(key));
+        return approveKeys(Collections.singletonList(key));
     }
 
     /**
@@ -199,7 +211,10 @@ public final class MemberAsync {
      */
     public Observable<Void> approveKeys(List<Key> keys) {
         return client
-                .addKeys(member.build(), keys)
+                .updateMember(member.build(), keys
+                        .stream()
+                        .map(Util::toAddKeyOperation)
+                        .collect(toList()))
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
@@ -212,7 +227,7 @@ public final class MemberAsync {
      * @param keyId key ID of the key to remove
      */
     public Observable<Void> removeKey(String keyId) {
-        return removeKeys(ImmutableList.of(keyId));
+        return removeKeys(Collections.singletonList(keyId));
     }
 
     /**
@@ -222,7 +237,13 @@ public final class MemberAsync {
      */
     public Observable<Void> removeKeys(List<String> keyIds) {
         return client
-                .removeKeys(member.build(), keyIds)
+                .updateMember(member.build(), keyIds
+                        .stream()
+                        .map(k -> MemberOperation.newBuilder()
+                                .setRemoveKey(MemberRemoveKeyOperation.newBuilder()
+                                        .setKeyId(k))
+                                .build())
+                        .collect(toList()))
                 .map(m -> {
                     member.clear().mergeFrom(m);
                     return null;
