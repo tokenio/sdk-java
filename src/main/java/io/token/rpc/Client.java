@@ -5,6 +5,7 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANC
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.rpc.util.Converters.toObservable;
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.Account;
@@ -152,76 +153,84 @@ public final class Client {
     }
 
     /**
-     * Adds a public key to the list of the approved keys.
+     * Adds public keys to the list of the approved keys.
      *
-     * @param member member to add the key to
-     * @param key key to add to the approved list
+     * @param member member to add keys to
+     * @param keys keys to add to the approved list
      * @return member information
      */
-    public Observable<Member> addKey(Member member, Key key) {
+    public Observable<Member> addKeys(Member member, List<Key> keys) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .addOperations(MemberOperation.newBuilder()
-                        .setAddKey(MemberAddKeyOperation.newBuilder()
-                                .setKey(key)))
+                .addAllOperations(keys
+                        .stream()
+                        .map(k -> MemberOperation.newBuilder()
+                                .setAddKey(MemberAddKeyOperation.newBuilder().setKey(k)).build())
+                        .collect(toList()))
                 .build());
     }
 
     /**
-     * Removes a public key from the list of the approved keys.
+     * Removes public keys from the list of the approved keys.
      *
-     * @param member member to remove the key for
-     * @param keyId key ID of the key to remove
+     * @param member member to remove the keys for
+     * @param keyIds key IDs of the keys to remove
      * @return member information
      */
-    public Observable<Member> removeKey(
-            Member member,
-            String keyId) {
+    public Observable<Member> removeKeys(Member member, List<String> keyIds) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .addOperations(MemberOperation.newBuilder()
-                        .setRemoveKey(MemberRemoveKeyOperation.newBuilder()
-                                .setKeyId(keyId)))
+                .addAllOperations(keyIds
+                        .stream()
+                        .map(k -> MemberOperation.newBuilder()
+                                .setRemoveKey(MemberRemoveKeyOperation.newBuilder()
+                                        .setKeyId(k))
+                                .build())
+                        .collect(toList()))
                 .build());
     }
 
     /**
-     * Adds an username for a given user.
+     * Adds usernames for a given user.
      *
-     * @param member member to add the key to
-     * @param username new unique username to add
+     * @param member member to add the usernames to
+     * @param usernames new unique usernames to add
      * @return member information
      */
-    public Observable<Member> addUsername(
-            Member member,
-            String username) {
+    public Observable<Member> addUsernames(Member member, List<String> usernames) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .addOperations(MemberOperation.newBuilder()
-                        .setAddUsername(MemberUsernameOperation.newBuilder()
-                                .setUsername(username)))
+                .addAllOperations(usernames
+                        .stream()
+                        .map(u -> MemberOperation.newBuilder()
+                                .setAddUsername(MemberUsernameOperation.newBuilder()
+                                        .setUsername(u))
+                                .build())
+                        .collect(toList()))
                 .build());
     }
 
     /**
-     * Removes an existing username for a given user.
+     * Removes existing usernames for a given user.
      *
-     * @param member member to add the key to
-     * @param username new unique username to add
+     * @param member member to add the usernames to
+     * @param usernames new unique username to add
      * @return member information
      */
-    public Observable<Member> removeUsername(
-            Member member,
-            String username) {
+    public Observable<Member> removeUsernames(Member member, List<String> usernames) {
         return updateMember(MemberUpdate.newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
-                .addOperations(MemberOperation.newBuilder()
-                        .setRemoveUsername(MemberUsernameOperation.newBuilder()
-                                .setUsername(username)))
+                .addAllOperations(usernames
+                        .stream()
+                        .map(u -> MemberOperation.newBuilder()
+                                .setRemoveUsername(MemberUsernameOperation.newBuilder()
+                                        .setUsername(u))
+                                .build())
+                        .collect(toList()))
                 .build());
     }
 
