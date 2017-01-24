@@ -123,6 +123,7 @@ public final class MemberAsync {
      * Adds a new username for the member.
      *
      * @param username username, e.g. 'john', must be unique
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> addUsername(String username) {
         return client
@@ -137,6 +138,7 @@ public final class MemberAsync {
      * Removes an username for the member.
      *
      * @param username username, e.g. 'john'
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> removeUsername(String username) {
         return client
@@ -153,6 +155,7 @@ public final class MemberAsync {
      *
      * @param key key to add to the approved list
      * @param level key privilege level
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> approveKey(SecretKeyPair key, Key.Level level) {
         return approveKey(Key.newBuilder()
@@ -168,6 +171,7 @@ public final class MemberAsync {
      * of valid keys for the member.
      *
      * @param key key to add to the approved list
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> approveKey(Key key) {
         return client
@@ -182,6 +186,7 @@ public final class MemberAsync {
      * Removes a public key owned by this member.
      *
      * @param keyId key ID of the key to remove
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> removeKey(String keyId) {
         return client
@@ -228,6 +233,7 @@ public final class MemberAsync {
      * Removes a subscriber.
      *
      * @param subscriberId subscriberId
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> unsubscribeFromNotifications(String subscriberId) {
         return client.unsubscribeFromNotifications(subscriberId)
@@ -258,6 +264,7 @@ public final class MemberAsync {
      *
      * @param bankId bank id
      * @param accountLinkPayloads a list of account payloads to be linked
+     * @return list of linked accounts
      */
     public Observable<List<AccountAsync>> linkAccounts(
             String bankId,
@@ -353,6 +360,7 @@ public final class MemberAsync {
      * Deletes a member address by its id.
      *
      * @param addressId the id of the address
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> deleteAddress(String addressId) {
         return client.deleteAddress(addressId);
@@ -363,6 +371,7 @@ public final class MemberAsync {
      *
      * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
+     * @param accountId account id
      * @return transfer token returned by the server
      */
     public Observable<Token> createToken(double amount, String currency, String accountId) {
@@ -374,6 +383,7 @@ public final class MemberAsync {
      *
      * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
+     * @param accountId account id
      * @param redeemer redeemer username
      * @param description transfer description, optional
      * @return transfer token returned by the server
