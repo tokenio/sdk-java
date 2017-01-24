@@ -12,6 +12,8 @@ public class DeviceInfo {
     private final List<Key> keys;
 
     /**
+     * Creates an instance.
+     *
      * @param memberId member id
      * @param keys list of keys
      */

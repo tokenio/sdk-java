@@ -98,7 +98,7 @@ public final class UnauthenticatedClient {
      */
     public Observable<Member> addKeys(String memberId, List<Key> keys, Signer signer) {
         return Single
-                .<Member>create(subscriber -> addKeys(
+                .<Member>create(subscriber -> addAllKeys(
                         memberId,
                         keys,
                         0,
@@ -213,7 +213,7 @@ public final class UnauthenticatedClient {
      * @param callback callback to invoke when all the keys has been added
      */
     // TODO: Replace this with batch call when it is available.
-    private void addKeys(
+    private void addAllKeys(
             String memberId,
             List<Key> keys,
             int keyIndex,
@@ -243,7 +243,7 @@ public final class UnauthenticatedClient {
                             if (keyIndex == keys.size() - 1) {
                                 callback.onSuccess(response.getMember());
                             } else {
-                                addKeys(
+                                addAllKeys(
                                         memberId,
                                         keys,
                                         keyIndex + 1,

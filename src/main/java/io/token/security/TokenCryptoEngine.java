@@ -21,6 +21,12 @@ public final class TokenCryptoEngine implements CryptoEngine {
     private final KeyStore keyStore;
     private final Crypto crypto;
 
+    /**
+     * Creates an instance.
+     *
+     * @param memberId member ID
+     * @param keyStore key store
+     */
     public TokenCryptoEngine(String memberId, KeyStore keyStore) {
         this.memberId = memberId;
         this.keyStore = keyStore;
