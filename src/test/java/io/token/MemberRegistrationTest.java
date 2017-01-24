@@ -40,11 +40,8 @@ public class MemberRegistrationTest {
         Member member = firstDevice.createMember(username);
 
         Token secondDevice = rule.token();
-        // TODO: Replace with a batch Directory call.
         DeviceInfo deviceInfo = secondDevice.provisionDevice(member.firstUsername());
-        for (Key key : deviceInfo.getKeys()) {
-            member.approveKey(key);
-        }
+        member.approveKeys(deviceInfo.getKeys());
 
         Member loggedIn = secondDevice.login(deviceInfo.getMemberId());
         assertThat(loggedIn)

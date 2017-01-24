@@ -114,12 +114,30 @@ public final class Member {
     }
 
     /**
+     * Adds new usernames for the member.
+     *
+     * @param usernames usernames, e.g. 'john', must be unique
+     */
+    public void addUsernames(List<String> usernames) {
+        async.addUsernames(usernames).toBlocking().single();
+    }
+
+    /**
      * Removes an username for the member.
      *
      * @param username username, e.g. 'john'
      */
     public void removeUsername(String username) {
         async.removeUsername(username).toBlocking().single();
+    }
+
+    /**
+     * Removes usernames for the member.
+     *
+     * @param usernames usernames, e.g. 'john'
+     */
+    public void removeUsernames(List<String> usernames) {
+        async.removeUsernames(usernames).toBlocking().single();
     }
 
     /**
@@ -144,12 +162,31 @@ public final class Member {
     }
 
     /**
+     * Approves public keys owned by this member. The keys are added to the list
+     * of valid keys for the member.
+     *
+     * @param keys keys to add to the approved list
+     */
+    public void approveKeys(List<Key> keys) {
+        async.approveKeys(keys).toBlocking().single();
+    }
+
+    /**
      * Removes a public key owned by this member.
      *
      * @param keyId key ID of the key to remove
      */
     public void removeKey(String keyId) {
         async.removeKey(keyId).toBlocking().single();
+    }
+
+    /**
+     * Removes public keys owned by this member.
+     *
+     * @param keyIds key IDs of the keys to remove
+     */
+    public void removeKeys(List<String> keyIds) {
+        async.removeKeys(keyIds).toBlocking().single();
     }
 
     /**
