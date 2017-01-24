@@ -11,17 +11,15 @@ import io.token.security.Signer;
  */
 final class ClientAuthenticatorFactory implements InterceptorFactory {
     private final String memberId;
-    private final String username;
     private final Signer signer;
 
-    public ClientAuthenticatorFactory(String memberId, String username, Signer signer) {
+    public ClientAuthenticatorFactory(String memberId, Signer signer) {
         this.memberId = memberId;
-        this.username = username;
         this.signer = signer;
     }
 
     @Override
     public <ReqT, ResT> SimpleInterceptor<ReqT, ResT> create(MethodDescriptor<ReqT, ResT> ignore) {
-        return new ClientAuthenticator<>(memberId, username, signer);
+        return new ClientAuthenticator<>(memberId, signer);
     }
 }

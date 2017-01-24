@@ -2,15 +2,13 @@ package io.token.asserts;
 
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
-import static java.util.Collections.singletonList;
 import static java.util.stream.Collectors.toList;
 
 import io.token.Member;
-import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -59,24 +57,22 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
         return this;
     }
 
-    public TokenAssertion isEndorsedBy(Member... members) {
+    public TokenAssertion isEndorsedBy(Member member, Key.Level keyLevel) {
         return hasKeySignatures(
-                Arrays.stream(members)
-                        .flatMap(member -> member.keys().stream())
-                        .map(SecurityProtos.Key::getId)
+                member.keys()
+                        .stream()
+                        .filter(k -> k.getLevel().equals(keyLevel))
+                        .map(Key::getId)
                         .collect(toList()),
                 ENDORSED);
     }
 
-    public TokenAssertion isEndorsedBy(String keyId) {
-        return hasKeySignatures(singletonList(keyId), ENDORSED);
-    }
-
-    public TokenAssertion isCancelledBy(Member... members) {
+    public TokenAssertion isCancelledBy(Member member, Key.Level keyLevel) {
         return hasKeySignatures(
-                Arrays.stream(members)
-                        .flatMap(member -> member.keys().stream())
-                        .map(SecurityProtos.Key::getId)
+                member.keys()
+                        .stream()
+                        .filter(k -> k.getLevel().equals(keyLevel))
+                        .map(Key::getId)
                         .collect(toList()),
                 CANCELLED);
     }

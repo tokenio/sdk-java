@@ -22,31 +22,19 @@ import org.junit.rules.ExternalResource;
  */
 public class TokenRule extends ExternalResource {
     public static final String DEFAULT_BANK_ID = "iron";
-    private final Token token;
+    private final boolean useSsl;
     private final BankClient bankClient;
 
     public TokenRule() {
-        HostAndPort gateway = HostAndPort
-                .fromString(getEnvProperty("TOKEN_GATEWAY", "localhost"))
-                .withDefaultPort(9000);
+        useSsl = Boolean.parseBoolean(getEnvProperty("TOKEN_USE_SSL", "false"));
 
         HostAndPort bank = HostAndPort
                 .fromString(getEnvProperty("TOKEN_BANK", "localhost"))
                 .withDefaultPort(9100);
-
-        boolean useSsl = Boolean.parseBoolean(getEnvProperty("TOKEN_USE_SSL", "false"));
-
         this.bankClient = new BankClient(
                 bank.getHostText(),
                 bank.getPort(),
                 useSsl);
-
-        this.token = Token.builder()
-                .hostName(gateway.getHostText())
-                .port(gateway.getPort())
-                .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
-                .useSsl(useSsl)
-                .build();
     }
 
     private static String getEnvProperty(String name, String defaultValue) {
@@ -79,12 +67,21 @@ public class TokenRule extends ExternalResource {
     }
 
     public Token token() {
-        return token;
+        HostAndPort gateway = HostAndPort
+                .fromString(getEnvProperty("TOKEN_GATEWAY", "localhost"))
+                .withDefaultPort(9000);
+
+        return Token.builder()
+                .hostName(gateway.getHostText())
+                .port(gateway.getPort())
+                .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
+                .useSsl(useSsl)
+                .build();
     }
 
     public Member member() {
         String username = "username-" + Util.generateNonce();
-        return token.createMember(username);
+        return token().createMember(username);
     }
 
     public Account account() {
