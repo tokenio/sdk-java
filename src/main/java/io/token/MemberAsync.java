@@ -136,6 +136,7 @@ public final class MemberAsync {
      * Adds new usernames for the member.
      *
      * @param usernames usernames, e.g. 'john', must be unique
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> addUsernames(List<String> usernames) {
         return client
@@ -163,6 +164,7 @@ public final class MemberAsync {
      * Removes usernames for the member.
      *
      * @param usernames usernames, e.g. 'john'
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> removeUsernames(List<String> usernames) {
         return client
@@ -212,6 +214,7 @@ public final class MemberAsync {
      * of valid keys for the member.
      *
      * @param keys keys to add to the approved list
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> approveKeys(List<Key> keys) {
         return client
@@ -239,6 +242,7 @@ public final class MemberAsync {
      * Removes public keys owned by this member.
      *
      * @param keyIds key IDs of the keys to remove
+     * @return observable that completes when the operation has finished
      */
     public Observable<Void> removeKeys(List<String> keyIds) {
         return client
