@@ -69,7 +69,9 @@ public class NotificationsTest {
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = payer.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
-        assertThat(payer.getNotifications().size()).isGreaterThan(0);
+        waitUntil(() -> assertThat(payer.getNotifications().size())
+                .isGreaterThan(0)
+        );
         payer.unsubscribeFromNotifications(subscriber.getId());
 
         List<Subscriber> subscriberList2 = payer.getSubscribers();
