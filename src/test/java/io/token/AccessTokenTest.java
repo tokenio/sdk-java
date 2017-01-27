@@ -315,6 +315,9 @@ public class AccessTokenTest {
         assertThat(result.getToken().getPayloadSignaturesList()
                 .stream()
                 .anyMatch(s -> s.getAction() == Action.ENDORSED)).isTrue();
+        member1.clearAccessTokenOf();
+        assertThat(member1.getToken(accessToken.getId()).getReplacedByTokenId())
+                .isEqualTo(result.getToken().getId());
     }
 
     @Test(expected = StatusRuntimeException.class)
