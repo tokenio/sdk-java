@@ -176,6 +176,7 @@ public final class Token {
         private int port;
         private Duration timeout;
         private boolean useSsl;
+        private KeyStore keyStore;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -229,6 +230,17 @@ public final class Token {
         }
 
         /**
+         * Sets the keystore to be used with the SDK.
+         *
+         * @param keyStore the keystore to be used
+         * @return this builder instance
+         */
+        public Builder withKeyStore(KeyStore keyStore) {
+            this.keyStore = keyStore;
+            return this;
+        }
+
+        /**
          * Builds and returns a new {@link Token} instance.
          *
          * @return {@link Token} instance
@@ -243,7 +255,9 @@ public final class Token {
          * @return {@link Token} instance
          */
         public TokenAsync buildAsync() {
-            KeyStore keyStore = new InMemoryKeyStore();
+            if (keyStore == null) {
+                keyStore = new InMemoryKeyStore();
+            }
             CryptoEngineFactory cryptoFactory = new TokenCryptoEngineFactory(keyStore);
             return new TokenAsync(
                     RpcChannelFactory
