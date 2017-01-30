@@ -11,9 +11,14 @@ if [ "${env}" != "prd" ] && [ "${env}" != "stg" ] && [ "${env}" != "dev" ] ; the
   exit 1
 fi
 
+if [ "${env}" == "prd" ] ; then
+  env=''
+else
+  env=.${env}
+fi
 
-GATEWAY_HOST=api-grpc.${env}.token.io
-BANK_HOST=fank-grpc.${env}.token.io
+GATEWAY_HOST=api-grpc${env}.token.io
+BANK_HOST=fank-grpc${env}.token.io
 
 echo "Gateway: ${GATEWAY_HOST}"
 echo "Fank: ${BANK_HOST}"
