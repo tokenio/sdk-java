@@ -6,11 +6,10 @@ import io.token.Member;
 
 import org.junit.Test;
 
-public class CreateMemberTest {
+public class CreateMemberSampleTest {
     @Test
     public void createMemberTest() {
-        CreateMember createMemberSample = new CreateMember();
-        Member member = createMemberSample.createMember();
+        Member member = CreateMemberSample.createMember("api-grpc.dev.token.io");
         assertThat(member).isNotNull();
     }
 }

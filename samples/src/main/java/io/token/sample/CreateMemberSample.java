@@ -10,11 +10,17 @@ import java.time.Duration;
 /**
  * Create a new Token member record.
  */
-public class CreateMember {
-    Member createMember() {
+public final class CreateMemberSample {
+    /**
+     * Creates and returns a new token member.
+     *
+     * @param tokenApiUrl token API url (e.g.: "api-grpc.token.io")
+     * @return a new Member instance
+     */
+    public static Member createMember(String tokenApiUrl) {
         // Initialize Token SDK instance.
         Token sdk = Token.builder()
-                .hostName(HostAndPort.fromHost("api-grpc.token.io").getHostText())
+                .hostName(HostAndPort.fromHost(tokenApiUrl).getHostText())
                 .port(443)
                 .timeout(Duration.ofSeconds(15))
                 .useSsl(true)
