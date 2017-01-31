@@ -1,0 +1,18 @@
+ext {
+    ver = [
+        tokenProto: '1.0.215',
+        tokenRpc: '1.0.36',
+        tokenSecurity: '1.0.27',
+        tokenUtil: '1.0.8',
+    ]
+}
+
+dependencies {
+    compile group: 'io.token.proto', name: 'tokenio-proto-external', version: ver.tokenProto
+    compile group: 'io.token.rpc', name: 'tokenio-rpc-lib', version: ver.tokenRpc
+    compile group: 'io.token.security', name: 'tokenio-security-lib', version: ver.tokenSecurity
+    compile group: 'io.token.util', name: 'tokenio-util', version: ver.tokenUtil
+
+    testCompile group: 'io.token.rpc', name: 'tokenio-rpc-testing', version: ver.tokenRpc
+    compile group: 'io.token.security', name: 'tokenio-security-testing', version: ver.tokenSecurity
+}
