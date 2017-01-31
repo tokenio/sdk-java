@@ -31,11 +31,11 @@ public final class LinkMemberAndBankSample {
 
         // The bank linking flow generates an encrypted account linking payload that is sent to
         // a registered device via a push notification.
-        List<SecurityProtos.SealedMessage> encryptedLinkingPayload =
+        List<SecurityProtos.SealedMessage> encryptedLinkingPayloads =
                 getPayloadsList(bankServiceUrl, member).getPayloadsList();
 
         // Finish account linking flow initiated by the user.
-        member.linkAccounts("iron" /* bank code */, encryptedLinkingPayload);
+        member.linkAccounts("iron" /* bank code */, encryptedLinkingPayloads);
 
         return member;
     }
@@ -74,14 +74,14 @@ public final class LinkMemberAndBankSample {
                                 .setCurrency("EUR"))
                         .build());
 
-        Banklink.AccountLinkingPayloads accountLinkingPayload = fakeBank.authorizeLinkAccounts(
+        Banklink.AccountLinkingPayloads accountLinkingPayloads = fakeBank.authorizeLinkAccounts(
                 Fank.AuthorizeLinkAccountsRequest.newBuilder()
                         .setUsername(member.firstUsername())
                         .setClientId(fakeClient.getClient().getId())
                         .addAccounts(fakeAccount.getAccount().getAccountNumber())
                         .build());
 
-        return accountLinkingPayload;
+        return accountLinkingPayloads;
         // ********************** Fake bank simulation fragment end ************************** //
     }
 }
