@@ -7,6 +7,13 @@ ext {
     ]
 }
 
+tasks.withType(Test) {
+    // Pipe through the properties that we care about to tests.
+    systemProperty 'TOKEN_GATEWAY', System.getProperty('TOKEN_GATEWAY', null)
+    systemProperty 'TOKEN_BANK', System.getProperty('TOKEN_BANK', null)
+    systemProperty 'TOKEN_USE_SSL', System.getProperty('TOKEN_USE_SSL', null)
+}
+
 dependencies {
     compile group: 'io.token.proto', name: 'tokenio-proto-external', version: ver.tokenProto
     compile group: 'io.token.rpc', name: 'tokenio-rpc-lib', version: ver.tokenRpc
