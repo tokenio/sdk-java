@@ -1,0 +1,4 @@
+dependencies {
+    compile project(':sdk')
+    compile 'junit:junit:4.12'
+}
