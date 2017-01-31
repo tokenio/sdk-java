@@ -10,7 +10,7 @@ import java.time.Duration;
 /**
  * Create a new Token member record.
  */
-public class CreateMember {
+class CreateMember {
     Member createMember() {
         // Initialize Token SDK instance.
         Token sdk = Token.builder()
