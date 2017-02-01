@@ -2,6 +2,7 @@ package io.token.sample;
 
 import io.grpc.ManagedChannel;
 import io.token.Member;
+import io.token.Token.TokenCluster;
 import io.token.proto.bankapi.Fank;
 import io.token.proto.bankapi.FankServiceGrpc;
 import io.token.proto.banklink.Banklink;
@@ -18,21 +19,19 @@ public final class LinkMemberAndBankSample {
     /**
      * Links a Token member created by {@link CreateMemberSample} and a bank.
      *
-     * @param tokenApiUrl token API url (e.g.: "api-grpc.token.io")
-     * @param bankServiceUrl url of a bank service that implements Token bank API
-     *         (e.g.: "fank-grpc.token.io")
+     * @param tokenCluster Token cluster to connect to (e.g.: TokenCluster.PRODUCTION)
      * @return a new Member instance
      */
-    public static Member linkBank(String tokenApiUrl, String bankServiceUrl) {
+    public static Member linkBank(TokenCluster tokenCluster) {
         // Create a new token member using the CreateMemberSample.
-        Member member = CreateMemberSample.createMember(tokenApiUrl);
+        Member member = CreateMemberSample.createMember(tokenCluster);
 
         // User starts an account linking process from a bank web site...
 
         // The bank linking flow generates an encrypted account linking payload that is sent to
-        // a registered device via a push notification.
+        // a registered device via a push notification. We simulate it here by calling a fake bank.
         List<SealedMessage> encryptedLinkingPayloads =
-                getPayloadsList(bankServiceUrl, member).getPayloadsList();
+                getPayloadsList(member, tokenCluster).getPayloadsList();
 
         // Finish account linking flow initiated by the user.
         member.linkAccounts("iron" /* bank code */, encryptedLinkingPayloads);
@@ -41,8 +40,8 @@ public final class LinkMemberAndBankSample {
     }
 
     private static Banklink.AccountLinkingPayloads getPayloadsList(
-            String bankServiceUrl,
-            Member member) {
+            Member member,
+            TokenCluster tokenCluster) {
         // ********************** Fake bank simulation fragment start ************************** //
         // The below code fragment is a sample demonstration of what happens on a bank side
         // when a user tries to link her account(s) with Token. This is not a part of the Token
@@ -51,7 +50,7 @@ public final class LinkMemberAndBankSample {
         // Simulate a real bank service by using a fake bank ("fank"), adding a fake bank client
         // "John Doe" with a checking account and some balance.
         ManagedChannel channel = RpcChannelFactory
-                .builder(bankServiceUrl, 443, true /* useSsl */)
+                .builder(tokenCluster.url().replace("api", "fank"), 443, true /* useSsl */)
                 .build();
 
         FankServiceGrpc.FankServiceBlockingStub fakeBank = FankServiceGrpc.newBlockingStub(channel);

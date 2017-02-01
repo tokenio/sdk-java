@@ -167,15 +167,35 @@ public final class Token {
     }
 
     /**
+     * Defines Token cluster to connect to.
+     */
+    public enum TokenCluster {
+        PRODUCTION("api-grpc.token.io"),
+        STAGING("api-grpc.stg.token.io"),
+        DEVELOPMENT("api-grpc.dev.token.io");
+
+        private final String envUrl;
+
+        TokenCluster(String url) {
+            this.envUrl = url;
+        }
+
+        public String url() {
+            return envUrl;
+        }
+    }
+
+    /**
      * Used to create a new {@link Token} instances.
      */
     public static final class Builder {
         private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
+        private static final int DEFAULT_SSL_PORT = 443;
 
-        private String hostName;
         private int port;
-        private Duration timeout;
         private boolean useSsl;
+        private String hostName;
+        private Duration timeout;
         private KeyStore keyStore;
 
         /**
@@ -183,6 +203,8 @@ public final class Token {
          */
         public Builder() {
             this.timeout = DEFAULT_TIMEOUT;
+            this.port = DEFAULT_SSL_PORT;
+            this.useSsl = true;
         }
 
         /**
@@ -204,6 +226,18 @@ public final class Token {
          */
         public Builder port(int port) {
             this.port = port;
+            this.useSsl = port == DEFAULT_SSL_PORT;
+            return this;
+        }
+
+        /**
+         * Sets Token cluster to connect to.
+         *
+         * @param cluster {@link TokenCluster} instance.
+         * @return this builder instance
+         */
+        public Builder connectTo(TokenCluster cluster) {
+            this.hostName = cluster.url();
             return this;
         }
 
@@ -215,17 +249,6 @@ public final class Token {
          */
         public Builder timeout(Duration timeout) {
             this.timeout = timeout;
-            return this;
-        }
-
-        /**
-         * Sets flag indicating whether ssl should be used for RPC calls.
-         *
-         * @param useSsl ssl flag
-         * @return this builder instance
-         */
-        public Builder useSsl(boolean useSsl) {
-            this.useSsl = useSsl;
             return this;
         }
 
