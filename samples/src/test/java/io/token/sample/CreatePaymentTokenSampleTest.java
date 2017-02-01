@@ -15,7 +15,7 @@ public class CreatePaymentTokenSampleTest {
         Member payer = LinkMemberAndBankSample.linkBank(tokenApiUrl, bankApiUrl);
         Member payee = LinkMemberAndBankSample.linkBank(tokenApiUrl, bankApiUrl);
 
-        Token token = CreatePaymentTokenSample.createToken(payer, payee.firstUsername());
+        Token token = CreateAndEndorsePaymentTokenSample.createToken(payer, payee.firstUsername());
         assertThat(token).isNotNull();
     }
 }

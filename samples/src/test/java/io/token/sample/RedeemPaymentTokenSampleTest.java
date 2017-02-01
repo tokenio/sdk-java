@@ -3,7 +3,8 @@ package io.token.sample;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
-import io.token.proto.common.transfer.TransferProtos;
+import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 
 import org.junit.Test;
 
@@ -15,7 +16,9 @@ public class RedeemPaymentTokenSampleTest {
         Member payer = LinkMemberAndBankSample.linkBank(tokenApiUrl, bankApiUrl);
         Member payee = LinkMemberAndBankSample.linkBank(tokenApiUrl, bankApiUrl);
 
-        TransferProtos.Transfer transfer = RedeemPaymentTokenSample.redeemToken(payer, payee);
+        Token token = CreateAndEndorsePaymentTokenSample.createToken(payer, payee.firstUsername());
+
+        Transfer transfer = RedeemPaymentTokenSample.redeemToken(payee, token.getId());
         assertThat(transfer).isNotNull();
     }
 }
