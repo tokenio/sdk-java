@@ -6,7 +6,7 @@ import io.token.proto.bankapi.Fank;
 import io.token.proto.bankapi.FankServiceGrpc;
 import io.token.proto.banklink.Banklink;
 import io.token.proto.common.money.MoneyProtos;
-import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
 
 import java.util.List;
@@ -31,7 +31,7 @@ public final class LinkMemberAndBankSample {
 
         // The bank linking flow generates an encrypted account linking payload that is sent to
         // a registered device via a push notification.
-        List<SecurityProtos.SealedMessage> encryptedLinkingPayloads =
+        List<SealedMessage> encryptedLinkingPayloads =
                 getPayloadsList(bankServiceUrl, member).getPayloadsList();
 
         // Finish account linking flow initiated by the user.
