@@ -10,7 +10,7 @@ import org.junit.Test;
 
 public class RedeemPaymentTokenSampleTest {
     @Test
-    public void redeemPaymentTokenSampleTest() {
+    public void redeemPaymentTokenTest() {
         String tokenApiUrl = "api-grpc.dev.token.io";
         String bankApiUrl = "fank-grpc.dev.token.io";
         Member payer = LinkMemberAndBankSample.linkBank(tokenApiUrl, bankApiUrl);
