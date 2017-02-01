@@ -7,7 +7,7 @@ import io.token.proto.common.token.TokenProtos.Token;
 
 import org.junit.Test;
 
-public class CreatePaymentTokenSampleTest {
+public class CreateAndEndorsePaymentTokenSampleTest {
     @Test
     public void createPaymentTokenTest() {
         String tokenApiUrl = "api-grpc.dev.token.io";
