@@ -1,0 +1,30 @@
+package io.token.sample;
+
+import io.token.AccessTokenBuilder;
+import io.token.Member;
+import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos.Token;
+
+/**
+ * Creates an information access token and endorses it to a grantee.
+ */
+public final class CreateAndEndorseAccessTokenSample {
+    /**
+     * Creates an information access token to allow a grantee to see all bank accounts of a grantor.
+     *
+     * @param grantor Token member granting access to her accounts
+     * @param granteeUsername Token member username acquiring information access
+     * @return an access Token
+     */
+    public static Token createToken(Member grantor, String granteeUsername) {
+        // Create an access token for the grantee to access bank account names of the grantor.
+        Token token = grantor.createAccessToken(AccessTokenBuilder
+                .create(granteeUsername)
+                .forAllAccounts());
+
+        // Grantor endorses a token to a grantee by signing it with its secure private key.
+        token = grantor.endorseToken(token, Key.Level.STANDARD).getToken();
+
+        return token;
+    }
+}
