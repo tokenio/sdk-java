@@ -1,5 +1,6 @@
 package io.token.sample;
 
+import static io.token.Token.TokenCluster.DEVELOPMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -11,10 +12,8 @@ import org.junit.Test;
 public class RedeemPaymentTokenSampleTest {
     @Test
     public void redeemPaymentTokenTest() {
-        String tokenApiUrl = "api-grpc.dev.token.io";
-        String bankApiUrl = "fank-grpc.dev.token.io";
-        Member payer = LinkMemberAndBankSample.linkBank(tokenApiUrl, bankApiUrl);
-        Member payee = LinkMemberAndBankSample.linkBank(tokenApiUrl, bankApiUrl);
+        Member payer = LinkMemberAndBankSample.linkBank(DEVELOPMENT);
+        Member payee = LinkMemberAndBankSample.linkBank(DEVELOPMENT);
 
         Token token = CreateAndEndorsePaymentTokenSample.createToken(payer, payee.firstUsername());
 

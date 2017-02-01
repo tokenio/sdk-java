@@ -75,7 +75,6 @@ public class TokenRule extends ExternalResource {
                 .hostName(gateway.getHostText())
                 .port(gateway.getPort())
                 .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
-                .useSsl(useSsl)
                 .build();
     }
 
