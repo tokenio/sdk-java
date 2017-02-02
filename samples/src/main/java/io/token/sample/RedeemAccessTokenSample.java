@@ -17,8 +17,12 @@ public final class RedeemAccessTokenSample {
      * @return list of grantor's accounts accessed by the grantee
      */
     public static List<Account> redeemToken(Member grantee, String tokenId) {
-        // Access grantor's account list.
+        // Access grantor's account list by applying access token to the grantee client.
         grantee.useAccessToken(tokenId);
-        return grantee.getAccounts();
+        List<Account> grantorAccounts = grantee.getAccounts();
+
+        // Clear access token from grantee client.
+        grantee.clearAccessToken();
+        return grantorAccounts;
     }
 }

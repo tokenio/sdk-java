@@ -100,7 +100,7 @@ public final class Member {
     /**
      * Clears the access token value used with this client.
      */
-    public void clearAccessTokenOf() {
+    public void clearAccessToken() {
         this.async.clearAccessToken();
     }
 
