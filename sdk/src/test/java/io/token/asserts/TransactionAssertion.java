@@ -1,8 +1,10 @@
 package io.token.asserts;
 
+import io.token.proto.common.transaction.TransactionProtos;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import java.math.BigDecimal;
+
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
@@ -15,8 +17,11 @@ public final class TransactionAssertion extends AbstractAssert<TransactionAssert
         return new TransactionAssertion(transaction);
     }
 
-    private static BigDecimal normalize(BigDecimal decimal) {
-        return decimal.setScale(2, BigDecimal.ROUND_UNNECESSARY);
+    public TransactionAssertion isSuccessful() {
+        Assertions
+                .assertThat(actual.getStatus())
+                .isEqualTo(TransactionProtos.TransactionStatus.SUCCESS);
+        return this;
     }
 
     public TransactionAssertion hasAmount(double amount) {
@@ -44,6 +49,10 @@ public final class TransactionAssertion extends AbstractAssert<TransactionAssert
     public TransactionAssertion containsDescription(String description) {
         Assertions.assertThat(actual.getDescription()).contains(description);
         return this;
+    }
+
+    private static BigDecimal normalize(BigDecimal decimal) {
+        return decimal.setScale(2, BigDecimal.ROUND_UNNECESSARY);
     }
 }
 

@@ -5,10 +5,12 @@ import static java.util.stream.Collectors.toList;
 import io.token.Member;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 
 import java.util.Collection;
 import java.util.List;
+
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
@@ -19,6 +21,17 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
 
     public static TransferAssertion assertThat(Transfer transfer) {
         return new TransferAssertion(transfer);
+    }
+
+    public TransferAssertion isSuccessful() {
+        return hasStatus(TransactionStatus.SUCCESS);
+    }
+
+    public TransferAssertion hasStatus(TransactionStatus status) {
+        Assertions
+                .assertThat(actual.getStatus())
+                .isEqualTo(status);
+        return this;
     }
 
     public TransferAssertion hasAmount(double amount) {

@@ -40,6 +40,7 @@ public class TransactionsTest {
 
         Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
         TransactionAssertion.assertThat(transaction)
+                .isSuccessful()
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
@@ -69,27 +70,32 @@ public class TransactionsTest {
 
         assertThat(transactions).hasSize(5);
         TransactionAssertion.assertThat(transactions.get(0))
+                .isSuccessful()
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer1.getId());
         TransactionAssertion.assertThat(transactions.get(1))
+                .isSuccessful()
                 .hasAmount(200.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer2.getId());
         TransactionAssertion.assertThat(transactions.get(2))
+                .isSuccessful()
                 .hasAmount(300.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer3.getId())
                 .containsDescription("three hundred");
         TransactionAssertion.assertThat(transactions.get(3))
+                .isSuccessful()
                 .hasAmount(400.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer4.getId());
         TransactionAssertion.assertThat(transactions.get(4))
+                .isSuccessful()
                 .hasAmount(500.0)
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
