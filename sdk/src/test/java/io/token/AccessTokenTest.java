@@ -105,7 +105,7 @@ public class AccessTokenTest {
         AddressRecord result = member2.getAddress(address1.getId());
         assertThat(result).isEqualTo(address1);
 
-        member2.clearAccessTokenOf();
+        member2.clearAccessToken();
         assertThatExceptionThrownBy(() ->
                 member2.getAddress(address1.getId())
         );
@@ -315,7 +315,7 @@ public class AccessTokenTest {
         assertThat(result.getToken().getPayloadSignaturesList()
                 .stream()
                 .anyMatch(s -> s.getAction() == Action.ENDORSED)).isTrue();
-        member1.clearAccessTokenOf();
+        member1.clearAccessToken();
         assertThat(member1.getToken(accessToken.getId()).getReplacedByTokenId())
                 .isEqualTo(result.getToken().getId());
     }

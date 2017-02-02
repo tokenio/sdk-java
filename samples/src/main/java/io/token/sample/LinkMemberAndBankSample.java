@@ -18,6 +18,12 @@ import java.util.List;
 public final class LinkMemberAndBankSample {
     /**
      * Links a Token member created by {@link CreateMemberSample} and a bank.
+     * <p>
+     * The bank linking is currently only supported by the Token PSD2 IOS mobile app.
+     * This sample is implemented for a very high level illustration of the bank linking concept
+     * and serves as an integral building block connecting other samples. The desktop version of
+     * the bank linking process is in the development. Until it's ready, please use Token PSD2 IOS
+     * mobile app to link Token members and banks.
      *
      * @param tokenCluster Token cluster to connect to (e.g.: TokenCluster.PRODUCTION)
      * @return a new Member instance
@@ -26,10 +32,16 @@ public final class LinkMemberAndBankSample {
         // Create a new token member using the CreateMemberSample.
         Member member = CreateMemberSample.createMember(tokenCluster);
 
-        // User starts an account linking process from a bank web site...
+        // User opens a bank web site and completes the Token linking process. The following is a
+        // high level description of how that happens in the Token PSD2 IOS mobile app:
+        // 1. App displays a list of banks supported by Token
+        // 2. User selects a bank, the app pops up a web view and navigates to the bank linking page
+        // 3. User enters bank credentials and selects accounts to link
+        // 4. The bank linking flow completes and the app extracts encrypted account linking
+        //    payload from the internal service redirected to by the linking flow.
 
-        // The bank linking flow generates an encrypted account linking payload that is sent to
-        // a registered device via a push notification. We simulate it here by calling a fake bank.
+        // For the purpose of this sample, we simulate the entire linking flow described above
+        // by generating it with a fake bank below.
         List<SealedMessage> encryptedLinkingPayloads =
                 getPayloadsList(member, tokenCluster).getPayloadsList();
 
