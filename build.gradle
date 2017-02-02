@@ -2,7 +2,7 @@ buildscript {
     repositories {
         mavenLocal()
         jcenter()
-        maven { url 'https://token.artifactoryonline.com/token/public-gradle-plugins-local/' }
+        maven { url 'https://token.jfrog.io/token/public-gradle-plugins-local/' }
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
