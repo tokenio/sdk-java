@@ -15,8 +15,8 @@ import java.util.List;
 /**
  * Main entry point to the Token SDK. Use {@link Token.Builder}
  * class to create an instance of the {@link TokenAsync} or {@link Token}.
- * <p>
- * The class provides synchronous API with {@link TokenAsync} providing an
+ *
+ * <p>The class provides synchronous API with {@link TokenAsync} providing an
  * asynchronous version. {@link TokenAsync} instance can be obtained by
  * calling {@link #async} method.
  */
