@@ -18,8 +18,8 @@ import java.util.List;
 public final class LinkMemberAndBankSample {
     /**
      * Links a Token member created by {@link CreateMemberSample} and a bank.
-     * <p>
-     * The bank linking is currently only supported by the Token PSD2 IOS mobile app.
+     *
+     * <p>The bank linking is currently only supported by the Token PSD2 IOS mobile app.
      * This sample is implemented for a very high level illustration of the bank linking concept
      * and serves as an integral building block connecting other samples. The desktop version of
      * the bank linking process is in the development. Until it's ready, please use Token PSD2 IOS
