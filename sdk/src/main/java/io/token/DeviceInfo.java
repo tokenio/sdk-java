@@ -22,10 +22,20 @@ public class DeviceInfo {
         this.keys = keys;
     }
 
+    /**
+     * Gets member ID.
+     *
+     * @return member ID
+     */
     public String getMemberId() {
         return memberId;
     }
 
+    /**
+     * Gets device keys.
+     *
+     * @return list of device keys
+     */
     public List<Key> getKeys() {
         return keys;
     }

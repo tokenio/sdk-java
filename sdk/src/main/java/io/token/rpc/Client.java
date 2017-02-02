@@ -5,7 +5,6 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANC
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.rpc.util.Converters.toObservable;
 import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.Account;
@@ -14,11 +13,8 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
-import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
-import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
-import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -183,7 +179,7 @@ public final class Client {
      *
      * @param target notification target (e.g. iOS push token)
      * @param platform platform of the device
-     * @return subscriber subscriber
+     * @return notification subscriber
      */
     public Observable<Subscriber> subscribeToNotifications(
             String target,
@@ -199,7 +195,7 @@ public final class Client {
     /**
      * Gets all subscribers for the member.
      *
-     * @return subscribers Subscribers
+     * @return list of notification subscribers
      */
     public Observable<List<Subscriber>> getSubscribers() {
         return toObservable(gateway.getSubscribers(
@@ -212,7 +208,7 @@ public final class Client {
      * Gets a subscriber by Id.
      *
      * @param subscriberId subscriber id
-     * @return subscriber Subscriber
+     * @return notification subscriber
      */
     public Observable<Subscriber> getSubscriber(String subscriberId) {
         return toObservable(gateway.getSubscriber(

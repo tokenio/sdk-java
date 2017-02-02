@@ -12,6 +12,9 @@ import io.token.security.crypto.CryptoType;
 
 import java.security.NoSuchAlgorithmException;
 
+/**
+ * Utility methods.
+ */
 public interface Util {
     /**
      * Generates a random string.
