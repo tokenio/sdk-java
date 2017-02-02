@@ -2,9 +2,12 @@ package io.token.security;
 
 import io.token.proto.common.security.SecurityProtos.Key;
 
+/**
+ * Provides cryptographic support for secret management.
+ */
 public interface CryptoEngine {
     /**
-     * Generates a keys of the specified level. If the key with the specified level
+     * Generates keys of the specified level. If the key with the specified level
      * already exists, it is replaced. Old key is still kept around because it
      * could be used for signature verification later.
      *

@@ -413,7 +413,7 @@ public final class Member {
     }
 
     /**
-     * Looks up a existing token.
+     * Looks up an existing token.
      *
      * @param tokenId token id
      * @return transfer token returned by the server

@@ -5,7 +5,6 @@ import static io.token.util.Util.generateNonce;
 
 import com.google.common.base.Strings;
 import io.token.proto.common.member.MemberProtos.Member;
-import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
@@ -27,7 +26,6 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.Signer;
 
 import java.util.List;
-import java.util.stream.Collectors;
 import rx.Observable;
 
 /**
@@ -39,7 +37,9 @@ public final class UnauthenticatedClient {
     private final GatewayServiceFutureStub gateway;
 
     /**
-     * @param gateway gateway gRPC stub.
+     * Creates an instance.
+     *
+     * @param gateway gateway gRPC stub
      */
     public UnauthenticatedClient(GatewayServiceFutureStub gateway) {
         this.gateway = gateway;
@@ -74,8 +74,7 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Creates new member ID. After the method returns the ID is reserved on
-     * the server.
+     * Creates new member ID. After the method returns the ID is reserved on the server.
      *
      * @return newly created member id
      */
