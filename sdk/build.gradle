@@ -1,9 +1,9 @@
 ext {
     ver = [
-        tokenProto: '1.0.217',
-        tokenRpc: '1.0.36',
-        tokenSecurity: '1.0.27',
-        tokenUtil: '1.0.8',
+        tokenProto: '1.0.219',
+        tokenRpc: '1.0.48',
+        tokenSecurity: '1.0.28',
+        tokenUtil: '1.0.10',
     ]
 }
 
