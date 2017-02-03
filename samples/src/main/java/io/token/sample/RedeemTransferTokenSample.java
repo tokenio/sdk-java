@@ -5,21 +5,21 @@ import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 
 /**
- * Redeems a payment token.
+ * Redeems a transfer token.
  */
-public final class RedeemPaymentTokenSample {
+public final class RedeemTransferTokenSample {
     /**
-     * Redeems a payment token to transfer money from payer bank account to payee bank account.
+     * Redeems a transfer token to transfer money from payer bank account to payee bank account.
      *
      * @param payee payee Token member
      * @param tokenId ID of the token to redeem
-     * @return a payment Transfer
+     * @return a transfer Transfer
      */
     public static Transfer redeemToken(Member payee, String tokenId) {
-        // Retrieve a payment token to redeem.
+        // Retrieve a transfer token to redeem.
         Token token = payee.getToken(tokenId);
 
-        // Payee redeems a payment token. Money is transferred to a payee bank account.
+        // Payee redeems a transfer token. Money is transferred to a payee bank account.
         Transfer transfer = payee.redeemToken(token);
 
         return transfer;
