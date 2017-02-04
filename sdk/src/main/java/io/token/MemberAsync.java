@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.token.proto.PagedList;
+import io.token.proto.banklink.Banklink.AccountLinkingPayloads;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
@@ -693,6 +694,22 @@ public final class MemberAsync {
      */
     public Observable<BankInfo> getBankInfo(String bankId) {
         return client.getBankInfo(bankId);
+    }
+
+    /**
+     * Creates a test bank account in a fake bank.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, i.e. "EUR"
+     * @return account linking payloads
+     */
+    public Observable<AccountLinkingPayloads> createTestBankAccount(
+            double balance,
+            String currency) {
+        return client.createTestBankAccount(Money.newBuilder()
+                .setCurrency(currency)
+                .setValue(Double.toString(balance))
+                .build());
     }
 
     @Override
