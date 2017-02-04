@@ -5,6 +5,7 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.token.proto.PagedList;
+import io.token.proto.banklink.Banklink.AccountLinkingPayloads;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
@@ -199,9 +200,7 @@ public final class Member {
     public Subscriber subscribeToNotifications(
             String target,
             Platform platform) {
-        return async.subscribeToNotifications(target, platform)
-                .toBlocking()
-                .single();
+        return async.subscribeToNotifications(target, platform).toBlocking().single();
     }
 
     /**
@@ -222,9 +221,7 @@ public final class Member {
      * @return subscribers Subscribers
      */
     public Subscriber getSubscriber(String subscriberId) {
-        return async.getSubscriber(subscriberId)
-                .toBlocking()
-                .single();
+        return async.getSubscriber(subscriberId).toBlocking().single();
     }
 
     /**
@@ -233,9 +230,7 @@ public final class Member {
      * @param subscriberId subscriberId
      */
     public void unsubscribeFromNotifications(String subscriberId) {
-        async.unsubscribeFromNotifications(subscriberId)
-                .toBlocking()
-                .single();
+        async.unsubscribeFromNotifications(subscriberId).toBlocking().single();
     }
 
 
@@ -245,9 +240,7 @@ public final class Member {
      * @return list of notifications
      */
     public List<Notification> getNotifications() {
-        return async.getNotifications()
-                .toBlocking()
-                .single();
+        return async.getNotifications().toBlocking().single();
     }
 
     /**
@@ -257,9 +250,7 @@ public final class Member {
      * @return notification
      */
     public Notification getNotification(String notificationId) {
-        return async.getNotification(notificationId)
-                .toBlocking()
-                .single();
+        return async.getNotification(notificationId).toBlocking().single();
     }
 
     /**
@@ -299,10 +290,7 @@ public final class Member {
      * @return looked up account
      */
     public Account getAccount(String accountId) {
-        return async.getAccount(accountId)
-                .map(AccountAsync::sync)
-                .toBlocking()
-                .single();
+        return async.getAccount(accountId).map(AccountAsync::sync).toBlocking().single();
     }
 
     /**
@@ -506,10 +494,7 @@ public final class Member {
      * @return transfer record
      */
     public Transfer redeemToken(Token token) {
-        return async
-                .redeemToken(token)
-                .toBlocking()
-                .single();
+        return async.redeemToken(token).toBlocking().single();
     }
 
     /**
@@ -582,9 +567,7 @@ public final class Member {
      * @return transaction record
      */
     public Transaction getTransaction(String accountId, String transactionId) {
-        return async.getTransaction(accountId, transactionId)
-                .toBlocking()
-                .single();
+        return async.getTransaction(accountId, transactionId).toBlocking().single();
     }
 
     /**
@@ -599,9 +582,7 @@ public final class Member {
             String accountId,
             @Nullable String offset,
             int limit) {
-        return async.getTransactions(accountId, offset, limit)
-                .toBlocking()
-                .single();
+        return async.getTransactions(accountId, offset, limit).toBlocking().single();
     }
 
     /**
@@ -611,9 +592,7 @@ public final class Member {
      * @return balance
      */
     public Money getBalance(String accountId) {
-        return async.getBalance(accountId)
-                .toBlocking()
-                .single();
+        return async.getBalance(accountId).toBlocking().single();
     }
 
     /**
@@ -622,9 +601,7 @@ public final class Member {
      * @return a list of banks
      */
     public List<Bank> getBanks() {
-        return async.getBanks()
-                .toBlocking()
-                .single();
+        return async.getBanks().toBlocking().single();
     }
 
     /**
@@ -634,9 +611,18 @@ public final class Member {
      * @return bank linking information
      */
     public BankInfo getBankInfo(String bankId) {
-        return async.getBankInfo(bankId)
-                .toBlocking()
-                .single();
+        return async.getBankInfo(bankId).toBlocking().single();
+    }
+
+    /**
+     * Creates a test bank account in a fake bank.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, i.e. "EUR"
+     * @return account linking payloads
+     */
+    public AccountLinkingPayloads createTestBankAccount(double balance, String currency) {
+        return async.createTestBankAccount(balance, currency).toBlocking().single();
     }
 
     @Override
