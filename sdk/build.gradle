@@ -2,7 +2,7 @@ ext {
     ver = [
         tokenProto: '1.0.220',
         tokenRpc: '1.0.48',
-        tokenSecurity: '1.0.28',
+        tokenSecurity: '1.0.29',
         tokenUtil: '1.0.10',
     ]
 }
