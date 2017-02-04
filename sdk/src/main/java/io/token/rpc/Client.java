@@ -7,6 +7,7 @@ import static io.token.rpc.util.Converters.toObservable;
 import static java.util.stream.Collectors.joining;
 
 import io.token.proto.PagedList;
+import io.token.proto.banklink.Banklink.AccountLinkingPayloads;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -33,6 +34,8 @@ import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
+import io.token.proto.gateway.Gateway.CreateTestBankAccountRequest;
+import io.token.proto.gateway.Gateway.CreateTestBankAccountResponse;
 import io.token.proto.gateway.Gateway.CreateTokenRequest;
 import io.token.proto.gateway.Gateway.CreateTokenResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
@@ -610,6 +613,20 @@ public final class Client {
                         .setBankId(bankId)
                         .build()))
                 .map(GetBankInfoResponse::getInfo);
+    }
+
+    /**
+     * Creates a test bank account and generates account linking payloads.
+     *
+     * @param balance account balance to set
+     * @return account linking payloads
+     */
+    public Observable<AccountLinkingPayloads> createTestBankAccount(Money balance) {
+        return toObservable(gateway
+                .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
+                        .setBalance(balance)
+                        .build()))
+                .map(CreateTestBankAccountResponse::getAccountLinkingPayloads);
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(
