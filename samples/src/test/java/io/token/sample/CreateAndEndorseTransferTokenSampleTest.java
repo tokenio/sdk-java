@@ -12,8 +12,8 @@ import org.junit.Test;
 public class CreateAndEndorseTransferTokenSampleTest {
     @Test
     public void createPaymentTokenTest() {
-        Member payer = LinkMemberAndBankSample.linkBank(DEVELOPMENT);
-        Member payee = LinkMemberAndBankSample.linkBank(DEVELOPMENT);
+        Member payer = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
+        Member payee = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
 
         Token token = createTransferToken(payer, payee.firstUsername());
         assertThat(token).isNotNull();
