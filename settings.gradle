@@ -1,4 +1,4 @@
-rootProject.name='sdk-java'
+rootProject.name='java'
 
 include 'sdk'
 include 'samples'
