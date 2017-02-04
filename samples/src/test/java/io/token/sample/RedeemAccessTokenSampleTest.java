@@ -1,6 +1,8 @@
 package io.token.sample;
 
 import static io.token.Token.TokenCluster.DEVELOPMENT;
+import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
+import static io.token.sample.RedeemAccessTokenSample.redeemAccessToken;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Account;
@@ -16,10 +18,9 @@ public class RedeemAccessTokenSampleTest {
         Member grantor = LinkMemberAndBankSample.linkBank(DEVELOPMENT);
         Member grantee = LinkMemberAndBankSample.linkBank(DEVELOPMENT);
 
-        Token token =
-                CreateAndEndorseAccessTokenSample.createToken(grantor, grantee.firstUsername());
+        Token token = createAccessToken(grantor, grantee.firstUsername());
 
-        List<Account> grantorAccounts = RedeemAccessTokenSample.redeemToken(grantee, token.getId());
+        List<Account> grantorAccounts = redeemAccessToken(grantee, token.getId());
         assertThat(grantorAccounts.isEmpty()).isFalse();
     }
 }

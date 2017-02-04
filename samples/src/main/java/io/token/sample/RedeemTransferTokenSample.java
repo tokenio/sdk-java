@@ -15,12 +15,12 @@ public final class RedeemTransferTokenSample {
      * @param tokenId ID of the token to redeem
      * @return a transfer Transfer
      */
-    public static Transfer redeemToken(Member payee, String tokenId) {
+    public static Transfer redeemTransferToken(Member payee, String tokenId) {
         // Retrieve a transfer token to redeem.
-        Token token = payee.getToken(tokenId);
+        Token transferToken = payee.getToken(tokenId);
 
         // Payee redeems a transfer token. Money is transferred to a payee bank account.
-        Transfer transfer = payee.redeemToken(token);
+        Transfer transfer = payee.redeemToken(transferToken);
 
         return transfer;
     }

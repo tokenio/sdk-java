@@ -15,9 +15,9 @@ public final class CreateAndEndorseTransferTokenSample {
      * @param payeeUsername payee Token member username
      * @return a transfer Token
      */
-    public static Token createToken(Member payer, String payeeUsername) {
+    public static Token createTransferToken(Member payer, String payeeUsername) {
         // Create a transfer token.
-        Token token = payer.createToken(
+        Token transferToken = payer.createToken(
                 100.0,                              /* amount */
                 "EUR",                              /* currency */
                 payer.getAccounts().get(0).id(),    /* payer account to transfer money from */
@@ -25,9 +25,9 @@ public final class CreateAndEndorseTransferTokenSample {
                 "Book purchase"                     /* optional transfer description */
         );
 
-        // Payer endorses a token to a payee by signing it with its secure private key.
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        // Payer endorses a token to a payee by signing it with her secure private key.
+        transferToken = payer.endorseToken(transferToken, Key.Level.STANDARD).getToken();
 
-        return token;
+        return transferToken;
     }
 }
