@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import static io.token.Token.TokenCluster.DEVELOPMENT;
+import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -14,7 +15,7 @@ public class CreateAndEndorseTransferTokenSampleTest {
         Member payer = LinkMemberAndBankSample.linkBank(DEVELOPMENT);
         Member payee = LinkMemberAndBankSample.linkBank(DEVELOPMENT);
 
-        Token token = CreateAndEndorseTransferTokenSample.createToken(payer, payee.firstUsername());
+        Token token = createTransferToken(payer, payee.firstUsername());
         assertThat(token).isNotNull();
     }
 }

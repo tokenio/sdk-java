@@ -16,15 +16,15 @@ public final class CreateAndEndorseAccessTokenSample {
      * @param granteeUsername Token member username acquiring information access
      * @return an access Token
      */
-    public static Token createToken(Member grantor, String granteeUsername) {
+    public static Token createAccessToken(Member grantor, String granteeUsername) {
         // Create an access token for the grantee to access bank account names of the grantor.
-        Token token = grantor.createAccessToken(AccessTokenBuilder
+        Token accessToken = grantor.createAccessToken(AccessTokenBuilder
                 .create(granteeUsername)
                 .forAllAccounts());
 
-        // Grantor endorses a token to a grantee by signing it with its secure private key.
-        token = grantor.endorseToken(token, Key.Level.STANDARD).getToken();
+        // Grantor endorses a token to a grantee by signing it with her secure private key.
+        accessToken = grantor.endorseToken(accessToken, Key.Level.STANDARD).getToken();
 
-        return token;
+        return accessToken;
     }
 }
