@@ -22,7 +22,7 @@ public final class LinkMemberAndBankSample {
      * @param tokenCluster Token cluster to connect to (e.g.: TokenCluster.PRODUCTION)
      * @return a new Member instance
      */
-    public static Member linkBank(TokenCluster tokenCluster) {
+    public static Member linkBankAccounts(TokenCluster tokenCluster) {
         // Create a new token member using the CreateMemberSample.
         Member member = CreateMemberSample.createMember(tokenCluster);
 
