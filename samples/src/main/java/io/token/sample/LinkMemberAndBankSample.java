@@ -1,7 +1,6 @@
 package io.token.sample;
 
 import io.token.Member;
-import io.token.Token.TokenCluster;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 
 import java.util.List;
@@ -11,7 +10,7 @@ import java.util.List;
  */
 public final class LinkMemberAndBankSample {
     /**
-     * Links a Token member created by {@link CreateMemberSample} and a bank.
+     * Links a Token member and a bank.
      *
      * <p>The bank linking is currently only supported by the Token PSD2 IOS mobile app.
      * This sample is implemented for a very high level illustration of the bank linking concept
@@ -19,13 +18,9 @@ public final class LinkMemberAndBankSample {
      * the bank linking process is in the development. Until it's ready, please use Token PSD2 IOS
      * mobile app to link Token members and banks.
      *
-     * @param tokenCluster Token cluster to connect to (e.g.: TokenCluster.PRODUCTION)
-     * @return a new Member instance
+     * @param member Token member to link to a bank
      */
-    public static Member linkBankAccounts(TokenCluster tokenCluster) {
-        // Create a new token member using the CreateMemberSample.
-        Member member = CreateMemberSample.createMember(tokenCluster);
-
+    public static void linkBankAccounts(Member member) {
         // User opens a bank web site and completes the Token linking process. The following is a
         // high level description of how that happens in the Token PSD2 IOS mobile app:
         // 1. App displays a list of banks supported by Token
@@ -41,7 +36,5 @@ public final class LinkMemberAndBankSample {
 
         // Finish account linking flow initiated by the user.
         member.linkAccounts("iron" /* bank code */, encryptedLinkingPayloads);
-
-        return member;
     }
 }

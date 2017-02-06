@@ -15,8 +15,10 @@ import org.junit.Test;
 public class RedeemAccessTokenSampleTest {
     @Test
     public void redeemAccessTokenTest() {
-        Member grantor = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
-        Member grantee = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
+        Member grantor = CreateMemberSample.createMember(DEVELOPMENT);
+        Member grantee = CreateMemberSample.createMember(DEVELOPMENT);
+
+        LinkMemberAndBankSample.linkBankAccounts(grantor);
 
         Token token = createAccessToken(grantor, grantee.firstUsername());
 
