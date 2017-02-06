@@ -14,7 +14,7 @@ buildscript {
 
 allprojects {
     group = 'io.token.sdk'
-    version = '1.0.7'
+    version = '1.0.8'
 
     apply plugin: 'io.token.gradle.lib'
     apply plugin: 'io.token.gradle.publish'

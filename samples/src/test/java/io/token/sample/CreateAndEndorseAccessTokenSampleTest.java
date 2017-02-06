@@ -12,8 +12,8 @@ import org.junit.Test;
 public class CreateAndEndorseAccessTokenSampleTest {
     @Test
     public void createAccessTokenTest() {
-        Member grantor = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
-        Member grantee = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
+        Member grantor = CreateMemberSample.createMember(DEVELOPMENT);
+        Member grantee = CreateMemberSample.createMember(DEVELOPMENT);
 
         Token token = createAccessToken(grantor, grantee.firstUsername());
         assertThat(token).isNotNull();

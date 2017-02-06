@@ -10,7 +10,8 @@ import org.junit.Test;
 public class LinkMemberAndBankSampleTest {
     @Test
     public void linkMemberAndBankTest() {
-        Member member = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
+        Member member = CreateMemberSample.createMember(DEVELOPMENT);
+        LinkMemberAndBankSample.linkBankAccounts(member);
         assertThat(member.getAccounts().isEmpty()).isFalse();
     }
 }
