@@ -14,8 +14,11 @@ import org.junit.Test;
 public class RedeemTransferTokenSampleTest {
     @Test
     public void redeemPaymentTokenTest() {
-        Member payer = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
-        Member payee = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
+        Member payer = CreateMemberSample.createMember(DEVELOPMENT);
+        Member payee = CreateMemberSample.createMember(DEVELOPMENT);
+
+        LinkMemberAndBankSample.linkBankAccounts(payer);
+        LinkMemberAndBankSample.linkBankAccounts(payee);
 
         Token token = createTransferToken(payer, payee.firstUsername());
 

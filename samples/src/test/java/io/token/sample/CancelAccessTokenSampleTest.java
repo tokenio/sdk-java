@@ -14,8 +14,8 @@ import org.junit.Test;
 public class CancelAccessTokenSampleTest {
     @Test
     public void cancelAccessTokenByGrantorTest() {
-        Member grantor = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
-        Member grantee = LinkMemberAndBankSample.linkBankAccounts(DEVELOPMENT);
+        Member grantor = CreateMemberSample.createMember(DEVELOPMENT);
+        Member grantee = CreateMemberSample.createMember(DEVELOPMENT);
 
         Token token = createAccessToken(grantor, grantee.firstUsername());
         TokenOperationResult result = cancelAccessToken(grantor, token.getId());
