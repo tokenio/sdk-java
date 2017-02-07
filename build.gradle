@@ -18,6 +18,7 @@ allprojects {
 
     apply plugin: 'io.token.gradle.lib'
     apply plugin: 'io.token.gradle.publish'
+    apply plugin: 'io.token.gradle.version'
 
     base {
         failOnCheckstyleFailures = true
