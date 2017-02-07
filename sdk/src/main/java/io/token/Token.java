@@ -1,5 +1,9 @@
 package io.token;
 
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+
+import io.grpc.Metadata;
+import io.token.gradle.TokenVersion;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
@@ -282,10 +286,18 @@ public final class Token {
                 keyStore = new InMemoryKeyStore();
             }
             CryptoEngineFactory cryptoFactory = new TokenCryptoEngineFactory(keyStore);
+            Metadata versionHeaders = new Metadata();
+            versionHeaders.put(
+                    Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
+                    "java");
+            versionHeaders.put(
+                    Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
+                    TokenVersion.getVersion());
             return new TokenAsync(
                     RpcChannelFactory
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeout)
+                            .withMetadata(versionHeaders)
                             .build(),
                     cryptoFactory);
         }
