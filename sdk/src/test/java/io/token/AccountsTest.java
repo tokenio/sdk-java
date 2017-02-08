@@ -13,6 +13,7 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
+
 import org.junit.Rule;
 import org.junit.Test;
 

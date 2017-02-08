@@ -16,6 +16,7 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Des
 
 import java.util.Comparator;
 import java.util.List;
+
 import org.junit.Rule;
 import org.junit.Test;
 
