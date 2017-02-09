@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2017 Token, Inc.
+ * <p>
+ * This software may be modified and distributed under the terms
+ * of the MIT license.  See the LICENSE file for details.
+ */
+
 package io.token.asserts;
 
 import io.token.proto.common.transaction.TransactionProtos;
@@ -15,6 +22,10 @@ public final class TransactionAssertion extends AbstractAssert<TransactionAssert
 
     public static TransactionAssertion assertThat(Transaction transaction) {
         return new TransactionAssertion(transaction);
+    }
+
+    private static BigDecimal normalize(BigDecimal decimal) {
+        return decimal.setScale(2, BigDecimal.ROUND_UNNECESSARY);
     }
 
     public TransactionAssertion isSuccessful() {
@@ -49,10 +60,6 @@ public final class TransactionAssertion extends AbstractAssert<TransactionAssert
     public TransactionAssertion containsDescription(String description) {
         Assertions.assertThat(actual.getDescription()).contains(description);
         return this;
-    }
-
-    private static BigDecimal normalize(BigDecimal decimal) {
-        return decimal.setScale(2, BigDecimal.ROUND_UNNECESSARY);
     }
 }
 
