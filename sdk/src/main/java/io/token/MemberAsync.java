@@ -306,10 +306,14 @@ public final class MemberAsync {
     /**
      * Gets a list of the member's notifications.
      *
+     * @param offset offset to start
+     * @param limit how many notifications to get
      * @return list of notifications
      */
-    public Observable<List<Notification>> getNotifications() {
-        return client.getNotifications();
+    public Observable<PagedList<Notification, String>> getNotifications(
+            @Nullable String offset,
+            int limit) {
+        return client.getNotifications(offset, limit);
     }
 
     /**

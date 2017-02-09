@@ -239,13 +239,18 @@ public final class Client {
     /**
      * Gets a list of the member's notifications.
      *
+     * @param offset offset to start
+     * @param limit how many notifications to get
      * @return list of notifications
      */
-    public Observable<List<Notification>> getNotifications() {
+    public Observable<PagedList<Notification, String>> getNotifications(
+            @Nullable String offset,
+            int limit) {
         return toObservable(gateway.getNotifications(
                 GetNotificationsRequest.newBuilder()
+                        .setPage(pageBuilder(offset, limit))
                         .build()))
-                .map(GetNotificationsResponse::getNotificationsList);
+                .map(res -> PagedList.create(res.getNotificationsList(), res.getOffset()));
     }
 
     /**
