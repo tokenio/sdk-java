@@ -259,10 +259,14 @@ public final class Member {
     /**
      * Gets a list of the member's notifications.
      *
+     * @param offset offset to start
+     * @param limit how many notifications to get
      * @return list of notifications
      */
-    public List<Notification> getNotifications() {
-        return async.getNotifications().toBlocking().single();
+    public PagedList<Notification, String> getNotifications(
+            @Nullable String offset,
+            int limit) {
+        return async.getNotifications(offset, limit).toBlocking().single();
     }
 
     /**

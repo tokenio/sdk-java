@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
 import com.google.common.util.concurrent.Uninterruptibles;
+import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
@@ -70,14 +71,15 @@ public class NotificationsTest {
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = payer.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(() -> assertThat(payer.getNotifications().size())
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList().size())
                 .isGreaterThan(0)
         );
         payer.unsubscribeFromNotifications(subscriber.getId());
 
         List<Subscriber> subscriberList2 = payer.getSubscribers();
         assertThat(subscriberList2.size()).isEqualTo(0);
-        waitUntil(() -> assertThat(payer.getNotifications().size()).isEqualTo(0));
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList().size())
+                .isEqualTo(0));
     }
 
     @Test
@@ -102,7 +104,7 @@ public class NotificationsTest {
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(() -> assertThat(payer.getNotifications())
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
                 .hasSize(1)
                 .extracting(Notification::getStatus)
                 .containsExactly(DELIVERED));
@@ -132,7 +134,7 @@ public class NotificationsTest {
         assertThat(res2.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
 
         // 2 subscribers, 2 step ups
-        waitUntil(() -> assertThat(payer.getNotifications())
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
                 .extracting(Notification::getStatus)
                 .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
     }
@@ -146,7 +148,7 @@ public class NotificationsTest {
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(() -> assertThat(payer.getNotifications())
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
                 .hasSize(1)
                 .extracting(Notification::getStatus)
                 .containsExactly(DELIVERED));
@@ -172,7 +174,7 @@ public class NotificationsTest {
         payee.redeemToken(endorsed);
         payee.redeemToken(endorsed2);
 
-        waitUntil(() -> assertThat(payer.getNotifications())
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
                 .extracting(Notification::getStatus)
                 .containsExactly(DELIVERED, DELIVERED));
     }
@@ -209,7 +211,7 @@ public class NotificationsTest {
                 "Chrome 52.0",
                 deviceInfo.getKeys().get(0));
 
-        waitUntil(() -> assertThat(payer.getNotifications())
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
                 .extracting(Notification::getStatus)
                 .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
     }
@@ -224,7 +226,7 @@ public class NotificationsTest {
                 "Bank of America",
                 accountLinkPayloads);
 
-        waitUntil(() -> assertThat(payer.getNotifications())
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
                 .extracting(Notification::getStatus)
                 .containsExactly(DELIVERED));
     }
@@ -244,14 +246,14 @@ public class NotificationsTest {
                         "Chrome",
                         deviceInfo.getKeys().get(0));
 
-        waitUntil(() -> assertThat(payer.getNotifications())
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
                 .extracting(Notification::getStatus)
                 .containsExactly(DELIVERED));
     }
 
     @Test
     public void getNotificationsEmpty() {
-        assertThat(payer.getNotifications()).isEmpty();
+        assertThat(payer.getNotifications(null, 100).getList()).isEmpty();
     }
 
     @Test
@@ -273,10 +275,45 @@ public class NotificationsTest {
                 accountLinkPayloads);
 
         waitUntil(() -> {
-            List<Notification> notifications = payer.getNotifications();
+            List<Notification> notifications = payer.getNotifications(null, 5).getList();
             assertThat(notifications.size()).isGreaterThan(0);
             assertThat(payer.getNotification(notifications.get(0).getId()))
                     .isEqualTo(notifications.get(0));
+        });
+    }
+
+    @Test
+    public void getNotificationsPaging() {
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+
+        rule.token().notifyLinkAccounts(
+                payer.firstUsername(),
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads);
+        rule.token().notifyLinkAccounts(
+                payer.firstUsername(),
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads);
+        rule.token().notifyLinkAccounts(
+                payer.firstUsername(),
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads);
+        rule.token().notifyLinkAccounts(
+                payer.firstUsername(),
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads);
+
+        waitUntil(() -> {
+            PagedList<Notification, String> notifications = payer.getNotifications(null, 2);
+            assertThat(notifications.getList().size()).isEqualTo(2);
+            PagedList<Notification, String> notifications2 = payer.getNotifications(
+                    notifications.getOffset(),
+                    100);
+            assertThat(notifications2.getList().size()).isEqualTo(2);
         });
     }
 
