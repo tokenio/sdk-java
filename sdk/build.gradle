@@ -37,6 +37,8 @@ license {
     exclude "**/gradle/**/*.java"
     exclude "**/testing/**/*.java"
     exclude "**/asserts/**/*.java"
+
+    skipExistingHeaders = true
 }
 
 downloadLicenses {
