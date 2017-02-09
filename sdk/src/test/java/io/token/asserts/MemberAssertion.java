@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2017 Token, Inc.
+ * <p>
+ * This software may be modified and distributed under the terms
+ * of the MIT license.  See the LICENSE file for details.
+ */
+
 package io.token.asserts;
 
 import static java.util.stream.Collectors.toList;
@@ -7,6 +14,7 @@ import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.util.Arrays;
 import java.util.Collection;
+
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 

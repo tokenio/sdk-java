@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2017 Token, Inc.
+ * <p>
+ * This software may be modified and distributed under the terms
+ * of the MIT license.  See the LICENSE file for details.
+ */
+
 package io.token;
 
 import static java.lang.Math.pow;
@@ -12,6 +19,7 @@ import io.token.util.Util;
 
 import java.time.Duration;
 import java.util.List;
+
 import org.junit.rules.ExternalResource;
 
 /**

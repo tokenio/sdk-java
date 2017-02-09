@@ -9,12 +9,13 @@ buildscript {
         classpath 'io.token.gradle:token-gradle:1.0.51'
         classpath 'net.ltgt.gradle:gradle-apt-plugin:0.8'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.13.0'
+        classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1'
     }
 }
 
 allprojects {
     group = 'io.token.sdk'
-    version = '1.0.9'
+    version = '1.0.10'
 
     apply plugin: 'io.token.gradle.lib'
     apply plugin: 'io.token.gradle.publish'

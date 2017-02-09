@@ -2,7 +2,6 @@ package io.token;
 
 import static io.token.asserts.MemberAssertion.assertThat;
 
-import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.util.Util;
 
 import org.assertj.core.api.Assertions;

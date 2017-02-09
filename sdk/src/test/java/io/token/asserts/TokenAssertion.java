@@ -1,3 +1,10 @@
+/**
+ * Copyright (C) 2017 Token, Inc.
+ * <p>
+ * This software may be modified and distributed under the terms
+ * of the MIT license.  See the LICENSE file for details.
+ */
+
 package io.token.asserts;
 
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
@@ -12,6 +19,7 @@ import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import java.util.Collection;
 import java.util.List;
 import javax.annotation.Nullable;
+
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
