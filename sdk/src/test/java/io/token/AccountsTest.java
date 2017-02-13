@@ -26,35 +26,10 @@ public class AccountsTest {
     private final Fank.Client client = fank.addClient(string(), string());
 
     @Test
-    public void linkAccounts() {
-        Fank.Account checking = fank.addAccount(
-                client,
-                "Checking",
-                "iban:checking-" + randomized,
-                1000000.0,
-                "USD");
-
-        Fank.Account saving = fank.addAccount(
-                client,
-                "Saving",
-                "iban:saving-" + randomized,
-                1000000.0,
-                "USD");
-
-        List<SealedMessage> payloads = fank.startAccountsLinking(
-                member.firstUsername(),
-                client.getId(),
-                Arrays.asList(checking.getAccountNumber(), saving.getAccountNumber()));
-
-        List<Account> accounts = link(DEFAULT_BANK_ID, payloads);
-
-        assertThat(accounts).hasSize(2);
-        AccountAssertion.assertThat(accounts.get(0))
-                .hasId()
-                .hasName("Checking");
-        AccountAssertion.assertThat(accounts.get(1))
-                .hasId()
-                .hasName("Saving");
+    public void linkAccountsTest() {
+        List<Account> accounts = linkAccounts();
+        member.unlinkAccounts(accounts.stream().map(account -> account.id()).collect(toList()));
+        assertThat(member.getAccounts()).isEmpty();
     }
 
     @Test
@@ -100,6 +75,39 @@ public class AccountsTest {
         AccountAssertion.assertThat(account)
                 .hasId()
                 .hasName("Checking");
+    }
+
+    private List<Account> linkAccounts() {
+        Fank.Account checking = fank.addAccount(
+                client,
+                "Checking",
+                "iban:checking-" + randomized,
+                1000000.0,
+                "USD");
+
+        Fank.Account saving = fank.addAccount(
+                client,
+                "Saving",
+                "iban:saving-" + randomized,
+                1000000.0,
+                "USD");
+
+        List<SealedMessage> payloads = fank.startAccountsLinking(
+                member.firstUsername(),
+                client.getId(),
+                Arrays.asList(checking.getAccountNumber(), saving.getAccountNumber()));
+
+        List<Account> accounts = link(DEFAULT_BANK_ID, payloads);
+
+        assertThat(accounts).hasSize(2);
+        AccountAssertion.assertThat(accounts.get(0))
+                .hasId()
+                .hasName("Checking");
+        AccountAssertion.assertThat(accounts.get(1))
+                .hasId()
+                .hasName("Saving");
+
+        return accounts;
     }
 
     private List<Account> link(String bankId, List<SealedMessage> payloads) {

@@ -1,9 +1,12 @@
 package io.token;
 
 import static io.token.asserts.TokenAssertion.assertThat;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
 import com.google.common.collect.ImmutableSet;
+import io.grpc.StatusRuntimeException;
 import io.token.proto.PagedList;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -35,6 +38,16 @@ public class TransferTokenTest {
                 .hasAmount(100.0)
                 .hasCurrency("USD")
                 .hasNoSignatures();
+    }
+
+    @Test
+    public void createTransferTokenWithUnlinkedAccount() {
+        payer.unlinkAccounts(singletonList(payerAccount.id()));
+        assertThatExceptionThrownBy(() -> payer.createToken(100.0, "USD", payerAccount.id()))
+                .isInstanceOf(StatusRuntimeException.class)
+                .matches(ex -> ((StatusRuntimeException)ex)
+                        .getStatus()
+                        .getCode() == io.grpc.Status.Code.FAILED_PRECONDITION);
     }
 
     @Test
@@ -87,6 +100,17 @@ public class TransferTokenTest {
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency("USD");
+    }
+
+    @Test
+    public void endorseTransferTokenWithUnlinkedAccount() {
+        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        payer.unlinkAccounts(singletonList(payerAccount.id()));
+        assertThatExceptionThrownBy(() -> payer.endorseToken(token, Key.Level.STANDARD))
+                .isInstanceOf(StatusRuntimeException.class)
+                .matches(ex -> ((StatusRuntimeException)ex)
+                        .getStatus()
+                        .getCode() == io.grpc.Status.Code.FAILED_PRECONDITION);
     }
 
     @Test

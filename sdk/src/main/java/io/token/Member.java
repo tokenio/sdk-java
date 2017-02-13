@@ -296,6 +296,15 @@ public final class Member {
     }
 
     /**
+     * Unlinks bank accounts previously linked via {@link #linkAccounts(String, List)} call.
+     *
+     * @param accountIds list of account ids to unlink
+     */
+    public void unlinkAccounts(List<String> accountIds) {
+        async.unlinkAccounts(accountIds).toBlocking().single();
+    }
+
+    /**
      * Looks up funding bank accounts linked to Token.
      *
      * @return list of linked accounts

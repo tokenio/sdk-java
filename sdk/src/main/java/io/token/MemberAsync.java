@@ -367,6 +367,16 @@ public final class MemberAsync {
     }
 
     /**
+     * Unlinks bank accounts previously linked via {@link #linkAccounts(String, List)} call.
+     *
+     * @param accountIds account ids to unlink
+     * @return nothing
+     */
+    public Observable<Void> unlinkAccounts(List<String> accountIds) {
+        return client.unlinkAccounts(accountIds);
+    }
+
+    /**
      * Links a funding bank account to Token and returns it to the caller.
      *
      * @return list of accounts

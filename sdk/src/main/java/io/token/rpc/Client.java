@@ -84,7 +84,6 @@ import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
 import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
-import io.token.proto.gateway.Gateway.GetNotificationsResponse;
 import io.token.proto.gateway.Gateway.GetSubscriberRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberResponse;
 import io.token.proto.gateway.Gateway.GetSubscribersRequest;
@@ -107,6 +106,7 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
+import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
@@ -117,7 +117,6 @@ import io.token.security.Signer;
 import java.util.List;
 import java.util.stream.Stream;
 import javax.annotation.Nullable;
-
 import rx.Observable;
 
 /**
@@ -305,6 +304,20 @@ public final class Client {
                         .addAllAccountLinkPayloads(accountLinkPayloads)
                         .build())
         ).map(LinkAccountsResponse::getAccountsList);
+    }
+
+    /**
+     * Unlinks token accounts.
+     *
+     * @param accountIds account ids to unlink
+     * @return nothing
+     */
+    public Observable<Void> unlinkAccounts(List<String> accountIds) {
+        return toObservable(gateway.unlinkAccounts(
+                UnlinkAccountsRequest.newBuilder()
+                        .addAllAccountIds(accountIds)
+                        .build()))
+                .map(res -> null);
     }
 
     /**

@@ -1,8 +1,12 @@
 package io.token;
 
 import static io.token.asserts.TransferAssertion.assertThat;
+import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.token.proto.PagedList;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -31,6 +35,18 @@ public class TransferRedemptionTest {
                 .hasNoAmount()
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
+    }
+
+    @Test
+    public void redeemTokenWithUnlinkedAccount() {
+        Token token = token(100.0);
+        final Token endorsedToken = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        payer.unlinkAccounts(singletonList(payerAccount.id()));
+        assertThatExceptionThrownBy(() -> payee.redeemToken(endorsedToken))
+                .isInstanceOf(StatusRuntimeException.class)
+                .matches(ex -> ((StatusRuntimeException)ex)
+                        .getStatus()
+                        .getCode() == Status.Code.FAILED_PRECONDITION);
     }
 
     @Test
