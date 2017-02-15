@@ -3,7 +3,7 @@ package io.token.sample;
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static io.token.sample.RedeemTransferTokenSample.redeemTransferToken;
-import static io.token.sample.TokenFactory.newUserName;
+import static io.token.sample.TestUtil.newUserName;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;

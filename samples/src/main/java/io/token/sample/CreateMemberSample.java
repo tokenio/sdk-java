@@ -18,7 +18,7 @@ public final class CreateMemberSample {
      */
     public static Member createMember(TokenCluster tokenCluster) {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            return tokenIO.createMember(TokenFactory.newUserName());
+            return tokenIO.createMember(TestUtil.newUserName());
         }
     }
 }

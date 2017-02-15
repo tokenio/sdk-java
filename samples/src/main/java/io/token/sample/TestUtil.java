@@ -3,9 +3,9 @@ package io.token.sample;
 import io.token.util.Util;
 
 /**
- * A helper factory to initialize the SDK.
+ * A set of helper methods used for testing.
  */
-public interface TokenFactory {
+public interface TestUtil {
     /**
      * Generates random user name to be used for testing.
      *
