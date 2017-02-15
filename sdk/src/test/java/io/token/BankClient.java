@@ -39,7 +39,7 @@ public final class BankClient implements Closeable {
         channel.shutdown();
         try {
             channel.awaitTermination(SHUTDOWN_DURATION.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
     }
