@@ -10,12 +10,11 @@ import org.junit.Test;
 
 public class MemberRegistrationTest {
     @Rule public final TokenRule rule = new TokenRule();
-    private final Token token = rule.token();
 
     @Test
     public void createMember() {
         String username = Util.generateNonce();
-        Member member = token.createMember(username);
+        Member member = rule.token().createMember(username);
         assertThat(member)
                 .hasUsername(username)
                 .hasNKeys(3);
@@ -24,8 +23,8 @@ public class MemberRegistrationTest {
     @Test
     public void loginMember() {
         String username = Util.generateNonce();
-        Member member = token.createMember(username);
-        Member loggedIn = token.login(member.memberId());
+        Member member = rule.token().createMember(username);
+        Member loggedIn = rule.token().login(member.memberId());
         assertThat(loggedIn)
                 .hasUsernames(member.usernames())
                 .hasNKeys(3);
@@ -35,17 +34,17 @@ public class MemberRegistrationTest {
     public void provisionDevice() {
         String username = Util.generateNonce();
 
-        Token firstDevice = rule.token();
-        Member member = firstDevice.createMember(username);
+        Member member = rule.token().createMember(username);
 
-        Token secondDevice = rule.token();
-        DeviceInfo deviceInfo = secondDevice.provisionDevice(member.firstUsername());
-        member.approveKeys(deviceInfo.getKeys());
+        try (TokenIO secondDevice = rule.newSdkInstance()) {
+            DeviceInfo deviceInfo = secondDevice.provisionDevice(member.firstUsername());
+            member.approveKeys(deviceInfo.getKeys());
 
-        Member loggedIn = secondDevice.login(deviceInfo.getMemberId());
-        assertThat(loggedIn)
-                .hasUsernames(member.usernames())
-                .hasNKeys(6);
+            Member loggedIn = secondDevice.login(deviceInfo.getMemberId());
+            assertThat(loggedIn)
+                    .hasUsernames(member.usernames())
+                    .hasNKeys(6);
+        }
     }
 
     @Test

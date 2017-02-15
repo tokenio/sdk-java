@@ -17,15 +17,31 @@ import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
 
+import java.io.Closeable;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 
-public final class BankClient {
+public final class BankClient implements Closeable {
+    private static final Duration SHUTDOWN_DURATION = Duration.ofSeconds(5);
+
+    private final ManagedChannel channel;
     private final FankServiceBlockingStub fank;
 
     public BankClient(String hostName, int port, boolean useSsl) {
-        ManagedChannel channel = RpcChannelFactory.builder(hostName, port, useSsl).build();
+        this.channel = RpcChannelFactory.builder(hostName, port, useSsl).build();
         this.fank = FankServiceGrpc.newBlockingStub(channel);
+    }
+
+    @Override
+    public void close() {
+        channel.shutdown();
+        try {
+            channel.awaitTermination(SHUTDOWN_DURATION.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     public Fank.Client addClient(String firstName, String lastName) {
