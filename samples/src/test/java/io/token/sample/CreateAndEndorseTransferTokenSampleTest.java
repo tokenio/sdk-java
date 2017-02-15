@@ -14,7 +14,7 @@ import org.junit.Test;
 public class CreateAndEndorseTransferTokenSampleTest {
     @Test
     public void createPaymentTokenTest() {
-        try (TokenIO tokenIO = TokenFactory.newSdk(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             Member payer = tokenIO.createMember(newUserName());
             Member payee = tokenIO.createMember(newUserName());
 

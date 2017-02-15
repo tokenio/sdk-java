@@ -14,7 +14,7 @@ import org.junit.Test;
 public class CreateAndEndorseAccessTokenSampleTest {
     @Test
     public void createAccessTokenTest() {
-        try (TokenIO tokenIO = TokenFactory.newSdk(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             Member grantor = tokenIO.createMember(newUserName());
             Member grantee = tokenIO.createMember(newUserName());
 

@@ -12,7 +12,7 @@ import org.junit.Test;
 public class LinkMemberAndBankSampleTest {
     @Test
     public void linkMemberAndBankTest() {
-        try (TokenIO tokenIO = TokenFactory.newSdk(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             Member member = tokenIO.createMember(newUserName());
 
             LinkMemberAndBankSample.linkBankAccounts(member);

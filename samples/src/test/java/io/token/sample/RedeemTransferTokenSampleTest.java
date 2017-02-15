@@ -16,7 +16,7 @@ import org.junit.Test;
 public class RedeemTransferTokenSampleTest {
     @Test
     public void redeemPaymentTokenTest() {
-        try (TokenIO tokenIO = TokenFactory.newSdk(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             Member payer = tokenIO.createMember(newUserName());
             Member payee = tokenIO.createMember(newUserName());
 

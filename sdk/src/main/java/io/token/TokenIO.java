@@ -75,6 +75,32 @@ public final class TokenIO implements Closeable {
     }
 
     /**
+     * Creates a new instance of {@link TokenIO} that's configured to use
+     * the specified environment.
+     *
+     * @param cluster
+     * @return
+     */
+    public static TokenIO create(TokenCluster cluster) {
+        return TokenIO.builder()
+                .connectTo(cluster)
+                .build();
+    }
+
+    /**
+     * Creates a new instance of {@link TokenIOAsync} that's configured to use
+     * the specified environment.
+     *
+     * @param cluster Token cluster to use
+     * @return
+     */
+    public static TokenIOAsync createAsync(TokenCluster cluster) {
+        return TokenIO.builder()
+                .connectTo(cluster)
+                .buildAsync();
+    }
+
+    /**
      * Returns an async version of the API.
      *
      * @return asynchronous version of the account API

@@ -16,7 +16,7 @@ import org.junit.Test;
 public class CancelAccessTokenSampleTest {
     @Test
     public void cancelAccessTokenByGrantorTest() {
-        try (TokenIO tokenIO = TokenFactory.newSdk(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             Member grantor = tokenIO.createMember(newUserName());
             Member grantee = tokenIO.createMember(newUserName());
 

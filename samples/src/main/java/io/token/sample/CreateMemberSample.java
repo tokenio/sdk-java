@@ -17,7 +17,7 @@ public final class CreateMemberSample {
      * @return a new Member instance
      */
     public static Member createMember(TokenCluster tokenCluster) {
-        try (TokenIO tokenIO = TokenFactory.newSdk(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             return tokenIO.createMember(TokenFactory.newUserName());
         }
     }
