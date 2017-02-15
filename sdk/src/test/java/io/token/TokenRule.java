@@ -31,6 +31,7 @@ import org.junit.rules.ExternalResource;
 public class TokenRule extends ExternalResource {
     public static final String DEFAULT_BANK_ID = "iron";
     private final boolean useSsl;
+    private final Token token;
     private final BankClient bankClient;
 
     public TokenRule() {
@@ -43,6 +44,53 @@ public class TokenRule extends ExternalResource {
                 bank.getHostText(),
                 bank.getPort(),
                 useSsl);
+        this.token = newSdkInstance();
+    }
+
+    @Override
+    protected void after() {
+        bankClient.close();
+        token.close();
+    }
+
+    public Token newSdkInstance() {
+        HostAndPort gateway = HostAndPort
+                .fromString(getEnvProperty("TOKEN_GATEWAY", "localhost"))
+                .withDefaultPort(9000);
+
+        return Token.builder()
+                .hostName(gateway.getHostText())
+                .port(gateway.getPort())
+                .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
+                .build();
+    }
+
+    public Member member() {
+        String username = "username-" + Util.generateNonce();
+        return token.createMember(username);
+    }
+
+    public Account account() {
+        Member member = member();
+        String bankAccountNumber = "iban:" + randomInt(7);
+        Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
+        bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
+        List<SealedMessage> accountLinkPayloads = bankClient.startAccountsLinking(
+                member.firstUsername(),
+                client.getId(),
+                singletonList(bankAccountNumber));
+
+        return member
+                .linkAccounts(DEFAULT_BANK_ID, accountLinkPayloads)
+                .get(0);
+    }
+
+    public Token token() {
+        return token;
+    }
+
+    public BankClient bankClient() {
+        return bankClient;
     }
 
     private static String getEnvProperty(String name, String defaultValue) {
@@ -72,46 +120,5 @@ public class TokenRule extends ExternalResource {
 
     private static int randomInt(int min, int max) {
         return (int) (Math.random() * (max - min)) + min;
-    }
-
-    public Token token() {
-        HostAndPort gateway = HostAndPort
-                .fromString(getEnvProperty("TOKEN_GATEWAY", "localhost"))
-                .withDefaultPort(9000);
-
-        return Token.builder()
-                .hostName(gateway.getHostText())
-                .port(gateway.getPort())
-                .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
-                .build();
-    }
-
-    public Member member() {
-        String username = "username-" + Util.generateNonce();
-        return token().createMember(username);
-    }
-
-    public Account account() {
-        Member member = member();
-        String bankAccountNumber = "iban:" + randomInt(7);
-        Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
-        bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
-        List<SealedMessage> accountLinkPayloads = bankClient.startAccountsLinking(
-                member.firstUsername(),
-                client.getId(),
-                singletonList(bankAccountNumber));
-
-        return member
-                .linkAccounts(DEFAULT_BANK_ID, accountLinkPayloads)
-                .get(0);
-    }
-
-    public BankClient bankClient() {
-        return bankClient;
-    }
-
-    @Override
-    protected void before() throws Throwable {
-        super.before();
     }
 }

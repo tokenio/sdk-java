@@ -183,37 +183,39 @@ public class NotificationsTest {
     public void sendNotifications() {
         String username = payer.firstUsername();
 
-        DeviceInfo deviceInfo = rule.token().provisionDevice(username);
+        try (io.token.Token newSdk = rule.newSdkInstance()) {
+            DeviceInfo deviceInfo = newSdk.provisionDevice(username);
 
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
-        NotifyStatus res1 = rule.token().notifyLinkAccounts(
-                username,
-                "BofA",
-                "Bank of America",
-                accountLinkPayloads);
-        NotifyStatus res2 = rule.token().notifyAddKey(
-                username,
-                "Chrome 52.0",
-                deviceInfo.getKeys().get(0));
-        NotifyStatus res3 = rule.token().notifyLinkAccountsAndAddKey(
-                username,
-                "BofA",
-                "Bank of America",
-                accountLinkPayloads,
-                "Chrome 52.0",
-                deviceInfo.getKeys().get(0));
+            payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+            NotifyStatus res1 = newSdk.notifyLinkAccounts(
+                    username,
+                    "BofA",
+                    "Bank of America",
+                    accountLinkPayloads);
+            NotifyStatus res2 = newSdk.notifyAddKey(
+                    username,
+                    "Chrome 52.0",
+                    deviceInfo.getKeys().get(0));
+            NotifyStatus res3 = newSdk.notifyLinkAccountsAndAddKey(
+                    username,
+                    "BofA",
+                    "Bank of America",
+                    accountLinkPayloads,
+                    "Chrome 52.0",
+                    deviceInfo.getKeys().get(0));
 
-        assertThat(res1).isEqualTo(NotifyStatus.ACCEPTED);
-        assertThat(res2).isEqualTo(NotifyStatus.ACCEPTED);
-        assertThat(res3).isEqualTo(NotifyStatus.ACCEPTED);
-        rule.token().notifyAddKey(
-                username,
-                "Chrome 52.0",
-                deviceInfo.getKeys().get(0));
+            assertThat(res1).isEqualTo(NotifyStatus.ACCEPTED);
+            assertThat(res2).isEqualTo(NotifyStatus.ACCEPTED);
+            assertThat(res3).isEqualTo(NotifyStatus.ACCEPTED);
+            newSdk.notifyAddKey(
+                    username,
+                    "Chrome 52.0",
+                    deviceInfo.getKeys().get(0));
 
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
-                .extracting(Notification::getStatus)
-                .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
+            waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
+                    .extracting(Notification::getStatus)
+                    .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
+        }
     }
 
     @Test
@@ -235,20 +237,22 @@ public class NotificationsTest {
     public void sendLinkAccountsAndAddKey() {
         payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
 
-        DeviceInfo deviceInfo = rule.token().provisionDevice(payer.firstUsername());
-        rule
-                .token()
-                .notifyLinkAccountsAndAddKey(
-                        payer.firstUsername(),
-                        "BofA",
-                        "Bank of America",
-                        accountLinkPayloads,
-                        "Chrome",
-                        deviceInfo.getKeys().get(0));
+        try (io.token.Token newSdk = rule.newSdkInstance()) {
+            DeviceInfo deviceInfo = newSdk.provisionDevice(payer.firstUsername());
+            rule
+                    .token()
+                    .notifyLinkAccountsAndAddKey(
+                            payer.firstUsername(),
+                            "BofA",
+                            "Bank of America",
+                            accountLinkPayloads,
+                            "Chrome",
+                            deviceInfo.getKeys().get(0));
 
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
-                .extracting(Notification::getStatus)
-                .containsExactly(DELIVERED));
+            waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
+                    .extracting(Notification::getStatus)
+                    .containsExactly(DELIVERED));
+        }
     }
 
     @Test

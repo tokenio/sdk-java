@@ -35,6 +35,7 @@ import io.token.security.InMemoryKeyStore;
 import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
+import java.io.Closeable;
 import java.time.Duration;
 import java.util.List;
 
@@ -46,7 +47,7 @@ import java.util.List;
  * asynchronous version. {@link TokenAsync} instance can be obtained by
  * calling {@link #async} method.
  */
-public final class Token {
+public final class Token implements Closeable {
     private final TokenAsync async;
 
     /**
@@ -56,6 +57,11 @@ public final class Token {
      */
     Token(TokenAsync async) {
         this.async = async;
+    }
+
+    @Override
+    public void close() {
+        async.close();
     }
 
     /**

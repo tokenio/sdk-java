@@ -43,7 +43,10 @@ import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.Signer;
 
+import java.io.Closeable;
+import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
 
@@ -55,7 +58,9 @@ import rx.Observable;
  * version. {@link Token} instance can be obtained by calling {@link #sync}
  * method.
  */
-public final class TokenAsync {
+public final class TokenAsync implements Closeable {
+    private static final Duration SHUTDOWN_DURATION = Duration.ofSeconds(10);
+
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
 
@@ -68,6 +73,17 @@ public final class TokenAsync {
     TokenAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
+    }
+
+    @Override
+    public void close() {
+        channel.shutdown();
+
+        try {
+            channel.awaitTermination(SHUTDOWN_DURATION.toMillis(), TimeUnit.MILLISECONDS);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+        }
     }
 
     /**
