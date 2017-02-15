@@ -81,7 +81,7 @@ public final class TokenIOAsync implements Closeable {
 
         try {
             channel.awaitTermination(SHUTDOWN_DURATION.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (InterruptedException e) {
+        } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
     }
