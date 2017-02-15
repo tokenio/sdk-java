@@ -183,7 +183,7 @@ public class NotificationsTest {
     public void sendNotifications() {
         String username = payer.firstUsername();
 
-        try (io.token.Token newSdk = rule.newSdkInstance()) {
+        try (TokenIO newSdk = rule.newSdkInstance()) {
             DeviceInfo deviceInfo = newSdk.provisionDevice(username);
 
             payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
@@ -237,7 +237,7 @@ public class NotificationsTest {
     public void sendLinkAccountsAndAddKey() {
         payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
 
-        try (io.token.Token newSdk = rule.newSdkInstance()) {
+        try (TokenIO newSdk = rule.newSdkInstance()) {
             DeviceInfo deviceInfo = newSdk.provisionDevice(payer.firstUsername());
             rule
                     .token()

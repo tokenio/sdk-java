@@ -31,7 +31,7 @@ import org.junit.rules.ExternalResource;
 public class TokenRule extends ExternalResource {
     public static final String DEFAULT_BANK_ID = "iron";
     private final boolean useSsl;
-    private final Token token;
+    private final TokenIO tokenIO;
     private final BankClient bankClient;
 
     public TokenRule() {
@@ -44,21 +44,21 @@ public class TokenRule extends ExternalResource {
                 bank.getHostText(),
                 bank.getPort(),
                 useSsl);
-        this.token = newSdkInstance();
+        this.tokenIO = newSdkInstance();
     }
 
     @Override
     protected void after() {
         bankClient.close();
-        token.close();
+        tokenIO.close();
     }
 
-    public Token newSdkInstance() {
+    public TokenIO newSdkInstance() {
         HostAndPort gateway = HostAndPort
                 .fromString(getEnvProperty("TOKEN_GATEWAY", "localhost"))
                 .withDefaultPort(9000);
 
-        return Token.builder()
+        return TokenIO.builder()
                 .hostName(gateway.getHostText())
                 .port(gateway.getPort())
                 .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
@@ -67,7 +67,7 @@ public class TokenRule extends ExternalResource {
 
     public Member member() {
         String username = "username-" + Util.generateNonce();
-        return token.createMember(username);
+        return tokenIO.createMember(username);
     }
 
     public Account account() {
@@ -85,8 +85,8 @@ public class TokenRule extends ExternalResource {
                 .get(0);
     }
 
-    public Token token() {
-        return token;
+    public TokenIO token() {
+        return tokenIO;
     }
 
     public BankClient bankClient() {

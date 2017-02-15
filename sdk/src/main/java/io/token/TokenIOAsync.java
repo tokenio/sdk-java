@@ -54,23 +54,23 @@ import rx.Observable;
  * Create a new member using the {@link #createMember}  method or log in an
  * existing member using {@link #login}.
  *
- * <p>The class provides async API with {@link Token} providing a synchronous
- * version. {@link Token} instance can be obtained by calling {@link #sync}
+ * <p>The class provides async API with {@link TokenIO} providing a synchronous
+ * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
  * method.
  */
-public final class TokenAsync implements Closeable {
+public final class TokenIOAsync implements Closeable {
     private static final Duration SHUTDOWN_DURATION = Duration.ofSeconds(10);
 
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
 
     /**
-     * Creates an instance of a TokenAsync.
+     * Creates an instance of a Token SDK.
      *
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
      */
-    TokenAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory) {
+    TokenIOAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
     }
@@ -91,8 +91,8 @@ public final class TokenAsync implements Closeable {
      *
      * @return synchronous version of the account API
      */
-    public Token sync() {
-        return new Token(this);
+    public TokenIO sync() {
+        return new TokenIO(this);
     }
 
     /**

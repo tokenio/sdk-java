@@ -36,7 +36,7 @@ public class MemberRegistrationTest {
 
         Member member = rule.token().createMember(username);
 
-        try (Token secondDevice = rule.newSdkInstance()) {
+        try (TokenIO secondDevice = rule.newSdkInstance()) {
             DeviceInfo deviceInfo = secondDevice.provisionDevice(member.firstUsername());
             member.approveKeys(deviceInfo.getKeys());
 

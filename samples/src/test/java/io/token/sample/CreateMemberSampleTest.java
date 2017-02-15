@@ -1,6 +1,6 @@
 package io.token.sample;
 
-import static io.token.Token.TokenCluster.DEVELOPMENT;
+import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;

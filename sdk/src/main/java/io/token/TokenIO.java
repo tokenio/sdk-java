@@ -40,22 +40,22 @@ import java.time.Duration;
 import java.util.List;
 
 /**
- * Main entry point to the Token SDK. Use {@link Token.Builder}
- * class to create an instance of the {@link TokenAsync} or {@link Token}.
+ * Main entry point to the Token SDK. Use {@link TokenIO.Builder}
+ * class to create an instance of the {@link TokenIOAsync} or {@link TokenIO}.
  *
- * <p>The class provides synchronous API with {@link TokenAsync} providing an
- * asynchronous version. {@link TokenAsync} instance can be obtained by
+ * <p>The class provides synchronous API with {@link TokenIOAsync} providing an
+ * asynchronous version. {@link TokenIOAsync} instance can be obtained by
  * calling {@link #async} method.
  */
-public final class Token implements Closeable {
-    private final TokenAsync async;
+public final class TokenIO implements Closeable {
+    private final TokenIOAsync async;
 
     /**
-     * Creates an instance of Token.
+     * Creates an instance of Token SDK.
      *
      * @param async real implementation that the calls are delegated to
      */
-    Token(TokenAsync async) {
+    TokenIO(TokenIOAsync async) {
         this.async = async;
     }
 
@@ -66,7 +66,7 @@ public final class Token implements Closeable {
 
     /**
      * Creates a new {@link Builder} instance that is used to configure and
-     * build a {@link Token} instance.
+     * build a {@link TokenIO} instance.
      *
      * @return builder
      */
@@ -79,7 +79,7 @@ public final class Token implements Closeable {
      *
      * @return asynchronous version of the account API
      */
-    public TokenAsync async() {
+    public TokenIOAsync async() {
         return async;
     }
 
@@ -218,7 +218,7 @@ public final class Token implements Closeable {
     }
 
     /**
-     * Used to create a new {@link Token} instances.
+     * Used to create a new {@link TokenIO} instances.
      */
     public static final class Builder {
         private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
@@ -296,20 +296,20 @@ public final class Token implements Closeable {
         }
 
         /**
-         * Builds and returns a new {@link Token} instance.
+         * Builds and returns a new {@link TokenIO} instance.
          *
-         * @return {@link Token} instance
+         * @return {@link TokenIO} instance
          */
-        public Token build() {
+        public TokenIO build() {
             return buildAsync().sync();
         }
 
         /**
-         * Builds and returns a new {@link TokenAsync} instance.
+         * Builds and returns a new {@link TokenIOAsync} instance.
          *
-         * @return {@link Token} instance
+         * @return {@link TokenIO} instance
          */
-        public TokenAsync buildAsync() {
+        public TokenIOAsync buildAsync() {
             if (keyStore == null) {
                 keyStore = new InMemoryKeyStore();
             }
@@ -321,7 +321,7 @@ public final class Token implements Closeable {
             versionHeaders.put(
                     Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
                     TokenVersion.getVersion());
-            return new TokenAsync(
+            return new TokenIOAsync(
                     RpcChannelFactory
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeout)
