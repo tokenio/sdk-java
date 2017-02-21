@@ -25,7 +25,7 @@ package io.token.rpc;
 import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
-import static io.token.rpc.util.Converters.toObservable;
+import static io.token.util.Util.toObservable;
 import static java.util.stream.Collectors.joining;
 
 import io.token.proto.PagedList;

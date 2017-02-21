@@ -28,13 +28,11 @@ import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import io.grpc.Metadata;
-import io.grpc.Status;
 import io.token.proto.gateway.Auth.GRpcAuthPayload;
 import io.token.rpc.interceptor.SimpleInterceptor;
 import io.token.security.Signer;
 
 import java.time.Instant;
-import java.util.Optional;
 
 /**
  * gRPC interceptor that performs Token authentication by signing the request
@@ -75,13 +73,5 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
                     Metadata.Key.of("token-on-behalf-of", ASCII_STRING_MARSHALLER),
                     onBehalfOf);
         }
-    }
-
-    @Override
-    public void onComplete(
-            Status status,
-            ReqT req,
-            Optional<ResT> res,
-            Optional<Metadata> trailers) {
     }
 }
