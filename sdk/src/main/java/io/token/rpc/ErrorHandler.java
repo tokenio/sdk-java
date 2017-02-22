@@ -62,41 +62,41 @@ final class ErrorHandler<ReqT, ResT> implements SimpleInterceptor<ReqT, ResT> {
             ReqT req,
             Optional<ResT> res,
             Optional<Metadata> trailers) {
-       if (!status.isOk() && trailers.isPresent()) {
-           Key<String> errorDetailsKey = Key.of(
-                           TOKEN_ERROR_DETAILS_HEADER_NAME,
-                           ASCII_STRING_MARSHALLER);
-           Key<String> customErrorKey = Key.of(
-                           TOKEN_CUSTOM_ERROR_HEADER_NAME,
-                           ASCII_STRING_MARSHALLER);
+        if (!status.isOk() && trailers.isPresent()) {
+            Key<String> errorDetailsKey = Key.of(
+                    TOKEN_ERROR_DETAILS_HEADER_NAME,
+                    ASCII_STRING_MARSHALLER);
+            Key<String> customErrorKey = Key.of(
+                    TOKEN_CUSTOM_ERROR_HEADER_NAME,
+                    ASCII_STRING_MARSHALLER);
 
-           Optional<String> errorDetails = Optional
-                   .ofNullable(trailers.get().get(errorDetailsKey))
-                   .map(details -> {
-                       try {
-                           return URLDecoder.decode(details, TOKEN_HTTP_HEADER_ENCODING);
-                       } catch (UnsupportedEncodingException e) {
-                           e.printStackTrace();
-                           return "";
-                       }
-                   });
-           String description = formatMessage(status.getDescription(), errorDetails);
+            Optional<String> errorDetails = Optional
+                    .ofNullable(trailers.get().get(errorDetailsKey))
+                    .map(details -> {
+                        try {
+                            return URLDecoder.decode(details, TOKEN_HTTP_HEADER_ENCODING);
+                        } catch (UnsupportedEncodingException ex) {
+                            ex.printStackTrace();
+                            return "";
+                        }
+                    });
+            String description = formatMessage(status.getDescription(), errorDetails);
 
-           Optional<String> customError = Optional.ofNullable(trailers.get().get(customErrorKey));
-           if (customError.isPresent()) {
-               Optional<Function<String, RuntimeException>> customErrorMapper =
-                       Optional.ofNullable(ERROR_MAP.get(customError.get()));
-               if (customErrorMapper.isPresent()) {
-                   return status
-                           .withCause(customErrorMapper.get().apply(description))
-                           .withDescription(description);
-               }
-           }
+            Optional<String> customError = Optional.ofNullable(trailers.get().get(customErrorKey));
+            if (customError.isPresent()) {
+                Optional<Function<String, RuntimeException>> customErrorMapper =
+                        Optional.ofNullable(ERROR_MAP.get(customError.get()));
+                if (customErrorMapper.isPresent()) {
+                    return status
+                            .withCause(customErrorMapper.get().apply(description))
+                            .withDescription(description);
+                }
+            }
 
-           return status.withDescription(description);
-       }
+            return status.withDescription(description);
+        }
 
-       return status;
+        return status;
     }
 
     private static String formatMessage(String message, Optional<String> details) {
