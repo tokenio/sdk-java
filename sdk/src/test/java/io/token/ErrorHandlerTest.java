@@ -10,9 +10,11 @@ import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.TokenCryptoEngineFactory;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class ErrorHandlerTest {
+    @Ignore
     @Test(expected = VersionMismatchException.class)
     public void testVersionMismatch() {
         HostAndPort gateway = HostAndPort
