@@ -113,8 +113,9 @@ public interface Util {
                 Throwable cause = ex.getCause().getCause();
                 if (cause != null) {
                     subscriber.onError(cause);
+                } else {
+                    subscriber.onError(ex.getCause());
                 }
-                subscriber.onError(ex.getCause());
             } catch (Throwable ex) {
                 subscriber.onError(ex);
             }
