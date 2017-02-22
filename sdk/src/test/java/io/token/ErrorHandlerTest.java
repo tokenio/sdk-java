@@ -10,16 +10,16 @@ import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.TokenCryptoEngineFactory;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 public class ErrorHandlerTest {
-    @Ignore
     @Test(expected = VersionMismatchException.class)
     public void testVersionMismatch() {
         HostAndPort gateway = HostAndPort
                 .fromString(getEnvProperty("TOKEN_GATEWAY", "localhost"))
                 .withDefaultPort(9000);
+
+        boolean useSsl = Boolean.parseBoolean(getEnvProperty("TOKEN_USE_SSL", "false"));
 
         CryptoEngineFactory cryptoFactory = new TokenCryptoEngineFactory(null);
         Metadata versionHeaders = new Metadata();
@@ -29,13 +29,14 @@ public class ErrorHandlerTest {
         versionHeaders.put(
                 Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
                 "0.0.0");
-        new TokenIOAsync(
+        try (TokenIO tokenIO = new TokenIOAsync(
                 RpcChannelFactory
-                        .builder(gateway.getHost(), gateway.getPort())
+                        .builder(gateway.getHost(), gateway.getPort(), useSsl)
                         .withMetadata(versionHeaders)
                         .build(),
                 cryptoFactory)
-                .sync()
-                .usernameExists("");
+                .sync()) {
+            tokenIO.usernameExists("");
+        }
     }
 }
