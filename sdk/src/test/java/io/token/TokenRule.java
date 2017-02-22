@@ -93,7 +93,7 @@ public class TokenRule extends ExternalResource {
         return bankClient;
     }
 
-    private static String getEnvProperty(String name, String defaultValue) {
+    public static String getEnvProperty(String name, String defaultValue) {
         String override = System.getenv(name);
         if (!isNullOrEmpty(override)) {
             return override;

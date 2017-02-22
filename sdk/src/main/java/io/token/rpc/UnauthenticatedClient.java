@@ -22,8 +22,8 @@
 
 package io.token.rpc;
 
-import static io.token.rpc.util.Converters.toObservable;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.toObservable;
 
 import com.google.common.base.Strings;
 import io.token.proto.common.member.MemberProtos.Member;

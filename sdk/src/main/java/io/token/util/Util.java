@@ -22,10 +22,12 @@
 
 package io.token.util;
 
-import static com.google.common.base.Throwables.propagate;
 import static io.token.proto.common.security.SecurityProtos.Key.Algorithm.ED25519;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -33,6 +35,9 @@ import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
 import io.token.security.crypto.CryptoType;
 
 import java.security.NoSuchAlgorithmException;
+import java.util.concurrent.ExecutionException;
+import rx.Observable;
+import rx.Single;
 
 /**
  * Utility methods.
@@ -58,7 +63,7 @@ public interface Util {
             case EDDSA:
                 return ED25519;
             default:
-                throw propagate(new NoSuchAlgorithmException(cryptoType.toString()));
+                throw new RuntimeException(new NoSuchAlgorithmException(cryptoType.toString()));
         }
     }
 
@@ -85,5 +90,36 @@ public interface Util {
                         .setUsername(username))
                 .build();
 
+    }
+
+    /**
+     * Converts {@code future} to {@link Observable}.
+     *
+     * @param future future to convert
+     * @param <T> future result type
+     * @return Observable
+     */
+    static <T> Observable<T> toObservable(ListenableFuture<T> future) {
+        Single<T> single = Single.create(subscriber -> future.addListener(() -> {
+            if (subscriber.isUnsubscribed()) {
+                return;
+            }
+            try {
+                T result = Uninterruptibles.getUninterruptibly(future);
+                subscriber.onSuccess(result);
+            } catch (ExecutionException ex) {
+                // We are dealing with StatusRuntimeExceptions here, possibly wrapping the actual
+                // custom Token exceptions.
+                Throwable cause = ex.getCause().getCause();
+                if (cause != null) {
+                    subscriber.onError(cause);
+                }
+                subscriber.onError(ex.getCause());
+            } catch (Throwable ex) {
+                subscriber.onError(ex);
+            }
+        }, MoreExecutors.newDirectExecutorService()));
+
+        return single.toObservable();
     }
 }
