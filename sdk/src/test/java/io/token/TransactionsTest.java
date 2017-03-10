@@ -12,11 +12,10 @@ import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.DestinationIban;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.DestinationBic;
 
 import java.util.Comparator;
 import java.util.List;
-
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -54,7 +53,7 @@ public class TransactionsTest {
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Destination destination = Destination.newBuilder()
-                .setIban(DestinationIban.getDefaultInstance())
+                .setSwift(DestinationBic.getDefaultInstance())
                 .build();
 
         Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", null, null);
