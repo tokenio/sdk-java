@@ -18,7 +18,7 @@ else
 fi
 
 GATEWAY_HOST=api-grpc${env}.token.io
-BANK_HOST=fank-grpc${env}.token.io
+BANK_HOST=fank${env}.token.io
 
 echo "Gateway: ${GATEWAY_HOST}"
 echo "Fank: ${BANK_HOST}"
