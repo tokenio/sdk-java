@@ -23,8 +23,8 @@ dependencies {
     compile group: 'io.token.security', name: 'tokenio-security-lib', version: ver.tokenSecurity
     compile group: 'io.token.util', name: 'tokenio-util', version: ver.tokenUtil
 
-    compile group: 'com.squareup.retrofit2', name: 'retrofit', version: ver.retrofit
-    compile group: 'com.squareup.retrofit2', name: 'converter-scalars', version: ver.retrofit
+    testCompile group: 'com.squareup.retrofit2', name: 'retrofit', version: ver.retrofit
+    testCompile group: 'com.squareup.retrofit2', name: 'converter-scalars', version: ver.retrofit
 
     testCompile group: 'io.token.rpc', name: 'tokenio-rpc-testing', version: ver.tokenRpc
     compile group: 'io.token.security', name: 'tokenio-security-testing', version: ver.tokenSecurity
