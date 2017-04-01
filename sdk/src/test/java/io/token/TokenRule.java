@@ -39,7 +39,7 @@ public class TokenRule extends ExternalResource {
 
         HostAndPort bank = HostAndPort
                 .fromString(getEnvProperty("TOKEN_BANK", "localhost"))
-                .withDefaultPort(9100);
+                .withDefaultPort(443);
         this.bankClient = new BankClient(
                 bank.getHostText(),
                 bank.getPort(),
@@ -49,7 +49,6 @@ public class TokenRule extends ExternalResource {
 
     @Override
     protected void after() {
-        bankClient.close();
         tokenIO.close();
     }
 

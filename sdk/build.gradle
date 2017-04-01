@@ -3,9 +3,10 @@ apply plugin: 'com.github.hierynomus.license'
 ext {
     ver = [
         tokenProto: '1.0.225',
-        tokenRpc: '1.0.51',
+        tokenRpc: '1.0.61',
         tokenSecurity: '1.0.29',
-        tokenUtil: '1.0.10',
+        tokenUtil: '1.0.11',
+        retrofit: '2.2.0',
     ]
 }
 
@@ -21,6 +22,9 @@ dependencies {
     compile group: 'io.token.rpc', name: 'tokenio-rpc-lib', version: ver.tokenRpc
     compile group: 'io.token.security', name: 'tokenio-security-lib', version: ver.tokenSecurity
     compile group: 'io.token.util', name: 'tokenio-util', version: ver.tokenUtil
+
+    testCompile group: 'com.squareup.retrofit2', name: 'retrofit', version: ver.retrofit
+    testCompile group: 'com.squareup.retrofit2', name: 'converter-scalars', version: ver.retrofit
 
     testCompile group: 'io.token.rpc', name: 'tokenio-rpc-testing', version: ver.tokenRpc
     compile group: 'io.token.security', name: 'tokenio-security-testing', version: ver.tokenSecurity

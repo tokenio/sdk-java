@@ -7,48 +7,44 @@
 
 package io.token;
 
-import io.grpc.ManagedChannel;
+import com.google.protobuf.InvalidProtocolBufferException;
+import com.google.protobuf.Message;
+import com.google.protobuf.util.JsonFormat;
 import io.token.proto.bankapi.Fank;
+import io.token.proto.bankapi.Fank.AddAccountResponse;
+import io.token.proto.bankapi.Fank.AddClientResponse;
 import io.token.proto.bankapi.Fank.AuthorizeLinkAccountsRequest;
-import io.token.proto.bankapi.FankServiceGrpc;
-import io.token.proto.bankapi.FankServiceGrpc.FankServiceBlockingStub;
 import io.token.proto.banklink.Banklink;
 import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
-import io.token.rpc.client.RpcChannelFactory;
 
-import java.io.Closeable;
-import java.time.Duration;
+import java.io.IOException;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
-public final class BankClient implements Closeable {
-    private static final Duration SHUTDOWN_DURATION = Duration.ofSeconds(5);
-
-    private final ManagedChannel channel;
-    private final FankServiceBlockingStub fank;
+public final class BankClient {
+    BankClientApi bankClientApi;
 
     public BankClient(String hostName, int port, boolean useSsl) {
-        this.channel = RpcChannelFactory.builder(hostName, port, useSsl).build();
-        this.fank = FankServiceGrpc.newBlockingStub(channel);
-    }
-
-    @Override
-    public void close() {
-        channel.shutdown();
-        try {
-            channel.awaitTermination(SHUTDOWN_DURATION.toMillis(), TimeUnit.MILLISECONDS);
-        } catch (InterruptedException ex) {
-            Thread.currentThread().interrupt();
-        }
+        String protocol = useSsl ? "https" : "http";
+        String urlFormat = "%s://%s:%d";
+        bankClientApi = new Retrofit.Builder()
+                .baseUrl(String.format(urlFormat, protocol, hostName, port))
+                .addConverterFactory(ScalarsConverterFactory.create())
+                .build()
+                .create(BankClientApi.class);
     }
 
     public Fank.Client addClient(String firstName, String lastName) {
-        Fank.AddClientResponse response = fank.addClient(Fank.AddClientRequest.newBuilder()
-                .setFirstName(firstName)
-                .setFirstName(lastName)
-                .build());
+        AddClientResponse response = wrap(
+                bankClientApi.addClient(protoToJson(
+                        Fank.AddClientRequest.newBuilder()
+                                .setFirstName(firstName)
+                                .setFirstName(lastName))),
+                AddClientResponse.newBuilder());
         return response.getClient();
     }
 
@@ -58,14 +54,17 @@ public final class BankClient implements Closeable {
             String number,
             double amount,
             String currency) {
-        Fank.AddAccountResponse response = fank.addAccount(Fank.AddAccountRequest.newBuilder()
-                .setClientId(client.getId())
-                .setName(name)
-                .setAccountNumber(number)
-                .setBalance(MoneyProtos.Money.newBuilder()
-                        .setValue(Double.toString(amount))
-                        .setCurrency(currency))
-                .build());
+        AddAccountResponse response = wrap(
+                bankClientApi.addAccount(
+                        protoToJson(Fank.AddAccountRequest.newBuilder()
+                                .setClientId(client.getId())
+                                .setName(name)
+                                .setAccountNumber(number)
+                                .setBalance(MoneyProtos.Money.newBuilder()
+                                        .setValue(Double.toString(amount))
+                                        .setCurrency(currency))),
+                        client.getId()),
+                AddAccountResponse.newBuilder());
         return response.getAccount();
     }
 
@@ -73,12 +72,34 @@ public final class BankClient implements Closeable {
             String username,
             String clientId,
             List<String> accountNumbers) {
-        AuthorizeLinkAccountsRequest request = AuthorizeLinkAccountsRequest.newBuilder()
-                .setUsername(username)
-                .setClientId(clientId)
-                .addAllAccounts(accountNumbers)
-                .build();
-        Banklink.AccountLinkingPayloads response = fank.authorizeLinkAccounts(request);
+        Banklink.AccountLinkingPayloads response = wrap(
+                bankClientApi.authorizeLinkAccounts(
+                        protoToJson(AuthorizeLinkAccountsRequest.newBuilder()
+                                .setUsername(username)
+                                .setClientId(clientId)
+                                .addAllAccounts(accountNumbers)),
+                        clientId),
+                Banklink.AccountLinkingPayloads.newBuilder());
         return response.getPayloadsList();
+    }
+
+    private String protoToJson(Message.Builder proto) {
+        try {
+            return JsonFormat.printer().print(proto);
+        } catch (InvalidProtocolBufferException ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
+    }
+
+    private <T extends Message> T wrap(Call<String> call, T.Builder builder) {
+        try {
+            JsonFormat
+                    .parser()
+                    .ignoringUnknownFields()
+                    .merge(call.execute().body(), builder);
+            return (T) builder.build();
+        } catch (IOException ex) {
+            throw new RuntimeException(ex.getMessage(), ex);
+        }
     }
 }
