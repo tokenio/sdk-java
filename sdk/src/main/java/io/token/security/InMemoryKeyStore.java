@@ -26,6 +26,8 @@ import com.google.common.collect.ArrayListMultimap;
 import com.google.common.collect.Multimap;
 import io.token.proto.common.security.SecurityProtos;
 
+import java.util.Collection;
+
 /**
  * In memory implementation of the {@link KeyStore}. Used for testing.
  */
@@ -39,21 +41,23 @@ public final class InMemoryKeyStore implements KeyStore {
 
     @Override
     public SecretKey getByLevel(String memberId, SecurityProtos.Key.Level keyLevel) {
-        return keys.get(memberId)
-                .stream()
-                .filter(k -> k.getLevel().equals(keyLevel))
-                .findFirst()
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Key not found for level: " + keyLevel));
+        Collection<SecretKey> memberKeys = keys.get(memberId);
+        for (SecretKey key : memberKeys) {
+            if (key.getLevel().equals(keyLevel)) {
+                return key;
+            }
+        }
+        throw new IllegalArgumentException("Key not found for level: " + keyLevel);
     }
 
     @Override
     public SecretKey getById(String memberId, String keyId) {
-        return keys.get(memberId)
-                .stream()
-                .filter(k -> k.getId().equals(keyId))
-                .findFirst()
-                .orElseThrow(() ->
-                        new IllegalArgumentException("Key not found for id: " + keyId));
+        Collection<SecretKey> memberKeys = keys.get(memberId);
+        for (SecretKey key : memberKeys) {
+            if (key.getId().equals(keyId)) {
+                return key;
+            }
+        }
+        throw new IllegalArgumentException("Key not found for id: " + keyId);
     }
 }

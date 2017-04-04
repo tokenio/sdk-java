@@ -23,11 +23,11 @@
 package io.token;
 
 import static io.token.util.Util.generateNonce;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.AccountLinkingPayloads;
+import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
@@ -59,10 +59,12 @@ import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.Nullable;
 
 import rx.Observable;
+import rx.functions.Func1;
 
 /**
  * Represents a Member in the Token system. Each member has an active secret
@@ -163,14 +165,17 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Observable<Void> addUsernames(List<String> usernames) {
+        List<MemberOperation> operations = new LinkedList<>();
+        for (String username : usernames) {
+            operations.add(Util.toAddUsernameOperation(username));
+        }
         return client
-                .updateMember(member.build(), usernames
-                        .stream()
-                        .map(Util::toAddUsernameOperation)
-                        .collect(toList()))
-                .map(m -> {
-                    member.clear().mergeFrom(m);
-                    return null;
+                .updateMember(member.build(), operations)
+                .map(new Func1<MemberProtos.Member, Void>() {
+                    public Void call(MemberProtos.Member proto) {
+                        member.clear().mergeFrom(proto);
+                        return null;
+                    }
                 });
     }
 
@@ -191,17 +196,22 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Observable<Void> removeUsernames(List<String> usernames) {
+        List<MemberOperation> operations = new LinkedList<>();
+        for (String username : usernames) {
+            operations.add(MemberOperation
+                    .newBuilder()
+                    .setRemoveUsername(MemberUsernameOperation
+                            .newBuilder()
+                            .setUsername(username))
+                    .build());
+        }
         return client
-                .updateMember(member.build(), usernames
-                        .stream()
-                        .map(u -> MemberOperation.newBuilder()
-                                .setRemoveUsername(MemberUsernameOperation.newBuilder()
-                                        .setUsername(u))
-                                .build())
-                        .collect(toList()))
-                .map(m -> {
-                    member.clear().mergeFrom(m);
-                    return null;
+                .updateMember(member.build(), operations)
+                .map(new Func1<MemberProtos.Member, Void>() {
+                    public Void call(MemberProtos.Member proto) {
+                        member.clear().mergeFrom(proto);
+                        return null;
+                    }
                 });
     }
 
@@ -241,14 +251,17 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Observable<Void> approveKeys(List<Key> keys) {
+        List<MemberOperation> operations = new LinkedList<>();
+        for (Key key : keys) {
+            operations.add(Util.toAddKeyOperation(key));
+        }
         return client
-                .updateMember(member.build(), keys
-                        .stream()
-                        .map(Util::toAddKeyOperation)
-                        .collect(toList()))
-                .map(m -> {
-                    member.clear().mergeFrom(m);
-                    return null;
+                .updateMember(member.build(), operations)
+                .map(new Func1<MemberProtos.Member, Void>() {
+                    public Void call(MemberProtos.Member proto) {
+                        member.clear().mergeFrom(proto);
+                        return null;
+                    }
                 });
     }
 
@@ -269,17 +282,22 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Observable<Void> removeKeys(List<String> keyIds) {
+        List<MemberOperation> operations = new LinkedList<>();
+        for (String keyId : keyIds) {
+            operations.add(MemberOperation
+                    .newBuilder()
+                    .setRemoveKey(MemberRemoveKeyOperation
+                            .newBuilder()
+                            .setKeyId(keyId))
+                    .build());
+        }
         return client
-                .updateMember(member.build(), keyIds
-                        .stream()
-                        .map(k -> MemberOperation.newBuilder()
-                                .setRemoveKey(MemberRemoveKeyOperation.newBuilder()
-                                        .setKeyId(k))
-                                .build())
-                        .collect(toList()))
-                .map(m -> {
-                    member.clear().mergeFrom(m);
-                    return null;
+                .updateMember(member.build(), operations)
+                .map(new Func1<MemberProtos.Member, Void>() {
+                    public Void call(MemberProtos.Member proto) {
+                        member.clear().mergeFrom(proto);
+                        return null;
+                    }
                 });
     }
 
@@ -324,8 +342,13 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Observable<Void> unsubscribeFromNotifications(String subscriberId) {
-        return client.unsubscribeFromNotifications(subscriberId)
-                .map(empty -> null);
+        return client
+                .unsubscribeFromNotifications(subscriberId)
+                .map(new Func1<Void, Void>() {
+                    public Void call(Void ignore) {
+                        return null;
+                    }
+                });
     }
 
     /**
@@ -363,9 +386,16 @@ public final class MemberAsync {
             List<SealedMessage> accountLinkPayloads) {
         return client
                 .linkAccounts(bankId, accountLinkPayloads)
-                .map(accounts -> accounts.stream()
-                        .map(a -> new AccountAsync(this, a, client))
-                        .collect(toList()));
+                .map(new Func1<List<AccountProtos.Account>, List<AccountAsync>>() {
+                    @Override
+                    public List<AccountAsync> call(List<AccountProtos.Account> accounts) {
+                        List<AccountAsync> result = new LinkedList<>();
+                        for (AccountProtos.Account account : accounts) {
+                            result.add(new AccountAsync(MemberAsync.this, account, client));
+                        }
+                        return result;
+                    }
+                });
     }
 
     /**
@@ -386,9 +416,16 @@ public final class MemberAsync {
     public Observable<List<AccountAsync>> getAccount() {
         return client
                 .getAccounts()
-                .map(accounts -> accounts.stream()
-                        .map(a -> new AccountAsync(this, a, client))
-                        .collect(toList()));
+                .map(new Func1<List<AccountProtos.Account>, List<AccountAsync>>() {
+                    @Override
+                    public List<AccountAsync> call(List<AccountProtos.Account> accounts) {
+                        List<AccountAsync> result = new LinkedList<>();
+                        for (AccountProtos.Account account : accounts) {
+                            result.add(new AccountAsync(MemberAsync.this, account, client));
+                        }
+                        return result;
+                    }
+                });
     }
 
     /**
@@ -400,7 +437,11 @@ public final class MemberAsync {
     public Observable<AccountAsync> getAccount(String accountId) {
         return client
                 .getAccount(accountId)
-                .map(a -> new AccountAsync(this, a, client));
+                .map(new Func1<AccountProtos.Account, AccountAsync>() {
+                    public AccountAsync call(AccountProtos.Account account) {
+                        return new AccountAsync(MemberAsync.this, account, client);
+                    }
+                });
     }
 
     /**

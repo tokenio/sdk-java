@@ -5,22 +5,19 @@ import io.token.proto.common.address.AddressProtos.Address;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Supplier;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
-public interface Sample {
+public abstract class Sample {
+    private Sample() {}
+
     /**
      * Returns a random alphanumeric string of a given length.
      *
      * @return a random string
      */
-    static String string() {
+    public static String string() {
         return string(20);
     }
 
@@ -30,51 +27,8 @@ public interface Sample {
      * @param length the length of the string
      * @return a random string
      */
-    static String string(int length) {
+    public static String string(int length) {
         return RandomStringUtils.randomAlphanumeric(length);
-    }
-
-    /**
-     * Returns a list of supplied values.
-     *
-     * @param sample the sample of values
-     * @param <T> the type of the sample
-     * @return a sample list
-     */
-    static <T> List<T> list(Supplier<T> sample) {
-        List<T> list = new LinkedList<>();
-        for (int i = 0; i < 5; i++) {
-            list.add(sample.get());
-        }
-        return list;
-    }
-
-    /**
-     * Returns a map of sample key/value pairs.
-     *
-     * @param keySample the sample of key values
-     * @param valueSample the sample of values
-     * @param <K> the type of keys
-     * @param <V> the type of values
-     * @return a sample map
-     */
-    static <K, V> Map<K, V> map(Supplier<K> keySample, Supplier<V> valueSample) {
-        Map<K, V> map = new HashMap<>();
-        for (int i = 0; i < 5; i++) {
-            map.put(keySample.get(), valueSample.get());
-        }
-        return map;
-    }
-
-    /**
-     * Returns a random optional value of the provided sample.
-     *
-     * @param sample the sample source
-     * @param <T> the type of the sample
-     * @return a random choice of a generated sample or empty value
-     */
-    static <T> Optional<T> optional(Supplier<T> sample) {
-        return (Math.random() < 0.5) ? Optional.of(sample.get()) : Optional.empty();
     }
 
     /**
@@ -84,7 +38,7 @@ public interface Sample {
      * @param <T> the type of the sample
      * @return a randomly picked value from the list
      */
-    static <T> T pick(List<T> list) {
+    public static <T> T pick(List<T> list) {
         return list.get(integer(0, list.size() - 1));
     }
 
@@ -95,7 +49,7 @@ public interface Sample {
      * @param <T> the type of the sample
      * @return a randomly picked enum entry
      */
-    static <T extends Enum<T>> T pick(Class<T> cls) {
+    public static <T extends Enum<T>> T pick(Class<T> cls) {
         List<T> list = Arrays.asList(cls.getEnumConstants());
         return list.get(integer(0, list.size() - 1));
     }
@@ -105,7 +59,7 @@ public interface Sample {
      *
      * @return a random integer
      */
-    static int integer() {
+    public static int integer() {
         return integer(Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
@@ -116,7 +70,7 @@ public interface Sample {
      * @param max the maximum integer value
      * @return a random integer
      */
-    static int integer(int min, int max) {
+    public static int integer(int min, int max) {
         return (int) (Math.random() * (max - min)) + min;
     }
 
@@ -125,7 +79,7 @@ public interface Sample {
      *
      * @return a random double
      */
-    static double decimal() {
+    public static double decimal() {
         return decimal(Double.MIN_VALUE, Double.MAX_VALUE);
     }
 
@@ -136,7 +90,7 @@ public interface Sample {
      * @param max the maximum value
      * @return a random double
      */
-    static double decimal(double min, double max) {
+    public static double decimal(double min, double max) {
         return min + (max - min) * Math.random();
     }
 
@@ -148,7 +102,7 @@ public interface Sample {
      * @param decimals the maximum number of decimals
      * @return a random double
      */
-    static double decimal(double min, double max, int decimals) {
+    public static double decimal(double min, double max, int decimals) {
         return BigDecimal
                 .valueOf(decimal(min, max))
                 .setScale(decimals, RoundingMode.HALF_EVEN)
@@ -160,7 +114,7 @@ public interface Sample {
      *
      * @return a random BigDecimal
      */
-    static BigDecimal bigDecimal() {
+    public static BigDecimal bigDecimal() {
         return bigDecimal(Double.MIN_VALUE, Double.MAX_VALUE);
     }
 
@@ -171,7 +125,7 @@ public interface Sample {
      * @param max the maximum value
      * @return a random BigDecimal
      */
-    static BigDecimal bigDecimal(double min, double max) {
+    public static BigDecimal bigDecimal(double min, double max) {
         double value = decimal(min, max);
         return BigDecimal.valueOf(value);
     }
@@ -184,16 +138,16 @@ public interface Sample {
      * @param scale the scale
      * @return a random BigDecimal
      */
-    static BigDecimal bigDecimal(double min, double max, int scale) {
+    public static BigDecimal bigDecimal(double min, double max, int scale) {
         double value = decimal(min, max, scale);
         return BigDecimal.valueOf(value).setScale(scale, RoundingMode.HALF_EVEN);
     }
 
-    static BigDecimal amount() {
+    public static BigDecimal amount() {
         return BigDecimal.valueOf(decimal(0.01, 1000000, 2));
     }
 
-    static Address address() {
+    public static Address address() {
         return Address.newBuilder()
                 .setHouseNumber("425")
                 .setStreet("Broadway")

@@ -32,13 +32,11 @@ import io.token.proto.gateway.Auth.GRpcAuthPayload;
 import io.token.rpc.interceptor.SimpleInterceptor;
 import io.token.security.Signer;
 
-import java.time.Instant;
-
 /**
  * gRPC interceptor that performs Token authentication by signing the request
  * with a member private key.
  */
-final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, ResT> {
+final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
     private final String memberId;
     private final Signer signer;
 
@@ -49,10 +47,10 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
 
     @Override
     public void onStart(ReqT reqT, Metadata metadata) {
-        Instant now = Instant.now();
+        long now = System.currentTimeMillis();
         GRpcAuthPayload payload = GRpcAuthPayload.newBuilder()
                 .setRequest(ByteString.copyFrom(((Message) reqT).toByteArray()))
-                .setCreatedAtMs(now.toEpochMilli())
+                .setCreatedAtMs(now)
                 .build();
         String signature = signer.sign(payload);
 
@@ -64,7 +62,7 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
         metadata.put(Metadata.Key.of("token-signature", ASCII_STRING_MARSHALLER), signature);
         metadata.put(
                 Metadata.Key.of("token-created-at-ms", ASCII_STRING_MARSHALLER),
-                Long.toString(now.toEpochMilli()));
+                Long.toString(now));
         metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
 
         String onBehalfOf = AuthenticationContext.clearOnBehalfOf();
@@ -73,5 +71,10 @@ final class ClientAuthenticator<ReqT, ResT> implements SimpleInterceptor<ReqT, R
                     Metadata.Key.of("token-on-behalf-of", ASCII_STRING_MARSHALLER),
                     onBehalfOf);
         }
+    }
+
+    @Override
+    public void onHalfClose(ReqT req, Metadata headers) {
+        // Ignore
     }
 }

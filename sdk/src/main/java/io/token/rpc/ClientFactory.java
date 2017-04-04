@@ -32,14 +32,17 @@ import io.token.security.CryptoEngine;
  * A factory class that is used to create {@link Client} and {@link UnauthenticatedClient}
  * instances.
  */
-public interface ClientFactory {
+public abstract class ClientFactory {
+    private ClientFactory() {
+    }
+
     /**
      * Creates new unauthenticated client backed by the specified channel.
      *
      * @param channel RPC channel to use
      * @return newly created client
      */
-    static UnauthenticatedClient unauthenticated(ManagedChannel channel) {
+    public static UnauthenticatedClient unauthenticated(ManagedChannel channel) {
         return new UnauthenticatedClient(GatewayServiceGrpc.newFutureStub(
                 RpcChannelFactory.intercept(
                         channel,
@@ -55,7 +58,7 @@ public interface ClientFactory {
      * @param crypto crypto engine to use for signing requests, tokens, etc
      * @return newly created client
      */
-    static Client authenticated(
+    public static Client authenticated(
             ManagedChannel channel,
             String memberId,
             CryptoEngine crypto) {

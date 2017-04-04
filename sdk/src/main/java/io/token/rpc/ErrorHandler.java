@@ -29,7 +29,6 @@ import static io.token.rpc.Constants.TOKEN_ERROR_DETAILS_HEADER_NAME;
 import static io.token.rpc.Constants.TOKEN_HTTP_HEADER_ENCODING;
 import static java.lang.String.format;
 
-import com.google.common.collect.ImmutableMap;
 import io.grpc.Metadata;
 import io.grpc.Metadata.Key;
 import io.grpc.Status;
@@ -38,18 +37,17 @@ import io.token.rpc.interceptor.SimpleInterceptor;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
-import java.util.Map;
-import java.util.Optional;
-import java.util.function.Function;
+import javax.annotation.Nullable;
 
 /**
  * gRPC interceptor that facilitates handling cross-cutting API errors. Converts generic
  * StatusRuntimeException instances into specific Exception types to be handled by the callers.
  */
-final class ErrorHandler<ReqT, ResT> implements SimpleInterceptor<ReqT, ResT> {
-    private static final Map<String, Function<String, RuntimeException>> ERROR_MAP =
-            ImmutableMap.of(
-                    ERROR_UNSUPPORTED_CLIENT_VERSION, VersionMismatchException::new);
+final class ErrorHandler<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
+    @Override
+    public void onStart(ReqT req, Metadata headers) {
+        // Ignore
+    }
 
     @Override
     public void onHalfClose(ReqT req, Metadata headers) {
@@ -60,9 +58,9 @@ final class ErrorHandler<ReqT, ResT> implements SimpleInterceptor<ReqT, ResT> {
     public Status onComplete(
             Status status,
             ReqT req,
-            Optional<ResT> res,
-            Optional<Metadata> trailers) {
-        if (!status.isOk() && trailers.isPresent()) {
+            @Nullable ResT res,
+            @Nullable Metadata trailers) {
+        if (!status.isOk() && trailers != null) {
             Key<String> errorDetailsKey = Key.of(
                     TOKEN_ERROR_DETAILS_HEADER_NAME,
                     ASCII_STRING_MARSHALLER);
@@ -70,25 +68,22 @@ final class ErrorHandler<ReqT, ResT> implements SimpleInterceptor<ReqT, ResT> {
                     TOKEN_CUSTOM_ERROR_HEADER_NAME,
                     ASCII_STRING_MARSHALLER);
 
-            Optional<String> errorDetails = Optional
-                    .ofNullable(trailers.get().get(errorDetailsKey))
-                    .map(details -> {
-                        try {
-                            return URLDecoder.decode(details, TOKEN_HTTP_HEADER_ENCODING);
-                        } catch (UnsupportedEncodingException ex) {
-                            ex.printStackTrace();
-                            return "";
-                        }
-                    });
+            String errorDetails = trailers.get(errorDetailsKey);
+            if (errorDetails != null) {
+                try {
+                    errorDetails = URLDecoder.decode(errorDetails, TOKEN_HTTP_HEADER_ENCODING);
+                } catch (UnsupportedEncodingException ex) {
+                    ex.printStackTrace();
+                    errorDetails = null;
+                }
+            }
             String description = formatMessage(status.getDescription(), errorDetails);
-
-            Optional<String> customError = Optional.ofNullable(trailers.get().get(customErrorKey));
-            if (customError.isPresent()) {
-                Optional<Function<String, RuntimeException>> customErrorMapper =
-                        Optional.ofNullable(ERROR_MAP.get(customError.get()));
-                if (customErrorMapper.isPresent()) {
+            String customError = trailers.get(customErrorKey);
+            if (customError != null) {
+                if (ERROR_UNSUPPORTED_CLIENT_VERSION.equals(customError)) {
+                    RuntimeException exception = new VersionMismatchException(description);
                     return status
-                            .withCause(customErrorMapper.get().apply(description))
+                            .withCause(exception)
                             .withDescription(description);
                 }
             }
@@ -99,12 +94,13 @@ final class ErrorHandler<ReqT, ResT> implements SimpleInterceptor<ReqT, ResT> {
         return status;
     }
 
-    private static String formatMessage(String message, Optional<String> details) {
-        return details.isPresent()
-                ? format(
-                        "%s \nToken error details: \n%s",
-                        message,
-                        details.get().replaceAll("; ", "\n"))
-                : message;
+    private static String formatMessage(String message, @Nullable String details) {
+        if (details != null) {
+            return format(
+                    "%s \nToken error details: \n%s",
+                    message,
+                    details.replaceAll("; ", "\n"));
+        }
+        return message;
     }
 }

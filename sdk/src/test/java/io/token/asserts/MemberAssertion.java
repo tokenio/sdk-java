@@ -7,13 +7,13 @@
 
 package io.token.asserts;
 
-import static java.util.stream.Collectors.toList;
-
 import io.token.Member;
 import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.LinkedList;
+import java.util.List;
 
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
@@ -56,10 +56,11 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
     }
 
     public MemberAssertion hasKey(String keyId) {
-        Assertions.assertThat(actual.keys()
-                .stream()
-                .map(Key::getId)
-                .collect(toList())).contains(keyId);
+        List<String> keyIds = new LinkedList<String>();
+        for (Key key : actual.keys()) {
+            keyIds.add(key.getId());
+        }
+        Assertions.assertThat(keyIds).contains(keyId);
         return this;
     }
 

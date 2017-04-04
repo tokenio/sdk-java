@@ -37,19 +37,21 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetMemberIdRequest;
+import io.token.proto.gateway.Gateway.GetMemberIdResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
+import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.Signer;
 
 import java.util.List;
 
 import rx.Observable;
+import rx.functions.Func1;
 
 /**
  * Similar to {@link Client} but is only used for a handful of requests that
@@ -75,11 +77,16 @@ public final class UnauthenticatedClient {
      * @return {@code true} if username already exists, {@code false} otherwise
      */
     public Observable<Boolean> usernameExists(String username) {
-        return toObservable(
-                gateway.getMemberId(GetMemberIdRequest.newBuilder()
+        return toObservable(gateway
+                .getMemberId(GetMemberIdRequest
+                        .newBuilder()
                         .setUsername(username)
                         .build()))
-                .map(res -> !res.getMemberId().isEmpty());
+                .map(new Func1<GetMemberIdResponse, Boolean>() {
+                    public Boolean call(GetMemberIdResponse response) {
+                        return !response.getMemberId().isEmpty();
+                    }
+                });
     }
 
     /**
@@ -93,7 +100,11 @@ public final class UnauthenticatedClient {
                 gateway.getMemberId(GetMemberIdRequest.newBuilder()
                         .setUsername(username)
                         .build()))
-                .map(res -> Strings.emptyToNull(res.getMemberId()));
+                .map(new Func1<GetMemberIdResponse, String>() {
+                    public String call(GetMemberIdResponse response) {
+                        return Strings.emptyToNull(response.getMemberId());
+                    }
+                });
     }
 
     /**
@@ -106,7 +117,11 @@ public final class UnauthenticatedClient {
                 toObservable(gateway.createMember(CreateMemberRequest.newBuilder()
                         .setNonce(generateNonce())
                         .build()))
-                        .map(CreateMemberResponse::getMemberId);
+                        .map(new Func1<CreateMemberResponse, String>() {
+                            public String call(CreateMemberResponse response) {
+                                return response.getMemberId();
+                            }
+                        });
     }
 
     /**
@@ -131,7 +146,11 @@ public final class UnauthenticatedClient {
                         .setKeyId(signer.getKeyId())
                         .setSignature(signer.sign(update.build())))
                 .build()))
-                .map(Gateway.UpdateMemberResponse::getMember);
+                .map(new Func1<UpdateMemberResponse, Member>() {
+                    public Member call(UpdateMemberResponse response) {
+                        return response.getMember();
+                    }
+                });
     }
 
     /**
@@ -159,7 +178,11 @@ public final class UnauthenticatedClient {
                                         .build())
                                 .build())
                         .build()))
-                .map(NotifyResponse::getStatus);
+                .map(new Func1<NotifyResponse, NotifyStatus>() {
+                    public NotifyStatus call(NotifyResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 
 
@@ -185,7 +208,11 @@ public final class UnauthenticatedClient {
                                         .build())
                                 .build())
                         .build()))
-                .map(NotifyResponse::getStatus);
+                .map(new Func1<NotifyResponse, NotifyStatus>() {
+                    public NotifyStatus call(NotifyResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 
     /**
@@ -223,6 +250,10 @@ public final class UnauthenticatedClient {
                                         .build())
                                 .build())
                         .build()))
-                .map(NotifyResponse::getStatus);
+                .map(new Func1<NotifyResponse, NotifyStatus>() {
+                    public NotifyStatus call(NotifyResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 }

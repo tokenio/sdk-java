@@ -17,7 +17,6 @@ import io.token.proto.bankapi.Fank;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.util.Util;
 
-import java.time.Duration;
 import java.util.List;
 
 import org.junit.rules.ExternalResource;
@@ -60,7 +59,7 @@ public class TokenRule extends ExternalResource {
         return TokenIO.builder()
                 .hostName(gateway.getHostText())
                 .port(gateway.getPort())
-                .timeout(Duration.ofMinutes(10))  // Set high for easy debugging.
+                .timeout(10 * 60 * 1_000)  // Set high for easy debugging.
                 .build();
     }
 

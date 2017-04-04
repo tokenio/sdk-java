@@ -38,17 +38,20 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ExecutionException;
 import rx.Observable;
 import rx.Single;
+import rx.SingleSubscriber;
 
 /**
  * Utility methods.
  */
-public interface Util {
+public abstract class Util {
+    private Util() {}
+
     /**
      * Generates a random string.
      *
      * @return generated random string
      */
-    static String generateNonce() {
+    public static String generateNonce() {
         return randomAlphabetic(20);
     }
 
@@ -58,7 +61,7 @@ public interface Util {
      * @param cryptoType the type of the algorithm
      * @return a proto algorithm
      */
-    static Algorithm toProtoAlgorithm(CryptoType cryptoType) {
+    public static Algorithm toProtoAlgorithm(CryptoType cryptoType) {
         switch (cryptoType) {
             case EDDSA:
                 return ED25519;
@@ -73,7 +76,7 @@ public interface Util {
      * @param key key to add
      * @return member operation
      */
-    static MemberOperation toAddKeyOperation(Key key) {
+    public static MemberOperation toAddKeyOperation(Key key) {
         return MemberOperation.newBuilder()
                 .setAddKey(MemberProtos.MemberAddKeyOperation.newBuilder().setKey(key)).build();
     }
@@ -84,7 +87,7 @@ public interface Util {
      * @param username username to add
      * @return member operation
      */
-    static MemberOperation toAddUsernameOperation(String username) {
+    public static MemberOperation toAddUsernameOperation(String username) {
         return MemberOperation.newBuilder()
                 .setAddUsername(MemberProtos.MemberUsernameOperation.newBuilder()
                         .setUsername(username))
@@ -99,28 +102,37 @@ public interface Util {
      * @param <T> future result type
      * @return Observable
      */
-    static <T> Observable<T> toObservable(ListenableFuture<T> future) {
-        Single<T> single = Single.create(subscriber -> future.addListener(() -> {
-            if (subscriber.isUnsubscribed()) {
-                return;
-            }
-            try {
-                T result = Uninterruptibles.getUninterruptibly(future);
-                subscriber.onSuccess(result);
-            } catch (ExecutionException ex) {
-                // We are dealing with StatusRuntimeExceptions here, possibly wrapping the actual
-                // custom Token exceptions.
-                Throwable cause = ex.getCause().getCause();
-                if (cause != null) {
-                    subscriber.onError(cause);
-                } else {
-                    subscriber.onError(ex.getCause());
-                }
-            } catch (Throwable ex) {
-                subscriber.onError(ex);
-            }
-        }, MoreExecutors.newDirectExecutorService()));
-
-        return single.toObservable();
+    public static <T> Observable<T> toObservable(final ListenableFuture<T> future) {
+        return Single
+                .create(new Single.OnSubscribe<T>() {
+                    public void call(final SingleSubscriber<? super T> subscriber) {
+                        future.addListener(
+                                new Runnable() {
+                                    public void run() {
+                                        if (subscriber.isUnsubscribed()) {
+                                            return;
+                                        }
+                                        try {
+                                            subscriber.onSuccess(Uninterruptibles
+                                                    .getUninterruptibly(future));
+                                        } catch (ExecutionException ex) {
+                                            // We are dealing with StatusRuntimeExceptions here,
+                                            // possibly wrapping the actual custom Token exceptions.
+                                            Throwable cause = ex.getCause().getCause();
+                                            if (cause != null) {
+                                                subscriber.onError(cause);
+                                            } else {
+                                                subscriber.onError(ex.getCause());
+                                            }
+                                        } catch (Throwable ex) {
+                                            subscriber.onError(ex);
+                                        }
+                                    }
+                                },
+                                MoreExecutors.newDirectExecutorService()
+                        );
+                    }
+                })
+                .toObservable();
     }
 }
