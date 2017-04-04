@@ -210,12 +210,14 @@ public final class Client {
             String target,
             Platform platform,
             @Nullable String bankId) {
-        return toObservable(gateway.subscribeToNotifications(
-                SubscribeToNotificationsRequest.newBuilder()
-                        .setTarget(target)
-                        .setPlatform(platform)
-                        .setBankId(bankId)
-                        .build()))
+        SubscribeToNotificationsRequest.Builder builder = SubscribeToNotificationsRequest
+                .newBuilder()
+                .setTarget(target)
+                .setPlatform(platform);
+        if (bankId != null) {
+            builder.setBankId(bankId);
+        }
+        return toObservable(gateway.subscribeToNotifications(builder.build()))
                 .map(SubscribeToNotificationsResponse::getSubscriber);
     }
 
