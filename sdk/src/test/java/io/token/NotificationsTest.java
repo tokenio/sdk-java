@@ -83,6 +83,20 @@ public class NotificationsTest {
     }
 
     @Test
+    public void testBankIdSubscriber() {
+        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST, "iron");
+        List<Subscriber> subscriberList = payer.getSubscribers();
+        rule.token().notifyLinkAccounts(
+                payer.firstUsername(),
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads);
+        assertThat(subscriberList.size()).isEqualTo(1);
+        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList().size())
+                .isGreaterThan(0));
+    }
+
+    @Test
     public void getSubscriber() {
         String target = Util.generateNonce();
         Subscriber subscriber = payer.subscribeToNotifications(target, TEST);

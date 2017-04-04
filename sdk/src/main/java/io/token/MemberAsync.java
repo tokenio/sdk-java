@@ -288,12 +288,14 @@ public final class MemberAsync {
      *
      * @param target notification target (e.g IOS push token)
      * @param platform platform of the device
+     * @param bankId optional bankId to be used to proxy notifications
      * @return subscriber Subscriber
      */
     public Observable<Subscriber> subscribeToNotifications(
             String target,
-            Platform platform) {
-        return client.subscribeToNotifications(target, platform);
+            Platform platform,
+            @Nullable String bankId) {
+        return client.subscribeToNotifications(target, platform, bankId);
     }
 
     /**

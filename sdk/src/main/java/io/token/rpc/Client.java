@@ -203,15 +203,18 @@ public final class Client {
      *
      * @param target notification target (e.g. iOS push token)
      * @param platform platform of the device
+     * @param bankId optional bankId to be used to proxy notifications
      * @return notification subscriber
      */
     public Observable<Subscriber> subscribeToNotifications(
             String target,
-            Platform platform) {
+            Platform platform,
+            @Nullable String bankId) {
         return toObservable(gateway.subscribeToNotifications(
                 SubscribeToNotificationsRequest.newBuilder()
                         .setTarget(target)
                         .setPlatform(platform)
+                        .setBankId(bankId)
                         .build()))
                 .map(SubscribeToNotificationsResponse::getSubscriber);
     }
