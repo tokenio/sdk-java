@@ -62,7 +62,7 @@ public final class Account {
     }
 
     /**
-     * Gets an acount id.
+     * Gets an account id.
      *
      * @return account id
      */

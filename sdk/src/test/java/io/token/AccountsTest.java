@@ -3,7 +3,6 @@ package io.token;
 import static io.token.TokenRule.DEFAULT_BANK_ID;
 import static io.token.testing.sample.Sample.integer;
 import static io.token.testing.sample.Sample.string;
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.asserts.AccountAssertion;
@@ -11,7 +10,9 @@ import io.token.proto.bankapi.Fank;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.junit.Rule;
@@ -21,14 +22,20 @@ public class AccountsTest {
     private final int randomized = integer(1000000, 9999999);
     @Rule
     public TokenRule rule = new TokenRule();
-    private final Member member = rule.member();
     private final BankClient fank = rule.bankClient();
     private final Fank.Client client = fank.addClient(string(), string());
+    private final Member member = rule.member();
 
     @Test
     public void linkAccountsTest() {
         List<Account> accounts = linkAccounts();
-        member.unlinkAccounts(accounts.stream().map(account -> account.id()).collect(toList()));
+
+        List<String> accountIdList = new LinkedList<>();
+        for (Account account : accounts) {
+            accountIdList.add(account.id());
+        }
+
+        member.unlinkAccounts(accountIdList);
         assertThat(member.getAccounts()).isEmpty();
     }
 
@@ -45,10 +52,8 @@ public class AccountsTest {
     public void getAccounts() {
         linkAccounts();
 
-        List<Account> accounts = member.getAccounts()
-                .stream()
-                .sorted(Comparator.comparing(Account::name))
-                .collect(toList());
+        List<Account> accounts = member.getAccounts();
+        sortedAccounts(accounts);
 
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0))
@@ -61,14 +66,13 @@ public class AccountsTest {
                 .hasName("Saving");
     }
 
+
     @Test
     public void getAccount() {
         linkAccounts();
 
-        List<Account> accounts = member.getAccounts()
-                .stream()
-                .sorted(Comparator.comparing(Account::name))
-                .collect(toList());
+        List<Account> accounts = member.getAccounts();
+        sortedAccounts(accounts);
         assertThat(accounts).hasSize(2);
 
         Account account = member.getAccount(accounts.get(0).id());
@@ -112,7 +116,15 @@ public class AccountsTest {
 
     private List<Account> link(String bankId, List<SealedMessage> payloads) {
         List<Account> accounts = member.linkAccounts(bankId, payloads);
-        accounts.sort(Comparator.comparing(Account::name));
+        sortedAccounts(accounts);
         return accounts;
+    }
+
+    private void sortedAccounts(List<Account> accounts) {
+        Collections.sort(accounts, new Comparator<Account>() {
+            public int compare(Account thisAccount, Account otherAccount) {
+                return thisAccount.name().compareTo(otherAccount.name());
+            }
+        });
     }
 }

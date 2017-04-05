@@ -3,7 +3,7 @@ package io.token;
 import static io.token.testing.sample.Sample.address;
 import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.collect.ImmutableSet;
 import io.grpc.StatusRuntimeException;
@@ -11,13 +11,16 @@ import io.token.proto.PagedList;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.testing.sample.Sample;
 
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -78,71 +81,83 @@ public class AccessTokenTest {
 
     @Test
     public void addressAccessToken_failNonEndorsed() {
-        AddressRecord address = member1.addAddress(string(), address());
+        final AddressRecord address = member1.addAddress(Sample.string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAddress(address.getId()));
         member2.useAccessToken(accessToken.getId());
-        assertThatExceptionThrownBy(() ->
-                member2.getAddress(address.getId())
-        );
+
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            public void call() throws Throwable {
+                member2.getAddress(address.getId());
+            }
+        });
     }
 
     @Test
     public void addressAccessToken() {
-        AddressRecord address1 = member1.addAddress(string(), address());
+        final AddressRecord address = member1.addAddress(string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
-                .forAddress(address1.getId()));
+                .forAddress(address.getId()));
         TokenOperationResult res = member1.endorseToken(accessToken, Key.Level.STANDARD);
         assertThat(res.getStatus()).isEqualTo(Status.SUCCESS);
 
-        assertThatExceptionThrownBy(() ->
-                member2.getAddress(address1.getId())
-        );
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            public void call() throws Throwable {
+                member2.getAddress(address.getId());
+            }
+        });
 
         member2.useAccessToken(accessToken.getId());
-        AddressRecord result = member2.getAddress(address1.getId());
-        assertThat(result).isEqualTo(address1);
+        AddressRecord result = member2.getAddress(address.getId());
+        assertThat(result).isEqualTo(address);
 
         member2.clearAccessToken();
-        assertThatExceptionThrownBy(() ->
-                member2.getAddress(address1.getId())
-        );
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            public void call() throws Throwable {
+                member2.getAddress(address.getId());
+            }
+        });
     }
 
     @Test
     public void addressAccessToken_canceled() {
-        AddressRecord address1 = member1.addAddress(string(), address());
+        final AddressRecord address = member1.addAddress(string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
-                .forAddress(address1.getId()));
+                .forAddress(address.getId()));
         member1.endorseToken(accessToken, Key.Level.STANDARD);
 
         member2.useAccessToken(accessToken.getId());
-        AddressRecord result = member2.getAddress(address1.getId());
-        assertThat(result).isEqualTo(address1);
+        AddressRecord result = member2.getAddress(address.getId());
+        assertThat(result).isEqualTo(address);
 
         TokenOperationResult res = member1.cancelToken(accessToken);
         assertThat(res.getStatus()).isEqualTo(Status.SUCCESS);
 
-        assertThatExceptionThrownBy(() ->
-                member2.getAddress(address1.getId())
-        );
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            public void call() throws Throwable {
+                member2.getAddress(address.getId());
+            }
+        });
     }
 
     @Test
     public void createAddressAccessToken() {
-        AddressRecord address1 = member1.addAddress(string(), address());
-        AddressRecord address2 = member1.addAddress(string(), address());
+        final AddressRecord address1 = member1.addAddress(string(), address());
+        final AddressRecord address2 = member1.addAddress(string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAddress(address1.getId()));
         member1.endorseToken(accessToken, Key.Level.STANDARD);
         member2.useAccessToken(accessToken.getId());
-        assertThatExceptionThrownBy(() ->
-                member2.getAddress(address2.getId())
-        );
+
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            public void call() throws Throwable {
+                member2.getAddress(address2.getId());
+            }
+        });
     }
 
     @Test
@@ -161,16 +176,18 @@ public class AccessTokenTest {
 
     @Test
     public void createBalancesAccessToken() {
-        Account account = rule.account();
+        final Account account = rule.account();
         Member accountMember = account.member();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, Key.Level.STANDARD);
 
-        assertThatExceptionThrownBy(() ->
-                member1.getAccount(account.id())
-        );
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            public void call() throws Throwable {
+                member1.getAccount(account.id());
+            }
+        });
 
         member1.useAccessToken(accessToken.getId());
         Money balance = member1.getBalance(account.id());
@@ -204,16 +221,18 @@ public class AccessTokenTest {
 
     @Test
     public void createBalanceAccessToken() {
-        Account account = rule.account();
+        final Account account = rule.account();
         Member accountMember = account.member();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAccountBalances(account.id()));
         accountMember.endorseToken(accessToken, Key.Level.STANDARD);
 
-        assertThatExceptionThrownBy(() ->
-                member1.getAccount(account.id())
-        );
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            public void call() throws Throwable {
+                member1.getAccount(account.id());
+            }
+        });
 
         member1.useAccessToken(accessToken.getId());
         Money balance = member1.getBalance(account.id());
@@ -223,11 +242,13 @@ public class AccessTokenTest {
 
     @Test
     public void createAccountTransactionsAccessToken() {
-        Transaction transaction = getTransaction(payerAccount, payeeAccount);
+        final Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
-        assertThatExceptionThrownBy(() ->
-                member1.getTransaction(payerAccount.id(), transaction.getId())
-        );
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            public void call() throws Throwable {
+                member1.getTransaction(payerAccount.id(), transaction.getId());
+            }
+        });
 
         Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
@@ -312,9 +333,18 @@ public class AccessTokenTest {
                 accessToken,
                 AccessTokenBuilder.fromPayload(accessToken.getPayload()).forAll());
         assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
-        assertThat(result.getToken().getPayloadSignaturesList()
-                .stream()
-                .anyMatch(s -> s.getAction() == Action.ENDORSED)).isTrue();
+
+        boolean hasEndorsed = false;
+
+        for (TokenProtos.TokenSignature signature : result.getToken().getPayloadSignaturesList()) {
+            Action action = signature.getAction();
+            if (action == Action.ENDORSED) {
+                hasEndorsed = true;
+                break;
+            }
+        }
+
+        assertThat(hasEndorsed).isTrue();
         member1.clearAccessToken();
         assertThat(member1.getToken(accessToken.getId()).getReplacedByTokenId())
                 .isEqualTo(result.getToken().getId());

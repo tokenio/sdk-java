@@ -3,7 +3,7 @@ package io.token;
 import static io.token.asserts.TransferAssertion.assertThat;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
@@ -14,6 +14,7 @@ import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -42,11 +43,17 @@ public class TransferRedemptionTest {
         Token token = token(100.0);
         final Token endorsedToken = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         payer.unlinkAccounts(singletonList(payerAccount.id()));
-        assertThatExceptionThrownBy(() -> payee.redeemToken(endorsedToken))
+        assertThatThrownBy(
+                new ThrowableAssert.ThrowingCallable() {
+                    public void call() throws Throwable {
+                        payee.redeemToken(endorsedToken);
+                    }
+                })
                 .isInstanceOf(StatusRuntimeException.class)
-                .matches(ex -> ((StatusRuntimeException)ex)
-                        .getStatus()
-                        .getCode() == Status.Code.FAILED_PRECONDITION);
+                .extracting("status")
+                .extracting("code", Status.Code.class)
+                .extractingResultOf("value", int.class)
+                .contains(Status.Code.FAILED_PRECONDITION.value());
     }
 
     @Test

@@ -9,14 +9,15 @@ package io.token.asserts;
 
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
-import static java.util.stream.Collectors.toList;
 
 import io.token.Member;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -66,23 +67,13 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
     }
 
     public TokenAssertion isEndorsedBy(Member member, Key.Level keyLevel) {
-        return hasKeySignatures(
-                member.keys()
-                        .stream()
-                        .filter(k -> k.getLevel().equals(keyLevel))
-                        .map(Key::getId)
-                        .collect(toList()),
-                ENDORSED);
+        List<String> keyIdList = getKeysForLevel(member, keyLevel);
+        return hasKeySignatures(keyIdList, ENDORSED);
     }
 
     public TokenAssertion isCancelledBy(Member member, Key.Level keyLevel) {
-        return hasKeySignatures(
-                member.keys()
-                        .stream()
-                        .filter(k -> k.getLevel().equals(keyLevel))
-                        .map(Key::getId)
-                        .collect(toList()),
-                CANCELLED);
+        List<String> keyIdList = getKeysForLevel(member, keyLevel);
+        return hasKeySignatures(keyIdList, CANCELLED);
     }
 
     public TokenAssertion hasNoSignatures() {
@@ -95,13 +86,24 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
     }
 
     private TokenAssertion hasKeySignatures(String[] keyIds, @Nullable Action action) {
-        List<String> signatures = actual.getPayloadSignaturesList()
-                .stream()
-                .filter(s -> action == null || action == s.getAction())
-                .map(s -> s.getSignature().getKeyId())
-                .collect(toList());
-        Assertions.assertThat(signatures).contains(keyIds);
+        List<String> keyIdList = new LinkedList<>();
+        for (TokenProtos.TokenSignature signature : actual.getPayloadSignaturesList()) {
+            if (action == null || action == signature.getAction()) {
+                keyIdList.add(signature.getSignature().getKeyId());
+            }
+        }
+        Assertions.assertThat(keyIdList).contains(keyIds);
         return this;
+    }
+
+    private static List<String> getKeysForLevel(Member member, Key.Level keyLevel) {
+        List<String> list = new LinkedList<>();
+        for (Key key : member.keys()) {
+            if (key.getLevel().equals(keyLevel)) {
+                list.add(key.getId());
+            }
+        }
+        return list;
     }
 }
 

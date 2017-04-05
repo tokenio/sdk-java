@@ -32,6 +32,7 @@ import static java.util.Arrays.asList;
 
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
+import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -44,11 +45,11 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.Signer;
 
 import java.io.Closeable;
-import java.time.Duration;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import rx.Observable;
+import rx.functions.Func1;
 
 /**
  * Create a new member using the {@link #createMember}  method or log in an
@@ -59,7 +60,7 @@ import rx.Observable;
  * method.
  */
 public final class TokenIOAsync implements Closeable {
-    private static final Duration SHUTDOWN_DURATION = Duration.ofSeconds(10);
+    private static final long SHUTDOWN_DURATION_MS = 10000L;
 
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
@@ -80,7 +81,7 @@ public final class TokenIOAsync implements Closeable {
         channel.shutdown();
 
         try {
-            channel.awaitTermination(SHUTDOWN_DURATION.toMillis(), TimeUnit.MILLISECONDS);
+            channel.awaitTermination(SHUTDOWN_DURATION_MS, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
@@ -112,28 +113,32 @@ public final class TokenIOAsync implements Closeable {
      * @param username member username to use, must be unique
      * @return newly created member
      */
-    public Observable<MemberAsync> createMember(String username) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+    public Observable<MemberAsync> createMember(final String username) {
+        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId()
-                .flatMap(memberId -> {
-                    CryptoEngine crypto = cryptoFactory.create(memberId);
-                    List<MemberOperation> operations = asList(
-                            toAddKeyOperation(crypto.generateKey(PRIVILEGED)),
-                            toAddKeyOperation(crypto.generateKey(STANDARD)),
-                            toAddKeyOperation(crypto.generateKey(LOW)),
-                            toAddUsernameOperation(username));
+                .flatMap(new Func1<String, Observable<MemberProtos.Member>>() {
+                    public Observable<MemberProtos.Member> call(String memberId) {
+                        CryptoEngine crypto = cryptoFactory.create(memberId);
+                        List<MemberOperation> operations = asList(
+                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)),
+                                toAddKeyOperation(crypto.generateKey(STANDARD)),
+                                toAddKeyOperation(crypto.generateKey(LOW)),
+                                toAddUsernameOperation(username));
 
-                    Signer signer = crypto.createSigner(PRIVILEGED);
-                    return unauthenticated.createMember(memberId, operations, signer);
+                        Signer signer = crypto.createSigner(PRIVILEGED);
+                        return unauthenticated.createMember(memberId, operations, signer);
+                    }
                 })
-                .flatMap(member -> {
-                    CryptoEngine crypto = cryptoFactory.create(member.getId());
-                    Client client = ClientFactory.authenticated(
-                            channel,
-                            member.getId(),
-                            crypto);
-                    return Observable.just(new MemberAsync(member, client));
+                .flatMap(new Func1<MemberProtos.Member, Observable<MemberAsync>>() {
+                    public Observable<MemberAsync> call(MemberProtos.Member member) {
+                        CryptoEngine crypto = cryptoFactory.create(member.getId());
+                        Client client = ClientFactory.authenticated(
+                                channel,
+                                member.getId(),
+                                crypto);
+                        return Observable.just(new MemberAsync(member, client));
+                    }
                 });
     }
 
@@ -149,18 +154,19 @@ public final class TokenIOAsync implements Closeable {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .getMemberId(username)
-                .map(memberId -> {
-                    if (memberId == null) {
-                        throw new StatusRuntimeException(NOT_FOUND);
+                .map(new Func1<String, DeviceInfo>() {
+                    public DeviceInfo call(String memberId) {
+                        if (memberId == null) {
+                            throw new StatusRuntimeException(NOT_FOUND);
+                        }
+                        CryptoEngine crypto = cryptoFactory.create(memberId);
+                        return new DeviceInfo(
+                                memberId,
+                                asList(
+                                        crypto.generateKey(PRIVILEGED),
+                                        crypto.generateKey(STANDARD),
+                                        crypto.generateKey(LOW)));
                     }
-
-                    CryptoEngine crypto = cryptoFactory.create(memberId);
-                    return new DeviceInfo(
-                            memberId,
-                            asList(
-                                    crypto.generateKey(PRIVILEGED),
-                                    crypto.generateKey(STANDARD),
-                                    crypto.generateKey(LOW)));
                 });
     }
 
@@ -172,10 +178,14 @@ public final class TokenIOAsync implements Closeable {
      */
     public Observable<MemberAsync> login(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
-        Client client = ClientFactory.authenticated(channel, memberId, crypto);
+        final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client
                 .getMember()
-                .map(member -> new MemberAsync(member, client));
+                .map(new Func1<MemberProtos.Member, MemberAsync>() {
+                    public MemberAsync call(MemberProtos.Member member) {
+                        return new MemberAsync(member, client);
+                    }
+                });
     }
 
     /**

@@ -2,15 +2,15 @@ package io.token;
 
 import static io.token.proto.common.notification.NotificationProtos.Notification.Status.DELIVERED;
 import static io.token.proto.common.subscriber.SubscriberProtos.Platform.TEST;
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.Notification.Status;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
@@ -21,20 +21,21 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.security.sealed.NoopSealedMessageEncrypter;
 import io.token.util.Util;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Stream;
 
+import org.assertj.core.api.ThrowableAssert;
+import org.assertj.core.api.iterable.Extractor;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class NotificationsTest {
     private static final int NOTIFICATION_TIMEOUT_MS = 5000;
-    private static final String NOTIFICATION_TARGET
-            = "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
+    private static final String NOTIFICATION_TARGET =
+            "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
     @Rule public TokenRule rule = new TokenRule();
-
     private final Account payerAccount = rule.account();
     private final Member payer = payerAccount.member();
     private final Member payee = rule.member();
@@ -55,9 +56,9 @@ public class NotificationsTest {
 
         NoopSealedMessageEncrypter encrypter = new NoopSealedMessageEncrypter();
 
-        accountLinkPayloads = Stream.of(checking, saving)
-                .map(encrypter::encrypt)
-                .collect(toList());
+        accountLinkPayloads = Arrays.asList(
+                encrypter.encrypt(checking),
+                encrypter.encrypt(saving));
     }
 
     @Test
@@ -71,15 +72,22 @@ public class NotificationsTest {
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = payer.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList().size())
-                .isGreaterThan(0)
-        );
+        waitUntil(new Runnable() {
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList().size())
+                        .isGreaterThan(0);
+            }
+        });
         payer.unsubscribeFromNotifications(subscriber.getId());
 
         List<Subscriber> subscriberList2 = payer.getSubscribers();
         assertThat(subscriberList2.size()).isEqualTo(0);
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList().size())
-                .isEqualTo(0));
+        waitUntil(new Runnable() {
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList().size())
+                        .isEqualTo(0);
+            }
+        });
     }
 
     @Test
@@ -118,10 +126,15 @@ public class NotificationsTest {
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
-                .hasSize(1)
-                .extracting(Notification::getStatus)
-                .containsExactly(DELIVERED));
+        waitUntil(new Runnable() {
+            @Override
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList())
+                        .hasSize(1)
+                        .extracting(new NotificationStatusExtractor())
+                        .containsExactly(DELIVERED);
+            }
+        });
     }
 
     @Test
@@ -148,9 +161,13 @@ public class NotificationsTest {
         assertThat(res2.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
 
         // 2 subscribers, 2 step ups
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
-                .extracting(Notification::getStatus)
-                .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
+        waitUntil(new Runnable() {
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList())
+                        .extracting(new NotificationStatusExtractor())
+                        .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED);
+            }
+        });
     }
 
     @Test
@@ -162,10 +179,14 @@ public class NotificationsTest {
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
-                .hasSize(1)
-                .extracting(Notification::getStatus)
-                .containsExactly(DELIVERED));
+        waitUntil(new Runnable() {
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList())
+                        .hasSize(1)
+                        .extracting(new NotificationStatusExtractor())
+                        .containsExactly(DELIVERED);
+            }
+        });
     }
 
     @Test
@@ -188,9 +209,13 @@ public class NotificationsTest {
         payee.redeemToken(endorsed);
         payee.redeemToken(endorsed2);
 
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
-                .extracting(Notification::getStatus)
-                .containsExactly(DELIVERED, DELIVERED));
+        waitUntil(new Runnable() {
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList())
+                        .extracting(new NotificationStatusExtractor())
+                        .containsExactly(DELIVERED, DELIVERED);
+            }
+        });
     }
 
     @Test
@@ -226,9 +251,13 @@ public class NotificationsTest {
                     "Chrome 52.0",
                     deviceInfo.getKeys().get(0));
 
-            waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
-                    .extracting(Notification::getStatus)
-                    .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
+            waitUntil(new Runnable() {
+                public void run() {
+                    assertThat(payer.getNotifications(null, 100).getList())
+                            .extracting(new NotificationStatusExtractor())
+                            .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED);
+                }
+            });
         }
     }
 
@@ -242,9 +271,13 @@ public class NotificationsTest {
                 "Bank of America",
                 accountLinkPayloads);
 
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
-                .extracting(Notification::getStatus)
-                .containsExactly(DELIVERED));
+        waitUntil(new Runnable() {
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList())
+                        .extracting(new NotificationStatusExtractor())
+                        .containsExactly(DELIVERED);
+            }
+        });
     }
 
     @Test
@@ -263,9 +296,13 @@ public class NotificationsTest {
                             "Chrome",
                             deviceInfo.getKeys().get(0));
 
-            waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList())
-                    .extracting(Notification::getStatus)
-                    .containsExactly(DELIVERED));
+            waitUntil(new Runnable() {
+                public void run() {
+                    assertThat(payer.getNotifications(null, 100).getList())
+                            .extracting(new NotificationStatusExtractor())
+                            .containsExactly(DELIVERED);
+                }
+            });
         }
     }
 
@@ -276,9 +313,10 @@ public class NotificationsTest {
 
     @Test
     public void getNotificationFalse() {
-        assertThatExceptionThrownBy(() -> {
-            payer.getNotification("123456789");
-            return null;
+        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
+            public void call() throws Throwable {
+                payer.getNotification("123456789");
+            }
         });
     }
 
@@ -292,11 +330,13 @@ public class NotificationsTest {
                 "Bank of America",
                 accountLinkPayloads);
 
-        waitUntil(() -> {
-            List<Notification> notifications = payer.getNotifications(null, 5).getList();
-            assertThat(notifications.size()).isGreaterThan(0);
-            assertThat(payer.getNotification(notifications.get(0).getId()))
-                    .isEqualTo(notifications.get(0));
+        waitUntil(new Runnable() {
+            public void run() {
+                List<Notification> notifications = payer.getNotifications(null, 5).getList();
+                assertThat(notifications.size()).isGreaterThan(0);
+                assertThat(payer.getNotification(notifications.get(0).getId()))
+                        .isEqualTo(notifications.get(0));
+            }
         });
     }
 
@@ -325,13 +365,15 @@ public class NotificationsTest {
                 "Bank of America",
                 accountLinkPayloads);
 
-        waitUntil(() -> {
-            PagedList<Notification, String> notifications = payer.getNotifications(null, 2);
-            assertThat(notifications.getList().size()).isEqualTo(2);
-            PagedList<Notification, String> notifications2 = payer.getNotifications(
-                    notifications.getOffset(),
-                    100);
-            assertThat(notifications2.getList().size()).isEqualTo(2);
+        waitUntil(new Runnable() {
+            public void run() {
+                PagedList<Notification, String> notifications = payer.getNotifications(null, 2);
+                assertThat(notifications.getList().size()).isEqualTo(2);
+                PagedList<Notification, String> notifications2 = payer.getNotifications(
+                        notifications.getOffset(),
+                        100);
+                assertThat(notifications2.getList().size()).isEqualTo(2);
+            }
         });
     }
 
@@ -348,6 +390,13 @@ public class NotificationsTest {
                     throw caughtError;
                 }
             }
+        }
+    }
+
+    private static class NotificationStatusExtractor implements Extractor<Notification, Status> {
+        @Override
+        public Status extract(Notification notification) {
+            return notification.getStatus();
         }
     }
 }

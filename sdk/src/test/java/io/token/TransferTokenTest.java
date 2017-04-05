@@ -3,16 +3,17 @@ package io.token;
 import static io.token.asserts.TokenAssertion.assertThat;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionThrownBy;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.collect.ImmutableSet;
+import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.token.proto.PagedList;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
 
+import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -43,11 +44,17 @@ public class TransferTokenTest {
     @Test
     public void createTransferTokenWithUnlinkedAccount() {
         payer.unlinkAccounts(singletonList(payerAccount.id()));
-        assertThatExceptionThrownBy(() -> payer.createToken(100.0, "USD", payerAccount.id()))
+        assertThatThrownBy(
+                new ThrowableAssert.ThrowingCallable() {
+                    public void call() throws Throwable {
+                        payer.createToken(100.0, "USD", payerAccount.id());
+                    }
+                })
                 .isInstanceOf(StatusRuntimeException.class)
-                .matches(ex -> ((StatusRuntimeException)ex)
-                        .getStatus()
-                        .getCode() == io.grpc.Status.Code.FAILED_PRECONDITION);
+                .extracting("status")
+                .extracting("code", Status.Code.class)
+                .extractingResultOf("value", int.class)
+                .contains(Status.Code.FAILED_PRECONDITION.value());
     }
 
     @Test
@@ -93,7 +100,8 @@ public class TransferTokenTest {
     public void endorseTransferToken() {
         Token token = payer.createToken(100.0, "USD", payerAccount.id());
         TokenOperationResult result = payer.endorseToken(token, Key.Level.STANDARD);
-        assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
+        assertThat(result.getStatus())
+                .isEqualTo(TokenOperationResult.Status.SUCCESS);
         assertThat(result.getToken())
                 .hasNSignatures(2)
                 .isEndorsedBy(payer, Key.Level.STANDARD)
@@ -104,20 +112,27 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenWithUnlinkedAccount() {
-        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        final Token token = payer.createToken(100.0, "USD", payerAccount.id());
         payer.unlinkAccounts(singletonList(payerAccount.id()));
-        assertThatExceptionThrownBy(() -> payer.endorseToken(token, Key.Level.STANDARD))
+        assertThatThrownBy(
+                new ThrowableAssert.ThrowingCallable() {
+                    public void call() throws Throwable {
+                        payer.endorseToken(token, Key.Level.STANDARD);
+                    }
+                })
                 .isInstanceOf(StatusRuntimeException.class)
-                .matches(ex -> ((StatusRuntimeException)ex)
-                        .getStatus()
-                        .getCode() == io.grpc.Status.Code.FAILED_PRECONDITION);
+                .extracting("status")
+                .extracting("code", Status.Code.class)
+                .extractingResultOf("value", int.class)
+                .contains(Status.Code.FAILED_PRECONDITION.value());
     }
 
     @Test
     public void cancelTransferToken() {
         Token token = payer.createToken(100.0, "USD", payerAccount.id());
         TokenOperationResult result = payer.cancelToken(token);
-        assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
+        assertThat(result.getStatus())
+                .isEqualTo(TokenOperationResult.Status.SUCCESS);
 
         assertThat(result.getToken())
                 .hasNSignatures(2)
@@ -132,7 +147,8 @@ public class TransferTokenTest {
         Token token = payer.createToken(100.0, "USD", payerAccount.id());
         TokenOperationResult result = payer.endorseToken(token, Key.Level.LOW);
 
-        assertThat(result.getStatus()).isEqualTo(Status.MORE_SIGNATURES_NEEDED);
+        assertThat(result.getStatus())
+                .isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
         assertThat(result.getToken())
                 .hasNSignatures(1)
                 .isEndorsedBy(payer, Key.Level.LOW)

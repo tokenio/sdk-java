@@ -26,7 +26,6 @@ import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.util.Util.toObservable;
-import static java.util.stream.Collectors.joining;
 
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.AccountLinkingPayloads;
@@ -63,6 +62,7 @@ import io.token.proto.gateway.Gateway.CreateTokenResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
 import io.token.proto.gateway.Gateway.CreateTransferResponse;
 import io.token.proto.gateway.Gateway.DeleteAddressRequest;
+import io.token.proto.gateway.Gateway.DeleteAddressResponse;
 import io.token.proto.gateway.Gateway.EndorseTokenRequest;
 import io.token.proto.gateway.Gateway.EndorseTokenResponse;
 import io.token.proto.gateway.Gateway.GetAccountRequest;
@@ -84,6 +84,7 @@ import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
 import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
+import io.token.proto.gateway.Gateway.GetNotificationsResponse;
 import io.token.proto.gateway.Gateway.GetSubscriberRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberResponse;
 import io.token.proto.gateway.Gateway.GetSubscribersRequest;
@@ -91,12 +92,15 @@ import io.token.proto.gateway.Gateway.GetSubscribersResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
+import io.token.proto.gateway.Gateway.GetTokensResponse;
 import io.token.proto.gateway.Gateway.GetTransactionRequest;
 import io.token.proto.gateway.Gateway.GetTransactionResponse;
 import io.token.proto.gateway.Gateway.GetTransactionsRequest;
+import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.proto.gateway.Gateway.GetTransferRequest;
 import io.token.proto.gateway.Gateway.GetTransferResponse;
 import io.token.proto.gateway.Gateway.GetTransfersRequest;
+import io.token.proto.gateway.Gateway.GetTransfersResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsResponse;
 import io.token.proto.gateway.Gateway.Page;
@@ -107,7 +111,9 @@ import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
+import io.token.proto.gateway.Gateway.UnlinkAccountsResponse;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
+import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -115,9 +121,10 @@ import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
 import java.util.List;
-import java.util.stream.Stream;
 import javax.annotation.Nullable;
+
 import rx.Observable;
+import rx.functions.Func1;
 
 /**
  * An authenticated RPC client that is used to talk to Token gateway. The
@@ -169,7 +176,11 @@ public final class Client {
      */
     public Observable<Member> getMember() {
         return toObservable(gateway.getMember(GetMemberRequest.getDefaultInstance()))
-                .map(GetMemberResponse::getMember);
+                .map(new Func1<GetMemberResponse, Member>() {
+                    public Member call(GetMemberResponse response) {
+                        return response.getMember();
+                    }
+                });
     }
 
     /**
@@ -182,20 +193,28 @@ public final class Client {
     public Observable<Member> updateMember(Member member, List<MemberOperation> operations) {
         Signer signer = crypto.createSigner(Key.Level.PRIVILEGED);
 
-        MemberUpdate update = MemberUpdate.newBuilder()
+        MemberUpdate update = MemberUpdate
+                .newBuilder()
                 .setMemberId(member.getId())
                 .setPrevHash(member.getLastHash())
                 .addAllOperations(operations)
                 .build();
 
-        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
-                .setUpdate(update)
-                .setUpdateSignature(Signature.newBuilder()
-                        .setMemberId(memberId)
-                        .setKeyId(signer.getKeyId())
-                        .setSignature(signer.sign(update)))
-                .build())
-        ).map(UpdateMemberResponse::getMember);
+        return toObservable(gateway
+                .updateMember(UpdateMemberRequest
+                        .newBuilder()
+                        .setUpdate(update)
+                        .setUpdateSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(update)))
+                        .build()))
+                .map(new Func1<UpdateMemberResponse, Member>() {
+                    public Member call(UpdateMemberResponse response) {
+                        return response.getMember();
+                    }
+                });
     }
 
     /**
@@ -217,8 +236,13 @@ public final class Client {
         if (bankId != null) {
             builder.setBankId(bankId);
         }
-        return toObservable(gateway.subscribeToNotifications(builder.build()))
-                .map(SubscribeToNotificationsResponse::getSubscriber);
+        return toObservable(gateway
+                .subscribeToNotifications(builder.build()))
+                .map(new Func1<SubscribeToNotificationsResponse, Subscriber>() {
+                    public Subscriber call(SubscribeToNotificationsResponse response) {
+                        return response.getSubscriber();
+                    }
+                });
     }
 
     /**
@@ -227,10 +251,16 @@ public final class Client {
      * @return list of notification subscribers
      */
     public Observable<List<Subscriber>> getSubscribers() {
-        return toObservable(gateway.getSubscribers(
-                GetSubscribersRequest.newBuilder()
+        return toObservable(gateway
+                .getSubscribers(GetSubscribersRequest
+                        .newBuilder()
                         .build()))
-                .map(GetSubscribersResponse::getSubscribersList);
+                .map(new Func1<GetSubscribersResponse, List<Subscriber>>() {
+                    @Override
+                    public List<Subscriber> call(GetSubscribersResponse response) {
+                        return response.getSubscribersList();
+                    }
+                });
     }
 
     /**
@@ -240,11 +270,16 @@ public final class Client {
      * @return notification subscriber
      */
     public Observable<Subscriber> getSubscriber(String subscriberId) {
-        return toObservable(gateway.getSubscriber(
-                GetSubscriberRequest.newBuilder()
+        return toObservable(gateway
+                .getSubscriber(GetSubscriberRequest
+                        .newBuilder()
                         .setSubscriberId(subscriberId)
                         .build()))
-                .map(GetSubscriberResponse::getSubscriber);
+                .map(new Func1<GetSubscriberResponse, Subscriber>() {
+                    public Subscriber call(GetSubscriberResponse response) {
+                        return response.getSubscriber();
+                    }
+                });
     }
 
     /**
@@ -255,11 +290,16 @@ public final class Client {
      */
     public Observable<Void> unsubscribeFromNotifications(
             String subscriberId) {
-        return toObservable(gateway.unsubscribeFromNotifications(
-                UnsubscribeFromNotificationsRequest.newBuilder()
+        return toObservable(gateway
+                .unsubscribeFromNotifications(UnsubscribeFromNotificationsRequest
+                        .newBuilder()
                         .setSubscriberId(subscriberId)
                         .build()))
-                .map(empty -> null);
+                .map(new Func1<UnsubscribeFromNotificationsResponse, Void>() {
+                    public Void call(UnsubscribeFromNotificationsResponse response) {
+                        return null;
+                    }
+                });
     }
 
     /**
@@ -273,10 +313,17 @@ public final class Client {
             @Nullable String offset,
             int limit) {
         return toObservable(gateway.getNotifications(
-                GetNotificationsRequest.newBuilder()
+                GetNotificationsRequest
+                        .newBuilder()
                         .setPage(pageBuilder(offset, limit))
                         .build()))
-                .map(res -> PagedList.create(res.getNotificationsList(), res.getOffset()));
+                .map(new Func1<GetNotificationsResponse, PagedList<Notification, String>>() {
+                    public PagedList<Notification, String> call(GetNotificationsResponse response) {
+                        return PagedList.create(
+                                response.getNotificationsList(),
+                                response.getOffset());
+                    }
+                });
     }
 
     /**
@@ -286,11 +333,16 @@ public final class Client {
      * @return notification
      */
     public Observable<Notification> getNotification(String notificationId) {
-        return toObservable(gateway.getNotification(
-                GetNotificationRequest.newBuilder()
+        return toObservable(gateway
+                .getNotification(GetNotificationRequest
+                        .newBuilder()
                         .setNotificationId(notificationId)
                         .build()))
-                .map(GetNotificationResponse::getNotification);
+                .map(new Func1<GetNotificationResponse, Notification>() {
+                    public Notification call(GetNotificationResponse response) {
+                        return response.getNotification();
+                    }
+                });
     }
 
     /**
@@ -304,11 +356,16 @@ public final class Client {
             String bankId,
             List<SealedMessage> accountLinkPayloads) {
         return toObservable(gateway
-                .linkAccounts(LinkAccountsRequest.newBuilder()
+                .linkAccounts(LinkAccountsRequest
+                        .newBuilder()
                         .setBankId(bankId)
                         .addAllAccountLinkPayloads(accountLinkPayloads)
-                        .build())
-        ).map(LinkAccountsResponse::getAccountsList);
+                        .build()))
+                .map(new Func1<LinkAccountsResponse, List<Account>>() {
+                    public List<Account> call(LinkAccountsResponse response) {
+                        return response.getAccountsList();
+                    }
+                });
     }
 
     /**
@@ -322,7 +379,11 @@ public final class Client {
                 UnlinkAccountsRequest.newBuilder()
                         .addAllAccountIds(accountIds)
                         .build()))
-                .map(res -> null);
+                .map(new Func1<UnlinkAccountsResponse, Void>() {
+                    public Void call(UnlinkAccountsResponse response) {
+                        return null;
+                    }
+                });
     }
 
     /**
@@ -333,10 +394,16 @@ public final class Client {
      */
     public Observable<Account> getAccount(String accountId) {
         setAuthenticationContext();
-        return toObservable(gateway.getAccount(GetAccountRequest.newBuilder()
-                .setAccountId(accountId)
-                .build())
-        ).map(GetAccountResponse::getAccount);
+        return toObservable(gateway
+                .getAccount(GetAccountRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .build()))
+                .map(new Func1<GetAccountResponse, Account>() {
+                    public Account call(GetAccountResponse response) {
+                        return response.getAccount();
+                    }
+                });
     }
 
     /**
@@ -346,9 +413,15 @@ public final class Client {
      */
     public Observable<List<Account>> getAccounts() {
         setAuthenticationContext();
-        return toObservable(gateway.getAccounts(GetAccountsRequest.newBuilder()
-                .build())
-        ).map(GetAccountsResponse::getAccountsList);
+        return toObservable(gateway
+                .getAccounts(GetAccountsRequest
+                        .newBuilder()
+                        .build()))
+                .map(new Func1<GetAccountsResponse, List<Account>>() {
+                    public List<Account> call(GetAccountsResponse response) {
+                        return response.getAccountsList();
+                    }
+                });
     }
 
     /**
@@ -358,10 +431,16 @@ public final class Client {
      * @return transfer token returned by the server
      */
     public Observable<Token> createToken(TokenPayload payload) {
-        return toObservable(gateway.createToken(CreateTokenRequest.newBuilder()
-                .setPayload(payload)
-                .build())
-        ).map(CreateTokenResponse::getToken);
+        return toObservable(gateway
+                .createToken(CreateTokenRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .build()))
+                .map(new Func1<CreateTokenResponse, Token>() {
+                    public Token call(CreateTokenResponse response) {
+                        return response.getToken();
+                    }
+                });
     }
 
     /**
@@ -371,10 +450,16 @@ public final class Client {
      * @return token returned by the server
      */
     public Observable<Token> getToken(String tokenId) {
-        return toObservable(gateway.getToken(GetTokenRequest.newBuilder()
-                .setTokenId(tokenId)
-                .build())
-        ).map(GetTokenResponse::getToken);
+        return toObservable(gateway
+                .getToken(GetTokenRequest
+                        .newBuilder()
+                        .setTokenId(tokenId)
+                        .build()))
+                .map(new Func1<GetTokenResponse, Token>() {
+                    public Token call(GetTokenResponse response) {
+                        return response.getToken();
+                    }
+                });
     }
 
     /**
@@ -389,11 +474,17 @@ public final class Client {
             GetTokensRequest.Type type,
             @Nullable String offset,
             int limit) {
-        return toObservable(gateway.getTokens(GetTokensRequest.newBuilder()
-                .setType(type)
-                .setPage(pageBuilder(offset, limit))
-                .build())
-        ).map(res -> PagedList.create(res.getTokensList(), res.getOffset()));
+        return toObservable(gateway
+                .getTokens(GetTokensRequest
+                        .newBuilder()
+                        .setType(type)
+                        .setPage(pageBuilder(offset, limit))
+                        .build()))
+                .map(new Func1<GetTokensResponse, PagedList<Token, String>>() {
+                    public PagedList<Token, String> call(GetTokensResponse response) {
+                        return PagedList.create(response.getTokensList(), response.getOffset());
+                    }
+                });
     }
 
     /**
@@ -405,14 +496,22 @@ public final class Client {
      */
     public Observable<TokenOperationResult> endorseToken(Token token, Key.Level keyLevel) {
         Signer signer = crypto.createSigner(keyLevel);
-        return toObservable(gateway.endorseToken(EndorseTokenRequest.newBuilder()
-                .setTokenId(token.getId())
-                .setSignature(Signature.newBuilder()
-                        .setMemberId(memberId)
-                        .setKeyId(signer.getKeyId())
-                        .setSignature(signer.sign(tokenAction(token, ENDORSED))))
-                .build())
-        ).map(EndorseTokenResponse::getResult);
+        return toObservable(gateway
+                .endorseToken(EndorseTokenRequest
+                        .newBuilder()
+                        .setTokenId(token.getId())
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(tokenAction(token, ENDORSED))))
+                        .build()))
+                .map(new Func1<EndorseTokenResponse, TokenOperationResult>() {
+                    @Override
+                    public TokenOperationResult call(EndorseTokenResponse response) {
+                        return response.getResult();
+                    }
+                });
     }
 
     /**
@@ -423,14 +522,21 @@ public final class Client {
      */
     public Observable<TokenOperationResult> cancelToken(Token token) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
-        return toObservable(gateway.cancelToken(CancelTokenRequest.newBuilder()
-                .setTokenId(token.getId())
-                .setSignature(Signature.newBuilder()
-                        .setMemberId(memberId)
-                        .setKeyId(signer.getKeyId())
-                        .setSignature(signer.sign(tokenAction(token, CANCELLED))))
-                .build())
-        ).map(CancelTokenResponse::getResult);
+        return toObservable(gateway
+                .cancelToken(CancelTokenRequest
+                        .newBuilder()
+                        .setTokenId(token.getId())
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(tokenAction(token, CANCELLED))))
+                        .build()))
+                .map(new Func1<CancelTokenResponse, TokenOperationResult>() {
+                    public TokenOperationResult call(CancelTokenResponse response) {
+                        return response.getResult();
+                    }
+                });
     }
 
     /**
@@ -475,10 +581,16 @@ public final class Client {
      */
     public Observable<Money> getBalance(String accountId) {
         setAuthenticationContext();
-        return toObservable(gateway.getBalance(GetBalanceRequest.newBuilder()
-                .setAccountId(accountId)
-                .build())
-        ).map(GetBalanceResponse::getCurrent);
+        return toObservable(gateway
+                .getBalance(GetBalanceRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .build()))
+                .map(new Func1<GetBalanceResponse, Money>() {
+                    public Money call(GetBalanceResponse response) {
+                        return response.getCurrent();
+                    }
+                });
     }
 
     /**
@@ -489,14 +601,21 @@ public final class Client {
      */
     public Observable<Transfer> createTransfer(TransferPayload transfer) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
-        return toObservable(gateway.createTransfer(CreateTransferRequest.newBuilder()
-                .setPayload(transfer)
-                .setPayloadSignature(Signature.newBuilder()
-                        .setMemberId(memberId)
-                        .setKeyId(signer.getKeyId())
-                        .setSignature(signer.sign(transfer)))
-                .build())
-        ).map(CreateTransferResponse::getTransfer);
+        return toObservable(gateway
+                .createTransfer(CreateTransferRequest
+                        .newBuilder()
+                        .setPayload(transfer)
+                        .setPayloadSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(transfer)))
+                        .build()))
+                .map(new Func1<CreateTransferResponse, Transfer>() {
+                    public Transfer call(CreateTransferResponse response) {
+                        return response.getTransfer();
+                    }
+                });
     }
 
     /**
@@ -506,10 +625,16 @@ public final class Client {
      * @return transfer record
      */
     public Observable<Transfer> getTransfer(String transferId) {
-        return toObservable(gateway.getTransfer(GetTransferRequest.newBuilder()
-                .setTransferId(transferId)
-                .build())
-        ).map(GetTransferResponse::getTransfer);
+        return toObservable(gateway
+                .getTransfer(GetTransferRequest
+                        .newBuilder()
+                        .setTransferId(transferId)
+                        .build()))
+                .map(new Func1<GetTransferResponse, Transfer>() {
+                    public Transfer call(GetTransferResponse response) {
+                        return response.getTransfer();
+                    }
+                });
     }
 
     /**
@@ -524,7 +649,8 @@ public final class Client {
             @Nullable String offset,
             int limit,
             @Nullable String tokenId) {
-        GetTransfersRequest.Builder request = GetTransfersRequest.newBuilder()
+        GetTransfersRequest.Builder request = GetTransfersRequest
+                .newBuilder()
                 .setPage(pageBuilder(offset, limit));
 
         if (tokenId != null) {
@@ -532,7 +658,11 @@ public final class Client {
         }
 
         return toObservable(gateway.getTransfers(request.build()))
-                .map(res -> PagedList.create(res.getTransfersList(), res.getOffset()));
+                .map(new Func1<GetTransfersResponse, PagedList<Transfer, String>>() {
+                    public PagedList<Transfer, String> call(GetTransfersResponse response) {
+                        return PagedList.create(response.getTransfersList(), response.getOffset());
+                    }
+                });
     }
 
     /**
@@ -546,11 +676,17 @@ public final class Client {
             String accountId,
             String transactionId) {
         setAuthenticationContext();
-        return toObservable(gateway.getTransaction(GetTransactionRequest.newBuilder()
-                .setAccountId(accountId)
-                .setTransactionId(transactionId)
-                .build())
-        ).map(GetTransactionResponse::getTransaction);
+        return toObservable(gateway
+                .getTransaction(GetTransactionRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .setTransactionId(transactionId)
+                        .build()))
+                .map(new Func1<GetTransactionResponse, Transaction>() {
+                    public Transaction call(GetTransactionResponse response) {
+                        return response.getTransaction();
+                    }
+                });
     }
 
     /**
@@ -567,11 +703,19 @@ public final class Client {
             @Nullable String offset,
             int limit) {
         setAuthenticationContext();
-        return toObservable(gateway.getTransactions(GetTransactionsRequest.newBuilder()
-                .setAccountId(accountId)
-                .setPage(pageBuilder(offset, limit))
-                .build())
-        ).map(res -> PagedList.create(res.getTransactionsList(), res.getOffset()));
+        return toObservable(gateway
+                .getTransactions(GetTransactionsRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .setPage(pageBuilder(offset, limit))
+                        .build()))
+                .map(new Func1<GetTransactionsResponse, PagedList<Transaction, String>>() {
+                    public PagedList<Transaction, String> call(GetTransactionsResponse response) {
+                        return PagedList.create(
+                                response.getTransactionsList(),
+                                response.getOffset());
+                    }
+                });
     }
 
     /**
@@ -583,16 +727,23 @@ public final class Client {
      */
     public Observable<AddressRecord> addAddress(String name, Address address) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
-        return toObservable(gateway.addAddress(AddAddressRequest.newBuilder()
-                .setName(name)
-                .setAddress(address)
-                .setAddressSignature(Signature.newBuilder()
-                        .setMemberId(memberId)
-                        .setKeyId(signer.getKeyId())
-                        .setSignature(signer.sign(address))
-                        .build())
-                .build())
-        ).map(AddAddressResponse::getAddress);
+        return toObservable(gateway
+                .addAddress(AddAddressRequest
+                        .newBuilder()
+                        .setName(name)
+                        .setAddress(address)
+                        .setAddressSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(address))
+                                .build())
+                        .build()))
+                .map(new Func1<AddAddressResponse, AddressRecord>() {
+                    public AddressRecord call(AddAddressResponse response) {
+                        return response.getAddress();
+                    }
+                });
     }
 
     /**
@@ -603,10 +754,16 @@ public final class Client {
      */
     public Observable<AddressRecord> getAddress(String addressId) {
         setAuthenticationContext();
-        return toObservable(gateway.getAddress(GetAddressRequest.newBuilder()
-                .setAddressId(addressId)
-                .build())
-        ).map(GetAddressResponse::getAddress);
+        return toObservable(gateway
+                .getAddress(GetAddressRequest
+                        .newBuilder()
+                        .setAddressId(addressId)
+                        .build()))
+                .map(new Func1<GetAddressResponse, AddressRecord>() {
+                    public AddressRecord call(GetAddressResponse response) {
+                        return response.getAddress();
+                    }
+                });
     }
 
     /**
@@ -616,9 +773,15 @@ public final class Client {
      */
     public Observable<List<AddressRecord>> getAddresses() {
         setAuthenticationContext();
-        return toObservable(gateway.getAddresses(GetAddressesRequest.newBuilder()
-                .build())
-        ).map(GetAddressesResponse::getAddressesList);
+        return toObservable(gateway
+                .getAddresses(GetAddressesRequest
+                        .newBuilder()
+                        .build()))
+                .map(new Func1<GetAddressesResponse, List<AddressRecord>>() {
+                    public List<AddressRecord> call(GetAddressesResponse response) {
+                        return response.getAddressesList();
+                    }
+                });
     }
 
     /**
@@ -628,10 +791,16 @@ public final class Client {
      * @return observable that completes when request
      */
     public Observable<Void> deleteAddress(String addressId) {
-        return toObservable(gateway.deleteAddress(DeleteAddressRequest.newBuilder()
-                .setAddressId(addressId)
-                .build())
-        ).map(empty -> null);
+        return toObservable(gateway
+                .deleteAddress(DeleteAddressRequest
+                        .newBuilder()
+                        .setAddressId(addressId)
+                        .build())
+        ).map(new Func1<DeleteAddressResponse, Void>() {
+            public Void call(DeleteAddressResponse response) {
+                return null;
+            }
+        });
     }
 
     /**
@@ -641,9 +810,14 @@ public final class Client {
      */
     public Observable<List<Bank>> getBanks() {
         return toObservable(gateway
-                .getBanks(GetBanksRequest.newBuilder()
+                .getBanks(GetBanksRequest
+                        .newBuilder()
                         .build()))
-                .map(GetBanksResponse::getBanksList);
+                .map(new Func1<GetBanksResponse, List<Bank>>() {
+                    public List<Bank> call(GetBanksResponse response) {
+                        return response.getBanksList();
+                    }
+                });
     }
 
     /**
@@ -654,10 +828,15 @@ public final class Client {
      */
     public Observable<BankInfo> getBankInfo(String bankId) {
         return toObservable(gateway
-                .getBankInfo(GetBankInfoRequest.newBuilder()
+                .getBankInfo(GetBankInfoRequest
+                        .newBuilder()
                         .setBankId(bankId)
                         .build()))
-                .map(GetBankInfoResponse::getInfo);
+                .map(new Func1<GetBankInfoResponse, BankInfo>() {
+                    public BankInfo call(GetBankInfoResponse response) {
+                        return response.getInfo();
+                    }
+                });
     }
 
     /**
@@ -668,26 +847,40 @@ public final class Client {
      */
     public Observable<AccountLinkingPayloads> createTestBankAccount(Money balance) {
         return toObservable(gateway
-                .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
+                .createTestBankAccount(CreateTestBankAccountRequest
+                        .newBuilder()
                         .setBalance(balance)
                         .build()))
-                .map(CreateTestBankAccountResponse::getAccountLinkingPayloads);
+                .map(new Func1<CreateTestBankAccountResponse, AccountLinkingPayloads>() {
+                    public AccountLinkingPayloads call(CreateTestBankAccountResponse response) {
+                        return response.getAccountLinkingPayloads();
+                    }
+                });
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(
             Token tokenToCancel,
             CreateToken.Builder createToken) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
-        return toObservable(gateway.replaceToken(ReplaceTokenRequest.newBuilder()
-                .setCancelToken(CancelToken.newBuilder()
-                        .setTokenId(tokenToCancel.getId())
-                        .setSignature(Signature.newBuilder()
-                                .setMemberId(memberId)
-                                .setKeyId(signer.getKeyId())
-                                .setSignature(signer.sign(tokenAction(tokenToCancel, CANCELLED)))))
-                .setCreateToken(createToken)
-                .build())
-        ).map(ReplaceTokenResponse::getResult);
+        return toObservable(gateway
+                .replaceToken(ReplaceTokenRequest
+                        .newBuilder()
+                        .setCancelToken(CancelToken
+                                .newBuilder()
+                                .setTokenId(tokenToCancel.getId())
+                                .setSignature(Signature
+                                        .newBuilder()
+                                        .setMemberId(memberId)
+                                        .setKeyId(signer.getKeyId())
+                                        .setSignature(signer
+                                                .sign(tokenAction(tokenToCancel, CANCELLED)))))
+                        .setCreateToken(createToken)
+                        .build()))
+                .map(new Func1<ReplaceTokenResponse, TokenOperationResult>() {
+                    public TokenOperationResult call(ReplaceTokenResponse response) {
+                        return response.getResult();
+                    }
+                });
     }
 
     private void setAuthenticationContext() {
@@ -711,8 +904,9 @@ public final class Client {
     }
 
     private String tokenAction(TokenPayload tokenPayload, Action action) {
-        return Stream
-                .of(toJson(tokenPayload), action.name().toLowerCase())
-                .collect(joining("."));
+        return String.format(
+                "%s.%s",
+                toJson(tokenPayload),
+                action.name().toLowerCase());
     }
 }

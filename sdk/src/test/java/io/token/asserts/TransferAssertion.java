@@ -16,6 +16,7 @@ import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 
 import java.util.Collection;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.assertj.core.api.AbstractAssert;
@@ -69,11 +70,13 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
     }
 
     public TransferAssertion isSignedBy(Member member, Key.Level keyLevel) {
-        return hasKeySignatures(member.keys()
-                .stream()
-                .filter(k -> k.getLevel().equals(keyLevel))
-                .map(Key::getId)
-                .collect(toList()));
+        List<String> keyIds = new LinkedList<>();
+        for (Key key : member.keys()) {
+            if (key.getLevel().equals(keyLevel)) {
+                keyIds.add(key.getId());
+            }
+        }
+        return hasKeySignatures(keyIds);
     }
 
     private TransferAssertion hasKeySignatures(Collection<String> keyIds) {
@@ -81,10 +84,10 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
     }
 
     private TransferAssertion hasKeySignatures(String[] keyIds) {
-        List<String> signatures = actual.getPayloadSignaturesList()
-                .stream()
-                .map(SecurityProtos.Signature::getKeyId)
-                .collect(toList());
+        List<String> signatures = new LinkedList<>();
+        for (SecurityProtos.Signature signature : actual.getPayloadSignaturesList()) {
+            signatures.add(signature.getKeyId());
+        }
         Assertions.assertThat(signatures).contains(keyIds);
         return this;
     }

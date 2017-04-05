@@ -36,8 +36,9 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
-import java.time.Duration;
 import java.util.List;
+
+import rx.functions.Func1;
 
 /**
  * Main entry point to the Token SDK. Use {@link TokenIO.Builder}
@@ -128,7 +129,7 @@ public final class TokenIO implements Closeable {
      */
     public Member createMember(String username) {
         return async.createMember(username)
-                .map(MemberAsync::sync)
+                .map(new MemberFunction())
                 .toBlocking()
                 .single();
     }
@@ -155,7 +156,7 @@ public final class TokenIO implements Closeable {
      */
     public Member login(String memberId) {
         return async.login(memberId)
-                .map(MemberAsync::sync)
+                .map(new MemberFunction())
                 .toBlocking()
                 .single();
     }
@@ -247,20 +248,20 @@ public final class TokenIO implements Closeable {
      * Used to create a new {@link TokenIO} instances.
      */
     public static final class Builder {
-        private static final Duration DEFAULT_TIMEOUT = Duration.ofSeconds(10);
+        private static final long DEFAULT_TIMEOUT_MS = 10_000L;
         private static final int DEFAULT_SSL_PORT = 443;
 
         private int port;
         private boolean useSsl;
         private String hostName;
-        private Duration timeout;
+        private long timeoutMs;
         private KeyStore keyStore;
 
         /**
          * Creates new builder instance with the defaults initialized.
          */
         public Builder() {
-            this.timeout = DEFAULT_TIMEOUT;
+            this.timeoutMs = DEFAULT_TIMEOUT_MS;
             this.port = DEFAULT_SSL_PORT;
             this.useSsl = true;
         }
@@ -300,13 +301,13 @@ public final class TokenIO implements Closeable {
         }
 
         /**
-         * Sets timeout that is used for the RPC calls.
+         * Sets timeoutMs that is used for the RPC calls.
          *
-         * @param timeout RPC call timeout
+         * @param timeoutMs RPC call timeoutMs
          * @return this builder instance
          */
-        public Builder timeout(Duration timeout) {
-            this.timeout = timeout;
+        public Builder timeout(long timeoutMs) {
+            this.timeoutMs = timeoutMs;
             return this;
         }
 
@@ -350,10 +351,16 @@ public final class TokenIO implements Closeable {
             return new TokenIOAsync(
                     RpcChannelFactory
                             .builder(hostName, port, useSsl)
-                            .withTimeout(timeout)
+                            .withTimeout(timeoutMs)
                             .withMetadata(versionHeaders)
                             .build(),
                     cryptoFactory);
+        }
+    }
+
+    private class MemberFunction implements Func1<MemberAsync, Member> {
+        public Member call(MemberAsync memberAsync) {
+            return memberAsync.sync();
         }
     }
 }

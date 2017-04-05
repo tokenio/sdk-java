@@ -9,12 +9,16 @@ import io.token.asserts.TransactionAssertion;
 import io.token.proto.PagedList;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.transaction.TransactionProtos;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.DestinationBic;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
@@ -56,16 +60,20 @@ public class TransactionsTest {
                 .setSwift(DestinationBic.getDefaultInstance())
                 .build();
 
-        Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", null, null);
-        Transfer transfer2 = payee.redeemToken(token, 200.0, "USD", null, null);
-        Transfer transfer3 = payee.redeemToken(token, 300.0, "USD", "three hundred");
-        Transfer transfer4 = payee.redeemToken(token, 400.0, "USD", destination);
-        Transfer transfer5 = payee.redeemToken(token, 500.0, "USD", "five hundred", destination);
+        final Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", null, null);
+        final Transfer transfer2 = payee.redeemToken(token, 200.0, "USD", null, null);
+        final Transfer transfer3 = payee.redeemToken(token, 300.0, "USD", "three");
+        final Transfer transfer4 = payee.redeemToken(token, 400.0, "USD", destination);
+        final Transfer transfer5 = payee.redeemToken(token, 500.0, "USD", "five", destination);
 
         PagedList<Transaction, String> result = payerAccount.getTransactions(null, 5);
-        List<Transaction> transactions = result.getList().stream()
-                .sorted(Comparator.comparing(t -> t.getAmount().getValue()))
-                .collect(toList());
+        List<Transaction> transactions = new ArrayList<>(result.getList());
+        Collections.sort(transactions, new Comparator<Transaction>() {
+            public int compare(Transaction thisTransaction, Transaction otherTransaction) {
+                return thisTransaction.getAmount().getValue()
+                        .compareTo(otherTransaction.getAmount().getValue());
+            }
+        });
         assertThat(result.getOffset()).isNotEmpty();
 
         assertThat(transactions).hasSize(5);
@@ -87,7 +95,7 @@ public class TransactionsTest {
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer3.getId())
-                .containsDescription("three hundred");
+                .containsDescription("three");
         TransactionAssertion.assertThat(transactions.get(3))
                 .isSuccessful()
                 .hasAmount(400.0)
@@ -100,7 +108,7 @@ public class TransactionsTest {
                 .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer5.getId())
-                .containsDescription("five hundred");
+                .containsDescription("five");
     }
 
     @Test

@@ -23,7 +23,6 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
-import static java.util.stream.Collectors.toList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.token.proto.PagedList;
@@ -45,8 +44,11 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.security.keystore.SecretKeyPair;
 
+import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.Nullable;
+
+import rx.functions.Func1;
 
 /**
  * Represents a Member in the Token system. Each member has an active secret
@@ -303,9 +305,15 @@ public final class Member {
      */
     public List<Account> linkAccounts(String bankId, List<SealedMessage> accountLinkPayloads) {
         return async.linkAccounts(bankId, accountLinkPayloads)
-                .map(l -> l.stream()
-                        .map(AccountAsync::sync)
-                        .collect(toList()))
+                .map(new Func1<List<AccountAsync>, List<Account>>() {
+                    public List<Account> call(List<AccountAsync> asyncList) {
+                        List<Account> accounts = new LinkedList<>();
+                        for (AccountAsync async : asyncList) {
+                            accounts.add(async.sync());
+                        }
+                        return accounts;
+                    }
+                })
                 .toBlocking()
                 .single();
     }
@@ -326,9 +334,15 @@ public final class Member {
      */
     public List<Account> getAccounts() {
         return async.getAccount()
-                .map(l -> l.stream()
-                        .map(AccountAsync::sync)
-                        .collect(toList()))
+                .map(new Func1<List<AccountAsync>, List<Account>>() {
+                    public List<Account> call(List<AccountAsync> asyncList) {
+                        List<Account> accounts = new LinkedList<>();
+                        for (AccountAsync async : asyncList) {
+                            accounts.add(async.sync());
+                        }
+                        return accounts;
+                    }
+                })
                 .toBlocking()
                 .single();
     }
@@ -340,7 +354,15 @@ public final class Member {
      * @return looked up account
      */
     public Account getAccount(String accountId) {
-        return async.getAccount(accountId).map(AccountAsync::sync).toBlocking().single();
+        return async
+                .getAccount(accountId)
+                .map(new Func1<AccountAsync, Account>() {
+                    public Account call(AccountAsync async) {
+                        return async.sync();
+                    }
+                })
+                .toBlocking()
+                .single();
     }
 
     /**
