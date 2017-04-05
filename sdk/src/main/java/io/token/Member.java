@@ -222,7 +222,22 @@ public final class Member {
     public Subscriber subscribeToNotifications(
             String target,
             Platform platform) {
-        return async.subscribeToNotifications(target, platform).toBlocking().single();
+        return subscribeToNotifications(target, platform, null);
+    }
+
+    /**
+     * Subscribes a device to receive push notifications.
+     *
+     * @param target notification target (e.g. iOS push token)
+     * @param platform platform of the device
+     * @param bankId optional bankId for notification proxy
+     * @return subscriber Subscriber
+     */
+    public Subscriber subscribeToNotifications(
+            String target,
+            Platform platform,
+            @Nullable String bankId) {
+        return async.subscribeToNotifications(target, platform, bankId).toBlocking().single();
     }
 
     /**
