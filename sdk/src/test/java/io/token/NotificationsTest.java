@@ -100,8 +100,13 @@ public class NotificationsTest {
                 "Bank of America",
                 accountLinkPayloads);
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(() -> assertThat(payer.getNotifications(null, 100).getList().size())
-                .isGreaterThan(0));
+        waitUntil(new Runnable() {
+            @Override
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList().size())
+                        .isGreaterThan(0);
+            }
+        });
     }
 
     @Test
