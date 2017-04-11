@@ -61,7 +61,7 @@ public final class TokenCryptoEngine implements CryptoEngine {
     public Key generateKey(Key.Level keyLevel) {
         KeyPair keyPair = crypto.generateKeyPair();
         String id = keyIdFor(crypto.serialize(keyPair.getPublic()));
-        SecretKey key = new SecretKey(id, keyLevel, keyPair);
+        SecretKey key = SecretKey.create(id, keyLevel, keyPair);
         keyStore.put(memberId, key);
         return Key.newBuilder()
                 .setId(key.getId())

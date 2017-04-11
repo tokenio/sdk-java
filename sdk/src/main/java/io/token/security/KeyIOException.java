@@ -22,41 +22,15 @@
 
 package io.token.security;
 
-import com.google.common.collect.HashBasedTable;
-import com.google.common.collect.Table;
-import io.token.proto.common.security.SecurityProtos;
-
-import java.util.Collection;
-
 /**
- * In memory implementation of the {@link KeyStore}. Used for testing.
+ * Thrown when a key could not be loaded or stored due to an error.
  */
-public final class InMemoryKeyStore implements KeyStore {
-    private final Table<String, String, SecretKey> keys = HashBasedTable.create();
-
-    @Override
-    public void put(String memberId, SecretKey key) {
-        keys.put(memberId, key.getId(), key);
+public class KeyIOException extends RuntimeException {
+    public KeyIOException(String msg) {
+        super(msg);
     }
 
-    @Override
-    public SecretKey getByLevel(String memberId, SecurityProtos.Key.Level keyLevel) {
-        Collection<SecretKey> memberKeys = keys.row(memberId).values();
-        for (SecretKey key : memberKeys) {
-            if (key.getLevel().equals(keyLevel)) {
-                return key;
-            }
-        }
-        throw new IllegalArgumentException("Key not found for level: " + keyLevel);
-    }
-
-    @Override
-    public SecretKey getById(String memberId, String keyId) {
-        SecretKey key = keys.get(memberId, keyId);
-
-        if (key == null) {
-            throw new IllegalArgumentException("Key not found for id: " + keyId);
-        }
-        return key;
+    public KeyIOException(String msg, Throwable cause) {
+        super(msg, cause);
     }
 }
