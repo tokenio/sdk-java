@@ -27,5 +27,5 @@ echo "Fank: ${BANK_HOST}"
   -DTOKEN_GATEWAY=${GATEWAY_HOST}:443 \
   -DTOKEN_BANK=${BANK_HOST}:443 \
   -DTOKEN_USE_SSL=true \
-  cleanTest check
+  cleanTest :sdk:javadoc check
 
