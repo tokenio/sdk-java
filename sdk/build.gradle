@@ -17,6 +17,10 @@ tasks.withType(Test) {
     systemProperty 'TOKEN_USE_SSL', System.getProperty('TOKEN_USE_SSL', null)
 }
 
+publish {
+    isPublic = true
+}
+
 dependencies {
     compile group: 'io.token.proto', name: 'tokenio-proto-external', version: ver.tokenProto
     compile group: 'io.token.rpc', name: 'tokenio-rpc-lib', version: ver.tokenRpc
