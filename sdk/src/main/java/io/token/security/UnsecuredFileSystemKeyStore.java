@@ -47,7 +47,7 @@ import java.util.List;
 
 /**
  * A key store that uses the local file system for persistent storage.
- * <br />
+ * <br>
  * Keys are stored in a single root directory, with a subdirectory containing each member's keys.
  * No support is provided for security of key files.
  */
