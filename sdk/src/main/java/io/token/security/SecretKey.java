@@ -22,6 +22,7 @@
 
 package io.token.security;
 
+import com.google.auto.value.AutoValue;
 import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.security.KeyPair;
@@ -31,57 +32,21 @@ import java.security.PublicKey;
 /**
  * Encapsulates secret key data.
  */
-final class SecretKey {
-    private final String id;
-    private final Key.Level level;
-    private final KeyPair keyPair;
+@AutoValue
+abstract class SecretKey {
+    public static SecretKey create(
+            String id,
+            Key.Level level,
+            KeyPair keyPair) {
 
-    /**
-     * Creates an instance.
-     *
-     * @param id key ID
-     * @param level key level
-     * @param keyPair secret key pair
-     */
-    public SecretKey(String id, Key.Level level, KeyPair keyPair) {
-        this.id = id;
-        this.level = level;
-        this.keyPair = keyPair;
+        return new AutoValue_SecretKey(id, level, keyPair.getPublic(), keyPair.getPrivate());
     }
 
-    /**
-     * Gets key ID.
-     *
-     * @return key ID
-     */
-    public String getId() {
-        return id;
-    }
+    public abstract String getId();
 
-    /**
-     * Gets key level.
-     *
-     * @return key level
-     */
-    public Key.Level getLevel() {
-        return level;
-    }
+    public abstract Key.Level getLevel();
 
-    /**
-     * Gets public key.
-     *
-     * @return public key
-     */
-    public PublicKey getPublicKey() {
-        return keyPair.getPublic();
-    }
+    public abstract PublicKey getPublicKey();
 
-    /**
-     * Gets private key.
-     *
-     * @return private key
-     */
-    public PrivateKey getPrivateKey() {
-        return keyPair.getPrivate();
-    }
+    public abstract PrivateKey getPrivateKey();
 }

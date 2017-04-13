@@ -33,6 +33,7 @@ public interface KeyStore {
      *
      * @param memberId member ID
      * @param key key to put into the storage
+     * @throws KeyIOException if an error is encountered while storing the key
      */
     void put(String memberId, SecretKey key);
 
@@ -42,6 +43,7 @@ public interface KeyStore {
      * @param memberId member ID
      * @param keyLevel {@link SecurityProtos.Key.Level} of the key to get
      * @return secret key
+     * @throws KeyIOException if an error is encountered while fetching the key
      */
     SecretKey getByLevel(String memberId, SecurityProtos.Key.Level keyLevel);
 
@@ -51,6 +53,7 @@ public interface KeyStore {
      * @param memberId member ID
      * @param keyId key ID to get
      * @return secret key
+     * @throws KeyIOException if an error is encountered while fetching the key
      */
     SecretKey getById(String memberId, String keyId);
 }

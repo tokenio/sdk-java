@@ -4,8 +4,8 @@ ext {
     ver = [
         tokenProto: '1.0.254',
         tokenRpc: '1.0.66',
-        tokenSecurity: '1.0.30',
-        tokenUtil: '1.0.12',
+        tokenSecurity: '1.0.31',
+        tokenUtil: '1.0.13',
         retrofit: '2.2.0',
     ]
 }
@@ -15,6 +15,10 @@ tasks.withType(Test) {
     systemProperty 'TOKEN_GATEWAY', System.getProperty('TOKEN_GATEWAY', null)
     systemProperty 'TOKEN_BANK', System.getProperty('TOKEN_BANK', null)
     systemProperty 'TOKEN_USE_SSL', System.getProperty('TOKEN_USE_SSL', null)
+}
+
+publish {
+    isPublic = true
 }
 
 dependencies {
