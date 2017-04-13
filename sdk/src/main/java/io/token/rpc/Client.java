@@ -42,7 +42,7 @@ import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.subscriber.SubscriberProtos.Platform;
+import io.token.proto.common.subscriber.SubscriberProtos;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -121,6 +121,7 @@ import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 import rx.Observable;
@@ -218,26 +219,22 @@ public final class Client {
     }
 
     /**
-     * Creates a subscriber to receive push notifications
+     * Creates a subscriber to receive push notifications.
      *
-     * @param target notification target (e.g. iOS push token)
-     * @param platform platform of the device
-     * @param bankId optional bankId to be used to proxy notifications
+     * @param handler specify the handler of the notifications
+     * @param handlerInstructions map of instructions for the handler
      * @return notification subscriber
      */
     public Observable<Subscriber> subscribeToNotifications(
-            String target,
-            Platform platform,
-            @Nullable String bankId) {
-        SubscribeToNotificationsRequest.Builder builder = SubscribeToNotificationsRequest
+            String handler,
+            Map<String, String> handlerInstructions) {
+        SubscribeToNotificationsRequest request = SubscribeToNotificationsRequest
                 .newBuilder()
-                .setTarget(target)
-                .setPlatform(platform);
-        if (bankId != null) {
-            builder.setBankId(bankId);
-        }
+                .setHandler(handler)
+                .putAllHandlerInstructions(handlerInstructions)
+                .build();
         return toObservable(gateway
-                .subscribeToNotifications(builder.build()))
+                .subscribeToNotifications(request))
                 .map(new Func1<SubscribeToNotificationsResponse, Subscriber>() {
                     public Subscriber call(SubscribeToNotificationsResponse response) {
                         return response.getSubscriber();

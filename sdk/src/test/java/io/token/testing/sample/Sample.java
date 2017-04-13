@@ -5,7 +5,9 @@ import io.token.proto.common.address.AddressProtos.Address;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.lang3.RandomStringUtils;
 
@@ -155,5 +157,12 @@ public abstract class Sample {
                 .setPostCode("94063")
                 .setCountry("US")
                 .build();
+    }
+
+    public static Map<String, String> handlerInstructions(String target, String platform) {
+        Map<String, String> handlerInstructions = new HashMap<>();
+        handlerInstructions.put("TARGET", target);
+        handlerInstructions.put("PLATFORM", platform);
+        return handlerInstructions;
     }
 }

@@ -1,7 +1,6 @@
 package io.token;
 
 import static io.token.proto.common.notification.NotificationProtos.Notification.Status.DELIVERED;
-import static io.token.proto.common.subscriber.SubscriberProtos.Platform.TEST;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -19,12 +18,13 @@ import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.security.sealed.NoopSealedMessageEncrypter;
-import io.token.util.Util;
+import io.token.testing.sample.Sample;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
-
 import org.assertj.core.api.ThrowableAssert;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Before;
@@ -35,6 +35,7 @@ public class NotificationsTest {
     private static final int NOTIFICATION_TIMEOUT_MS = 5000;
     private static final String NOTIFICATION_TARGET =
             "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
+    private static final String TEST = "TEST"; // Test platform
     @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
     private final Member payer = payerAccount.member();
@@ -63,7 +64,9 @@ public class NotificationsTest {
 
     @Test
     public void testSubscribers() {
-        final Subscriber subscriber = payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        final Subscriber subscriber = payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
         NotifyStatus res = rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
                 "BofA",
@@ -91,8 +94,29 @@ public class NotificationsTest {
     }
 
     @Test
-    public void testBankIdSubscriber() {
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST, "iron");
+    public void testHandlerSubscriber() {
+        payer.subscribeToNotifications("iron", new HashMap<String, String>());
+        List<Subscriber> subscriberList = payer.getSubscribers();
+        rule.token().notifyLinkAccounts(
+                payer.firstUsername(),
+                "BofA",
+                "Bank of America",
+                accountLinkPayloads);
+        assertThat(subscriberList.size()).isEqualTo(1);
+        waitUntil(new Runnable() {
+            @Override
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList().size())
+                        .isGreaterThan(0);
+            }
+        });
+    }
+
+    @Test
+    public void testHandlerSubscriberInstructions() {
+        Map<String, String> instructionsBank = new HashMap<>();
+        instructionsBank.put("sampleInstruction", "value");
+        payer.subscribeToNotifications("iron", instructionsBank);
         List<Subscriber> subscriberList = payer.getSubscribers();
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
@@ -111,8 +135,8 @@ public class NotificationsTest {
 
     @Test
     public void getSubscriber() {
-        String target = Util.generateNonce();
-        Subscriber subscriber = payer.subscribeToNotifications(target, TEST);
+        Subscriber subscriber = payer.subscribeToNotifications("token", Sample
+                .handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         Subscriber subscriber2 = payer.getSubscriber(subscriber.getId());
         assertThat(subscriber).isEqualTo(subscriber2);
@@ -120,7 +144,9 @@ public class NotificationsTest {
 
     @Test
     public void triggerStepUpTransferNotification() {
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         Token token = payer.createToken(
                 56,
@@ -130,7 +156,8 @@ public class NotificationsTest {
                 null);
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
-        assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
+        assertThat(res.getStatus())
+                .isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
         waitUntil(new Runnable() {
             @Override
             public void run() {
@@ -144,8 +171,10 @@ public class NotificationsTest {
 
     @Test
     public void triggerStepUpTransferNotification_twoSubscribers() {
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
-        payer.subscribeToNotifications(NOTIFICATION_TARGET + "1", TEST);
+        payer.subscribeToNotifications("token", Sample
+                .handlerInstructions(NOTIFICATION_TARGET, TEST));
+        payer.subscribeToNotifications("token", Sample
+                .handlerInstructions(NOTIFICATION_TARGET + "1", TEST));
 
         Token token = payer.createToken(
                 56,
@@ -177,7 +206,9 @@ public class NotificationsTest {
 
     @Test
     public void triggerStepUpAccessNotification() {
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
         Token token = payer.createAccessToken(AccessTokenBuilder
                 .create(payee.firstUsername())
                 .forAllAccounts());
@@ -196,7 +227,9 @@ public class NotificationsTest {
 
     @Test
     public void triggerTransferProcessedNotification() {
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
         Token token = payer.createToken(
                 20,
                 "USD",
@@ -230,7 +263,9 @@ public class NotificationsTest {
         try (TokenIO newSdk = rule.newSdkInstance()) {
             DeviceInfo deviceInfo = newSdk.provisionDevice(username);
 
-            payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+            payer.subscribeToNotifications(
+                    "token",
+                    Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
             NotifyStatus res1 = newSdk.notifyLinkAccounts(
                     username,
                     "BofA",
@@ -268,7 +303,9 @@ public class NotificationsTest {
 
     @Test
     public void sendLinkAccounts() {
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
@@ -287,7 +324,9 @@ public class NotificationsTest {
 
     @Test
     public void sendLinkAccountsAndAddKey() {
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         try (TokenIO newSdk = rule.newSdkInstance()) {
             DeviceInfo deviceInfo = newSdk.provisionDevice(payer.firstUsername());
@@ -327,7 +366,9 @@ public class NotificationsTest {
 
     @Test
     public void getNotificationTrue() {
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
@@ -347,7 +388,9 @@ public class NotificationsTest {
 
     @Test
     public void getNotificationsPaging() {
-        payer.subscribeToNotifications(NOTIFICATION_TARGET, TEST);
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
