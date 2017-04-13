@@ -40,7 +40,6 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
-import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
@@ -61,6 +60,7 @@ import io.token.util.Util;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 import rx.Observable;
@@ -302,18 +302,16 @@ public final class MemberAsync {
     }
 
     /**
-     * Creates a subscriber to push notifications
+     * Creates a subscriber to push notifications.
      *
-     * @param target notification target (e.g IOS push token)
-     * @param platform platform of the device
-     * @param bankId optional bankId to be used to proxy notifications
+     * @param handler specify the handler of the notifications
+     * @param handlerInstructions map of instructions for the handler
      * @return subscriber Subscriber
      */
     public Observable<Subscriber> subscribeToNotifications(
-            String target,
-            Platform platform,
-            @Nullable String bankId) {
-        return client.subscribeToNotifications(target, platform, bankId);
+            String handler,
+            Map<String, String> handlerInstructions) {
+        return client.subscribeToNotifications(handler, handlerInstructions);
     }
 
     /**

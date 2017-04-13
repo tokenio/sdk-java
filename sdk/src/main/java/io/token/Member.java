@@ -35,7 +35,6 @@ import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
-import io.token.proto.common.subscriber.SubscriberProtos.Platform;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -44,10 +43,11 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.security.keystore.SecretKeyPair;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
-
 import rx.functions.Func1;
 
 /**
@@ -217,29 +217,25 @@ public final class Member {
     /**
      * Subscribes a device to receive push notifications.
      *
-     * @param target notification target (e.g. iOS push token)
-     * @param platform platform of the device
+     * @param handler specify the handler of the notifications
      * @return subscriber Subscriber
      */
     public Subscriber subscribeToNotifications(
-            String target,
-            Platform platform) {
-        return subscribeToNotifications(target, platform, null);
+            String handler) {
+        return subscribeToNotifications(handler, new HashMap<String, String>());
     }
 
     /**
      * Subscribes a device to receive push notifications.
      *
-     * @param target notification target (e.g. iOS push token)
-     * @param platform platform of the device
-     * @param bankId optional bankId for notification proxy
+     * @param handler specify the handler of the notifications
+     * @param handlerInstructions map of instructions for the handler
      * @return subscriber Subscriber
      */
     public Subscriber subscribeToNotifications(
-            String target,
-            Platform platform,
-            @Nullable String bankId) {
-        return async.subscribeToNotifications(target, platform, bankId).toBlocking().single();
+            String handler,
+            Map<String, String> handlerInstructions) {
+        return async.subscribeToNotifications(handler, handlerInstructions).toBlocking().single();
     }
 
     /**
