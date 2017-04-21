@@ -18,8 +18,11 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 import io.token.testing.sample.Sample;
 
+import java.util.ArrayList;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -456,9 +459,15 @@ public class AccessTokenTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                string());
+                string(),
+                new ArrayList<Destination>());
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
-        Transfer transfer = payee.redeemToken(token, 1.0, "USD", "one");
+        Transfer transfer = payee.redeemToken(token, 1.0, "USD", "one",
+                Destination.newBuilder()
+                        .setTokenDestination(TokenDestination.newBuilder()
+                                .setAccountId(payeeAccount.id())
+                                .build())
+                        .build());
         return payerAccount.getTransaction(transfer.getReferenceId());
     }
 }

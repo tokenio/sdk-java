@@ -26,15 +26,15 @@ public final class LinkMemberAndBankSample {
         // 1. App displays a list of banks supported by Token
         // 2. User selects a bank, the app pops up a web view and navigates to the bank linking page
         // 3. User enters bank credentials and selects accounts to link
-        // 4. The bank linking flow completes and the app extracts encrypted account linking
-        //    payload from the internal service redirected to by the linking flow.
+        // 4. The bank linking flow completes and the app extracts encrypted bank authorization
+        //    from the internal service redirected to by the linking flow.
 
         // For the purpose of this sample, we simulate the entire linking flow described above
         // by generating it with a fake bank below.
-        List<SealedMessage> encryptedLinkingPayloads =
-                member.createTestBankAccount(1000.0, "EUR").getPayloadsList();
+        List<SealedMessage> encryptedBankAuthorization =
+                member.createTestBankAccount(1000.0, "EUR").getAccountsList();
 
         // Finish account linking flow initiated by the user.
-        member.linkAccounts("iron" /* bank code */, encryptedLinkingPayloads);
+        member.linkAccounts("iron" /* bank code */, encryptedBankAuthorization);
     }
 }

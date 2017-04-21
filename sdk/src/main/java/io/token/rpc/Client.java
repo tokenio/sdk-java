@@ -28,7 +28,7 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDO
 import static io.token.util.Util.toObservable;
 
 import io.token.proto.PagedList;
-import io.token.proto.banklink.Banklink.AccountLinkingPayloads;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -42,7 +42,6 @@ import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.subscriber.SubscriberProtos;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -123,7 +122,6 @@ import io.token.security.Signer;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
-
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -346,17 +344,19 @@ public final class Client {
      * Links a funding bank account to Token.
      *
      * @param bankId bank id
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param accounts a list of encrypted bank authorizations
      * @return list of linked accounts
      */
     public Observable<List<Account>> linkAccounts(
             String bankId,
-            List<SealedMessage> accountLinkPayloads) {
+            List<SealedMessage> accounts) {
         return toObservable(gateway
                 .linkAccounts(LinkAccountsRequest
                         .newBuilder()
-                        .setBankId(bankId)
-                        .addAllAccountLinkPayloads(accountLinkPayloads)
+                        .setBankAuthorization(BankAuthorization.newBuilder()
+                                .setBankId(bankId)
+                                .addAllAccounts(accounts)
+                                .build())
                         .build()))
                 .map(new Func1<LinkAccountsResponse, List<Account>>() {
                     public List<Account> call(LinkAccountsResponse response) {
@@ -837,20 +837,20 @@ public final class Client {
     }
 
     /**
-     * Creates a test bank account and generates account linking payloads.
+     * Creates a test bank account and generates bank authorization.
      *
      * @param balance account balance to set
-     * @return account linking payloads
+     * @return bank authorization
      */
-    public Observable<AccountLinkingPayloads> createTestBankAccount(Money balance) {
+    public Observable<BankAuthorization> createTestBankAccount(Money balance) {
         return toObservable(gateway
                 .createTestBankAccount(CreateTestBankAccountRequest
                         .newBuilder()
                         .setBalance(balance)
                         .build()))
-                .map(new Func1<CreateTestBankAccountResponse, AccountLinkingPayloads>() {
-                    public AccountLinkingPayloads call(CreateTestBankAccountResponse response) {
-                        return response.getAccountLinkingPayloads();
+                .map(new Func1<CreateTestBankAccountResponse, BankAuthorization>() {
+                    public BankAuthorization call(CreateTestBankAccountResponse response) {
+                        return response.getBankAuthorization();
                     }
                 });
     }

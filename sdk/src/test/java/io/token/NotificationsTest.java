@@ -7,7 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
-import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.account.AccountProtos.PlaintextBankAuthorization;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -17,9 +17,13 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 import io.token.security.sealed.NoopSealedMessageEncrypter;
 import io.token.testing.sample.Sample;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -45,12 +49,12 @@ public class NotificationsTest {
 
     @Before
     public void setup() {
-        String checking = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
+        String checking = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Checking")
                 .setAccountNumber("iban:checking")
                 .build());
 
-        String saving = ProtoJson.toJson(AccountProtos.AccountLinkPayload.newBuilder()
+        String saving = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Saving")
                 .setAccountNumber("iban:saving")
                 .build());
@@ -153,7 +157,8 @@ public class NotificationsTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null);
+                null,
+                new ArrayList<Destination>());
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus())
@@ -181,13 +186,15 @@ public class NotificationsTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null);
+                null,
+                new ArrayList<Destination>());
         Token token2 = payer.createToken(
                 57,
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null);
+                null,
+                new ArrayList<Destination>());
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         TokenOperationResult res2 = payer.endorseToken(token2, Key.Level.LOW);
@@ -235,17 +242,24 @@ public class NotificationsTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null);
+                null,
+                new ArrayList<Destination>());
         Token t2 = payer.createToken(
                 20,
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null);
+                null,
+                new ArrayList<Destination>());
         Token endorsed = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         Token endorsed2 = payer.endorseToken(t2, Level.STANDARD).getToken();
-        payee.redeemToken(endorsed);
-        payee.redeemToken(endorsed2);
+        Destination destination = Destination.newBuilder()
+                .setTokenDestination(TokenDestination.newBuilder()
+                        .setAccountId(payerAccount.id())
+                        .build())
+                .build();
+        payee.redeemToken(endorsed, null, null, destination);
+        payee.redeemToken(endorsed2, null, null, destination);
 
         waitUntil(new Runnable() {
             public void run() {

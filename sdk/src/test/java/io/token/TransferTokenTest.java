@@ -12,7 +12,10 @@ import io.token.proto.PagedList;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 
+import java.util.ArrayList;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -31,7 +34,8 @@ public class TransferTokenTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                "book purchase");
+                "book purchase",
+                new ArrayList<Destination>());
 
         assertThat(token)
                 .hasFrom(payer)

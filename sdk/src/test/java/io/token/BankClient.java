@@ -14,16 +14,15 @@ import io.token.proto.bankapi.Fank;
 import io.token.proto.bankapi.Fank.AddAccountResponse;
 import io.token.proto.bankapi.Fank.AddClientResponse;
 import io.token.proto.bankapi.Fank.AuthorizeLinkAccountsRequest;
-import io.token.proto.banklink.Banklink;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
-
-import java.io.IOException;
-import java.util.List;
-
 import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
+
+import java.io.IOException;
+import java.util.List;
 
 public final class BankClient {
     BankClientApi bankClientApi;
@@ -72,15 +71,15 @@ public final class BankClient {
             String username,
             String clientId,
             List<String> accountNumbers) {
-        Banklink.AccountLinkingPayloads response = wrap(
+        BankAuthorization response = wrap(
                 bankClientApi.authorizeLinkAccounts(
                         protoToJson(AuthorizeLinkAccountsRequest.newBuilder()
                                 .setUsername(username)
                                 .setClientId(clientId)
                                 .addAllAccounts(accountNumbers)),
                         clientId),
-                Banklink.AccountLinkingPayloads.newBuilder());
-        return response.getPayloadsList();
+                BankAuthorization.newBuilder());
+        return response.getAccountsList();
     }
 
     private String protoToJson(Message.Builder proto) {

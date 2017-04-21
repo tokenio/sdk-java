@@ -2,7 +2,7 @@ apply plugin: 'com.github.hierynomus.license'
 
 ext {
     ver = [
-        tokenProto: '1.0.255',
+        tokenProto: '1.0.263-SNAPSHOT',
         tokenRpc: '1.0.66',
         tokenSecurity: '1.0.31',
         tokenUtil: '1.0.13',

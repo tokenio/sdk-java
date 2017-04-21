@@ -26,7 +26,7 @@ import static io.token.proto.common.address.AddressProtos.Address;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.token.proto.PagedList;
-import io.token.proto.banklink.Banklink.AccountLinkingPayloads;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
@@ -43,6 +43,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.security.keystore.SecretKeyPair;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -434,7 +435,13 @@ public final class Member {
      * @return transfer token returned by the server
      */
     public Token createToken(double amount, String currency, String accountId) {
-        return createToken(amount, currency, accountId, null, null);
+        return createToken(
+                amount,
+                currency,
+                accountId,
+                null,
+                null,
+                Collections.<Destination>emptyList());
     }
 
     /**
@@ -452,8 +459,9 @@ public final class Member {
             String currency,
             String accountId,
             @Nullable String redeemer,
-            @Nullable String description) {
-        return async.createToken(amount, currency, accountId, redeemer, description)
+            @Nullable String description,
+            List<Destination> destinations) {
+        return async.createToken(amount, currency, accountId, redeemer, description, destinations)
                 .toBlocking()
                 .single();
     }
@@ -563,6 +571,17 @@ public final class Member {
      */
     public Transfer redeemToken(Token token) {
         return async.redeemToken(token).toBlocking().single();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemToken(Token token, Destination destination) {
+        return async.redeemToken(token, destination).toBlocking().single();
     }
 
     /**
@@ -687,9 +706,9 @@ public final class Member {
      *
      * @param balance account balance to set
      * @param currency currency code, i.e. "EUR"
-     * @return account linking payloads
+     * @return bank authorization
      */
-    public AccountLinkingPayloads createTestBankAccount(double balance, String currency) {
+    public BankAuthorization createTestBankAccount(double balance, String currency) {
         return async.createTestBankAccount(balance, currency).toBlocking().single();
     }
 

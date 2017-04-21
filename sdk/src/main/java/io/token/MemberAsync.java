@@ -26,7 +26,7 @@ import static io.token.util.Util.generateNonce;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.token.proto.PagedList;
-import io.token.proto.banklink.Banklink.AccountLinkingPayloads;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -51,18 +51,19 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.TokenSource;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
+import sun.security.krb5.internal.crypto.Des;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
-
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -516,7 +517,13 @@ public final class MemberAsync {
      * @return transfer token returned by the server
      */
     public Observable<Token> createToken(double amount, String currency, String accountId) {
-        return createToken(amount, currency, accountId, null, null);
+        return createToken(
+                amount,
+                currency,
+                accountId,
+                null,
+                null,
+                Collections.<Destination>emptyList());
     }
 
     /**
@@ -534,7 +541,8 @@ public final class MemberAsync {
             String currency,
             String accountId,
             @Nullable String redeemer,
-            @Nullable String description) {
+            @Nullable String description,
+            List<Destination> destinations) {
         TokenPayload.Builder payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setNonce(generateNonce())
@@ -545,7 +553,10 @@ public final class MemberAsync {
                         .setLifetimeAmount(Double.toString(amount))
                         .setInstructions(TransferInstructions.newBuilder()
                                 .setSource(TransferInstructionsProtos.Source.newBuilder()
-                                        .setAccountId(accountId))));
+                                        .setTokenSource(TokenSource.newBuilder()
+                                        .setAccountId(accountId)
+                                        .setMemberId(member.getId())))
+                        .addAllDestinations(destinations)));
 
         if (redeemer != null) {
             payload
@@ -681,6 +692,17 @@ public final class MemberAsync {
      * Redeems a transfer token.
      *
      * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(Token token, Destination destination) {
+        return redeemToken(token, null, null, null, destination);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
      * @param amount transfer amount
      * @param currency transfer currency code, e.g. "EUR"
      * @param description transfer description
@@ -779,9 +801,9 @@ public final class MemberAsync {
      *
      * @param balance account balance to set
      * @param currency currency code, i.e. "EUR"
-     * @return account linking payloads
+     * @return bank authorization
      */
-    public Observable<AccountLinkingPayloads> createTestBankAccount(
+    public Observable<BankAuthorization> createTestBankAccount(
             double balance,
             String currency) {
         return client.createTestBankAccount(Money.newBuilder()

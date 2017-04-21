@@ -3,6 +3,10 @@ package io.token.sample;
 import io.token.Member;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
+
+import java.util.ArrayList;
 
 /**
  * Creates a transfer token and endorses it to a payee.
@@ -22,7 +26,8 @@ public final class CreateAndEndorseTransferTokenSample {
                 "EUR",                              /* currency */
                 payer.getAccounts().get(0).id(),    /* payer account to transfer money from */
                 payeeUsername,                      /* payee token username to transfer money to */
-                "Book purchase"                     /* optional transfer description */
+                "Book purchase",                    /* optional transfer description */
+                new ArrayList<Destination>()        /* optional destinations for the transfers */
         );
 
         // Payer endorses a token to a payee by signing it with her secure private key.

@@ -1,7 +1,6 @@
 package io.token;
 
 import static java.lang.Double.parseDouble;
-import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableSet;
@@ -9,16 +8,15 @@ import io.token.asserts.TransactionAssertion;
 import io.token.proto.PagedList;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.transaction.TransactionProtos;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.DestinationBic;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.SwiftDestination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.LinkedList;
 import java.util.List;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,14 +51,13 @@ public class TransactionsTest {
 
     @Test
     public void getTransactions() {
-        Token token = token();
+        Destination destination = Destination.newBuilder()
+                .setSwiftDestination(SwiftDestination.getDefaultInstance())
+                .build();
+        Token token = token(destination);
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
-        Destination destination = Destination.newBuilder()
-                .setSwift(DestinationBic.getDefaultInstance())
-                .build();
-
-        final Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", null, null);
+        final Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", "one");
         final Transfer transfer2 = payee.redeemToken(token, 200.0, "USD", null, null);
         final Transfer transfer3 = payee.redeemToken(token, 300.0, "USD", "three");
         final Transfer transfer4 = payee.redeemToken(token, 400.0, "USD", destination);
@@ -143,11 +140,21 @@ public class TransactionsTest {
     }
 
     private Token token() {
+        return token(Destination.newBuilder()
+                        .setTokenDestination(TokenDestination.newBuilder()
+                                .setAccountId(payeeAccount.id())
+                                .setMemberId(payee.memberId())
+                                .build())
+                        .build());
+    }
+
+    private Token token(Destination destination) {
         return payer.createToken(
                 1500.0,
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                "Multi charge token");
+                "Multi charge token",
+                Collections.singletonList(destination));
     }
 }
