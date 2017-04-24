@@ -7,8 +7,6 @@
 
 package io.token.asserts;
 
-import static java.util.stream.Collectors.toList;
-
 import io.token.Member;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -18,7 +16,6 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 

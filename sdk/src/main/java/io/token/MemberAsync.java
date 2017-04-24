@@ -57,7 +57,6 @@ import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
-import sun.security.krb5.internal.crypto.Des;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -534,6 +533,7 @@ public final class MemberAsync {
      * @param accountId account id
      * @param redeemer redeemer username
      * @param description transfer description, optional
+     * @param destinations transfer destinations
      * @return transfer token returned by the server
      */
     public Observable<Token> createToken(
@@ -554,9 +554,9 @@ public final class MemberAsync {
                         .setInstructions(TransferInstructions.newBuilder()
                                 .setSource(TransferInstructionsProtos.Source.newBuilder()
                                         .setTokenSource(TokenSource.newBuilder()
-                                        .setAccountId(accountId)
-                                        .setMemberId(member.getId())))
-                        .addAllDestinations(destinations)));
+                                                .setAccountId(accountId)
+                                                .setMemberId(member.getId())))
+                                .addAllDestinations(destinations)));
 
         if (redeemer != null) {
             payload

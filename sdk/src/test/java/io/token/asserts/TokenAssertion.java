@@ -20,7 +20,6 @@ import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.Nullable;
-
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 

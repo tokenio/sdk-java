@@ -141,11 +141,11 @@ public class TransactionsTest {
 
     private Token token() {
         return token(Destination.newBuilder()
-                        .setTokenDestination(TokenDestination.newBuilder()
-                                .setAccountId(payeeAccount.id())
-                                .setMemberId(payee.memberId())
-                                .build())
-                        .build());
+                .setTokenDestination(TokenDestination.newBuilder()
+                        .setAccountId(payeeAccount.id())
+                        .setMemberId(payee.memberId())
+                        .build())
+                .build());
     }
 
     private Token token(Destination destination) {

@@ -17,12 +17,13 @@ import io.token.proto.bankapi.Fank.AuthorizeLinkAccountsRequest;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
-import retrofit2.Call;
-import retrofit2.Retrofit;
-import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 import java.io.IOException;
 import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Retrofit;
+import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public final class BankClient {
     BankClientApi bankClientApi;

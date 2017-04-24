@@ -452,6 +452,7 @@ public final class Member {
      * @param accountId the funding account id
      * @param redeemer redeemer username
      * @param description transfer description, optional
+     * @param destinations transfer destinations
      * @return transfer token returned by the server
      */
     public Token createToken(

@@ -17,7 +17,6 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 import io.token.security.sealed.NoopSealedMessageEncrypter;

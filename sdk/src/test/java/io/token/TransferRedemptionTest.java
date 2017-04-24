@@ -1,7 +1,6 @@
 package io.token;
 
 import static io.token.asserts.TransferAssertion.assertThat;
-import static java.util.Collections.EMPTY_LIST;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -14,11 +13,9 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;

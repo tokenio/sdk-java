@@ -8,11 +8,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.commons.lang3.RandomStringUtils;
 
 public abstract class Sample {
-    private Sample() {}
+    private Sample() {
+    }
 
     /**
      * Returns a random alphanumeric string of a given length.

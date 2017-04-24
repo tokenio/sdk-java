@@ -18,7 +18,6 @@ import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.util.Util;
 
 import java.util.List;
-
 import org.junit.rules.ExternalResource;
 
 /**

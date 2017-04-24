@@ -49,7 +49,6 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.Signer;
 
 import java.util.List;
-
 import rx.Observable;
 import rx.functions.Func1;
 

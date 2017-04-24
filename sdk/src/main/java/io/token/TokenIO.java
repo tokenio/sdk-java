@@ -37,7 +37,6 @@ import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
 import java.util.List;
-
 import rx.functions.Func1;
 
 /**
@@ -46,7 +45,7 @@ import rx.functions.Func1;
  *
  * <p>The class provides synchronous API with {@link TokenIOAsync} providing an
  * asynchronous version. {@link TokenIOAsync} instance can be obtained by
- * calling {@link #async} method.
+ * calling {@link #async} method.</p>
  */
 public final class TokenIO implements Closeable {
     private final TokenIOAsync async;

@@ -11,7 +11,6 @@ import io.token.proto.common.transaction.TransactionProtos;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import java.math.BigDecimal;
-
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 

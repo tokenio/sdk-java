@@ -47,7 +47,6 @@ import io.token.security.Signer;
 import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -57,7 +56,7 @@ import rx.functions.Func1;
  *
  * <p>The class provides async API with {@link TokenIO} providing a synchronous
  * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
- * method.
+ * method.</p>
  */
 public final class TokenIOAsync implements Closeable {
     private static final long SHUTDOWN_DURATION_MS = 10000L;
