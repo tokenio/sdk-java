@@ -193,17 +193,17 @@ public final class TokenIOAsync implements Closeable {
      * @param username username to notify
      * @param bankId bank ID to link
      * @param bankName bank name to link
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param accounts a list of accounts to be linked
      * @return status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccounts(
             String username,
             String bankId,
             String bankName,
-            List<SealedMessage> accountLinkPayloads) {
+            List<SealedMessage> accounts) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .notifyLinkAccounts(username, bankId, bankName, accountLinkPayloads);
+                .notifyLinkAccounts(username, bankId, bankName, accounts);
     }
 
     /**
@@ -228,7 +228,7 @@ public final class TokenIOAsync implements Closeable {
      * @param username username to notify
      * @param bankId bank ID to link
      * @param bankName bank name to link
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param accounts a list of accounts to be linked
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
      * @return status of the notification
@@ -237,7 +237,7 @@ public final class TokenIOAsync implements Closeable {
             String username,
             String bankId,
             String bankName,
-            List<SealedMessage> accountLinkPayloads,
+            List<SealedMessage> accounts,
             String name,
             Key key) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
@@ -245,7 +245,7 @@ public final class TokenIOAsync implements Closeable {
                 username,
                 bankId,
                 bankName,
-                accountLinkPayloads,
+                accounts,
                 name,
                 key);
     }

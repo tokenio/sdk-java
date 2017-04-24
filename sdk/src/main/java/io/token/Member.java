@@ -297,11 +297,11 @@ public final class Member {
      * Links a funding bank account to Token and returns it to the caller.
      *
      * @param bankId bank id
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param accounts list of accounts to be linked
      * @return list of linked accounts
      */
-    public List<Account> linkAccounts(String bankId, List<SealedMessage> accountLinkPayloads) {
-        return async.linkAccounts(bankId, accountLinkPayloads)
+    public List<Account> linkAccounts(String bankId, List<SealedMessage> accounts) {
+        return async.linkAccounts(bankId, accounts)
                 .map(new Func1<List<AccountAsync>, List<Account>>() {
                     public List<Account> call(List<AccountAsync> asyncList) {
                         List<Account> accounts = new LinkedList<>();
@@ -463,6 +463,53 @@ public final class Member {
             @Nullable String description,
             List<Destination> destinations) {
         return async.createToken(amount, currency, accountId, redeemer, description, destinations)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @return transfer token returned by the server
+     */
+    public Token createToken(double amount, String currency, BankAuthorization authorization) {
+        return createToken(
+                amount,
+                currency,
+                authorization,
+                null,
+                null,
+                Collections.<Destination>emptyList());
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destinations transfer destinations
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization,
+            @Nullable String redeemer,
+            @Nullable String description,
+            List<Destination> destinations) {
+        return async.createToken(
+                amount,
+                currency,
+                authorization,
+                redeemer,
+                description,
+                destinations)
                 .toBlocking()
                 .single();
     }

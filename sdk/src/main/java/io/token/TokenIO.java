@@ -166,15 +166,15 @@ public final class TokenIO implements Closeable {
      * @param username username to notify
      * @param bankId bank ID to link
      * @param bankName bank name to link
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param accounts a list of accounts to be linked
      * @return status of the notification request
      */
     public NotifyStatus notifyLinkAccounts(
             String username,
             String bankId,
             String bankName,
-            List<SealedMessage> accountLinkPayloads) {
-        return async.notifyLinkAccounts(username, bankId, bankName, accountLinkPayloads)
+            List<SealedMessage> accounts) {
+        return async.notifyLinkAccounts(username, bankId, bankName, accounts)
                 .toBlocking()
                 .single();
     }
@@ -203,7 +203,7 @@ public final class TokenIO implements Closeable {
      * @param username username to notify
      * @param bankId bank ID to link
      * @param bankName bank name to link
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param accounts a list of accounts to be linked
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
      * @return status of the notification request
@@ -212,14 +212,14 @@ public final class TokenIO implements Closeable {
             String username,
             String bankId,
             String bankName,
-            List<SealedMessage> accountLinkPayloads,
+            List<SealedMessage> accounts,
             String name,
             Key key) {
         return async.notifyLinkAccountsAndAddKey(
                 username,
                 bankId,
                 bankName,
-                accountLinkPayloads,
+                accounts,
                 name,
                 key).toBlocking().single();
     }

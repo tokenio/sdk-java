@@ -51,6 +51,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.BankAuthorizationSource;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.TokenSource;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -376,14 +377,14 @@ public final class MemberAsync {
      * Links a funding bank accounts to Token and returns it to the caller.
      *
      * @param bankId bank id
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param accounts a list of accounts to be linked
      * @return list of linked accounts
      */
     public Observable<List<AccountAsync>> linkAccounts(
             String bankId,
-            List<SealedMessage> accountLinkPayloads) {
+            List<SealedMessage> accounts) {
         return client
-                .linkAccounts(bankId, accountLinkPayloads)
+                .linkAccounts(bankId, accounts)
                 .map(new Func1<List<AccountProtos.Account>, List<AccountAsync>>() {
                     @Override
                     public List<AccountAsync> call(List<AccountProtos.Account> accounts) {
@@ -556,6 +557,52 @@ public final class MemberAsync {
                                         .setTokenSource(TokenSource.newBuilder()
                                                 .setAccountId(accountId)
                                                 .setMemberId(member.getId())))
+                                .addAllDestinations(destinations)));
+
+        if (redeemer != null) {
+            payload
+                    .getTransferBuilder()
+                    .setRedeemer(TokenMember.newBuilder().setUsername(redeemer));
+        }
+        if (description != null) {
+            payload.setDescription(description);
+        }
+        return createToken(payload.build());
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destinations transfer destinations
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization,
+            @Nullable String redeemer,
+            @Nullable String description,
+            List<Destination> destinations) {
+        TokenPayload.Builder payload = TokenPayload.newBuilder()
+                .setVersion("1.0")
+                .setNonce(generateNonce())
+                .setFrom(TokenMember.newBuilder()
+                        .setId(member.getId()))
+                .setTransfer(TransferBody.newBuilder()
+                        .setCurrency(currency)
+                        .setLifetimeAmount(Double.toString(amount))
+                        .setInstructions(TransferInstructions.newBuilder()
+                                .setSource(TransferInstructionsProtos.Source.newBuilder()
+                                        .setBankAuthorizationSource(
+                                                BankAuthorizationSource.newBuilder()
+                                                        .setBankAuthorization(authorization)
+                                                        .build())
+                                        .build())
                                 .addAllDestinations(destinations)));
 
         if (redeemer != null) {

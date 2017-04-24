@@ -158,14 +158,14 @@ public final class UnauthenticatedClient {
      * @param username username of the member
      * @param bankId id of the bank owning the accounts
      * @param bankName name of the bank owning the accounts
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param accounts a list of account payloads to be linked
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccounts(
             String username,
             String bankId,
             String bankName,
-            List<SealedMessage> accountLinkPayloads) {
+            List<SealedMessage> accounts) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
@@ -173,7 +173,7 @@ public final class UnauthenticatedClient {
                                 .setLinkAccounts(LinkAccounts.newBuilder()
                                         .setBankId(bankId)
                                         .setBankName(bankName)
-                                        .addAllAccountLinkPayloads(accountLinkPayloads)
+                                        .addAllAccountLinkPayloads(accounts)
                                         .build())
                                 .build())
                         .build()))
@@ -220,7 +220,7 @@ public final class UnauthenticatedClient {
      * @param username username of the member
      * @param bankId id of the bank owning the accounts
      * @param bankName name of the bank owning the accounts
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param accounts a list of account payloads to be linked
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
      * @return status status of the notification
@@ -229,7 +229,7 @@ public final class UnauthenticatedClient {
             String username,
             String bankId,
             String bankName,
-            List<SealedMessage> accountLinkPayloads,
+            List<SealedMessage> accounts,
             String name,
             Key key) {
         return toObservable(gateway.notify(
@@ -240,7 +240,7 @@ public final class UnauthenticatedClient {
                                         .setLinkAccounts(LinkAccounts.newBuilder()
                                                 .setBankId(bankId)
                                                 .setBankName(bankName)
-                                                .addAllAccountLinkPayloads(accountLinkPayloads)
+                                                .addAllAccountLinkPayloads(accounts)
                                                 .build())
                                         .setAddKey(AddKey.newBuilder()
                                                 .setName(name)

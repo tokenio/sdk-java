@@ -44,7 +44,7 @@ public class NotificationsTest {
     private final Member payer = payerAccount.member();
     private final Member payee = rule.member();
 
-    private List<SealedMessage> accountLinkPayloads;
+    private List<SealedMessage> accounts;
 
     @Before
     public void setup() {
@@ -60,7 +60,7 @@ public class NotificationsTest {
 
         NoopSealedMessageEncrypter encrypter = new NoopSealedMessageEncrypter();
 
-        accountLinkPayloads = Arrays.asList(
+        accounts = Arrays.asList(
                 encrypter.encrypt(checking),
                 encrypter.encrypt(saving));
     }
@@ -74,7 +74,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 "BofA",
                 "Bank of America",
-                accountLinkPayloads);
+                accounts);
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = payer.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
@@ -104,7 +104,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 "BofA",
                 "Bank of America",
-                accountLinkPayloads);
+                accounts);
         assertThat(subscriberList.size()).isEqualTo(1);
         waitUntil(new Runnable() {
             @Override
@@ -125,7 +125,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 "BofA",
                 "Bank of America",
-                accountLinkPayloads);
+                accounts);
         assertThat(subscriberList.size()).isEqualTo(1);
         waitUntil(new Runnable() {
             @Override
@@ -283,7 +283,7 @@ public class NotificationsTest {
                     username,
                     "BofA",
                     "Bank of America",
-                    accountLinkPayloads);
+                    accounts);
             NotifyStatus res2 = newSdk.notifyAddKey(
                     username,
                     "Chrome 52.0",
@@ -292,7 +292,7 @@ public class NotificationsTest {
                     username,
                     "BofA",
                     "Bank of America",
-                    accountLinkPayloads,
+                    accounts,
                     "Chrome 52.0",
                     deviceInfo.getKeys().get(0));
 
@@ -324,7 +324,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 "BofA",
                 "Bank of America",
-                accountLinkPayloads);
+                accounts);
 
         waitUntil(new Runnable() {
             public void run() {
@@ -349,7 +349,7 @@ public class NotificationsTest {
                             payer.firstUsername(),
                             "BofA",
                             "Bank of America",
-                            accountLinkPayloads,
+                            accounts,
                             "Chrome",
                             deviceInfo.getKeys().get(0));
 
@@ -387,7 +387,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 "BofA",
                 "Bank of America",
-                accountLinkPayloads);
+                accounts);
 
         waitUntil(new Runnable() {
             public void run() {
@@ -409,22 +409,22 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 "BofA",
                 "Bank of America",
-                accountLinkPayloads);
+                accounts);
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
                 "BofA",
                 "Bank of America",
-                accountLinkPayloads);
+                accounts);
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
                 "BofA",
                 "Bank of America",
-                accountLinkPayloads);
+                accounts);
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
                 "BofA",
                 "Bank of America",
-                accountLinkPayloads);
+                accounts);
 
         waitUntil(new Runnable() {
             public void run() {
