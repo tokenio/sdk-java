@@ -26,8 +26,7 @@ public final class CreateAndEndorseTransferTokenSample {
                 "EUR",                              /* currency */
                 payer.getAccounts().get(0).id(),    /* payer account to transfer money from */
                 payeeUsername,                      /* payee token username to transfer money to */
-                "Book purchase",                    /* optional transfer description */
-                new ArrayList<Destination>()        /* optional destinations for the transfers */
+                "Book purchase"                     /* optional transfer description */
         );
 
         // Payer endorses a token to a payee by signing it with her secure private key.

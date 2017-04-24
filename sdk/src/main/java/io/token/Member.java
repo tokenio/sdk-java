@@ -43,6 +43,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.security.keystore.SecretKeyPair;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -442,6 +443,33 @@ public final class Member {
                 null,
                 null,
                 Collections.<Destination>emptyList());
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param accountId the funding account id
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            String accountId,
+            @Nullable String redeemer,
+            @Nullable String description) {
+        return async.createToken(
+                amount,
+                currency,
+                accountId,
+                redeemer,
+                description,
+                new ArrayList<Destination>())
+                .toBlocking()
+                .single();
     }
 
     /**
