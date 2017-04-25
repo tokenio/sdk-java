@@ -156,8 +156,7 @@ public class NotificationsTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null,
-                null);
+                "");
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus())
@@ -185,15 +184,13 @@ public class NotificationsTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null,
-                null);
+                "");
         Token token2 = payer.createToken(
                 57,
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null,
-                null);
+                "");
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         TokenOperationResult res2 = payer.endorseToken(token2, Key.Level.LOW);
@@ -241,15 +238,13 @@ public class NotificationsTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null,
-                null);
+                "");
         Token t2 = payer.createToken(
                 20,
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                null,
-                null);
+                "");
         Token endorsed = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         Token endorsed2 = payer.endorseToken(t2, Level.STANDARD).getToken();
         Destination destination = Destination.newBuilder()

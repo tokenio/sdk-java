@@ -24,7 +24,7 @@ public final class LinkMemberAndBankSample {
      * @param member Token member to link to a bank
      * @return linked token accounts
      */
-    public static  List<Account> linkBankAccounts(Member member) {
+    public static List<Account> linkBankAccounts(Member member) {
         // User opens a bank web site and completes the Token linking process. The following is a
         // high level description of how that happens in the Token PSD2 IOS mobile app:
         // 1. App displays a list of banks supported by Token

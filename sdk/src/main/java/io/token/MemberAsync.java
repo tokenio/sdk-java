@@ -514,13 +514,72 @@ public final class MemberAsync {
      * @return transfer token returned by the server
      */
     public Observable<Token> createToken(double amount, String currency, String accountId) {
+        return createToken(TokenPayload.newBuilder()
+                .setVersion("1.0")
+                .setNonce(generateNonce())
+                .setFrom(TokenMember.newBuilder()
+                        .setId(member.getId()))
+                .setTransfer(TransferBody.newBuilder()
+                        .setCurrency(currency)
+                        .setLifetimeAmount(Double.toString(amount))
+                        .setInstructions(TransferInstructions.newBuilder()
+                                .setSource(TransferInstructionsProtos.Source.newBuilder()
+                                        .setTokenSource(TokenSource.newBuilder()
+                                                .setAccountId(accountId)
+                                                .setMemberId(member.getId())))))
+                .build());
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param accountId account id
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createToken(
+            double amount,
+            String currency,
+            String accountId,
+            String redeemer,
+            String description) {
         return createToken(
                 amount,
                 currency,
                 accountId,
-                null,
-                null,
+                redeemer,
+                description,
                 Collections.<Destination>emptyList());
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param accountId account id
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destination transfer destination
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createToken(
+            double amount,
+            String currency,
+            String accountId,
+            String redeemer,
+            String description,
+            Destination destination) {
+        return createToken(
+                amount,
+                currency,
+                accountId,
+                redeemer,
+                description,
+                Collections.singletonList(destination));
     }
 
     /**
@@ -538,10 +597,41 @@ public final class MemberAsync {
             double amount,
             String currency,
             String accountId,
-            @Nullable String redeemer,
-            @Nullable String description,
-            @Nullable List<Destination> destinations) {
-        TokenPayload.Builder payload = TokenPayload.newBuilder()
+            String redeemer,
+            String description,
+            List<Destination> destinations) {
+        return createToken(TokenPayload.newBuilder()
+                .setVersion("1.0")
+                .setNonce(generateNonce())
+                .setFrom(TokenMember.newBuilder()
+                        .setId(member.getId()))
+                .setDescription(description)
+                .setTransfer(TransferBody.newBuilder()
+                        .setRedeemer(TokenMember.newBuilder().setUsername(redeemer))
+                        .setCurrency(currency)
+                        .setLifetimeAmount(Double.toString(amount))
+                        .setInstructions(TransferInstructions.newBuilder()
+                                .setSource(TransferInstructionsProtos.Source.newBuilder()
+                                        .setTokenSource(TokenSource.newBuilder()
+                                                .setAccountId(accountId)
+                                                .setMemberId(member.getId())))
+                                        .addAllDestinations(destinations)))
+                .build());
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization) {
+        return createToken(TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setNonce(generateNonce())
                 .setFrom(TokenMember.newBuilder()
@@ -551,25 +641,63 @@ public final class MemberAsync {
                         .setLifetimeAmount(Double.toString(amount))
                         .setInstructions(TransferInstructions.newBuilder()
                                 .setSource(TransferInstructionsProtos.Source.newBuilder()
-                                        .setTokenSource(TokenSource.newBuilder()
-                                                .setAccountId(accountId)
-                                                .setMemberId(member.getId())))));
+                                        .setBankAuthorizationSource(BankAuthorizationSource
+                                                .newBuilder()
+                                                .setBankAuthorization(authorization)
+                                                .build()))))
+                .build());
+    }
 
-        if (redeemer != null) {
-            payload
-                    .getTransferBuilder()
-                    .setRedeemer(TokenMember.newBuilder().setUsername(redeemer));
-        }
-        if (description != null) {
-            payload.setDescription(description);
-        }
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization,
+            String redeemer,
+            String description) {
+        return createToken(
+                amount,
+                currency,
+                authorization,
+                redeemer,
+                description,
+                Collections.<Destination>emptyList());
+    }
 
-        if (destinations != null) {
-            payload.getTransferBuilder()
-                    .getInstructionsBuilder()
-                    .addAllDestinations(destinations);
-        }
-        return createToken(payload.build());
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destination transfer destination
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization,
+            String redeemer,
+            String description,
+            Destination destination) {
+        return createToken(
+                amount,
+                currency,
+                authorization,
+                redeemer,
+                description,
+                Collections.singletonList(destination));
     }
 
     /**
@@ -587,15 +715,17 @@ public final class MemberAsync {
             double amount,
             String currency,
             BankAuthorization authorization,
-            @Nullable String redeemer,
-            @Nullable String description,
-            @Nullable List<Destination> destinations) {
-        TokenPayload.Builder payload = TokenPayload.newBuilder()
+            String redeemer,
+            String description,
+            List<Destination> destinations) {
+        return createToken(TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setNonce(generateNonce())
                 .setFrom(TokenMember.newBuilder()
                         .setId(member.getId()))
+                .setDescription(description)
                 .setTransfer(TransferBody.newBuilder()
+                        .setRedeemer(TokenMember.newBuilder().setUsername(redeemer))
                         .setCurrency(currency)
                         .setLifetimeAmount(Double.toString(amount))
                         .setInstructions(TransferInstructions.newBuilder()
@@ -604,22 +734,9 @@ public final class MemberAsync {
                                                 BankAuthorizationSource.newBuilder()
                                                         .setBankAuthorization(authorization)
                                                         .build())
-                                        .build())));
-
-        if (redeemer != null) {
-            payload
-                    .getTransferBuilder()
-                    .setRedeemer(TokenMember.newBuilder().setUsername(redeemer));
-        }
-        if (description != null) {
-            payload.setDescription(description);
-        }
-        if (destinations != null) {
-            payload.getTransferBuilder()
-                    .getInstructionsBuilder()
-                    .addAllDestinations(destinations);
-        }
-        return createToken(payload.build());
+                                        .build())
+                                .addAllDestinations(destinations)))
+                .build());
     }
 
     /**

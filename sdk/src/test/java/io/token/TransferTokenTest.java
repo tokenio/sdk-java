@@ -33,8 +33,7 @@ public class TransferTokenTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                "book purchase",
-                new ArrayList<Destination>());
+                "book purchase");
 
         assertThat(token)
                 .hasFrom(payer)

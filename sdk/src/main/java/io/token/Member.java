@@ -435,13 +435,12 @@ public final class Member {
      * @return transfer token returned by the server
      */
     public Token createToken(double amount, String currency, String accountId) {
-        return createToken(
+        return async.createToken(
                 amount,
                 currency,
-                accountId,
-                null,
-                null,
-                null);
+                accountId)
+                .toBlocking()
+                .single();
     }
 
     /**
@@ -458,15 +457,43 @@ public final class Member {
             double amount,
             String currency,
             String accountId,
-            @Nullable String redeemer,
-            @Nullable String description) {
+            String redeemer,
+            String description) {
+        return async.createToken(
+                amount,
+                currency,
+                accountId,
+                redeemer,
+                description)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param accountId the funding account id
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destination transfer destination
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            String accountId,
+            String redeemer,
+            String description,
+            Destination destination) {
         return async.createToken(
                 amount,
                 currency,
                 accountId,
                 redeemer,
                 description,
-                null)
+                Collections.singletonList(destination))
                 .toBlocking()
                 .single();
     }
@@ -486,9 +513,9 @@ public final class Member {
             double amount,
             String currency,
             String accountId,
-            @Nullable String redeemer,
-            @Nullable String description,
-            @Nullable  List<Destination> destinations) {
+            String redeemer,
+            String description,
+            List<Destination> destinations) {
         return async.createToken(amount, currency, accountId, redeemer, description, destinations)
                 .toBlocking()
                 .single();
@@ -503,13 +530,67 @@ public final class Member {
      * @return transfer token returned by the server
      */
     public Token createToken(double amount, String currency, BankAuthorization authorization) {
-        return createToken(
+        return async.createToken(
+                amount,
+                currency,
+                authorization)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization,
+            String redeemer,
+            String description) {
+        return async.createToken(
                 amount,
                 currency,
                 authorization,
-                null,
-                null,
-                null);
+                redeemer,
+                description)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destination transfer destination
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization,
+            String redeemer,
+            String description,
+            Destination destination) {
+        return async.createToken(
+                amount,
+                currency,
+                authorization,
+                redeemer,
+                description,
+                destination)
+                .toBlocking()
+                .single();
     }
 
     /**
@@ -527,9 +608,9 @@ public final class Member {
             double amount,
             String currency,
             BankAuthorization authorization,
-            @Nullable String redeemer,
-            @Nullable String description,
-            @Nullable List<Destination> destinations) {
+            String redeemer,
+            String description,
+            List<Destination> destinations) {
         return async.createToken(
                 amount,
                 currency,

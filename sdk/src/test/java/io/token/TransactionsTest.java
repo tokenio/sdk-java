@@ -155,6 +155,6 @@ public class TransactionsTest {
                 payerAccount.id(),
                 payee.firstUsername(),
                 "Multi charge token",
-                Collections.singletonList(destination));
+                destination);
     }
 }

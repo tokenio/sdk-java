@@ -459,8 +459,7 @@ public class AccessTokenTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                string(),
-                new ArrayList<Destination>());
+                string());
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         Transfer transfer = payee.redeemToken(token, 1.0, "USD", "one",
                 Destination.newBuilder()

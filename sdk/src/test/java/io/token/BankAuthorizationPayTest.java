@@ -60,11 +60,11 @@ public class BankAuthorizationPayTest {
                 authorization,
                 payer.firstUsername(),
                 "book purchase",
-                Collections.singletonList(Destination.newBuilder()
+                Destination.newBuilder()
                         .setTokenDestination(TokenDestination.newBuilder()
                                 .setAccountId(payeeAccount.id())
                                 .setMemberId(payee.memberId())
                                 .build())
-                        .build()));
+                        .build());
     }
 }
