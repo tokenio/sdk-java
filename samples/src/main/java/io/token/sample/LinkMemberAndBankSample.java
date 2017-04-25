@@ -1,5 +1,6 @@
 package io.token.sample;
 
+import io.token.Account;
 import io.token.Member;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 
@@ -20,7 +21,7 @@ public final class LinkMemberAndBankSample {
      *
      * @param member Token member to link to a bank
      */
-    public static void linkBankAccounts(Member member) {
+    public static  List<Account> linkBankAccounts(Member member) {
         // User opens a bank web site and completes the Token linking process. The following is a
         // high level description of how that happens in the Token PSD2 IOS mobile app:
         // 1. App displays a list of banks supported by Token
@@ -35,6 +36,6 @@ public final class LinkMemberAndBankSample {
                 member.createTestBankAccount(1000.0, "EUR").getAccountsList();
 
         // Finish account linking flow initiated by the user.
-        member.linkAccounts("iron" /* bank code */, encryptedBankAuthorization);
+        return member.linkAccounts("iron" /* bank code */, encryptedBankAuthorization);
     }
 }
