@@ -75,15 +75,11 @@ public class TokenRule extends ExternalResource {
         String bankAccountNumber = "iban:" + randomInt(7);
         Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
         bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
-        List<SealedMessage> accounts = bankClient.startAccountsLinking(
+        BankAuthorization authorization = bankClient.startAccountsLinking(
                 member.firstUsername(),
                 client.getId(),
                 singletonList(bankAccountNumber));
 
-        BankAuthorization authorization = BankAuthorization.newBuilder()
-                .addAllAccounts(accounts)
-                .setBankId(DEFAULT_BANK_ID)
-                .build();
         return member
                 .linkAccounts(authorization)
                 .get(0);

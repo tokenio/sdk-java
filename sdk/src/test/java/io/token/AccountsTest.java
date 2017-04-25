@@ -98,15 +98,11 @@ public class AccountsTest {
                 1000000.0,
                 "USD");
 
-        List<SealedMessage> encAccounts = fank.startAccountsLinking(
+        BankAuthorization authorization = fank.startAccountsLinking(
                 member.firstUsername(),
                 client.getId(),
                 Arrays.asList(checking.getAccountNumber(), saving.getAccountNumber()));
 
-        BankAuthorization authorization = BankAuthorization.newBuilder()
-                .setBankId(DEFAULT_BANK_ID)
-                .addAllAccounts(encAccounts)
-                .build();
         List<Account> accounts = link(authorization);
 
         assertThat(accounts).hasSize(2);

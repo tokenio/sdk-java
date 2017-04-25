@@ -68,11 +68,11 @@ public final class BankClient {
         return response.getAccount();
     }
 
-    public List<SealedMessage> startAccountsLinking(
+    public BankAuthorization startAccountsLinking(
             String username,
             String clientId,
             List<String> accountNumbers) {
-        BankAuthorization response = wrap(
+        return wrap(
                 bankClientApi.authorizeLinkAccounts(
                         protoToJson(AuthorizeLinkAccountsRequest.newBuilder()
                                 .setUsername(username)
@@ -80,7 +80,6 @@ public final class BankClient {
                                 .addAllAccounts(accountNumbers)),
                         clientId),
                 BankAuthorization.newBuilder());
-        return response.getAccountsList();
     }
 
     private String protoToJson(Message.Builder proto) {
