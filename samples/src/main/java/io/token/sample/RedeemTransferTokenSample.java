@@ -13,6 +13,7 @@ public final class RedeemTransferTokenSample {
      * Redeems a transfer token to transfer money from payer bank account to payee bank account.
      *
      * @param payee payee Token member
+     * @param accountId account id of the payee
      * @param tokenId ID of the token to redeem
      * @return a transfer Transfer
      */

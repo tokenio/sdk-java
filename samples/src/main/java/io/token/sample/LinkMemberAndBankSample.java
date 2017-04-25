@@ -20,6 +20,7 @@ public final class LinkMemberAndBankSample {
      * mobile app to link Token members and banks.
      *
      * @param member Token member to link to a bank
+     * @return linked token accounts
      */
     public static  List<Account> linkBankAccounts(Member member) {
         // User opens a bank web site and completes the Token linking process. The following is a
