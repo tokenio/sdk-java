@@ -27,7 +27,10 @@ public class RedeemTransferTokenSampleTest {
 
             Token token = createTransferToken(payer, payee.firstUsername());
 
-            Transfer transfer = redeemTransferToken(payee, payeeAccounts.get(0).id(), token.getId());
+            Transfer transfer = redeemTransferToken(
+                    payee,
+                    payeeAccounts.get(0).id(),
+                    token.getId());
             assertThat(transfer).isNotNull();
         }
     }
