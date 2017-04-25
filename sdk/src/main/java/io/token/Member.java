@@ -467,7 +467,7 @@ public final class Member {
                 accountId,
                 redeemer,
                 description,
-                new ArrayList<Destination>())
+                Collections.<Destination>emptyList())
                 .toBlocking()
                 .single();
     }
