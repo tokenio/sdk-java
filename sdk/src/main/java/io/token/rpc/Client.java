@@ -40,7 +40,6 @@ import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -343,20 +342,15 @@ public final class Client {
     /**
      * Links a funding bank account to Token.
      *
-     * @param bankId bank id
-     * @param accounts a list of encrypted bank authorizations
+     * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
     public Observable<List<Account>> linkAccounts(
-            String bankId,
-            List<SealedMessage> accounts) {
+            BankAuthorization authorization) {
         return toObservable(gateway
                 .linkAccounts(LinkAccountsRequest
                         .newBuilder()
-                        .setBankAuthorization(BankAuthorization.newBuilder()
-                                .setBankId(bankId)
-                                .addAllAccounts(accounts)
-                                .build())
+                        .setBankAuthorization(authorization)
                         .build()))
                 .map(new Func1<LinkAccountsResponse, List<Account>>() {
                     public List<Account> call(LinkAccountsResponse response) {

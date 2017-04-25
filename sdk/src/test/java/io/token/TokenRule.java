@@ -14,6 +14,8 @@ import static org.assertj.core.util.Strings.isNullOrEmpty;
 
 import com.google.common.net.HostAndPort;
 import io.token.proto.bankapi.Fank;
+import io.token.proto.banklink.Banklink;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.sdk.BankAccount;
 import io.token.util.Util;
@@ -78,8 +80,12 @@ public class TokenRule extends ExternalResource {
                 client.getId(),
                 singletonList(bankAccountNumber));
 
+        BankAuthorization authorization = BankAuthorization.newBuilder()
+                .addAllAccounts(accounts)
+                .setBankId(DEFAULT_BANK_ID)
+                .build();
         return member
-                .linkAccounts(DEFAULT_BANK_ID, accounts)
+                .linkAccounts(authorization)
                 .get(0);
     }
 

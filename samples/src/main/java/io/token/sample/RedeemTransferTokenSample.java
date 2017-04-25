@@ -1,6 +1,6 @@
 package io.token.sample;
 
-import io.token.Destination;
+import io.token.Destinations;
 import io.token.Member;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -24,7 +24,7 @@ public final class RedeemTransferTokenSample {
         // Payee redeems a transfer token. Money is transferred to a payee bank account.
         Transfer transfer = payee.redeemToken(
                 transferToken,
-                Destination.token(accountId, payee.memberId()));
+                Destinations.token(accountId, payee.memberId()));
 
         return transfer;
     }

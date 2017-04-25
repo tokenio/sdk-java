@@ -39,7 +39,6 @@ import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
@@ -376,15 +375,13 @@ public final class MemberAsync {
     /**
      * Links a funding bank accounts to Token and returns it to the caller.
      *
-     * @param bankId bank id
-     * @param accounts a list of accounts to be linked
+     * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
     public Observable<List<AccountAsync>> linkAccounts(
-            String bankId,
-            List<SealedMessage> accounts) {
+            BankAuthorization authorization) {
         return client
-                .linkAccounts(bankId, accounts)
+                .linkAccounts(authorization)
                 .map(new Func1<List<AccountProtos.Account>, List<AccountAsync>>() {
                     @Override
                     public List<AccountAsync> call(List<AccountProtos.Account> accounts) {
@@ -398,7 +395,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Unlinks bank accounts previously linked via {@link #linkAccounts(String, List)} call.
+     * Unlinks bank accounts previously linked via {@link #linkAccounts(BankAuthorization)} call.
      *
      * @param accountIds account ids to unlink
      * @return nothing
@@ -543,7 +540,7 @@ public final class MemberAsync {
             String accountId,
             @Nullable String redeemer,
             @Nullable String description,
-            List<Destination> destinations) {
+            @Nullable List<Destination> destinations) {
         TokenPayload.Builder payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setNonce(generateNonce())
@@ -556,8 +553,7 @@ public final class MemberAsync {
                                 .setSource(TransferInstructionsProtos.Source.newBuilder()
                                         .setTokenSource(TokenSource.newBuilder()
                                                 .setAccountId(accountId)
-                                                .setMemberId(member.getId())))
-                                .addAllDestinations(destinations)));
+                                                .setMemberId(member.getId())))));
 
         if (redeemer != null) {
             payload
@@ -566,6 +562,12 @@ public final class MemberAsync {
         }
         if (description != null) {
             payload.setDescription(description);
+        }
+
+        if (destinations != null) {
+            payload.getTransferBuilder()
+                    .getInstructionsBuilder()
+                    .addAllDestinations(destinations);
         }
         return createToken(payload.build());
     }
@@ -587,7 +589,7 @@ public final class MemberAsync {
             BankAuthorization authorization,
             @Nullable String redeemer,
             @Nullable String description,
-            List<Destination> destinations) {
+            @Nullable List<Destination> destinations) {
         TokenPayload.Builder payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setNonce(generateNonce())
@@ -602,8 +604,7 @@ public final class MemberAsync {
                                                 BankAuthorizationSource.newBuilder()
                                                         .setBankAuthorization(authorization)
                                                         .build())
-                                        .build())
-                                .addAllDestinations(destinations)));
+                                        .build())));
 
         if (redeemer != null) {
             payload
@@ -612,6 +613,11 @@ public final class MemberAsync {
         }
         if (description != null) {
             payload.setDescription(description);
+        }
+        if (destinations != null) {
+            payload.getTransferBuilder()
+                    .getInstructionsBuilder()
+                    .addAllDestinations(destinations);
         }
         return createToken(payload.build());
     }

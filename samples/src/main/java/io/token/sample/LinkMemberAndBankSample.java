@@ -2,6 +2,8 @@ package io.token.sample;
 
 import io.token.Account;
 import io.token.Member;
+import io.token.proto.banklink.Banklink;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 
 import java.util.List;
@@ -33,10 +35,10 @@ public final class LinkMemberAndBankSample {
 
         // For the purpose of this sample, we simulate the entire linking flow described above
         // by generating it with a fake bank below.
-        List<SealedMessage> encryptedBankAuthorization =
-                member.createTestBankAccount(1000.0, "EUR").getAccountsList();
+        BankAuthorization encryptedBankAuthorization =
+                member.createTestBankAccount(1000.0, "EUR");
 
         // Finish account linking flow initiated by the user.
-        return member.linkAccounts("iron" /* bank code */, encryptedBankAuthorization);
+        return member.linkAccounts(encryptedBankAuthorization);
     }
 }

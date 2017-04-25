@@ -23,6 +23,7 @@
 package io.token;
 
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.AchDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.SepaDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.SwiftDestination;
@@ -30,17 +31,17 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Des
 
 import javax.annotation.Nullable;
 
-public final class Destination {
-    private Destination() {}
+public final class Destinations {
+    private Destinations() {}
 
     /**
      * Creates a destination of type token (Paying to a token member account).
      *
      * @param accountId token accountId
      * @param memberId token memberId
-     * @return Destination
+     * @return Destinations
      */
-    public static TransferInstructionsProtos.Destination token(
+    public static Destination token(
             String accountId,
             @Nullable String memberId) {
         TokenDestination.Builder builder = TokenDestination.newBuilder()
@@ -48,7 +49,7 @@ public final class Destination {
         if (memberId != null) {
             builder.setMemberId(memberId);
         }
-        return TransferInstructionsProtos.Destination.newBuilder()
+        return Destination.newBuilder()
                 .setTokenDestination(builder.build())
                 .build();
     }
@@ -57,10 +58,10 @@ public final class Destination {
      * Creates a destination of type sepa.
      *
      * @param iban payee's iban
-     * @return Destination
+     * @return Destinations
      */
-    public static TransferInstructionsProtos.Destination sepa(String iban) {
-        return TransferInstructionsProtos.Destination.newBuilder()
+    public static Destination sepa(String iban) {
+        return Destination.newBuilder()
                 .setSepaDestination(SepaDestination.newBuilder()
                         .setIban(iban)
                         .build())
@@ -72,10 +73,10 @@ public final class Destination {
      *
      * @param bic bank identification code
      * @param account account number
-     * @return Destination
+     * @return Destinations
      */
-    public static TransferInstructionsProtos.Destination swift(String bic, String account) {
-        return TransferInstructionsProtos.Destination.newBuilder()
+    public static Destination swift(String bic, String account) {
+        return Destination.newBuilder()
                 .setSwiftDestination(SwiftDestination.newBuilder()
                         .setBic(bic)
                         .setAccount(account)
@@ -88,10 +89,10 @@ public final class Destination {
      *
      * @param routing routing number
      * @param account account number
-     * @return Destination
+     * @return Destinations
      */
-    public static TransferInstructionsProtos.Destination ach(String routing, String account) {
-        return TransferInstructionsProtos.Destination.newBuilder()
+    public static Destination ach(String routing, String account) {
+        return Destination.newBuilder()
                 .setAchDestination(AchDestination.newBuilder()
                         .setRouting(routing)
                         .setAccount(account)

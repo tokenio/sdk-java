@@ -297,12 +297,11 @@ public final class Member {
     /**
      * Links a funding bank account to Token and returns it to the caller.
      *
-     * @param bankId bank id
-     * @param accounts list of accounts to be linked
+     * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
-    public List<Account> linkAccounts(String bankId, List<SealedMessage> accounts) {
-        return async.linkAccounts(bankId, accounts)
+    public List<Account> linkAccounts(BankAuthorization authorization) {
+        return async.linkAccounts(authorization)
                 .map(new Func1<List<AccountAsync>, List<Account>>() {
                     public List<Account> call(List<AccountAsync> asyncList) {
                         List<Account> accounts = new LinkedList<>();
@@ -317,7 +316,7 @@ public final class Member {
     }
 
     /**
-     * Unlinks bank accounts previously linked via {@link #linkAccounts(String, List)} call.
+     * Unlinks bank accounts previously linked via {@link #linkAccounts(BankAuthorization)} call.
      *
      * @param accountIds list of account ids to unlink
      */
@@ -442,7 +441,7 @@ public final class Member {
                 accountId,
                 null,
                 null,
-                Collections.<Destination>emptyList());
+                null);
     }
 
     /**
@@ -467,7 +466,7 @@ public final class Member {
                 accountId,
                 redeemer,
                 description,
-                Collections.<Destination>emptyList())
+                null)
                 .toBlocking()
                 .single();
     }
@@ -489,7 +488,7 @@ public final class Member {
             String accountId,
             @Nullable String redeemer,
             @Nullable String description,
-            List<Destination> destinations) {
+            @Nullable  List<Destination> destinations) {
         return async.createToken(amount, currency, accountId, redeemer, description, destinations)
                 .toBlocking()
                 .single();
@@ -510,7 +509,7 @@ public final class Member {
                 authorization,
                 null,
                 null,
-                Collections.<Destination>emptyList());
+                null);
     }
 
     /**
@@ -530,7 +529,7 @@ public final class Member {
             BankAuthorization authorization,
             @Nullable String redeemer,
             @Nullable String description,
-            List<Destination> destinations) {
+            @Nullable List<Destination> destinations) {
         return async.createToken(
                 amount,
                 currency,
