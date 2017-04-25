@@ -32,11 +32,11 @@ import static java.util.Arrays.asList;
 
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
@@ -47,6 +47,7 @@ import io.token.security.Signer;
 import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -191,19 +192,15 @@ public final class TokenIOAsync implements Closeable {
      * Notifies to link an account.
      *
      * @param username username to notify
-     * @param bankId bank ID to link
-     * @param bankName bank name to link
-     * @param accounts a list of accounts to be linked
+     * @param authorization the bank authorization for the funding account
      * @return status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccounts(
             String username,
-            String bankId,
-            String bankName,
-            List<SealedMessage> accounts) {
+            BankAuthorization authorization) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .notifyLinkAccounts(username, bankId, bankName, accounts);
+                .notifyLinkAccounts(username, authorization);
     }
 
     /**
@@ -226,26 +223,20 @@ public final class TokenIOAsync implements Closeable {
      * Notifies to link accounts and add a key.
      *
      * @param username username to notify
-     * @param bankId bank ID to link
-     * @param bankName bank name to link
-     * @param accounts a list of accounts to be linked
+     * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
      * @return status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
             String username,
-            String bankId,
-            String bankName,
-            List<SealedMessage> accounts,
+            BankAuthorization authorization,
             String name,
             Key key) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.notifyLinkAccountsAndAddKey(
                 username,
-                bankId,
-                bankName,
-                accounts,
+                authorization,
                 name,
                 key);
     }

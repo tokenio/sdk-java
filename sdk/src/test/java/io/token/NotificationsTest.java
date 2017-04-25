@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.PlaintextBankAuthorization;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
@@ -22,12 +23,12 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Des
 import io.token.security.sealed.NoopSealedMessageEncrypter;
 import io.token.testing.sample.Sample;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
 import org.assertj.core.api.ThrowableAssert;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Before;
@@ -44,7 +45,7 @@ public class NotificationsTest {
     private final Member payer = payerAccount.member();
     private final Member payee = rule.member();
 
-    private List<SealedMessage> accounts;
+    private BankAuthorization authorization;
 
     @Before
     public void setup() {
@@ -60,9 +61,13 @@ public class NotificationsTest {
 
         NoopSealedMessageEncrypter encrypter = new NoopSealedMessageEncrypter();
 
-        accounts = Arrays.asList(
+        List<SealedMessage> accounts = Arrays.asList(
                 encrypter.encrypt(checking),
                 encrypter.encrypt(saving));
+        authorization = BankAuthorization.newBuilder()
+                .setBankId("BofA")
+                .addAllAccounts(accounts)
+                .build();
     }
 
     @Test
@@ -72,9 +77,7 @@ public class NotificationsTest {
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
         NotifyStatus res = rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
-                "BofA",
-                "Bank of America",
-                accounts);
+                authorization);
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = payer.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
@@ -102,9 +105,7 @@ public class NotificationsTest {
         List<Subscriber> subscriberList = payer.getSubscribers();
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
-                "BofA",
-                "Bank of America",
-                accounts);
+                authorization);
         assertThat(subscriberList.size()).isEqualTo(1);
         waitUntil(new Runnable() {
             @Override
@@ -123,9 +124,7 @@ public class NotificationsTest {
         List<Subscriber> subscriberList = payer.getSubscribers();
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
-                "BofA",
-                "Bank of America",
-                accounts);
+                authorization);
         assertThat(subscriberList.size()).isEqualTo(1);
         waitUntil(new Runnable() {
             @Override
@@ -276,18 +275,14 @@ public class NotificationsTest {
                     Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
             NotifyStatus res1 = newSdk.notifyLinkAccounts(
                     username,
-                    "BofA",
-                    "Bank of America",
-                    accounts);
+                    authorization);
             NotifyStatus res2 = newSdk.notifyAddKey(
                     username,
                     "Chrome 52.0",
                     deviceInfo.getKeys().get(0));
             NotifyStatus res3 = newSdk.notifyLinkAccountsAndAddKey(
                     username,
-                    "BofA",
-                    "Bank of America",
-                    accounts,
+                    authorization,
                     "Chrome 52.0",
                     deviceInfo.getKeys().get(0));
 
@@ -317,9 +312,7 @@ public class NotificationsTest {
 
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
-                "BofA",
-                "Bank of America",
-                accounts);
+                authorization);
 
         waitUntil(new Runnable() {
             public void run() {
@@ -342,9 +335,7 @@ public class NotificationsTest {
                     .token()
                     .notifyLinkAccountsAndAddKey(
                             payer.firstUsername(),
-                            "BofA",
-                            "Bank of America",
-                            accounts,
+                            authorization,
                             "Chrome",
                             deviceInfo.getKeys().get(0));
 
@@ -380,9 +371,7 @@ public class NotificationsTest {
 
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
-                "BofA",
-                "Bank of America",
-                accounts);
+                authorization);
 
         waitUntil(new Runnable() {
             public void run() {
@@ -402,24 +391,16 @@ public class NotificationsTest {
 
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
-                "BofA",
-                "Bank of America",
-                accounts);
+                authorization);
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
-                "BofA",
-                "Bank of America",
-                accounts);
+                authorization);
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
-                "BofA",
-                "Bank of America",
-                accounts);
+                authorization);
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
-                "BofA",
-                "Bank of America",
-                accounts);
+                authorization);
 
         waitUntil(new Runnable() {
             public void run() {

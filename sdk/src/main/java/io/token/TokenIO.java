@@ -26,9 +26,9 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
 import io.grpc.Metadata;
 import io.token.gradle.TokenVersion;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
@@ -36,7 +36,7 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
-import java.util.List;
+
 import rx.functions.Func1;
 
 /**
@@ -164,17 +164,13 @@ public final class TokenIO implements Closeable {
      * Notifies to link accounts.
      *
      * @param username username to notify
-     * @param bankId bank ID to link
-     * @param bankName bank name to link
-     * @param accounts a list of accounts to be linked
+     * @param authorization the bank authorization for the funding account
      * @return status of the notification request
      */
     public NotifyStatus notifyLinkAccounts(
             String username,
-            String bankId,
-            String bankName,
-            List<SealedMessage> accounts) {
-        return async.notifyLinkAccounts(username, bankId, bankName, accounts)
+            BankAuthorization authorization) {
+        return async.notifyLinkAccounts(username, authorization)
                 .toBlocking()
                 .single();
     }
@@ -201,25 +197,19 @@ public final class TokenIO implements Closeable {
      * Notifies to link accounts and add a key.
      *
      * @param username username to notify
-     * @param bankId bank ID to link
-     * @param bankName bank name to link
-     * @param accounts a list of accounts to be linked
+     * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
      * @return status of the notification request
      */
     public NotifyStatus notifyLinkAccountsAndAddKey(
             String username,
-            String bankId,
-            String bankName,
-            List<SealedMessage> accounts,
+            BankAuthorization authorization,
             String name,
             Key key) {
         return async.notifyLinkAccountsAndAddKey(
                 username,
-                bankId,
-                bankName,
-                accounts,
+                authorization,
                 name,
                 key).toBlocking().single();
     }
