@@ -26,6 +26,7 @@ import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toObservable;
 
 import com.google.common.base.Strings;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
@@ -35,7 +36,6 @@ import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddK
 import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
@@ -157,24 +157,18 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that accounts should be linked.
      *
      * @param username username of the member
-     * @param bankId id of the bank owning the accounts
-     * @param bankName name of the bank owning the accounts
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param authorization the bank authorization for the funding account
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccounts(
             String username,
-            String bankId,
-            String bankName,
-            List<SealedMessage> accountLinkPayloads) {
+            BankAuthorization authorization) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setUsername(username)
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccounts(LinkAccounts.newBuilder()
-                                        .setBankId(bankId)
-                                        .setBankName(bankName)
-                                        .addAllAccountLinkPayloads(accountLinkPayloads)
+                                        .setBankAuthorization(authorization)
                                         .build())
                                 .build())
                         .build()))
@@ -219,18 +213,14 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that a key should be added.
      *
      * @param username username of the member
-     * @param bankId id of the bank owning the accounts
-     * @param bankName name of the bank owning the accounts
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
             String username,
-            String bankId,
-            String bankName,
-            List<SealedMessage> accountLinkPayloads,
+            BankAuthorization authorization,
             String name,
             Key key) {
         return toObservable(gateway.notify(
@@ -239,9 +229,7 @@ public final class UnauthenticatedClient {
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccountsAndAddKey(LinkAccountsAndAddKey.newBuilder()
                                         .setLinkAccounts(LinkAccounts.newBuilder()
-                                                .setBankId(bankId)
-                                                .setBankName(bankName)
-                                                .addAllAccountLinkPayloads(accountLinkPayloads)
+                                                .setBankAuthorization(authorization)
                                                 .build())
                                         .setAddKey(AddKey.newBuilder()
                                                 .setName(name)

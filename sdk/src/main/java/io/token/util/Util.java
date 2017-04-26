@@ -44,7 +44,8 @@ import rx.SingleSubscriber;
  * Utility methods.
  */
 public abstract class Util {
-    private Util() {}
+    private Util() {
+    }
 
     /**
      * Generates a random string.

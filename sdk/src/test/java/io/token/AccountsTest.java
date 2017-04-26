@@ -7,6 +7,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.asserts.AccountAssertion;
 import io.token.proto.bankapi.Fank;
+import io.token.proto.banklink.Banklink;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 
 import java.util.Arrays;
@@ -14,7 +16,6 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
-
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -97,12 +98,12 @@ public class AccountsTest {
                 1000000.0,
                 "USD");
 
-        List<SealedMessage> payloads = fank.startAccountsLinking(
+        BankAuthorization authorization = fank.startAccountsLinking(
                 member.firstUsername(),
                 client.getId(),
                 Arrays.asList(checking.getAccountNumber(), saving.getAccountNumber()));
 
-        List<Account> accounts = link(DEFAULT_BANK_ID, payloads);
+        List<Account> accounts = link(authorization);
 
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0))
@@ -115,8 +116,8 @@ public class AccountsTest {
         return accounts;
     }
 
-    private List<Account> link(String bankId, List<SealedMessage> payloads) {
-        List<Account> accounts = member.linkAccounts(bankId, payloads);
+    private List<Account> link(BankAuthorization authorization) {
+        List<Account> accounts = member.linkAccounts(authorization);
         sortedAccounts(accounts);
         return accounts;
     }

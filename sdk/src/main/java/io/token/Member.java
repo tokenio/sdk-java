@@ -26,7 +26,7 @@ import static io.token.proto.common.address.AddressProtos.Address;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.token.proto.PagedList;
-import io.token.proto.banklink.Banklink.AccountLinkingPayloads;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
@@ -43,6 +43,8 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.security.keystore.SecretKeyPair;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -295,12 +297,11 @@ public final class Member {
     /**
      * Links a funding bank account to Token and returns it to the caller.
      *
-     * @param bankId bank id
-     * @param accountLinkPayloads a list of account payloads to be linked
+     * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
-    public List<Account> linkAccounts(String bankId, List<SealedMessage> accountLinkPayloads) {
-        return async.linkAccounts(bankId, accountLinkPayloads)
+    public List<Account> linkAccounts(BankAuthorization authorization) {
+        return async.linkAccounts(authorization)
                 .map(new Func1<List<AccountAsync>, List<Account>>() {
                     public List<Account> call(List<AccountAsync> asyncList) {
                         List<Account> accounts = new LinkedList<>();
@@ -315,7 +316,7 @@ public final class Member {
     }
 
     /**
-     * Unlinks bank accounts previously linked via {@link #linkAccounts(String, List)} call.
+     * Unlinks bank accounts previously linked via {@link #linkAccounts(BankAuthorization)} call.
      *
      * @param accountIds list of account ids to unlink
      */
@@ -434,7 +435,12 @@ public final class Member {
      * @return transfer token returned by the server
      */
     public Token createToken(double amount, String currency, String accountId) {
-        return createToken(amount, currency, accountId, null, null);
+        return async.createToken(
+                amount,
+                currency,
+                accountId)
+                .toBlocking()
+                .single();
     }
 
     /**
@@ -451,9 +457,167 @@ public final class Member {
             double amount,
             String currency,
             String accountId,
-            @Nullable String redeemer,
-            @Nullable String description) {
-        return async.createToken(amount, currency, accountId, redeemer, description)
+            String redeemer,
+            String description) {
+        return async.createToken(
+                amount,
+                currency,
+                accountId,
+                redeemer,
+                description)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param accountId the funding account id
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destination transfer destination
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            String accountId,
+            String redeemer,
+            String description,
+            Destination destination) {
+        return async.createToken(
+                amount,
+                currency,
+                accountId,
+                redeemer,
+                description,
+                Collections.singletonList(destination))
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param accountId the funding account id
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destinations transfer destinations
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            String accountId,
+            String redeemer,
+            String description,
+            List<Destination> destinations) {
+        return async.createToken(amount, currency, accountId, redeemer, description, destinations)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @return transfer token returned by the server
+     */
+    public Token createToken(double amount, String currency, BankAuthorization authorization) {
+        return async.createToken(
+                amount,
+                currency,
+                authorization)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization,
+            String redeemer,
+            String description) {
+        return async.createToken(
+                amount,
+                currency,
+                authorization,
+                redeemer,
+                description)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destination transfer destination
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization,
+            String redeemer,
+            String description,
+            Destination destination) {
+        return async.createToken(
+                amount,
+                currency,
+                authorization,
+                redeemer,
+                description,
+                destination)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Creates a new transfer token.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param authorization the bank authorization for the funding account
+     * @param redeemer redeemer username
+     * @param description transfer description, optional
+     * @param destinations transfer destinations
+     * @return transfer token returned by the server
+     */
+    public Token createToken(
+            double amount,
+            String currency,
+            BankAuthorization authorization,
+            String redeemer,
+            String description,
+            List<Destination> destinations) {
+        return async.createToken(
+                amount,
+                currency,
+                authorization,
+                redeemer,
+                description,
+                destinations)
                 .toBlocking()
                 .single();
     }
@@ -563,6 +727,17 @@ public final class Member {
      */
     public Transfer redeemToken(Token token) {
         return async.redeemToken(token).toBlocking().single();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemToken(Token token, Destination destination) {
+        return async.redeemToken(token, destination).toBlocking().single();
     }
 
     /**
@@ -687,9 +862,9 @@ public final class Member {
      *
      * @param balance account balance to set
      * @param currency currency code, i.e. "EUR"
-     * @return account linking payloads
+     * @return bank authorization
      */
-    public AccountLinkingPayloads createTestBankAccount(double balance, String currency) {
+    public BankAuthorization createTestBankAccount(double balance, String currency) {
         return async.createTestBankAccount(balance, currency).toBlocking().single();
     }
 

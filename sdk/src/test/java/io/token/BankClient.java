@@ -14,7 +14,7 @@ import io.token.proto.bankapi.Fank;
 import io.token.proto.bankapi.Fank.AddAccountResponse;
 import io.token.proto.bankapi.Fank.AddClientResponse;
 import io.token.proto.bankapi.Fank.AuthorizeLinkAccountsRequest;
-import io.token.proto.banklink.Banklink;
+import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 
@@ -68,19 +68,18 @@ public final class BankClient {
         return response.getAccount();
     }
 
-    public List<SealedMessage> startAccountsLinking(
+    public BankAuthorization startAccountsLinking(
             String username,
             String clientId,
             List<String> accountNumbers) {
-        Banklink.AccountLinkingPayloads response = wrap(
+        return wrap(
                 bankClientApi.authorizeLinkAccounts(
                         protoToJson(AuthorizeLinkAccountsRequest.newBuilder()
                                 .setUsername(username)
                                 .setClientId(clientId)
                                 .addAllAccounts(accountNumbers)),
                         clientId),
-                Banklink.AccountLinkingPayloads.newBuilder());
-        return response.getPayloadsList();
+                BankAuthorization.newBuilder());
     }
 
     private String protoToJson(Message.Builder proto) {

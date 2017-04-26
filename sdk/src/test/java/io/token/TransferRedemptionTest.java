@@ -13,7 +13,10 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 
+import java.util.Collections;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
@@ -140,6 +143,12 @@ public class TransferRedemptionTest {
                 "USD",
                 payerAccount.id(),
                 payee.firstUsername(),
-                "book purchase");
+                "book purchase",
+                Destination.newBuilder()
+                        .setTokenDestination(TokenDestination.newBuilder()
+                                .setAccountId(payeeAccount.id())
+                                .setMemberId(payee.memberId())
+                                .build())
+                        .build());
     }
 }

@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import org.assertj.core.api.ThrowableAssert.ThrowingCallable;

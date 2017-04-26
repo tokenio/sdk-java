@@ -29,7 +29,6 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.rpc.Client;
 
 import javax.annotation.Nullable;
-
 import rx.Observable;
 
 /**
