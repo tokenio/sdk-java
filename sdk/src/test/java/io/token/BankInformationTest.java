@@ -1,6 +1,5 @@
 package io.token;
 
-import static io.token.TokenRule.DEFAULT_BANK_ID;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import org.junit.Rule;
@@ -18,6 +17,6 @@ public class BankInformationTest {
 
     @Test
     public void getBankInfo() {
-        assertThat(member.getBankInfo(DEFAULT_BANK_ID)).isNotNull();
+        assertThat(member.getBankInfo(rule.getBankId())).isNotNull();
     }
 }

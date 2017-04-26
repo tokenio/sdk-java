@@ -1,31 +1,17 @@
 #!/bin/bash
 
 if [ "$#" -eq 0 ] ; then
-  echo "Defaulting to dev. Use '$0 prd' for prd or '$0 stg' for stg"
+  echo "Defaulting to development. Use '$0 production' or '$0 staging' or '$0 development' to pick an environment"
 fi
 
-env=${1:-dev}
+env=${1:-development}
 
-if [ "${env}" != "prd" ] && [ "${env}" != "stg" ] && [ "${env}" != "dev" ] ; then
-  echo "Invalid env $env. Supported environments: prd, stg and dev (default)"
+if [ "${env}" != "production" ] && [ "${env}" != "staging" ] && [ "${env}" != "development" ] ; then
+  echo "Invalid env $env. Supported environments: production, staging and development (default)"
   exit 1
 fi
 
-if [ "${env}" == "prd" ] ; then
-  env=''
-else
-  env=.${env}
-fi
-
-GATEWAY_HOST=api-grpc${env}.token.io
-BANK_HOST=fank${env}.token.io
-
-echo "Gateway: ${GATEWAY_HOST}"
-echo "Fank: ${BANK_HOST}"
-
 ./gradlew \
-  -DTOKEN_GATEWAY=${GATEWAY_HOST}:443 \
-  -DTOKEN_BANK=${BANK_HOST}:443 \
-  -DTOKEN_USE_SSL=true \
+  -DTOKEN_ENV=${env} \
   cleanTest :sdk:javadoc check
 

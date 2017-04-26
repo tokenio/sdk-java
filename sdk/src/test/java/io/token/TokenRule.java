@@ -12,39 +12,30 @@ import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
-import com.google.common.net.HostAndPort;
 import io.token.proto.bankapi.Fank;
-import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.sdk.BankAccount;
 import io.token.util.Util;
 
-import java.util.List;
 import org.junit.rules.ExternalResource;
 
 /**
  * One can control what gateway the tests run against by setting system property on the
  * command line. E.g:
  * <p>
- * ./gradlew -DTOKEN_GATEWAY=some-ip -DTOKEN_BANK=some-ip test
+ * ./gradlew -DTOKEN_ENV=development test
  */
 public class TokenRule extends ExternalResource {
-    public static final String DEFAULT_BANK_ID = "iron";
-    private final boolean useSsl;
+    private final EnvConfig config;
     private final TokenIO tokenIO;
     private final BankClient bankClient;
 
     public TokenRule() {
-        useSsl = Boolean.parseBoolean(getEnvProperty("TOKEN_USE_SSL", "false"));
-
-        HostAndPort bank = HostAndPort
-                .fromString(getEnvProperty("TOKEN_BANK", "localhost"))
-                .withDefaultPort(8100);
+        this.config = new EnvConfig(getEnvProperty("TOKEN_ENV", "local"));
         this.bankClient = new BankClient(
-                bank.getHostText(),
-                bank.getPort(),
-                useSsl);
+                config.getFank().getHost(),
+                config.getFank().getPort(),
+                config.useSsl());
         this.tokenIO = newSdkInstance();
     }
 
@@ -53,14 +44,14 @@ public class TokenRule extends ExternalResource {
         tokenIO.close();
     }
 
-    public TokenIO newSdkInstance() {
-        HostAndPort gateway = HostAndPort
-                .fromString(getEnvProperty("TOKEN_GATEWAY", "localhost"))
-                .withDefaultPort(9000);
+    public String getBankId() {
+        return config.getBankId();
+    }
 
+    public TokenIO newSdkInstance() {
         return TokenIO.builder()
-                .hostName(gateway.getHostText())
-                .port(gateway.getPort())
+                .hostName(config.getGateway().getHost())
+                .port(config.getGateway().getPort())
                 .timeout(10 * 60 * 1_000)  // Set high for easy debugging.
                 .build();
     }
