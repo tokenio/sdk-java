@@ -1,21 +1,19 @@
 package io.token;
 
-import static io.token.TokenRule.DEFAULT_BANK_ID;
 import static io.token.testing.sample.Sample.integer;
 import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.asserts.AccountAssertion;
 import io.token.proto.bankapi.Fank;
-import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -60,14 +58,13 @@ public class AccountsTest {
         assertThat(accounts).hasSize(2);
         AccountAssertion.assertThat(accounts.get(0))
                 .hasId()
-                .hasBankId(DEFAULT_BANK_ID)
+                .hasBankId(rule.getBankId())
                 .hasName("Checking");
         AccountAssertion.assertThat(accounts.get(1))
                 .hasId()
-                .hasBankId(DEFAULT_BANK_ID)
+                .hasBankId(rule.getBankId())
                 .hasName("Saving");
     }
-
 
     @Test
     public void getAccount() {

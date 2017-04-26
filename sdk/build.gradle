@@ -13,9 +13,7 @@ ext {
 
 tasks.withType(Test) {
     // Pipe through the properties that we care about to tests.
-    systemProperty 'TOKEN_GATEWAY', System.getProperty('TOKEN_GATEWAY', null)
-    systemProperty 'TOKEN_BANK', System.getProperty('TOKEN_BANK', null)
-    systemProperty 'TOKEN_USE_SSL', System.getProperty('TOKEN_USE_SSL', null)
+    systemProperty 'TOKEN_ENV', System.getProperty('TOKEN_ENV', null)
 }
 
 publish {
