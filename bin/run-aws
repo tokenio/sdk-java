@@ -13,5 +13,6 @@ fi
 
 ./gradlew \
   -DTOKEN_ENV=${env} \
+  -PmaxTestForks=4 \
   cleanTest :sdk:javadoc check
 
