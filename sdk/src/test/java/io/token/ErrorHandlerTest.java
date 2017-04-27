@@ -3,7 +3,6 @@ package io.token;
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.token.TokenRule.getEnvProperty;
 
-import com.google.common.net.HostAndPort;
 import io.grpc.Metadata;
 import io.token.exceptions.VersionMismatchException;
 import io.token.rpc.client.RpcChannelFactory;
@@ -15,11 +14,7 @@ import org.junit.Test;
 public class ErrorHandlerTest {
     @Test(expected = VersionMismatchException.class)
     public void testVersionMismatch() {
-        HostAndPort gateway = HostAndPort
-                .fromString(getEnvProperty("TOKEN_GATEWAY", "localhost"))
-                .withDefaultPort(9000);
-
-        boolean useSsl = Boolean.parseBoolean(getEnvProperty("TOKEN_USE_SSL", "false"));
+        EnvConfig config = new EnvConfig(getEnvProperty("TOKEN_ENV", "local"));
 
         CryptoEngineFactory cryptoFactory = new TokenCryptoEngineFactory(null);
         Metadata versionHeaders = new Metadata();
@@ -31,7 +26,10 @@ public class ErrorHandlerTest {
                 "0.0.0");
         try (TokenIO tokenIO = new TokenIOAsync(
                 RpcChannelFactory
-                        .builder(gateway.getHost(), gateway.getPort(), useSsl)
+                        .builder(
+                                config.getGateway().getHost(),
+                                config.getGateway().getPort(),
+                                config.useSsl())
                         .withMetadata(versionHeaders)
                         .build(),
                 cryptoFactory)
