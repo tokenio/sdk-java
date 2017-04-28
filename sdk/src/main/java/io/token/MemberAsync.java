@@ -395,7 +395,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Unlinks bank accounts previously linked via {@link #linkAccounts(BankAuthorization)} call.
+     * Unlinks bank accounts previously linked via linkAccounts call.
      *
      * @param accountIds account ids to unlink
      * @return nothing

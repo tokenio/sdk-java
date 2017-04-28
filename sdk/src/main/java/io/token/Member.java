@@ -316,7 +316,7 @@ public final class Member {
     }
 
     /**
-     * Unlinks bank accounts previously linked via {@link #linkAccounts(BankAuthorization)} call.
+     * Unlinks bank accounts previously linked via linkAccounts call.
      *
      * @param accountIds list of account ids to unlink
      */
