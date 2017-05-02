@@ -14,11 +14,11 @@ import com.typesafe.config.Config;
  * Parses per env fank test config.
  */
 public class FankConfig {
-    private final Config config;
-
     public FankConfig(Config config) {
         this.config = config;
     }
+
+    private final Config config;
 
     public boolean useSsl() {
         return config.getBoolean("use-ssl");
