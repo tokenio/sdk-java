@@ -32,7 +32,6 @@ dependencies {
     testCompile group: 'io.token.rpc', name: 'tokenio-rpc-testing', version: ver.tokenRpc
     testCompile group: 'io.token.security', name: 'tokenio-security-testing', version: ver.tokenSecurity
     testCompile group: 'io.token.sdk', name: 'tokenio-sdk-integration', version: ver.tokenIntegrationSdk
-
 }
 
 license {
