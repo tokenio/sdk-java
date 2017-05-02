@@ -5,7 +5,7 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 
-package io.token;
+package io.token.bank.fank;
 
 import retrofit2.Call;
 import retrofit2.http.Body;
@@ -15,7 +15,7 @@ import retrofit2.http.Path;
 /**
  * Wraps around HTTP REST API for the fake bank client.
  */
-public interface BankClientApi {
+interface FankClientApi {
     @PUT("/clients")
     Call<String> addClient(@Body String request);
 

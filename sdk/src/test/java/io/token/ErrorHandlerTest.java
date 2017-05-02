@@ -3,6 +3,7 @@ package io.token;
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.token.TokenRule.getEnvProperty;
 
+import com.typesafe.config.ConfigFactory;
 import io.grpc.Metadata;
 import io.token.exceptions.VersionMismatchException;
 import io.token.rpc.client.RpcChannelFactory;
@@ -14,7 +15,9 @@ import org.junit.Test;
 public class ErrorHandlerTest {
     @Test(expected = VersionMismatchException.class)
     public void testVersionMismatch() {
-        EnvConfig config = new EnvConfig(getEnvProperty("TOKEN_ENV", "local"));
+        EnvConfig config = new EnvConfig(ConfigFactory.load(getEnvProperty(
+                "TOKEN_ENV",
+                "local")));
 
         CryptoEngineFactory cryptoFactory = new TokenCryptoEngineFactory(null);
         Metadata versionHeaders = new Metadata();
