@@ -129,4 +129,19 @@ public final class AccountAsync {
             int limit) {
         return client.getTransactions(account.getId(), offset, limit);
     }
+
+    @Override
+    public int hashCode() {
+        return account.getId().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof AccountAsync)) {
+            return false;
+        }
+
+        AccountAsync other = (AccountAsync) obj;
+        return account.build().equals(other.account.build());
+    }
 }

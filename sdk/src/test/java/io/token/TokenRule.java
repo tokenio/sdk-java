@@ -62,33 +62,48 @@ public class TokenRule extends ExternalResource {
     }
 
     public Account account() {
+        return testAccount().getAccount();
+    }
+
+    public Account account(String accountNumber) {
+        return testAccount(accountNumber).getAccount();
+    }
+
+    public TestAccount testAccount() {
+        String accountNumber = "iban:" + randomInt(7);
+        return testAccount(accountNumber);
+    }
+
+    public TestAccount testAccount(String accountNumber) {
         Member member = member();
-        String bankAccountNumber = "iban:" + randomInt(7);
         Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
-        bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
+        bankClient.addAccount(client, "Test Account", accountNumber, 1000000.00, "USD");
         BankAuthorization authorization = bankClient.startAccountsLinking(
                 member.firstUsername(),
                 client.getId(),
-                singletonList(bankAccountNumber));
+                singletonList(accountNumber));
 
-        return member
-                .linkAccounts(authorization)
-                .get(0);
+        return new TestAccount(
+                accountNumber,
+                member
+                        .linkAccounts(authorization)
+                        .get(0));
     }
 
     public BankAccount unlinkedAccount() {
         String bankAccountNumber = "iban:" + randomInt(7);
         Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
-        bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
+        bankClient.addAccount(
+                client,
+                "Test Account",
+                bankAccountNumber,
+                1000000.00,
+                "USD");
         return new BankAccount(bankAccountNumber, "Test Account");
     }
 
     public TokenIO token() {
         return tokenIO;
-    }
-
-    public BankClient bankClient() {
-        return bankClient;
     }
 
     public static String getEnvProperty(String name, String defaultValue) {

@@ -22,7 +22,6 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Des
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 import io.token.testing.sample.Sample;
 
-import java.util.ArrayList;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;

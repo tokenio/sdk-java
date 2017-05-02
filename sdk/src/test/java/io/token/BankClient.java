@@ -16,7 +16,6 @@ import io.token.proto.bankapi.Fank.AddClientResponse;
 import io.token.proto.bankapi.Fank.AuthorizeLinkAccountsRequest;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.money.MoneyProtos;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 
 import java.io.IOException;
 import java.util.List;

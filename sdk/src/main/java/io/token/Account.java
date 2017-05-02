@@ -117,4 +117,18 @@ public final class Account {
     public PagedList<Transaction, String> getTransactions(@Nullable String offset, int limit) {
         return async.getTransactions(offset, limit).toBlocking().single();
     }
+
+    @Override
+    public int hashCode() {
+        return async.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Account) {
+            return async.equals(((Account) obj).async);
+        } else {
+            return async.equals(obj);
+        }
+    }
 }

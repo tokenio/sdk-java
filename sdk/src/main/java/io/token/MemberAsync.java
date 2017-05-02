@@ -983,6 +983,21 @@ public final class MemberAsync {
     }
 
     @Override
+    public int hashCode() {
+        return member.getId().hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof MemberAsync)) {
+            return false;
+        }
+
+        MemberAsync other = (MemberAsync) obj;
+        return member.build().equals(other.member.build());
+    }
+
+    @Override
     public String toString() {
         return reflectionToString(this);
     }
