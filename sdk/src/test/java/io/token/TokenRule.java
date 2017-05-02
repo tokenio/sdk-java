@@ -8,6 +8,7 @@
 package io.token;
 
 import static org.assertj.core.util.Strings.isNullOrEmpty;
+import static org.junit.Assume.assumeFalse;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
@@ -16,7 +17,11 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.BankAccount;
 import io.token.util.Util;
 
-import org.junit.rules.ExternalResource;
+import java.util.regex.Pattern;
+
+import org.junit.rules.MethodRule;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.Statement;
 
 /**
  * One can control what gateway the tests run against by setting system property on the
@@ -24,7 +29,7 @@ import org.junit.rules.ExternalResource;
  * <p>
  * ./gradlew -DTOKEN_ENV=development test
  */
-public class TokenRule extends ExternalResource {
+public class TokenRule implements MethodRule {
     private final EnvConfig config;
     private final TokenIO tokenIO;
     private final TestBank testBank;
@@ -38,8 +43,25 @@ public class TokenRule extends ExternalResource {
     }
 
     @Override
-    protected void after() {
-        tokenIO.close();
+    public Statement apply(final Statement base, final FrameworkMethod method, Object target) {
+        return new Statement() {
+            @Override
+            public void evaluate() throws Throwable {
+                for (Pattern p : config.getBlackList()) {
+                    String methodName = method.getDeclaringClass().getName()
+                            + "."
+                            + method.getName();
+                    assumeFalse(
+                            "Skipping blacklisted test: " + methodName,
+                            p.matcher(methodName).matches());
+                }
+                try {
+                    base.evaluate();
+                } finally {
+                    tokenIO.close();
+                }
+            }
+        };
     }
 
     public String getBankId() {
