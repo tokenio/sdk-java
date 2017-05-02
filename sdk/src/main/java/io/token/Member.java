@@ -34,7 +34,6 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -43,13 +42,13 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.security.keystore.SecretKeyPair;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+
 import rx.functions.Func1;
 
 /**
@@ -866,6 +865,20 @@ public final class Member {
      */
     public BankAuthorization createTestBankAccount(double balance, String currency) {
         return async.createTestBankAccount(balance, currency).toBlocking().single();
+    }
+
+    @Override
+    public int hashCode() {
+        return async.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Member) {
+            return async.equals(((Member) obj).async);
+        } else {
+            return async.equals(obj);
+        }
     }
 
     @Override

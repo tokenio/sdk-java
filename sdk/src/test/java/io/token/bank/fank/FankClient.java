@@ -5,7 +5,7 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 
-package io.token;
+package io.token.bank.fank;
 
 import com.google.protobuf.InvalidProtocolBufferException;
 import com.google.protobuf.Message;
@@ -16,7 +16,6 @@ import io.token.proto.bankapi.Fank.AddClientResponse;
 import io.token.proto.bankapi.Fank.AuthorizeLinkAccountsRequest;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.money.MoneyProtos;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,22 +24,22 @@ import retrofit2.Call;
 import retrofit2.Retrofit;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
-public final class BankClient {
-    BankClientApi bankClientApi;
+final class FankClient {
+    private final FankClientApi fankApi;
 
-    public BankClient(String hostName, int port, boolean useSsl) {
+    public FankClient(String hostName, int port, boolean useSsl) {
         String protocol = useSsl ? "https" : "http";
         String urlFormat = "%s://%s:%d";
-        bankClientApi = new Retrofit.Builder()
+        fankApi = new Retrofit.Builder()
                 .baseUrl(String.format(urlFormat, protocol, hostName, port))
                 .addConverterFactory(ScalarsConverterFactory.create())
                 .build()
-                .create(BankClientApi.class);
+                .create(FankClientApi.class);
     }
 
     public Fank.Client addClient(String firstName, String lastName) {
         AddClientResponse response = wrap(
-                bankClientApi.addClient(protoToJson(
+                fankApi.addClient(protoToJson(
                         Fank.AddClientRequest.newBuilder()
                                 .setFirstName(firstName)
                                 .setFirstName(lastName))),
@@ -55,7 +54,7 @@ public final class BankClient {
             double amount,
             String currency) {
         AddAccountResponse response = wrap(
-                bankClientApi.addAccount(
+                fankApi.addAccount(
                         protoToJson(Fank.AddAccountRequest.newBuilder()
                                 .setClientId(client.getId())
                                 .setName(name)
@@ -73,7 +72,7 @@ public final class BankClient {
             String clientId,
             List<String> accountNumbers) {
         return wrap(
-                bankClientApi.authorizeLinkAccounts(
+                fankApi.authorizeLinkAccounts(
                         protoToJson(AuthorizeLinkAccountsRequest.newBuilder()
                                 .setUsername(username)
                                 .setClientId(clientId)

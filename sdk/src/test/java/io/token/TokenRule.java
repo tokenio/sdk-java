@@ -7,12 +7,11 @@
 
 package io.token;
 
-import static java.lang.Math.pow;
-import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 
-import io.token.proto.bankapi.Fank;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
+import io.token.bank.TestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.BankAccount;
 import io.token.util.Util;
@@ -28,14 +27,13 @@ import org.junit.rules.ExternalResource;
 public class TokenRule extends ExternalResource {
     private final EnvConfig config;
     private final TokenIO tokenIO;
-    private final BankClient bankClient;
+    private final TestBank testBank;
 
     public TokenRule() {
-        this.config = new EnvConfig(getEnvProperty("TOKEN_ENV", "local"));
-        this.bankClient = new BankClient(
-                config.getFank().getHost(),
-                config.getFank().getPort(),
-                config.useSsl());
+        Config config = ConfigFactory.load(getEnvProperty("TOKEN_ENV", "local"));
+
+        this.config = new EnvConfig(config);
+        this.testBank = TestBank.create(config);
         this.tokenIO = newSdkInstance();
     }
 
@@ -62,33 +60,41 @@ public class TokenRule extends ExternalResource {
     }
 
     public Account account() {
-        Member member = member();
-        String bankAccountNumber = "iban:" + randomInt(7);
-        Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
-        bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
-        BankAuthorization authorization = bankClient.startAccountsLinking(
-                member.firstUsername(),
-                client.getId(),
-                singletonList(bankAccountNumber));
+        return testAccount().getAccount();
+    }
 
-        return member
-                .linkAccounts(authorization)
-                .get(0);
+    public Account account(String accountNumber) {
+        return testAccount(accountNumber).getAccount();
+    }
+
+    public TestAccount testAccount() {
+        Member member = member();
+        BankAccount account = testBank.randomAccount();
+        BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
+        return new TestAccount(
+                account.getIdentifier(),
+                member
+                        .linkAccounts(auth)
+                        .get(0));
+    }
+
+    public TestAccount testAccount(String accountNumber) {
+        Member member = member();
+        BankAccount account = testBank.lookupAccount(accountNumber);
+        BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
+        return new TestAccount(
+                accountNumber,
+                member
+                        .linkAccounts(auth)
+                        .get(0));
     }
 
     public BankAccount unlinkedAccount() {
-        String bankAccountNumber = "iban:" + randomInt(7);
-        Fank.Client client = bankClient.addClient("Test " + string(), "Testoff");
-        bankClient.addAccount(client, "Test Account", bankAccountNumber, 1000000.00, "USD");
-        return new BankAccount(bankAccountNumber, "Test Account");
+        return testBank.randomAccount();
     }
 
     public TokenIO token() {
         return tokenIO;
-    }
-
-    public BankClient bankClient() {
-        return bankClient;
     }
 
     public static String getEnvProperty(String name, String defaultValue) {
@@ -103,20 +109,5 @@ public class TokenRule extends ExternalResource {
         }
 
         return defaultValue;
-    }
-
-    private static String string() {
-        int length = randomInt(3, 7);
-        return randomAlphabetic(length);
-    }
-
-    private static int randomInt(int digits) {
-        return randomInt(
-                (int) pow(10, digits),
-                (int) pow(10, digits + 1) - 1);
-    }
-
-    private static int randomInt(int min, int max) {
-        return (int) (Math.random() * (max - min)) + min;
     }
 }

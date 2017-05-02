@@ -5,18 +5,18 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 
-package io.token;
+package io.token.bank.fank;
 
 import com.google.common.net.HostAndPort;
 import com.typesafe.config.Config;
 
 /**
- * Parses per env test config.
+ * Parses per env fank test config.
  */
-public class EnvConfig {
+public class FankConfig {
     private final Config config;
 
-    public EnvConfig(Config config) {
+    public FankConfig(Config config) {
         this.config = config;
     }
 
@@ -24,13 +24,9 @@ public class EnvConfig {
         return config.getBoolean("use-ssl");
     }
 
-    public String getBankId() {
-        return config.getString("bank-id");
-    }
-
-    public HostAndPort getGateway() {
+    public HostAndPort getFank() {
         return HostAndPort.fromParts(
-                config.getString("gateway.host"),
-                config.getInt("gateway.port"));
+                config.getString("fank.host"),
+                config.getInt("fank.port"));
     }
 }
