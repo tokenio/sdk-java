@@ -6,11 +6,6 @@ fi
 
 env=${1:-development}
 
-if [ "${env}" != "production" ] && [ "${env}" != "staging" ] && [ "${env}" != "development" ] ; then
-  echo "Invalid env $env. Supported environments: production, staging and development (default)"
-  exit 1
-fi
-
 ./gradlew \
   -DTOKEN_ENV=${env} \
   -PmaxTestForks=4 \
