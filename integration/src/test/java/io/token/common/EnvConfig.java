@@ -56,16 +56,16 @@ public class EnvConfig {
     private static Pattern globToPattern(String glob) {
         StringBuilder pattern = new StringBuilder();
         for (char c : glob.toCharArray()) {
-           switch (c) {
-               case '.':
-                   pattern.append("\\.");
-                   break;
-               case '*':
-                   pattern.append(".*");
-                   break;
-               default:
-                   pattern.append(c);
-           }
+            switch (c) {
+                case '.':
+                    pattern.append("\\.");
+                    break;
+                case '*':
+                    pattern.append(".*");
+                    break;
+                default:
+                    pattern.append(c);
+            }
         }
         return Pattern.compile(pattern.toString());
     }

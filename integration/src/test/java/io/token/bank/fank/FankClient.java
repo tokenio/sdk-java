@@ -89,6 +89,7 @@ final class FankClient {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private <T extends Message> T wrap(Call<String> call, T.Builder builder) {
         try {
             JsonFormat

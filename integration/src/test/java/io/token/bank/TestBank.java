@@ -6,7 +6,16 @@ import io.token.bank.fank.FankTestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.BankAccount;
 
+/**
+ * Abstracts away a test bank backend.
+ */
 public abstract class TestBank {
+    /**
+     * Creates {@link TestBank} implementation based on the config.
+     *
+     * @param config test configuration
+     * @return test bank instance
+     */
     public static TestBank create(Config config) {
         if (config.hasPath("fank")) {
             return new FankTestBank(config);
@@ -16,7 +25,27 @@ public abstract class TestBank {
         throw new IllegalStateException("Not supported configuration");
     }
 
+    /**
+     * Returns a random account that can be linked.
+     *
+     * @return random account
+     */
     public abstract BankAccount randomAccount();
+
+    /**
+     * Looks up an account given the account number.
+     *
+     * @param accountNumber account number
+     * @return looked up account
+     */
     public abstract BankAccount lookupAccount(String accountNumber);
+
+    /**
+     * Produces bank authorization for the given account.
+     *
+     * @param username username to authorize
+     * @param account account to authorize access to
+     * @return bank authorization
+     */
     public abstract BankAuthorization authorizeAccount(String username, BankAccount account);
 }
