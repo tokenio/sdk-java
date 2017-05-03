@@ -3,6 +3,9 @@ package io.token;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.token.common.TestAccount;
+import io.token.common.TokenRule;
+
 import java.util.List;
 
 import org.junit.Rule;

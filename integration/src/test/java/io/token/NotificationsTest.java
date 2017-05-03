@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.util.concurrent.Uninterruptibles;
+import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;

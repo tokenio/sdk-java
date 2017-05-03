@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -16,7 +17,6 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 
-import java.util.Collections;
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;

@@ -2,6 +2,7 @@ package io.token;
 
 import static io.token.asserts.MemberAssertion.assertThat;
 
+import io.token.common.TokenRule;
 import io.token.util.Util;
 
 import org.assertj.core.api.Assertions;

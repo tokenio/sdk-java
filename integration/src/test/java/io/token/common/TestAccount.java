@@ -1,4 +1,6 @@
-package io.token;
+package io.token.common;
+
+import io.token.Account;
 
 public final class TestAccount {
     private final Account account;
