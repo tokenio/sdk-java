@@ -5,13 +5,16 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 
-package io.token;
+package io.token.common;
 
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 import static org.junit.Assume.assumeFalse;
 
 import com.typesafe.config.Config;
 import com.typesafe.config.ConfigFactory;
+import io.token.Account;
+import io.token.Member;
+import io.token.TokenIO;
 import io.token.bank.TestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.BankAccount;

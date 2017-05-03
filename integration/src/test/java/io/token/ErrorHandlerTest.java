@@ -1,10 +1,11 @@
 package io.token;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
-import static io.token.TokenRule.getEnvProperty;
+import static io.token.common.TokenRule.getEnvProperty;
 
 import com.typesafe.config.ConfigFactory;
 import io.grpc.Metadata;
+import io.token.common.EnvConfig;
 import io.token.exceptions.VersionMismatchException;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngineFactory;

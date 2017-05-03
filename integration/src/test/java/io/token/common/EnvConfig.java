@@ -5,7 +5,7 @@
  * of the MIT license.  See the LICENSE file for details.
  */
 
-package io.token;
+package io.token.common;
 
 import com.google.common.net.HostAndPort;
 import com.typesafe.config.Config;

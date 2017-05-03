@@ -2,11 +2,10 @@ package io.token;
 
 import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.proto.common.security.SecurityProtos.SealedMessage.MethodCase.NOOP;
-import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
 
+import io.token.common.TokenRule;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -16,7 +15,6 @@ import io.token.sdk.BankAccount;
 import io.token.sdk.BankAccountAuthorizer;
 import io.token.security.testing.KeyStoreTestRule;
 
-import java.util.Collections;
 import org.junit.Rule;
 import org.junit.Test;
 

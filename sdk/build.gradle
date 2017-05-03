@@ -1,21 +1,5 @@
 apply plugin: 'com.github.hierynomus.license'
 
-ext {
-    ver = [
-        tokenProto           : '1.0.269',
-        tokenRpc             : '1.0.66',
-        tokenSecurity        : '1.0.31',
-        tokenUtil            : '1.0.13',
-        retrofit             : '2.2.0',
-        tokenIntegrationSdk  : '1.0.38',
-    ]
-}
-
-tasks.withType(Test) {
-    // Pipe through the properties that we care about to tests.
-    systemProperty 'TOKEN_ENV', System.getProperty('TOKEN_ENV', null)
-}
-
 publish {
     isPublic = true
 }
@@ -24,14 +8,6 @@ dependencies {
     compile group: 'io.token.proto', name: 'tokenio-proto-external', version: ver.tokenProto
     compile group: 'io.token.rpc', name: 'tokenio-rpc-lib', version: ver.tokenRpc
     compile group: 'io.token.security', name: 'tokenio-security-lib', version: ver.tokenSecurity
-    compile group: 'io.token.util', name: 'tokenio-util', version: ver.tokenUtil
-
-    testCompile group: 'com.squareup.retrofit2', name: 'retrofit', version: ver.retrofit
-    testCompile group: 'com.squareup.retrofit2', name: 'converter-scalars', version: ver.retrofit
-
-    testCompile group: 'io.token.rpc', name: 'tokenio-rpc-testing', version: ver.tokenRpc
-    testCompile group: 'io.token.security', name: 'tokenio-security-testing', version: ver.tokenSecurity
-    testCompile group: 'io.token.sdk', name: 'tokenio-sdk-integration', version: ver.tokenIntegrationSdk
 }
 
 license {

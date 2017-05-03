@@ -2,6 +2,8 @@ package io.token;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.token.common.TokenRule;
+
 import org.junit.Rule;
 import org.junit.Test;
 

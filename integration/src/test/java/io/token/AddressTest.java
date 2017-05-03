@@ -7,6 +7,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.token.common.TokenRule;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.testing.sample.Sample;
