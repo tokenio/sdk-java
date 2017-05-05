@@ -240,7 +240,7 @@ public final class Member {
     }
 
     /**
-     * Removes a subscriber by Id.
+     * Gets a list of all subscribers.
      *
      * @return subscribers Subscribers
      */
