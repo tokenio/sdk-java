@@ -97,7 +97,7 @@ public class TokenRule implements MethodRule {
         BankAccount account = testBank.randomAccount();
         BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
         return new TestAccount(
-                account.getIdentifier(),
+                account.getAccountNumber(),
                 member
                         .linkAccounts(auth)
                         .get(0));

@@ -9,6 +9,7 @@ import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.account.AccountProtos.AccountRoute;
 import io.token.proto.common.account.AccountProtos.PlaintextBankAuthorization;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
@@ -37,11 +38,12 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class NotificationsTest {
+    @Rule public TokenRule rule = new TokenRule();
+
     private static final int NOTIFICATION_TIMEOUT_MS = 5000;
     private static final String NOTIFICATION_TARGET =
             "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
     private static final String TEST = "TEST"; // Test platform
-    @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
     private final Member payer = payerAccount.member();
     private final Member payee = rule.member();
@@ -52,12 +54,16 @@ public class NotificationsTest {
     public void setup() {
         String checking = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Checking")
-                .setAccountNumber("iban:checking")
+                .setAccount(AccountRoute.newBuilder()
+                        .setBic("irontest")
+                        .setAccount("iban:checking"))
                 .build());
 
         String saving = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Saving")
-                .setAccountNumber("iban:saving")
+                .setAccount(AccountRoute.newBuilder()
+                        .setBic("irontest")
+                        .setAccount("iban:savings"))
                 .build());
 
         NoopSealedMessageEncrypter encrypter = new NoopSealedMessageEncrypter();

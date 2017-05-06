@@ -25,6 +25,10 @@ public class BankConfig {
         return config.getString("bank-id");
     }
 
+    public String getBic() {
+        return config.getString("bank-bic");
+    }
+
     public List<String> getAccounts() {
         return config.getStringList("bank.accounts");
     }
