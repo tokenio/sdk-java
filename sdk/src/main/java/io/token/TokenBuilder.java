@@ -112,7 +112,7 @@ public final class TokenBuilder {
 
     public Observable<Token> executeAsync() {
         SourceCase sourceCase = payload.getTransfer().getInstructions().getSource().getSourceCase();
-        if (!sourceCase.equals(BANKAUTHORIZATIONSOURCE) && !sourceCase.equals(TOKENSOURCE)) {
+        if (sourceCase != BANKAUTHORIZATIONSOURCE && sourceCase != TOKENSOURCE) {
             throw new TokenArgumentsException("No source on token");
         }
         if (Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getId())
