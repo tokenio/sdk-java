@@ -525,7 +525,7 @@ public final class MemberAsync {
     }
 
     /**
-     * Retrieves a blob that is attached to a token.
+     * Retrieves a blob that is attached to a transfer token.
      *
      * @param tokenId id of the token
      * @param blobId id of the blob
