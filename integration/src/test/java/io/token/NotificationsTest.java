@@ -42,11 +42,12 @@ public class NotificationsTest {
     private static final String NOTIFICATION_TARGET =
             "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
     private static final String TEST = "TEST"; // Test platform
+
     @Rule public TokenRule rule = new TokenRule();
+
     private final Account payerAccount = rule.account();
     private final Member payer = payerAccount.member();
     private final Member payee = rule.member();
-
     private BankAuthorization authorization;
 
     @Before
@@ -54,13 +55,15 @@ public class NotificationsTest {
         String checking = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Checking")
                 .setAccount(AccountRoute.newBuilder()
-                    .setAccount("iban:checking"))
+                        .setBic("irontest")
+                        .setAccount("iban:checking"))
                 .build());
 
         String saving = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Saving")
                 .setAccount(AccountRoute.newBuilder()
-                        .setAccount("iban:checking"))
+                        .setBic("irontest")
+                        .setAccount("iban:savings"))
                 .build());
 
         NoopSealedMessageEncrypter encrypter = new NoopSealedMessageEncrypter();

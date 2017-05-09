@@ -2,7 +2,6 @@ package io.token;
 
 import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.proto.common.security.SecurityProtos.SealedMessage.MethodCase.NOOP;
-import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
 
 import io.token.common.TokenRule;
@@ -51,10 +50,11 @@ public class BankAuthorizationPayTest {
         BankAuthorization authorization = authorizer.createAuthorization(
                 payer.firstUsername(),
                 singletonList(account));
+
         return payer.createTransferToken(amount, "USD")
                 .setBankAuthorization(authorization)
                 .setRedeemerUsername(payer.firstUsername())
-                .addDestination(Destinations.sepa(string()))
+                .addDestination(Destinations.token(payeeAccount.id(), payee.memberId()))
                 .execute();
     }
 }

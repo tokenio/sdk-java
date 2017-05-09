@@ -17,7 +17,7 @@ allprojects {
     ext {
         ver = [
             tokenProto           : '1.0.278',
-            tokenRpc             : '1.0.66',
+            tokenRpc             : '1.0.67',
             tokenSecurity        : '1.0.31',
             tokenUtil            : '1.0.13',
             retrofit             : '2.2.0',

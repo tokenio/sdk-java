@@ -13,8 +13,8 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.BankAccount;
 
 public final class FankTestBank extends TestBank {
+    private static String BIC;
     private final FankClient fank;
-    private final String bic;
 
     public FankTestBank(Config config) {
         this(new FankConfig(config));
@@ -25,7 +25,7 @@ public final class FankTestBank extends TestBank {
     }
 
     public FankTestBank(String bic, HostAndPort fank, boolean useSsl) {
-        this.bic = bic;
+        this.BIC = bic;
         this.fank = new FankClient(
                 fank.getHost(),
                 fank.getPort(),
@@ -42,12 +42,12 @@ public final class FankTestBank extends TestBank {
                 bankAccountNumber,
                 1000000.00,
                 "USD");
-        return new BankAccount(bic, bankAccountNumber, "Test Account");
+        return new BankAccount(BIC, bankAccountNumber, "Test Account");
     }
 
     @Override
     public BankAccount lookupAccount(String accountNumber) {
-        return new BankAccount(bic, accountNumber, "Test Account");
+        return new BankAccount(BIC, accountNumber, "Test Account");
     }
 
     @Override
