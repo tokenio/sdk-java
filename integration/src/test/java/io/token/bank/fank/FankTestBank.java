@@ -13,6 +13,7 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.BankAccount;
 
 public final class FankTestBank extends TestBank {
+    private static final String BIC = "IRONUSCA000";
     private final FankClient fank;
 
     public FankTestBank(Config config) {
@@ -40,12 +41,12 @@ public final class FankTestBank extends TestBank {
                 bankAccountNumber,
                 1000000.00,
                 "USD");
-        return new BankAccount(bankAccountNumber, "Test Account");
+        return new BankAccount(BIC, bankAccountNumber, "Test Account");
     }
 
     @Override
     public BankAccount lookupAccount(String accountNumber) {
-        return new BankAccount(accountNumber, "Test Account");
+        return new BankAccount(BIC, accountNumber, "Test Account");
     }
 
     @Override
@@ -54,12 +55,12 @@ public final class FankTestBank extends TestBank {
         fank.addAccount(
                 client,
                 account.getDisplayName(),
-                account.getIdentifier(),
+                account.getAccountNumber(),
                 1000000.00,
                 "USD");
         return fank.startAccountsLinking(
                 username,
                 client.getId(),
-                singletonList(account.getIdentifier()));
+                singletonList(account.getAccountNumber()));
     }
 }
