@@ -25,12 +25,16 @@ package io.token;
 import static io.token.util.Util.generateNonce;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
+import com.google.protobuf.ByteString;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.blob.BlobProtos.Attachment;
+import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -41,23 +45,21 @@ import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.BankAuthorizationSource;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.TokenSource;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -466,6 +468,74 @@ public final class MemberAsync {
     }
 
     /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @return blob Id
+     */
+    public Observable<Attachment> createBlob(String ownerId, final String type, final String name, byte[] data) {
+        Payload payload = Payload
+                .newBuilder()
+                .setOwnerId(ownerId)
+                .setType(type)
+                .setName(name)
+                .setData(ByteString.copyFrom(data))
+                .build();
+        return client.createBlob(payload)
+                .map(new Func1<String, Attachment>() {
+                    public Attachment call(String id) {
+                        return Attachment.newBuilder()
+                            .setBlobId(id)
+                            .setName(name)
+                            .setType(type)
+                            .build();
+                    }
+                });
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param filePath name of the file to read
+     * @return blob Id
+     */
+    public Observable<Attachment> createBlob(String filePath) throws IOException{
+        Path path = Paths.get(filePath);
+        String type = Files.probeContentType(path);
+        if (type == null) {
+            type = "content/unknown";
+        }
+        String name = path.getFileName().toString();
+        byte[] fileBytes = Files.readAllBytes(path);
+
+        return createBlob(memberId(), type, name, fileBytes);
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getBlob(String blobId) {
+        return client.getBlob(blobId);
+    }
+
+    /**
+     * Retrieves a blob that is attached to a token.
+     *
+     * @param tokenId id of the token
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
+        return client.getTokenBlob(tokenId, blobId);
+    }
+
+    /**
      * Creates a new member address.
      *
      * @param name the name of the address
@@ -506,248 +576,26 @@ public final class MemberAsync {
     }
 
     /**
-     * Creates a new transfer token.
+     * Creates a new transfer token builder.
      *
      * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
-     * @param accountId account id
      * @return transfer token returned by the server
      */
-    public Observable<Token> createToken(double amount, String currency, String accountId) {
-        return createToken(TokenPayload.newBuilder()
-                .setVersion("1.0")
-                .setNonce(generateNonce())
-                .setFrom(TokenMember.newBuilder()
-                        .setId(member.getId()))
-                .setTransfer(TransferBody.newBuilder()
-                        .setCurrency(currency)
-                        .setLifetimeAmount(Double.toString(amount))
-                        .setInstructions(TransferInstructions.newBuilder()
-                                .setSource(TransferInstructionsProtos.Source.newBuilder()
-                                        .setTokenSource(TokenSource.newBuilder()
-                                                .setAccountId(accountId)
-                                                .setMemberId(member.getId())))))
-                .build());
+    public TokenBuilder createTransferToken(double amount, String currency) {
+        return new TokenBuilder(this, amount, currency);
     }
 
     /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param accountId account id
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createToken(
-            double amount,
-            String currency,
-            String accountId,
-            String redeemer,
-            String description) {
-        return createToken(
-                amount,
-                currency,
-                accountId,
-                redeemer,
-                description,
-                Collections.<Destination>emptyList());
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param accountId account id
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @param destination transfer destination
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createToken(
-            double amount,
-            String currency,
-            String accountId,
-            String redeemer,
-            String description,
-            Destination destination) {
-        return createToken(
-                amount,
-                currency,
-                accountId,
-                redeemer,
-                description,
-                Collections.singletonList(destination));
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param accountId account id
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @param destinations transfer destinations
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createToken(
-            double amount,
-            String currency,
-            String accountId,
-            String redeemer,
-            String description,
-            List<Destination> destinations) {
-        return createToken(TokenPayload.newBuilder()
-                .setVersion("1.0")
-                .setNonce(generateNonce())
-                .setFrom(TokenMember.newBuilder()
-                        .setId(member.getId()))
-                .setDescription(description)
-                .setTransfer(TransferBody.newBuilder()
-                        .setRedeemer(TokenMember.newBuilder().setUsername(redeemer))
-                        .setCurrency(currency)
-                        .setLifetimeAmount(Double.toString(amount))
-                        .setInstructions(TransferInstructions.newBuilder()
-                                .setSource(TransferInstructionsProtos.Source.newBuilder()
-                                        .setTokenSource(TokenSource.newBuilder()
-                                                .setAccountId(accountId)
-                                                .setMemberId(member.getId())))
-                                        .addAllDestinations(destinations)))
-                .build());
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param authorization the bank authorization for the funding account
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createToken(
-            double amount,
-            String currency,
-            BankAuthorization authorization) {
-        return createToken(TokenPayload.newBuilder()
-                .setVersion("1.0")
-                .setNonce(generateNonce())
-                .setFrom(TokenMember.newBuilder()
-                        .setId(member.getId()))
-                .setTransfer(TransferBody.newBuilder()
-                        .setCurrency(currency)
-                        .setLifetimeAmount(Double.toString(amount))
-                        .setInstructions(TransferInstructions.newBuilder()
-                                .setSource(TransferInstructionsProtos.Source.newBuilder()
-                                        .setBankAuthorizationSource(BankAuthorizationSource
-                                                .newBuilder()
-                                                .setBankAuthorization(authorization)
-                                                .build()))))
-                .build());
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param authorization the bank authorization for the funding account
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createToken(
-            double amount,
-            String currency,
-            BankAuthorization authorization,
-            String redeemer,
-            String description) {
-        return createToken(
-                amount,
-                currency,
-                authorization,
-                redeemer,
-                description,
-                Collections.<Destination>emptyList());
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param authorization the bank authorization for the funding account
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @param destination transfer destination
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createToken(
-            double amount,
-            String currency,
-            BankAuthorization authorization,
-            String redeemer,
-            String description,
-            Destination destination) {
-        return createToken(
-                amount,
-                currency,
-                authorization,
-                redeemer,
-                description,
-                Collections.singletonList(destination));
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param authorization the bank authorization for the funding account
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @param destinations transfer destinations
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createToken(
-            double amount,
-            String currency,
-            BankAuthorization authorization,
-            String redeemer,
-            String description,
-            List<Destination> destinations) {
-        return createToken(TokenPayload.newBuilder()
-                .setVersion("1.0")
-                .setNonce(generateNonce())
-                .setFrom(TokenMember.newBuilder()
-                        .setId(member.getId()))
-                .setDescription(description)
-                .setTransfer(TransferBody.newBuilder()
-                        .setRedeemer(TokenMember.newBuilder().setUsername(redeemer))
-                        .setCurrency(currency)
-                        .setLifetimeAmount(Double.toString(amount))
-                        .setInstructions(TransferInstructions.newBuilder()
-                                .setSource(TransferInstructionsProtos.Source.newBuilder()
-                                        .setBankAuthorizationSource(
-                                                BankAuthorizationSource.newBuilder()
-                                                        .setBankAuthorization(authorization)
-                                                        .build())
-                                        .build())
-                                .addAllDestinations(destinations)))
-                .build());
-    }
-
-    /**
-     * Creates a new token.
+     * Creates a new transfer token from a token payload.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
-    public Observable<Token> createToken(TokenPayload payload) {
+    public Observable<Token> createTransferToken(TokenPayload payload) {
         return client.createToken(payload);
     }
+
 
     /**
      * Creates an access token built from a given {@link AccessTokenBuilder}.
@@ -756,7 +604,7 @@ public final class MemberAsync {
      * @return the access token created
      */
     public Observable<Token> createAccessToken(AccessTokenBuilder accessTokenBuilder) {
-        return createToken(accessTokenBuilder.from(memberId()).build());
+        return createTransferToken(accessTokenBuilder.from(memberId()).build());
     }
 
     /**

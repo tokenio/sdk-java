@@ -13,6 +13,7 @@ import io.token.sdk.BankAccountAuthorizer;
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
+import javax.xml.datatype.DatatypeFactory;
 
 /**
  * Config based implementation of the test bank. We assume that the bank we
@@ -22,6 +23,7 @@ import java.util.Random;
  */
 public final class ConfigBasedTestBank extends TestBank {
     private final String bankId;
+    private final String bic;
     private final List<String> accounts;
     private final Random random;
 
@@ -30,11 +32,12 @@ public final class ConfigBasedTestBank extends TestBank {
     }
 
     public ConfigBasedTestBank(BankConfig config) {
-        this(config.getBankId(), config.getAccounts());
+        this(config.getBankId(), config.getBic(), config.getAccounts());
     }
 
-    public ConfigBasedTestBank(String bankId, List<String> accounts) {
+    public ConfigBasedTestBank(String bankId, String bic, List<String> accounts) {
         this.bankId = bankId;
+        this.bic = bic;
         this.accounts = accounts;
         this.random = new Random();
     }
@@ -43,13 +46,13 @@ public final class ConfigBasedTestBank extends TestBank {
     public BankAccount randomAccount() {
         int index = random.nextInt(accounts.size());
         String accountNumber = accounts.get(index);
-        return new BankAccount(accountNumber, accountNumber);
+        return new BankAccount(bic, accountNumber, accountNumber);
     }
 
     @Override
     public BankAccount lookupAccount(String accountNumber) {
         checkState(accounts.contains(accountNumber));
-        return new BankAccount(accountNumber, accountNumber);
+        return new BankAccount(bic, accountNumber, accountNumber);
     }
 
     @Override

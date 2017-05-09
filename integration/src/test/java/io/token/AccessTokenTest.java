@@ -455,12 +455,10 @@ public class AccessTokenTest {
     private Transaction getTransaction(Account payerAccount, Account payeeAccount) {
         Member payer = payerAccount.member();
         Member payee = payeeAccount.member();
-        Token token = payer.createToken(
-                10.0,
-                "USD",
-                payerAccount.id(),
-                payee.firstUsername(),
-                string());
+        Token token = payer.createTransferToken(10, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
         token = payer.endorseToken(token, STANDARD).getToken();
         Transfer transfer = payee.redeemToken(token, 1.0, "USD", "one",
                 Destination.newBuilder()

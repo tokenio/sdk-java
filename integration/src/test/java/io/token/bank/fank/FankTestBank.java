@@ -14,16 +14,18 @@ import io.token.sdk.BankAccount;
 
 public final class FankTestBank extends TestBank {
     private final FankClient fank;
+    private final String bic;
 
     public FankTestBank(Config config) {
         this(new FankConfig(config));
     }
 
     public FankTestBank(FankConfig fankConfig) {
-        this(fankConfig.getFank(), fankConfig.useSsl());
+        this(fankConfig.getBic(), fankConfig.getFank(), fankConfig.useSsl());
     }
 
-    public FankTestBank(HostAndPort fank, boolean useSsl) {
+    public FankTestBank(String bic, HostAndPort fank, boolean useSsl) {
+        this.bic = bic;
         this.fank = new FankClient(
                 fank.getHost(),
                 fank.getPort(),
@@ -40,12 +42,12 @@ public final class FankTestBank extends TestBank {
                 bankAccountNumber,
                 1000000.00,
                 "USD");
-        return new BankAccount(bankAccountNumber, "Test Account");
+        return new BankAccount(bic, bankAccountNumber, "Test Account");
     }
 
     @Override
     public BankAccount lookupAccount(String accountNumber) {
-        return new BankAccount(accountNumber, "Test Account");
+        return new BankAccount(bic, accountNumber, "Test Account");
     }
 
     @Override
@@ -54,12 +56,12 @@ public final class FankTestBank extends TestBank {
         fank.addAccount(
                 client,
                 account.getDisplayName(),
-                account.getIdentifier(),
+                account.getAccountNumber(),
                 1000000.00,
                 "USD");
         return fank.startAccountsLinking(
                 username,
                 client.getId(),
-                singletonList(account.getIdentifier()));
+                singletonList(account.getAccountNumber()));
     }
 }

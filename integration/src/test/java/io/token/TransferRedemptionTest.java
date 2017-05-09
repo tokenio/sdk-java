@@ -1,6 +1,7 @@
 package io.token;
 
 import static io.token.asserts.TransferAssertion.assertThat;
+import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -14,8 +15,6 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
@@ -138,17 +137,10 @@ public class TransferRedemptionTest {
     }
 
     private Token token(double amount) {
-        return payer.createToken(
-                amount,
-                "USD",
-                payerAccount.id(),
-                payee.firstUsername(),
-                "book purchase",
-                Destination.newBuilder()
-                        .setTokenDestination(TokenDestination.newBuilder()
-                                .setAccountId(payeeAccount.id())
-                                .setMemberId(payee.memberId())
-                                .build())
-                        .build());
+        return payer.createTransferToken(amount, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .addDestination(Destinations.sepa(string()))
+                .execute();
     }
 }

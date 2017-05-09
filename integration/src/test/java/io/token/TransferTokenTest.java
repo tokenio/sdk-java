@@ -27,12 +27,11 @@ public class TransferTokenTest {
 
     @Test
     public void createTransferToken() {
-        Token token = payer.createToken(
-                100.0,
-                "USD",
-                payerAccount.id(),
-                payee.firstUsername(),
-                "book purchase");
+        Token token = payer.createTransferToken(100.0, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .setDescription("book purchase")
+                .execute();
 
         assertThat(token)
                 .hasFrom(payer)
@@ -48,7 +47,10 @@ public class TransferTokenTest {
         assertThatThrownBy(
                 new ThrowableAssert.ThrowingCallable() {
                     public void call() throws Throwable {
-                        payer.createToken(100.0, "USD", payerAccount.id());
+                        payer.createTransferToken(100.0, "USD")
+                                .setRedeemerUsername(payee.firstUsername())
+                                .setAccountId(payerAccount.id())
+                                .execute();
                     }
                 })
                 .isInstanceOf(StatusRuntimeException.class)
@@ -60,7 +62,10 @@ public class TransferTokenTest {
 
     @Test
     public void getTransferToken() {
-        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        Token token = payer.createTransferToken(100.0, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
         assertThat(payer.getToken(token.getId()))
                 .hasFrom(payer)
                 .hasAmount(100.0)
@@ -70,9 +75,18 @@ public class TransferTokenTest {
 
     @Test
     public void getTransferTokens() {
-        Token token1 = payer.createToken(123.45, "EUR", payerAccount.id());
-        Token token2 = payer.createToken(678.90, "USD", payerAccount.id());
-        Token token3 = payer.createToken(100.99, "USD", payerAccount.id());
+        Token token1 = payer.createTransferToken(123.45, "EUR")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
+        Token token2 = payer.createTransferToken(678.90, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
+        Token token3 = payer.createTransferToken(100.99, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
 
         PagedList<Token, String> res = payer.getTransferTokens(null, 3);
         assertThat(res.getList()).containsOnly(token1, token2, token3);
@@ -83,7 +97,10 @@ public class TransferTokenTest {
     public void getTransferTokensPaged() {
         int num = 10;
         for (int i = 0; i < num; i++) {
-            payer.createToken(100.0 + i, "EUR", payerAccount.id());
+            Token token = payer.createTransferToken(100 + i, "EUR")
+                    .setAccountId(payerAccount.id())
+                    .setRedeemerUsername(payee.firstUsername())
+                    .execute();
         }
 
         int limit = 2;
@@ -99,7 +116,10 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferToken() {
-        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        Token token = payer.createTransferToken(100.0, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
         TokenOperationResult result = payer.endorseToken(token, Key.Level.STANDARD);
         assertThat(result.getStatus())
                 .isEqualTo(TokenOperationResult.Status.SUCCESS);
@@ -113,7 +133,10 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenWithUnlinkedAccount() {
-        final Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        final Token token = payer.createTransferToken(100.0, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
         payer.unlinkAccounts(singletonList(payerAccount.id()));
         assertThatThrownBy(
                 new ThrowableAssert.ThrowingCallable() {
@@ -130,7 +153,10 @@ public class TransferTokenTest {
 
     @Test
     public void cancelTransferToken() {
-        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        Token token = payer.createTransferToken(100.0, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
         TokenOperationResult result = payer.cancelToken(token);
         assertThat(result.getStatus())
                 .isEqualTo(TokenOperationResult.Status.SUCCESS);
@@ -145,7 +171,10 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenMoreSignaturesNeeded() {
-        Token token = payer.createToken(100.0, "USD", payerAccount.id());
+        Token token = payer.createTransferToken(100.0, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
         TokenOperationResult result = payer.endorseToken(token, Key.Level.LOW);
 
         assertThat(result.getStatus())

@@ -1,5 +1,6 @@
 package io.token;
 
+import static io.token.testing.sample.Sample.string;
 import static java.lang.Double.parseDouble;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,7 +14,6 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.SwiftDestination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,10 +52,8 @@ public class TransactionsTest {
 
     @Test
     public void getTransactions() {
-        Destination destination = Destination.newBuilder()
-                .setSwiftDestination(SwiftDestination.getDefaultInstance())
-                .build();
-        Token token = token(destination);
+        Destination destination = Destinations.swift(string(), string());
+        Token token = tokenSwift(destination);
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         final Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", "one");
@@ -141,21 +139,20 @@ public class TransactionsTest {
     }
 
     private Token token() {
-        return token(Destination.newBuilder()
-                .setTokenDestination(TokenDestination.newBuilder()
-                        .setAccountId(payeeAccount.id())
-                        .setMemberId(payee.memberId())
-                        .build())
-                .build());
+        return payer.createTransferToken(1500.0, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .setDescription("Multi charge token")
+                .addDestination(Destinations.sepa(string()))
+                .execute();
     }
 
-    private Token token(Destination destination) {
-        return payer.createToken(
-                1500.0,
-                "USD",
-                payerAccount.id(),
-                payee.firstUsername(),
-                "Multi charge token",
-                destination);
+    private Token tokenSwift(Destination destination) {
+        return payer.createTransferToken(1500.0, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .setDescription("Multi charge token")
+                .addDestination(destination)
+                .execute();
     }
 }
