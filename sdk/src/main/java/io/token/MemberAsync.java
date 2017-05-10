@@ -474,7 +474,7 @@ public final class MemberAsync {
      * @param type MIME type of the file
      * @param name name
      * @param data file data
-     * @return blob Id
+     * @return attachment
      */
     public Observable<Attachment> createBlob(String ownerId, final String type, final String name, byte[] data) {
         Payload payload = Payload
@@ -582,8 +582,8 @@ public final class MemberAsync {
      * @param currency currency code, e.g. "USD"
      * @return transfer token returned by the server
      */
-    public TokenBuilder createTransferToken(double amount, String currency) {
-        return new TokenBuilder(this, amount, currency);
+    public TransferTokenBuilder createTransferToken(double amount, String currency) {
+        return new TransferTokenBuilder(this, amount, currency);
     }
 
     /**

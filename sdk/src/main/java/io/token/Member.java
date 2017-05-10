@@ -45,7 +45,6 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Des
 import io.token.security.keystore.SecretKeyPair;
 
 import java.io.IOException;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -435,8 +434,8 @@ public final class Member {
      * @param currency currency code, e.g. "USD"
      * @return transfer token returned by the server
      */
-    public TokenBuilder createTransferToken(double amount, String currency) {
-        return new TokenBuilder(async, amount, currency);
+    public TransferTokenBuilder createTransferToken(double amount, String currency) {
+        return new TransferTokenBuilder(async, amount, currency);
     }
 
     /**
@@ -695,14 +694,14 @@ public final class Member {
      * Creates and uploads a blob.
      *
      * @param filename absolute path and name of file
-     * @return blob Id
+     * @return attachment
      */
     public Attachment createBlob(String filename) throws IOException {
         return async.createBlob(filename).toBlocking().single();
     }
 
     /**
-     * Gets a blob from the server
+     * Gets a blob from the server.
      *
      * @param blobId blob Id
      * @return Blob

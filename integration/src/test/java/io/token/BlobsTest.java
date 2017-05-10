@@ -28,19 +28,21 @@ public class BlobsTest {
     private final Member payer = payerAccount.member();
     private final Member payee = rule.member();
     private final Member otherMember = rule.member();
+    private static String FILETYPE = "application/json";
+    private static String FILENAME = "file.json";
 
     @Test
     public void checkHash() {
         byte[] randomData = new byte[100];
-        new Random().nextBytes(randomData);
+    new Random().nextBytes(randomData);
 
         Attachment attachment = payer
-                .createBlob(payer.memberId(), "application/json", "file.json", randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Payload blobPayload = Payload.newBuilder()
                 .setData(ByteString.copyFrom(randomData))
-                .setName("file.json")
-                .setType("application/json")
+                .setName(FILENAME)
+                .setType(FILETYPE)
                 .setOwnerId(payer.memberId())
                 .build();
         String hash = ByteEncoding.serializeHumanReadable(ProtoHasher.hash(blobPayload));
@@ -53,9 +55,9 @@ public class BlobsTest {
         new Random().nextBytes(randomData);
 
         Attachment attachment = payer
-                .createBlob(payer.memberId(), "application/json", "file.json", randomData);
-        assertThat(attachment.getName()).isEqualTo("file.json");
-        assertThat(attachment.getType()).isEqualTo("application/json");
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
+        assertThat(attachment.getName()).isEqualTo(FILENAME);
+        assertThat(attachment.getType()).isEqualTo(FILETYPE);
         assertThat(attachment.getBlobId().length()).isGreaterThan(5);
     }
 
@@ -65,10 +67,10 @@ public class BlobsTest {
         new Random().nextBytes(randomData);
 
         Attachment attachment = payer.createBlob(
-                payer.memberId(), "application/json", "file.json", randomData);
+                payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Attachment attachment2 = payer
-                .createBlob(payer.memberId(), "application/json", "file.json", randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
         assertThat(attachment).isEqualTo(attachment2);
     }
 
@@ -78,7 +80,7 @@ public class BlobsTest {
         new Random().nextBytes(randomData);
 
         Attachment attachment = payer
-                .createBlob(payer.memberId(), "application/json", "file.json", randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Blob blob = payer.getBlob(attachment.getBlobId());
 
@@ -92,7 +94,7 @@ public class BlobsTest {
         byte[] randomData = new byte[0];
 
         Attachment attachment = payer
-                .createBlob(payer.memberId(), "application/json", "file.json", randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Blob blob = payer.getBlob(attachment.getBlobId());
 
@@ -103,11 +105,11 @@ public class BlobsTest {
 
     @Test
     public void mediumSize() {
-        byte[] randomData = new byte[500000];
+        byte[] randomData = new byte[50000];
         new Random().nextBytes(randomData);
 
         Attachment attachment = payer
-                .createBlob(payer.memberId(), "application/json", "file.json", randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Blob blob = payer.getBlob(attachment.getBlobId());
 
@@ -118,7 +120,6 @@ public class BlobsTest {
 
     @Test
     public void filename() throws IOException {
-        //Get file from resources folder
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("local.conf").getFile());
 
@@ -146,10 +147,10 @@ public class BlobsTest {
         new Random().nextBytes(randomData2);
 
         Attachment attachment = payer
-                .createBlob(payer.memberId(), "application/json", "file.json", randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Attachment attachment2 = payer
-                .createBlob(payer.memberId(), "application/json", "file.json", randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Token token = payer.createTransferToken(100, "EUR")
                 .setAccountId(payerAccount.id())
@@ -178,7 +179,7 @@ public class BlobsTest {
         new Random().nextBytes(randomData);
 
         final Attachment attachment = payer
-                .createBlob(payer.memberId(), "application/json", "file.json", randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         final Token token = payer.createTransferToken(100, "EUR")
                 .setAccountId(payerAccount.id())

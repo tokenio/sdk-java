@@ -17,7 +17,7 @@ import org.assertj.core.api.ThrowableAssert;
 import org.junit.Rule;
 import org.junit.Test;
 
-public class TokenBuilderTest {
+public class TransferTokenBuilderTest {
     @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
     private final Account payeeAccount = rule.account();
@@ -59,7 +59,6 @@ public class TokenBuilderTest {
 
     @Test
     public void blobs() {
-        //Get file from resources folder
         ClassLoader classLoader = getClass().getClassLoader();
         File file = new File(classLoader.getResource("local.conf").getFile());
         Attachment attachment = null;

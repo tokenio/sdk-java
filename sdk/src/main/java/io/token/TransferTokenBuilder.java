@@ -19,11 +19,24 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Sou
 
 import rx.Observable;
 
-public final class TokenBuilder {
+/**
+ * This class is used to build a transfer token. The required parameters are member, amount (which
+ * is the lifetime amount of the token), and currency. One source of funds must be set: either
+ * accountId or BankAuthorization. Finally, a redeemer must be set, specified by either username
+ * or memberId.
+ */
+public final class TransferTokenBuilder {
     private final MemberAsync member;
     private final TokenPayload.Builder payload;
 
-    public TokenBuilder(MemberAsync member, double amount, String currency) {
+    /**
+     * Creates the builder object.
+     *
+     * @param member payer of the token
+     * @param amount lifetime amount of the token
+     * @param currency currency of the token
+     */
+    public TransferTokenBuilder(MemberAsync member, double amount, String currency) {
         this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
@@ -37,7 +50,13 @@ public final class TokenBuilder {
                         .build());
     }
 
-    public TokenBuilder setAccountId(String accountId) {
+    /**
+     * Adds a source accountId to the token.
+     *
+     * @param accountId source accountId
+     * @return builder
+     */
+    public TransferTokenBuilder setAccountId(String accountId) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .getSourceBuilder()
@@ -48,7 +67,13 @@ public final class TokenBuilder {
         return this;
     }
 
-    public TokenBuilder setBankAuthorization(BankAuthorization bankAuthorization) {
+    /**
+     * Sets the Bank Authorization.
+     *
+     * @param bankAuthorization BankAuthorization
+     * @return builder
+     */
+    public TransferTokenBuilder setBankAuthorization(BankAuthorization bankAuthorization) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .getSourceBuilder()
@@ -58,58 +83,116 @@ public final class TokenBuilder {
         return this;
     }
 
-    public TokenBuilder setExpiresAtMs(long expiresAtMs) {
+    /**
+     * Sets the expiration date.
+     *
+     * @param expiresAtMs expiration date in ms.
+     * @return builder
+     */
+    public TransferTokenBuilder setExpiresAtMs(long expiresAtMs) {
         payload.setExpiresAtMs(expiresAtMs);
         return this;
     }
 
-    public TokenBuilder setEffectiveAtMs(long effectiveAtMs) {
+    /**
+     * Sets the effective date.
+     *
+     * @param effectiveAtMs effective date in ms.
+     * @return builder
+     */
+    public TransferTokenBuilder setEffectiveAtMs(long effectiveAtMs) {
         payload.setExpiresAtMs(effectiveAtMs);
         return this;
     }
 
-    public TokenBuilder setChargeAmount(double chargeAmount) {
+    /**
+     * Sets the maximum amount per charge.
+     *
+     * @param chargeAmount amount
+     * @return builder
+     */
+    public TransferTokenBuilder setChargeAmount(double chargeAmount) {
         payload.getTransferBuilder()
                 .setAmount(Double.toString(chargeAmount));
         return this;
     }
 
-    public TokenBuilder setDescription(String description) {
+    /**
+     * Sets the description.
+     *
+     * @param description description
+     * @return builder
+     */
+    public TransferTokenBuilder setDescription(String description) {
         payload.setDescription(description);
         return this;
     }
 
-    public TokenBuilder addDestination(Destination destination) {
+    /**
+     * Adds a transfer destination.
+     *
+     * @param destination destination
+     * @return builder
+     */
+    public TransferTokenBuilder addDestination(Destination destination) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .addDestinations(destination);
         return this;
     }
 
-    public TokenBuilder setRedeemerUsername(String redeemerUsername) {
+    /**
+     * Sets the username of the redeemer.
+     *
+     * @param redeemerUsername username
+     * @return builder
+     */
+    public TransferTokenBuilder setRedeemerUsername(String redeemerUsername) {
         payload.getTransferBuilder()
                 .getRedeemerBuilder()
                 .setUsername(redeemerUsername);
         return this;
     }
 
-    public TokenBuilder setRedeemerMemberId(String redeemerMemberId) {
+    /**
+     * Sets the memberId of the redeemer.
+     *
+     * @param redeemerMemberId memberId
+     * @return builder
+     */
+    public TransferTokenBuilder setRedeemerMemberId(String redeemerMemberId) {
         payload.getTransferBuilder()
                 .getRedeemerBuilder()
                 .setId(redeemerMemberId);
         return this;
     }
 
-    public TokenBuilder addAttachment(Attachment attachment) {
+    /**
+     * Adds an attachment to the token.
+     *
+     * @param attachment attachment
+     * @return builder
+     */
+    public TransferTokenBuilder addAttachment(Attachment attachment) {
         payload.getTransferBuilder()
                 .addAttachments(attachment);
         return this;
     }
 
+    /**
+     * Executes the request, creating a token.
+     *
+     * @return Token
+     */
     public Token execute() {
         return executeAsync().toBlocking().single();
     }
 
+    /**
+     * Executes the request asynchronously.
+     *
+     * @return Token
+     */
     public Observable<Token> executeAsync() {
         SourceCase sourceCase = payload.getTransfer().getInstructions().getSource().getSourceCase();
         if (sourceCase != BANKAUTHORIZATIONSOURCE && sourceCase != TOKENSOURCE) {
