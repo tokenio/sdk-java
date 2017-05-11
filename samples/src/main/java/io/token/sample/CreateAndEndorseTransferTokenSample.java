@@ -19,9 +19,9 @@ public final class CreateAndEndorseTransferTokenSample {
 
         // Create a transfer token.
         Token transferToken = payer.createTransferToken(100.0, "EUR") /* amount and currency */
-                .setAccountId(payer.getAccounts().get(0).id())   /* source account */
-                .setRedeemerUsername(payeeUsername)              /* payee token username to transfer money to */
-                .setDescription("Book purchase")                 /* optional description */
+                .setAccountId(payer.getAccounts().get(0).id()) /* source account */
+                .setRedeemerUsername(payeeUsername) /* payee token username to transfer money to */
+                .setDescription("Book purchase") /* optional description */
                 .execute();
 
         // Payer endorses a token to a payee by signing it with her secure private key.
