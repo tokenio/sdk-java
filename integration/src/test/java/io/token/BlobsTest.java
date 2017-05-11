@@ -23,18 +23,19 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class BlobsTest {
+    private static String FILENAME = "file.json";
+    private static String FILETYPE = "application/json";
     @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
     private final Member payer = payerAccount.member();
     private final Member payee = rule.member();
     private final Member otherMember = rule.member();
-    private static String FILETYPE = "application/json";
-    private static String FILENAME = "file.json";
 
     @Test
     public void checkHash() {
         byte[] randomData = new byte[100];
-    new Random().nextBytes(randomData);
+
+        new Random().nextBytes(randomData);
 
         Attachment attachment = payer
                 .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
