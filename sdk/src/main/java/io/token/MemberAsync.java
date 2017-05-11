@@ -476,7 +476,11 @@ public final class MemberAsync {
      * @param data file data
      * @return attachment
      */
-    public Observable<Attachment> createBlob(String ownerId, final String type, final String name, byte[] data) {
+    public Observable<Attachment> createBlob(
+            String ownerId,
+            final String type,
+            final String name,
+            byte[] data) {
         Payload payload = Payload
                 .newBuilder()
                 .setOwnerId(ownerId)
@@ -501,8 +505,9 @@ public final class MemberAsync {
      *
      * @param filePath name of the file to read
      * @return blob Id
+     * @throws IOException if can't read from a file
      */
-    public Observable<Attachment> createBlob(String filePath) throws IOException{
+    public Observable<Attachment> createBlob(String filePath) throws IOException {
         Path path = Paths.get(filePath);
         String type = Files.probeContentType(path);
         if (type == null) {

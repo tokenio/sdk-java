@@ -695,6 +695,7 @@ public final class Member {
      *
      * @param filename absolute path and name of file
      * @return attachment
+     * @throws IOException if can't read from a file
      */
     public Attachment createBlob(String filename) throws IOException {
         return async.createBlob(filename).toBlocking().single();
