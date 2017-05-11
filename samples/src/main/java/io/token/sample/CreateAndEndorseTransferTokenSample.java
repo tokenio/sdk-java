@@ -16,14 +16,13 @@ public final class CreateAndEndorseTransferTokenSample {
      * @return a transfer Token
      */
     public static Token createTransferToken(Member payer, String payeeUsername) {
+
         // Create a transfer token.
-        Token transferToken = payer.createToken(
-                100.0,                              /* amount */
-                "EUR",                              /* currency */
-                payer.getAccounts().get(0).id(),    /* payer account to transfer money from */
-                payeeUsername,                      /* payee token username to transfer money to */
-                "Book purchase"                     /* optional transfer description */
-        );
+        Token transferToken = payer.createTransferToken(100.0, "EUR") /* amount and currency */
+                .setAccountId(payer.getAccounts().get(0).id())   /* source account */
+                .setRedeemerUsername(payeeUsername)              /* payee token username to transfer money to */
+                .setDescription("Book purchase")                 /* optional description */
+                .execute();
 
         // Payer endorses a token to a payee by signing it with her secure private key.
         transferToken = payer.endorseToken(transferToken, Key.Level.STANDARD).getToken();

@@ -33,6 +33,8 @@ import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -49,10 +51,12 @@ import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
+import io.token.proto.gateway.Gateway.CreateBlobResponse;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountRequest;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountResponse;
 import io.token.proto.gateway.Gateway.CreateTokenRequest;
@@ -77,6 +81,7 @@ import io.token.proto.gateway.Gateway.GetBankInfoRequest;
 import io.token.proto.gateway.Gateway.GetBankInfoResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
+import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
@@ -87,6 +92,8 @@ import io.token.proto.gateway.Gateway.GetSubscriberRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberResponse;
 import io.token.proto.gateway.Gateway.GetSubscribersRequest;
 import io.token.proto.gateway.Gateway.GetSubscribersResponse;
+import io.token.proto.gateway.Gateway.GetTokenBlobRequest;
+import io.token.proto.gateway.Gateway.GetTokenBlobResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -121,6 +128,7 @@ import io.token.security.Signer;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -705,6 +713,65 @@ public final class Client {
                         return PagedList.create(
                                 response.getTransactionsList(),
                                 response.getOffset());
+                    }
+                });
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param payload payload of the blob
+     * @return id of the blob
+     */
+    public Observable<String> createBlob(Payload payload) {
+        return toObservable(gateway
+                .createBlob(Gateway.CreateBlobRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .build()))
+                .map(new Func1<CreateBlobResponse, String>() {
+                    public String call(CreateBlobResponse response) {
+                        return response.getBlobId();
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getBlob(String blobId) {
+        return toObservable(gateway
+                .getBlob(Gateway.GetBlobRequest
+                        .newBuilder()
+                        .setBlobId(blobId)
+                        .build()))
+                .map(new Func1<GetBlobResponse, Blob>() {
+                    public Blob call(GetBlobResponse response) {
+                        return response.getBlob();
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a blob that is attached to a token.
+     *
+     * @param tokenId id of the token
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
+        return toObservable(gateway
+                .getTokenBlob(GetTokenBlobRequest
+                        .newBuilder()
+                        .setTokenId(tokenId)
+                        .setBlobId(blobId)
+                        .build()))
+                .map(new Func1<GetTokenBlobResponse, Blob>() {
+                    public Blob call(GetTokenBlobResponse response) {
+                        return response.getBlob();
                     }
                 });
     }

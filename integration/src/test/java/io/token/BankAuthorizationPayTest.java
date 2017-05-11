@@ -9,8 +9,6 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
 import io.token.sdk.BankAccount;
 import io.token.sdk.BankAccountAuthorizer;
 import io.token.security.testing.KeyStoreTestRule;
@@ -52,17 +50,11 @@ public class BankAuthorizationPayTest {
         BankAuthorization authorization = authorizer.createAuthorization(
                 payer.firstUsername(),
                 singletonList(account));
-        return payer.createToken(
-                amount,
-                "USD",
-                authorization,
-                payer.firstUsername(),
-                "book purchase",
-                Destination.newBuilder()
-                        .setTokenDestination(TokenDestination.newBuilder()
-                                .setAccountId(payeeAccount.id())
-                                .setMemberId(payee.memberId())
-                                .build())
-                        .build());
+
+        return payer.createTransferToken(amount, "USD")
+                .setBankAuthorization(authorization)
+                .setRedeemerUsername(payer.firstUsername())
+                .addDestination(Destinations.token(payeeAccount.id(), payee.memberId()))
+                .execute();
     }
 }

@@ -13,6 +13,7 @@ import io.token.sdk.BankAccountAuthorizer;
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
+import javax.xml.datatype.DatatypeFactory;
 
 /**
  * Config based implementation of the test bank. We assume that the bank we

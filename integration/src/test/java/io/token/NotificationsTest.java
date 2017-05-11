@@ -157,12 +157,10 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payer.createToken(
-                56,
-                "USD",
-                payerAccount.id(),
-                payee.firstUsername(),
-                "");
+        Token token = payer.createTransferToken(56, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus())
@@ -185,18 +183,14 @@ public class NotificationsTest {
         payer.subscribeToNotifications("token", Sample
                 .handlerInstructions(NOTIFICATION_TARGET + "1", TEST));
 
-        Token token = payer.createToken(
-                56,
-                "USD",
-                payerAccount.id(),
-                payee.firstUsername(),
-                "");
-        Token token2 = payer.createToken(
-                57,
-                "USD",
-                payerAccount.id(),
-                payee.firstUsername(),
-                "");
+        Token token = payer.createTransferToken(56, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
+        Token token2 = payer.createTransferToken(56, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         TokenOperationResult res2 = payer.endorseToken(token2, Key.Level.LOW);
@@ -239,20 +233,19 @@ public class NotificationsTest {
         payer.subscribeToNotifications(
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
-        Token token = payer.createToken(
-                20,
-                "USD",
-                payerAccount.id(),
-                payee.firstUsername(),
-                "");
-        Token t2 = payer.createToken(
-                20,
-                "USD",
-                payerAccount.id(),
-                payee.firstUsername(),
-                "");
+
+        Token token = payer.createTransferToken(20, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
+
+        Token token2 = payer.createTransferToken(20, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
+
         Token endorsed = payer.endorseToken(token, Key.Level.STANDARD).getToken();
-        Token endorsed2 = payer.endorseToken(t2, Level.STANDARD).getToken();
+        Token endorsed2 = payer.endorseToken(token2, Level.STANDARD).getToken();
         Destination destination = Destination.newBuilder()
                 .setTokenDestination(TokenDestination.newBuilder()
                         .setAccountId(payerAccount.id())

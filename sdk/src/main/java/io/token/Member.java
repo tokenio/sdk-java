@@ -29,6 +29,8 @@ import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.blob.BlobProtos.Attachment;
+import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
@@ -42,7 +44,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.security.keystore.SecretKeyPair;
 
-import java.util.Collections;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -426,199 +428,14 @@ public final class Member {
     }
 
     /**
-     * Creates a new transfer token.
+     * Creates a new transfer token builder.
      *
      * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
-     * @param accountId the funding account id
      * @return transfer token returned by the server
      */
-    public Token createToken(double amount, String currency, String accountId) {
-        return async.createToken(
-                amount,
-                currency,
-                accountId)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param accountId the funding account id
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @return transfer token returned by the server
-     */
-    public Token createToken(
-            double amount,
-            String currency,
-            String accountId,
-            String redeemer,
-            String description) {
-        return async.createToken(
-                amount,
-                currency,
-                accountId,
-                redeemer,
-                description)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param accountId the funding account id
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @param destination transfer destination
-     * @return transfer token returned by the server
-     */
-    public Token createToken(
-            double amount,
-            String currency,
-            String accountId,
-            String redeemer,
-            String description,
-            Destination destination) {
-        return async.createToken(
-                amount,
-                currency,
-                accountId,
-                redeemer,
-                description,
-                Collections.singletonList(destination))
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param accountId the funding account id
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @param destinations transfer destinations
-     * @return transfer token returned by the server
-     */
-    public Token createToken(
-            double amount,
-            String currency,
-            String accountId,
-            String redeemer,
-            String description,
-            List<Destination> destinations) {
-        return async.createToken(amount, currency, accountId, redeemer, description, destinations)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param authorization the bank authorization for the funding account
-     * @return transfer token returned by the server
-     */
-    public Token createToken(double amount, String currency, BankAuthorization authorization) {
-        return async.createToken(
-                amount,
-                currency,
-                authorization)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param authorization the bank authorization for the funding account
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @return transfer token returned by the server
-     */
-    public Token createToken(
-            double amount,
-            String currency,
-            BankAuthorization authorization,
-            String redeemer,
-            String description) {
-        return async.createToken(
-                amount,
-                currency,
-                authorization,
-                redeemer,
-                description)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param authorization the bank authorization for the funding account
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @param destination transfer destination
-     * @return transfer token returned by the server
-     */
-    public Token createToken(
-            double amount,
-            String currency,
-            BankAuthorization authorization,
-            String redeemer,
-            String description,
-            Destination destination) {
-        return async.createToken(
-                amount,
-                currency,
-                authorization,
-                redeemer,
-                description,
-                destination)
-                .toBlocking()
-                .single();
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param authorization the bank authorization for the funding account
-     * @param redeemer redeemer username
-     * @param description transfer description, optional
-     * @param destinations transfer destinations
-     * @return transfer token returned by the server
-     */
-    public Token createToken(
-            double amount,
-            String currency,
-            BankAuthorization authorization,
-            String redeemer,
-            String description,
-            List<Destination> destinations) {
-        return async.createToken(
-                amount,
-                currency,
-                authorization,
-                redeemer,
-                description,
-                destinations)
-                .toBlocking()
-                .single();
+    public TransferTokenBuilder createTransferToken(double amount, String currency) {
+        return new TransferTokenBuilder(async, amount, currency);
     }
 
     /**
@@ -854,6 +671,54 @@ public final class Member {
      */
     public BankInfo getBankInfo(String bankId) {
         return async.getBankInfo(bankId).toBlocking().single();
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @return blob Id
+     */
+    public Attachment createBlob(
+            String ownerId,
+            String type,
+            String name,
+            byte[] data) {
+        return async.createBlob(ownerId, type, name, data).toBlocking().single();
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param filename absolute path and name of file
+     * @return attachment
+     */
+    public Attachment createBlob(String filename) throws IOException {
+        return async.createBlob(filename).toBlocking().single();
+    }
+
+    /**
+     * Gets a blob from the server.
+     *
+     * @param blobId blob Id
+     * @return Blob
+     */
+    public Blob getBlob(String blobId) {
+        return async.getBlob(blobId).toBlocking().single();
+    }
+
+    /**
+     * Retrieves a blob that is attached to a token.
+     *
+     * @param tokenId id of the token
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Blob getTokenBlob(String tokenId, String blobId) {
+        return async.getTokenBlob(tokenId, blobId).toBlocking().single();
     }
 
     /**

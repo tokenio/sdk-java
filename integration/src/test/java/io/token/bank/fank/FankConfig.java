@@ -24,6 +24,10 @@ public class FankConfig {
         return config.getBoolean("use-ssl");
     }
 
+    public String getBic() {
+        return config.getString("bank-bic");
+    }
+
     public HostAndPort getFank() {
         return HostAndPort.fromParts(
                 config.getString("fank.host"),
