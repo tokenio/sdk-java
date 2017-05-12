@@ -1,6 +1,8 @@
 package io.token;
 
 import static io.token.proto.common.notification.NotificationProtos.Notification.Status.DELIVERED;
+import static io.token.proto.common.notification.NotificationProtos.NotifyBody.BodyCase.PAYEE_TRANSFER_PROCESSED;
+import static io.token.proto.common.notification.NotificationProtos.NotifyBody.BodyCase.PAYER_TRANSFER_PROCESSED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -13,7 +15,6 @@ import io.token.proto.common.account.AccountProtos.AccountRoute;
 import io.token.proto.common.account.AccountProtos.PlaintextBankAuthorization;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
-import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
@@ -267,8 +268,8 @@ public class NotificationsTest {
                 assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationTypeExtractor())
                         .containsExactly(
-                                NotifyBody.BodyCase.PAYER_TRANSFER_PROCESSED.toString(),
-                                NotifyBody.BodyCase.PAYER_TRANSFER_PROCESSED.toString());
+                                PAYER_TRANSFER_PROCESSED.toString(),
+                                PAYER_TRANSFER_PROCESSED.toString());
             }
         });
 
@@ -277,8 +278,8 @@ public class NotificationsTest {
                 assertThat(payee.getNotifications(null, 100).getList())
                         .extracting(new NotificationTypeExtractor())
                         .containsExactly(
-                                NotifyBody.BodyCase.PAYEE_TRANSFER_PROCESSED.toString(),
-                                NotifyBody.BodyCase.PAYEE_TRANSFER_PROCESSED.toString());
+                                PAYEE_TRANSFER_PROCESSED.toString(),
+                                PAYEE_TRANSFER_PROCESSED.toString());
             }
         });
     }
@@ -311,7 +312,7 @@ public class NotificationsTest {
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationTypeExtractor())
-                        .containsExactly(NotifyBody.BodyCase.PAYER_TRANSFER_PROCESSED.toString());
+                        .containsExactly(PAYER_TRANSFER_PROCESSED.toString());
             }
         });
 
