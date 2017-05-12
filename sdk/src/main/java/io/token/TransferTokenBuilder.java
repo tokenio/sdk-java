@@ -208,8 +208,7 @@ public final class TransferTokenBuilder {
      * @return builder
      */
     public TransferTokenBuilder setToUsername(String toUsername) {
-        payload.getToBuilder()
-                .setUsername(toUsername);
+        payload.getToBuilder().setUsername(toUsername);
         return this;
     }
 
@@ -220,8 +219,7 @@ public final class TransferTokenBuilder {
      * @return builder
      */
     public TransferTokenBuilder setToMemberId(String toMemberId) {
-        payload.getToBuilder()
-                .setId(toMemberId);
+        payload.getToBuilder().setId(toMemberId);
         return this;
     }
 
