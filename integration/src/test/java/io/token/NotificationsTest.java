@@ -502,5 +502,4 @@ public class NotificationsTest {
             return notification.getContent().getType();
         }
     }
-
 }
