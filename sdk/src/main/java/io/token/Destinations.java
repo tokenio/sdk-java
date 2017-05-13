@@ -22,14 +22,11 @@
 
 package io.token;
 
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.AchDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.SepaDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.SwiftDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
-
-import javax.annotation.Nullable;
 
 public final class Destinations {
     private Destinations() {}
@@ -41,14 +38,10 @@ public final class Destinations {
      * @param memberId token memberId
      * @return Destinations
      */
-    public static Destination token(
-            String accountId,
-            @Nullable String memberId) {
+    public static Destination token(String accountId, String memberId) {
         TokenDestination.Builder builder = TokenDestination.newBuilder()
+                .setMemberId(memberId)
                 .setAccountId(accountId);
-        if (memberId != null) {
-            builder.setMemberId(memberId);
-        }
         return Destination.newBuilder()
                 .setTokenDestination(builder.build())
                 .build();
