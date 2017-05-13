@@ -34,11 +34,11 @@ public final class Destinations {
     /**
      * Creates a destination of type token (Paying to a token member account).
      *
-     * @param accountId token accountId
      * @param memberId token memberId
+     * @param accountId token accountId
      * @return Destinations
      */
-    public static Destination token(String accountId, String memberId) {
+    public static Destination token(String memberId, String accountId) {
         TokenDestination.Builder builder = TokenDestination.newBuilder()
                 .setMemberId(memberId)
                 .setAccountId(accountId);
