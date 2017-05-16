@@ -65,7 +65,7 @@ public class TransferTokenBuilderTest {
         String filename = file.getAbsolutePath();
 
         try {
-            attachment = payer.createBlob(filename);
+            attachment = payer.uploadAttachment(filename);
         } catch (IOException exception) {
             // Fail test
             assert false;
@@ -80,7 +80,7 @@ public class TransferTokenBuilderTest {
 
         payer.endorseToken(token, SecurityProtos.Key.Level.STANDARD);
 
-        Blob blob = payer.getTokenBlob(token.getId(), attachment.getBlobId());
+        Blob blob = payer.downloadTokenAttachment(token.getId(), attachment.getBlobId());
         assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
         assertThat(blob.getPayload().getName()).isEqualTo(attachment.getName());
     }
