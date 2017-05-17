@@ -10,7 +10,7 @@ import io.token.bank.TestBank;
 import io.token.proto.bankapi.Fank;
 import io.token.proto.bankapi.Fank.Client;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.sdk.BankAccount;
+import io.token.sdk.NamedAccount;
 
 public final class FankTestBank extends TestBank {
     private String bic;
@@ -33,7 +33,7 @@ public final class FankTestBank extends TestBank {
     }
 
     @Override
-    public BankAccount randomAccount() {
+    public NamedAccount randomAccount() {
         String bankAccountNumber = "iban:" + randomNumeric(7);
         Fank.Client client = fank.addClient("Test " + string(), "Testoff");
         fank.addAccount(
@@ -42,16 +42,16 @@ public final class FankTestBank extends TestBank {
                 bankAccountNumber,
                 1000000.00,
                 "USD");
-        return new BankAccount(bic, bankAccountNumber, "Test Account");
+        return new NamedAccount(bic, bankAccountNumber, "Test Account");
     }
 
     @Override
-    public BankAccount lookupAccount(String accountNumber) {
-        return new BankAccount(bic, accountNumber, "Test Account");
+    public NamedAccount lookupAccount(String accountNumber) {
+        return new NamedAccount(bic, accountNumber, "Test Account");
     }
 
     @Override
-    public BankAuthorization authorizeAccount(String username, BankAccount account) {
+    public BankAuthorization authorizeAccount(String username, NamedAccount account) {
         Client client = fank.addClient("Test " + string(), "Testoff");
         fank.addAccount(
                 client,
