@@ -9,7 +9,7 @@ import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.common.account.AccountProtos.AccountRoute;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.PlaintextBankAuthorization;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
@@ -54,14 +54,14 @@ public class NotificationsTest {
     public void setup() {
         String checking = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Checking")
-                .setAccount(AccountRoute.newBuilder()
+                .setAccount(BankAccount.newBuilder()
                         .setBic("irontest")
                         .setAccount("iban:checking"))
                 .build());
 
         String saving = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Saving")
-                .setAccount(AccountRoute.newBuilder()
+                .setAccount(BankAccount.newBuilder()
                         .setBic("irontest")
                         .setAccount("iban:savings"))
                 .build());

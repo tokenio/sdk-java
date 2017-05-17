@@ -4,7 +4,7 @@ import com.typesafe.config.Config;
 import io.token.bank.config.ConfigBasedTestBank;
 import io.token.bank.fank.FankTestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.sdk.BankAccount;
+import io.token.sdk.NamedAccount;
 
 /**
  * Abstracts away a test bank backend.
@@ -30,7 +30,7 @@ public abstract class TestBank {
      *
      * @return random account
      */
-    public abstract BankAccount randomAccount();
+    public abstract NamedAccount randomAccount();
 
     /**
      * Looks up an account given the account number.
@@ -38,7 +38,7 @@ public abstract class TestBank {
      * @param accountNumber account number
      * @return looked up account
      */
-    public abstract BankAccount lookupAccount(String accountNumber);
+    public abstract NamedAccount lookupAccount(String accountNumber);
 
     /**
      * Produces bank authorization for the given account.
@@ -47,5 +47,5 @@ public abstract class TestBank {
      * @param account account to authorize access to
      * @return bank authorization
      */
-    public abstract BankAuthorization authorizeAccount(String username, BankAccount account);
+    public abstract BankAuthorization authorizeAccount(String username, NamedAccount account);
 }

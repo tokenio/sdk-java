@@ -17,7 +17,7 @@ import io.token.Member;
 import io.token.TokenIO;
 import io.token.bank.TestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.sdk.BankAccount;
+import io.token.sdk.NamedAccount;
 import io.token.util.Util;
 
 import java.util.regex.Pattern;
@@ -94,7 +94,7 @@ public class TokenRule implements MethodRule {
 
     public TestAccount testAccount() {
         Member member = member();
-        BankAccount account = testBank.randomAccount();
+        NamedAccount account = testBank.randomAccount();
         BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
         return new TestAccount(
                 account.getAccountNumber(),
@@ -105,7 +105,7 @@ public class TokenRule implements MethodRule {
 
     public TestAccount testAccount(String accountNumber) {
         Member member = member();
-        BankAccount account = testBank.lookupAccount(accountNumber);
+        NamedAccount account = testBank.lookupAccount(accountNumber);
         BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
         return new TestAccount(
                 accountNumber,
@@ -114,7 +114,7 @@ public class TokenRule implements MethodRule {
                         .get(0));
     }
 
-    public BankAccount unlinkedAccount() {
+    public NamedAccount unlinkedAccount() {
         return testBank.randomAccount();
     }
 

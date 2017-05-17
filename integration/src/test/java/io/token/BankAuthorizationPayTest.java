@@ -9,8 +9,8 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.sdk.BankAccount;
 import io.token.sdk.BankAccountAuthorizer;
+import io.token.sdk.NamedAccount;
 import io.token.security.testing.KeyStoreTestRule;
 
 import org.junit.Rule;
@@ -38,7 +38,7 @@ public class BankAuthorizationPayTest {
     }
 
     private Token token(double amount) {
-        BankAccount account = rule.unlinkedAccount();
+        NamedAccount account = rule.unlinkedAccount();
         BankAccountAuthorizer authorizer = BankAccountAuthorizer
                 .builder("iron")
                 .useMethod(NOOP)
