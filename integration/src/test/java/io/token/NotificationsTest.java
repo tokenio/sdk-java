@@ -248,6 +248,7 @@ public class NotificationsTest {
         Token endorsed2 = payer.endorseToken(token2, Level.STANDARD).getToken();
         Destination destination = Destination.newBuilder()
                 .setTokenDestination(TokenDestination.newBuilder()
+                        .setMemberId(payer.memberId())
                         .setAccountId(payerAccount.id())
                         .build())
                 .build();

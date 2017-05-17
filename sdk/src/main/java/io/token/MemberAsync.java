@@ -505,6 +505,7 @@ public final class MemberAsync {
      *
      * @param filePath name of the file to read
      * @return blob Id
+     * @throws IOException if can't read from a file
      */
     public Observable<Attachment> uploadAttachment(String filePath) throws IOException{
         Path path = Paths.get(filePath);

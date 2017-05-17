@@ -56,7 +56,7 @@ public class BankAuthorizationPayTest {
         return payer.createTransferToken(amount, "USD")
                 .setBankAuthorization(authorization)
                 .setRedeemerUsername(payer.firstUsername())
-                .addDestination(Destinations.token(payeeAccount.id(), payee.memberId()))
+                .addDestination(Destinations.token(payee.memberId(), payeeAccount.id()))
                 .execute();
     }
 }
