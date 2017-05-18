@@ -12,8 +12,7 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.SwiftDestination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -52,7 +51,7 @@ public class TransactionsTest {
 
     @Test
     public void getTransactions() {
-        Destination destination = Destinations.swift(string(), string());
+        TransferEndpoint destination = Destinations.swift(string(), string());
         Token token = tokenSwift(destination);
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
@@ -147,7 +146,7 @@ public class TransactionsTest {
                 .execute();
     }
 
-    private Token tokenSwift(Destination destination) {
+    private Token tokenSwift(TransferEndpoint destination) {
         return payer.createTransferToken(1500.0, "USD")
                 .setAccountId(payerAccount.id())
                 .setRedeemerUsername(payee.firstUsername())

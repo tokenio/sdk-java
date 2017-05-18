@@ -1,5 +1,6 @@
 package io.token.bank.fank;
 
+import static io.token.Destinations.swift;
 import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
@@ -42,12 +43,12 @@ public final class FankTestBank extends TestBank {
                 bankAccountNumber,
                 1000000.00,
                 "USD");
-        return new NamedAccount(bic, bankAccountNumber, "Test Account");
+        return new NamedAccount(swift(bic, bankAccountNumber).getAccount(), "Test Account");
     }
 
     @Override
     public NamedAccount lookupAccount(String accountNumber) {
-        return new NamedAccount(bic, accountNumber, "Test Account");
+        return new NamedAccount(swift(bic, accountNumber).getAccount(), "Test Account");
     }
 
     @Override
@@ -56,12 +57,12 @@ public final class FankTestBank extends TestBank {
         fank.addAccount(
                 client,
                 account.getDisplayName(),
-                account.getAccountNumber(),
+                account.getBankAccount().getSwift().getAccount(),
                 1000000.00,
                 "USD");
         return fank.startAccountsLinking(
                 username,
                 client.getId(),
-                singletonList(account.getAccountNumber()));
+                singletonList(account.getBankAccount().getSwift().getAccount()));
     }
 }

@@ -41,7 +41,7 @@ import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.security.keystore.SecretKeyPair;
 
 import java.io.IOException;
@@ -50,7 +50,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
-
 import rx.functions.Func1;
 
 /**
@@ -552,7 +551,7 @@ public final class Member {
      * @param destination transfer instruction destination
      * @return transfer record
      */
-    public Transfer redeemToken(Token token, Destination destination) {
+    public Transfer redeemToken(Token token, TransferEndpoint destination) {
         return async.redeemToken(token, destination).toBlocking().single();
     }
 
@@ -589,7 +588,7 @@ public final class Member {
             Token token,
             @Nullable Double amount,
             @Nullable String currency,
-            @Nullable Destination destination) {
+            @Nullable TransferEndpoint destination) {
         return async
                 .redeemToken(token, amount, currency, null, destination)
                 .toBlocking()
@@ -611,7 +610,7 @@ public final class Member {
             @Nullable Double amount,
             @Nullable String currency,
             @Nullable String description,
-            @Nullable Destination destination) {
+            @Nullable TransferEndpoint destination) {
         return async
                 .redeemToken(token, amount, currency, description, destination)
                 .toBlocking()
