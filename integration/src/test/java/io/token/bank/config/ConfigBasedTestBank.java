@@ -1,6 +1,7 @@
 package io.token.bank.config;
 
 import static com.google.common.base.Preconditions.checkState;
+import static io.token.Destinations.swift;
 import static java.util.Collections.singletonList;
 
 import com.typesafe.config.Config;
@@ -45,13 +46,13 @@ public final class ConfigBasedTestBank extends TestBank {
     public NamedAccount randomAccount() {
         int index = random.nextInt(accounts.size());
         String accountNumber = accounts.get(index);
-        return new NamedAccount(bic, accountNumber, accountNumber);
+        return new NamedAccount(swift(bic, accountNumber).getAccount(), accountNumber);
     }
 
     @Override
     public NamedAccount lookupAccount(String accountNumber) {
         checkState(accounts.contains(accountNumber));
-        return new NamedAccount(bic, accountNumber, accountNumber);
+        return new NamedAccount(swift(bic, accountNumber).getAccount(), accountNumber);
     }
 
     @Override

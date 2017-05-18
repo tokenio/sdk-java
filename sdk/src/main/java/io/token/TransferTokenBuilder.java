@@ -22,22 +22,22 @@
 
 package io.token;
 
-import static io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.SourceCase.BANKAUTHORIZATIONSOURCE;
-import static io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.SourceCase.TOKENSOURCE;
+import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
+import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN_AUTHORIZATION;
 import static io.token.util.Util.generateNonce;
 
 import com.google.common.base.Strings;
 import io.token.exceptions.TokenArgumentsException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.account.AccountProtos.BankAccount;
+import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
+import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.BankAuthorizationSource;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.SourceCase;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Source.TokenSource;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import rx.Observable;
 
@@ -82,9 +82,10 @@ public final class TransferTokenBuilder {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .getSourceBuilder()
-                .setTokenSource(TokenSource.newBuilder()
-                        .setAccountId(accountId)
-                        .setMemberId(member.memberId())
+                .setAccount(BankAccount.newBuilder()
+                        .setToken(BankAccount.Token.newBuilder()
+                                .setAccountId(accountId)
+                                .setMemberId(member.memberId()))
                         .build());
         return this;
     }
@@ -99,8 +100,9 @@ public final class TransferTokenBuilder {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .getSourceBuilder()
-                .setBankAuthorizationSource(BankAuthorizationSource.newBuilder()
-                        .setBankAuthorization(bankAuthorization)
+                .setAccount(BankAccount.newBuilder()
+                        .setTokenAuthorization(TokenAuthorization.newBuilder()
+                                .setAuthorization(bankAuthorization))
                         .build());
         return this;
     }
@@ -156,7 +158,7 @@ public final class TransferTokenBuilder {
      * @param destination destination
      * @return builder
      */
-    public TransferTokenBuilder addDestination(Destination destination) {
+    public TransferTokenBuilder addDestination(TransferEndpoint destination) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .addDestinations(destination);
@@ -216,8 +218,9 @@ public final class TransferTokenBuilder {
      * @return Token
      */
     public Observable<Token> executeAsync() {
-        SourceCase sourceCase = payload.getTransfer().getInstructions().getSource().getSourceCase();
-        if (sourceCase != BANKAUTHORIZATIONSOURCE && sourceCase != TOKENSOURCE) {
+        AccountCase sourceCase =
+                payload.getTransfer().getInstructions().getSource().getAccount().getAccountCase();
+        if (sourceCase != TOKEN_AUTHORIZATION && sourceCase != TOKEN) {
             throw new TokenArgumentsException("No source on token");
         }
         if (Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getId())

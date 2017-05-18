@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableSet;
 import io.grpc.StatusRuntimeException;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.token.TokenProtos;
@@ -19,8 +20,7 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.testing.sample.Sample;
 
 import org.assertj.core.api.ThrowableAssert;
@@ -461,11 +461,11 @@ public class AccessTokenTest {
                 .execute();
         token = payer.endorseToken(token, STANDARD).getToken();
         Transfer transfer = payee.redeemToken(token, 1.0, "USD", "one",
-                Destination.newBuilder()
-                        .setTokenDestination(TokenDestination.newBuilder()
-                                .setMemberId(payee.memberId())
-                                .setAccountId(payeeAccount.id())
-                                .build())
+                TransferEndpoint.newBuilder()
+                        .setAccount(BankAccount.newBuilder()
+                                .setToken(BankAccount.Token.newBuilder()
+                                        .setMemberId(payee.memberId())
+                                        .setAccountId(payeeAccount.id())))
                         .build());
         return payerAccount.getTransaction(transfer.getReferenceId());
     }

@@ -21,7 +21,6 @@ import io.token.sdk.NamedAccount;
 import io.token.util.Util;
 
 import java.util.regex.Pattern;
-
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -97,7 +96,7 @@ public class TokenRule implements MethodRule {
         NamedAccount account = testBank.randomAccount();
         BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
         return new TestAccount(
-                account.getAccountNumber(),
+                account.getBankAccount().getSwift().getAccount(),
                 member
                         .linkAccounts(auth)
                         .get(0));
