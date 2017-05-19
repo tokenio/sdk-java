@@ -1,29 +1,29 @@
 package io.token;
 
 import static io.token.asserts.TransferAssertion.assertThat;
+import static io.token.common.Polling.waitUntil;
 import static io.token.proto.TransactionStatusHelper.hasFailed;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.FAILURE_INSUFFICIENT_FUNDS;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.PROCESSING;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.SUCCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.common.TokenRule;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TransferBody.Pricing;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
-
-import java.util.concurrent.TimeUnit;
 
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class InstantPaymentTest {
-    private static final int TIMEOUT_MS = 90000;
+    private static final int PAYMENT_CLEARING_TIMEOUT_MS = 90000;
+    private static final int PAYMENT_CLEARING_POLL_FREQUENCY_MS = 1000;
 
     @Rule public TokenRule rule = new TokenRule();
     private final Account payerAccount = rule.account();
@@ -37,14 +37,31 @@ public class InstantPaymentTest {
 
         assertThat(transfer).hasStatus(PROCESSING);
 
-        waitUntil(new Runnable() {
+        waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, new Runnable() {
             @Override
             public void run() {
-                Transaction transaction = payer.getTransaction(
+                Transaction payerTransaction = payer.getTransaction(
                         payerAccount.id(),
                         transfer.getReferenceId());
 
-                assertThat(transaction.getStatus()).isEqualTo(SUCCESS);
+                Transaction payeeTransaction = payee.getTransaction(
+                        payeeAccount.id(),
+                        transfer.getReferenceId());
+
+                Token token = payer.getToken(transfer.getPayload().getTokenId());
+                Pricing pricing = token.getPayload().getTransfer().getPricing();
+
+                assertThat(payerTransaction.getStatus())
+                        .as("Payer Transaction Status")
+                        .isEqualTo(SUCCESS);
+                assertThat(payeeTransaction.getStatus())
+                        .as("Payee Transaction Status")
+                        .isEqualTo(SUCCESS);
+
+                assertThat(pricing.getSourceQuote().getId()).as("Source Quote").isNotEmpty();
+                assertThat(pricing.getDestinationQuote().getId())
+                        .as("Destination Quote")
+                        .isNotEmpty();
             }
         });
     }
@@ -53,7 +70,7 @@ public class InstantPaymentTest {
     public void instantPayment_debitFailure() {
         double amount = Double.parseDouble(payerAccount.getBalance().getValue()) + 1;
 
-        final Transfer transfer = initiateInstantTransfer(amount);
+        Transfer transfer = initiateInstantTransfer(amount);
 
         assertThat(transfer.getStatus()).isEqualTo(FAILURE_INSUFFICIENT_FUNDS);
     }
@@ -69,7 +86,7 @@ public class InstantPaymentTest {
 
         initiateInstantTransfer(transferAmount);
 
-        waitUntil(new Runnable() {
+        waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, new Runnable() {
             @Override
             public void run() {
                 double actualPayerBalance =
@@ -101,7 +118,7 @@ public class InstantPaymentTest {
 
         final Transfer transfer = payee.redeemToken(token, 100.00, "USD", transferEndpoint);
 
-        waitUntil(new Runnable() {
+        waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, new Runnable() {
             @Override
             public void run() {
                 Transaction transaction = payer.getTransaction(
@@ -129,20 +146,5 @@ public class InstantPaymentTest {
                 .build();
 
         return payee.redeemToken(token, amount, "USD", transferEndpoint);
-    }
-
-    private void waitUntil(Runnable function) {
-        for (long waitTimeMs = 1000, start = System.currentTimeMillis(); ; ) {
-            try {
-                function.run();
-                return;
-            } catch (AssertionError caughtError) {
-                if (System.currentTimeMillis() - start < TIMEOUT_MS) {
-                    Uninterruptibles.sleepUninterruptibly(waitTimeMs, TimeUnit.MILLISECONDS);
-                } else {
-                    throw caughtError;
-                }
-            }
-        }
     }
 }
