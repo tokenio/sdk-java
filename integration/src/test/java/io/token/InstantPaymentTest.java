@@ -2,6 +2,9 @@ package io.token;
 
 import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.proto.TransactionStatusHelper.hasFailed;
+import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.FAILURE_INSUFFICIENT_FUNDS;
+import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.PROCESSING;
+import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.SUCCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -10,7 +13,6 @@ import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
@@ -33,7 +35,7 @@ public class InstantPaymentTest {
     public void instantPayment_isSuccessful() {
         final Transfer transfer = initiateInstantTransfer(100);
 
-        assertThat(transfer).hasStatus(TransactionStatus.PROCESSING);
+        assertThat(transfer).hasStatus(PROCESSING);
 
         waitUntil(new Runnable() {
             @Override
@@ -42,7 +44,7 @@ public class InstantPaymentTest {
                         payerAccount.id(),
                         transfer.getReferenceId());
 
-                assertThat(transaction.getStatus()).isEqualTo(TransactionStatus.SUCCESS);
+                assertThat(transaction.getStatus()).isEqualTo(SUCCESS);
             }
         });
     }
@@ -53,7 +55,7 @@ public class InstantPaymentTest {
 
         final Transfer transfer = initiateInstantTransfer(amount);
 
-        assertThat(transfer.getStatus()).isEqualTo(TransactionStatus.FAILURE_INSUFFICIENT_FUNDS);
+        assertThat(transfer.getStatus()).isEqualTo(FAILURE_INSUFFICIENT_FUNDS);
     }
 
     @Ignore("PR-751")
