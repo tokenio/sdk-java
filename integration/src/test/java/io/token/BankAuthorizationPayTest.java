@@ -51,8 +51,6 @@ public class BankAuthorizationPayTest {
                 payer.firstUsername(),
                 singletonList(account));
 
-        System.out.print(authorization);
-
         return payer.createTransferToken(amount, "USD")
                 .setBankAuthorization(authorization)
                 .setRedeemerUsername(payer.firstUsername())
