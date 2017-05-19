@@ -1,19 +1,19 @@
 package io.token.bank.config;
 
 import static com.google.common.base.Preconditions.checkState;
+import static io.token.Destinations.swift;
 import static java.util.Collections.singletonList;
 
 import com.typesafe.config.Config;
 import io.token.bank.TestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.security.SecurityProtos;
-import io.token.sdk.BankAccount;
 import io.token.sdk.BankAccountAuthorizer;
+import io.token.sdk.NamedAccount;
 
 import java.time.Duration;
 import java.util.List;
 import java.util.Random;
-import javax.xml.datatype.DatatypeFactory;
 
 /**
  * Config based implementation of the test bank. We assume that the bank we
@@ -43,20 +43,20 @@ public final class ConfigBasedTestBank extends TestBank {
     }
 
     @Override
-    public BankAccount randomAccount() {
+    public NamedAccount randomAccount() {
         int index = random.nextInt(accounts.size());
         String accountNumber = accounts.get(index);
-        return new BankAccount(bic, accountNumber, accountNumber);
+        return new NamedAccount(swift(bic, accountNumber).getAccount(), accountNumber);
     }
 
     @Override
-    public BankAccount lookupAccount(String accountNumber) {
+    public NamedAccount lookupAccount(String accountNumber) {
         checkState(accounts.contains(accountNumber));
-        return new BankAccount(bic, accountNumber, accountNumber);
+        return new NamedAccount(swift(bic, accountNumber).getAccount(), accountNumber);
     }
 
     @Override
-    public BankAuthorization authorizeAccount(String username, BankAccount account) {
+    public BankAuthorization authorizeAccount(String username, NamedAccount account) {
         return BankAccountAuthorizer.builder(bankId)
                 .useMethod(SecurityProtos.SealedMessage.MethodCase.NOOP)
                 .withExpiration(Duration.ofMinutes(1))

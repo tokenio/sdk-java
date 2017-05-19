@@ -32,6 +32,10 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
         return hasStatus(TransactionStatus.SUCCESS);
     }
 
+    public TransferAssertion isProcessing() {
+        return hasStatus(TransactionStatus.PROCESSING);
+    }
+
     public TransferAssertion hasStatus(TransactionStatus status) {
         Assertions
                 .assertThat(actual.getStatus())

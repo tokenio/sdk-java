@@ -50,7 +50,7 @@ import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
@@ -718,7 +718,7 @@ public final class MemberAsync {
      * @param destination transfer instruction destination
      * @return transfer record
      */
-    public Observable<Transfer> redeemToken(Token token, Destination destination) {
+    public Observable<Transfer> redeemToken(Token token, TransferEndpoint destination) {
         return redeemToken(token, null, null, null, destination);
     }
 
@@ -737,7 +737,7 @@ public final class MemberAsync {
             @Nullable Double amount,
             @Nullable String currency,
             @Nullable String description,
-            @Nullable Destination destination) {
+            @Nullable TransferEndpoint destination) {
         TransferPayload.Builder payload = TransferPayload.newBuilder()
                 .setNonce(generateNonce())
                 .setTokenId(token.getId())
