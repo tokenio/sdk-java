@@ -134,17 +134,16 @@ public class InstantPaymentTest {
         Token token = payer.createTransferToken(amount, "USD")
                 .setAccountId(payerAccount.id())
                 .setRedeemerUsername(payee.firstUsername())
+                .addDestination(TransferEndpoint.newBuilder()
+                        .setAccount(BankAccount.newBuilder()
+                                .setToken(BankAccount.Token.newBuilder()
+                                        .setAccountId(payeeAccount.id())
+                                        .setMemberId(payee.memberId())))
+                        .build())
                 .execute();
 
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
-        TransferEndpoint transferEndpoint = TransferEndpoint.newBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setToken(BankAccount.Token.newBuilder()
-                                .setAccountId(payeeAccount.id())
-                                .setMemberId(payee.memberId())))
-                .build();
-
-        return payee.redeemToken(token, amount, "USD", transferEndpoint);
+        return payee.redeemToken(token, amount, "USD", "description");
     }
 }
