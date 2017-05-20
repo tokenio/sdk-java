@@ -1,10 +1,10 @@
 package io.token;
 
+import static io.token.common.Polling.waitUntil;
 import static io.token.proto.common.notification.NotificationProtos.Notification.Status.DELIVERED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
-import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
@@ -29,7 +29,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.TimeUnit;
 import org.assertj.core.api.ThrowableAssert;
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Before;
@@ -89,7 +88,7 @@ public class NotificationsTest {
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = payer.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList().size())
                         .isGreaterThan(0);
@@ -99,7 +98,7 @@ public class NotificationsTest {
 
         List<Subscriber> subscriberList2 = payer.getSubscribers();
         assertThat(subscriberList2.size()).isEqualTo(0);
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList().size())
                         .isEqualTo(0);
@@ -115,7 +114,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             @Override
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList().size())
@@ -134,7 +133,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             @Override
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList().size())
@@ -166,7 +165,7 @@ public class NotificationsTest {
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus())
                 .isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             @Override
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList())
@@ -199,7 +198,7 @@ public class NotificationsTest {
         assertThat(res2.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
 
         // 2 subscribers, 2 step ups
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationStatusExtractor())
@@ -219,7 +218,7 @@ public class NotificationsTest {
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList())
                         .hasSize(1)
@@ -258,7 +257,7 @@ public class NotificationsTest {
         payee.redeemToken(endorsed, null, null, destination);
         payee.redeemToken(endorsed2, null, null, destination);
 
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationStatusExtractor())
@@ -298,7 +297,7 @@ public class NotificationsTest {
                     "Chrome 52.0",
                     deviceInfo.getKeys().get(0));
 
-            waitUntil(new Runnable() {
+            waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
                 public void run() {
                     assertThat(payer.getNotifications(null, 100).getList())
                             .extracting(new NotificationStatusExtractor())
@@ -318,7 +317,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
 
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationStatusExtractor())
@@ -343,7 +342,7 @@ public class NotificationsTest {
                             "Chrome",
                             deviceInfo.getKeys().get(0));
 
-            waitUntil(new Runnable() {
+            waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
                 public void run() {
                     assertThat(payer.getNotifications(null, 100).getList())
                             .extracting(new NotificationStatusExtractor())
@@ -377,7 +376,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
 
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 List<Notification> notifications = payer.getNotifications(null, 5).getList();
                 assertThat(notifications.size()).isGreaterThan(0);
@@ -406,7 +405,7 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
 
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 PagedList<Notification, String> notifications = payer.getNotifications(null, 2);
                 assertThat(notifications.getList().size()).isEqualTo(2);
@@ -416,22 +415,6 @@ public class NotificationsTest {
                 assertThat(notifications2.getList().size()).isEqualTo(2);
             }
         });
-    }
-
-    private void waitUntil(Runnable function) {
-        for (long waitTimeMs = 1, start = System.currentTimeMillis(); ; waitTimeMs *= 2) {
-            try {
-                function.run();
-                return;
-            } catch (AssertionError caughtError) {
-                if (System.currentTimeMillis() - start < NOTIFICATION_TIMEOUT_MS) {
-                    // Notification not delivered yet
-                    Uninterruptibles.sleepUninterruptibly(waitTimeMs, TimeUnit.MILLISECONDS);
-                } else {
-                    throw caughtError;
-                }
-            }
-        }
     }
 
     private static class NotificationStatusExtractor implements Extractor<Notification, Status> {
