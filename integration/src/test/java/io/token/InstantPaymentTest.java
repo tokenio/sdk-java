@@ -10,9 +10,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.common.TokenRule;
 import io.token.proto.common.account.AccountProtos.BankAccount;
+import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.token.TokenProtos.TransferBody.Pricing;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
