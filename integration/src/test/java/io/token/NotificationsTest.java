@@ -276,7 +276,7 @@ public class NotificationsTest {
             }
         });
 
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payee.getNotifications(null, 100).getList())
                         .extracting(new NotificationTypeExtractor())
@@ -303,15 +303,18 @@ public class NotificationsTest {
                 .execute();
 
         Token endorsed = payer.endorseToken(token, Key.Level.STANDARD).getToken();
-        Destination destination = Destination.newBuilder()
-                .setTokenDestination(TokenDestination.newBuilder()
-                        .setAccountId(payerAccount.id())
-                        .build())
+
+        TransferEndpoint destination = TransferEndpoint
+                .newBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setToken(BankAccount.Token.newBuilder()
+                                .setMemberId(payee.memberId())
+                                .setAccountId(payeeAccount.id())))
                 .build();
 
         payee.redeemToken(endorsed, null, null, destination);
 
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationTypeExtractor())
@@ -319,7 +322,7 @@ public class NotificationsTest {
             }
         });
 
-        waitUntil(new Runnable() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payee.getNotifications(null, 100).getList()).isEmpty();
             }
