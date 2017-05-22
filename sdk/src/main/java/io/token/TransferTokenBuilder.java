@@ -204,6 +204,28 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the username of the payee.
+     *
+     * @param toUsername username
+     * @return builder
+     */
+    public TransferTokenBuilder setToUsername(String toUsername) {
+        payload.getToBuilder().setUsername(toUsername);
+        return this;
+    }
+
+    /**
+     * Sets the memberId of the payee.
+     *
+     * @param toMemberId memberId
+     * @return builder
+     */
+    public TransferTokenBuilder setToMemberId(String toMemberId) {
+        payload.getToBuilder().setId(toMemberId);
+        return this;
+    }
+
+    /**
      * Executes the request, creating a token.
      *
      * @return Token

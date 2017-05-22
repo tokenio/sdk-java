@@ -2,6 +2,8 @@ package io.token;
 
 import static io.token.common.Polling.waitUntil;
 import static io.token.proto.common.notification.NotificationProtos.Notification.Status.DELIVERED;
+import static io.token.proto.common.notification.NotificationProtos.NotifyBody.BodyCase.PAYEE_TRANSFER_PROCESSED;
+import static io.token.proto.common.notification.NotificationProtos.NotifyBody.BodyCase.PAYER_TRANSFER_PROCESSED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -44,8 +46,9 @@ public class NotificationsTest {
     @Rule public TokenRule rule = new TokenRule();
 
     private final Account payerAccount = rule.account();
+    private final Account payeeAccount = rule.account();
     private final Member payer = payerAccount.member();
-    private final Member payee = rule.member();
+    private final Member payee = payeeAccount.member();
     private BankAuthorization authorization;
 
     @Before
@@ -229,19 +232,25 @@ public class NotificationsTest {
     }
 
     @Test
-    public void triggerTransferProcessedNotification() {
+    public void triggerPayerAndPayeeTransferProcessedNotification() {
         payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        payee.subscribeToNotifications(
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         Token token = payer.createTransferToken(20, "USD")
                 .setAccountId(payerAccount.id())
                 .setRedeemerUsername(payee.firstUsername())
+                .setToUsername(payee.firstUsername())
                 .execute();
 
         Token token2 = payer.createTransferToken(20, "USD")
                 .setAccountId(payerAccount.id())
                 .setRedeemerUsername(payee.firstUsername())
+                .setToMemberId(payee.memberId())
                 .execute();
 
         Token endorsed = payer.endorseToken(token, Key.Level.STANDARD).getToken();
@@ -260,8 +269,62 @@ public class NotificationsTest {
         waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
             public void run() {
                 assertThat(payer.getNotifications(null, 100).getList())
-                        .extracting(new NotificationStatusExtractor())
-                        .containsExactly(DELIVERED, DELIVERED);
+                        .extracting(new NotificationTypeExtractor())
+                        .containsExactly(
+                                PAYER_TRANSFER_PROCESSED.toString(),
+                                PAYER_TRANSFER_PROCESSED.toString());
+            }
+        });
+
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
+            public void run() {
+                assertThat(payee.getNotifications(null, 100).getList())
+                        .extracting(new NotificationTypeExtractor())
+                        .containsExactly(
+                                PAYEE_TRANSFER_PROCESSED.toString(),
+                                PAYEE_TRANSFER_PROCESSED.toString());
+            }
+        });
+    }
+
+    @Test
+    public void triggerPayerTransferProcessedNotification() {
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        payee.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        Token token = payer.createTransferToken(20, "USD")
+                .setAccountId(payerAccount.id())
+                .setRedeemerUsername(payee.firstUsername())
+                .execute();
+
+        Token endorsed = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+
+        TransferEndpoint destination = TransferEndpoint
+                .newBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setToken(BankAccount.Token.newBuilder()
+                                .setMemberId(payee.memberId())
+                                .setAccountId(payeeAccount.id())))
+                .build();
+
+        payee.redeemToken(endorsed, null, null, destination);
+
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
+            public void run() {
+                assertThat(payer.getNotifications(null, 100).getList())
+                        .extracting(new NotificationTypeExtractor())
+                        .containsExactly(PAYER_TRANSFER_PROCESSED.toString());
+            }
+        });
+
+        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
+            public void run() {
+                assertThat(payee.getNotifications(null, 100).getList()).isEmpty();
             }
         });
     }
@@ -421,6 +484,13 @@ public class NotificationsTest {
         @Override
         public Status extract(Notification notification) {
             return notification.getStatus();
+        }
+    }
+
+    private static class NotificationTypeExtractor implements Extractor<Notification, String> {
+        @Override
+        public String extract(Notification notification) {
+            return notification.getContent().getType();
         }
     }
 }
