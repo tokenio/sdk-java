@@ -22,14 +22,12 @@
 
 package io.token;
 
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.AchDestination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.SepaDestination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.SwiftDestination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Destination.TokenDestination;
-
-import javax.annotation.Nullable;
+import io.token.proto.common.account.AccountProtos.BankAccount;
+import io.token.proto.common.account.AccountProtos.BankAccount.Ach;
+import io.token.proto.common.account.AccountProtos.BankAccount.Sepa;
+import io.token.proto.common.account.AccountProtos.BankAccount.Swift;
+import io.token.proto.common.account.AccountProtos.BankAccount.Token;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 public final class Destinations {
     private Destinations() {}
@@ -37,20 +35,16 @@ public final class Destinations {
     /**
      * Creates a destination of type token (Paying to a token member account).
      *
-     * @param accountId token accountId
      * @param memberId token memberId
+     * @param accountId token accountId
      * @return Destinations
      */
-    public static Destination token(
-            String accountId,
-            @Nullable String memberId) {
-        TokenDestination.Builder builder = TokenDestination.newBuilder()
-                .setAccountId(accountId);
-        if (memberId != null) {
-            builder.setMemberId(memberId);
-        }
-        return Destination.newBuilder()
-                .setTokenDestination(builder.build())
+    public static TransferEndpoint token(String memberId, String accountId) {
+        return TransferEndpoint.newBuilder()
+                .setAccount(BankAccount.newBuilder()
+                .setToken(Token.newBuilder()
+                        .setMemberId(memberId)
+                        .setAccountId(accountId)))
                 .build();
     }
 
@@ -60,11 +54,11 @@ public final class Destinations {
      * @param iban payee's iban
      * @return Destinations
      */
-    public static Destination sepa(String iban) {
-        return Destination.newBuilder()
-                .setSepaDestination(SepaDestination.newBuilder()
-                        .setIban(iban)
-                        .build())
+    public static TransferEndpoint sepa(String iban) {
+        return TransferEndpoint.newBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setSepa(Sepa.newBuilder()
+                                .setIban(iban)))
                 .build();
     }
 
@@ -75,12 +69,12 @@ public final class Destinations {
      * @param account account number
      * @return Destinations
      */
-    public static Destination swift(String bic, String account) {
-        return Destination.newBuilder()
-                .setSwiftDestination(SwiftDestination.newBuilder()
-                        .setBic(bic)
-                        .setAccount(account)
-                        .build())
+    public static TransferEndpoint swift(String bic, String account) {
+        return TransferEndpoint.newBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setSwift(Swift.newBuilder()
+                                .setBic(bic)
+                                .setAccount(account)))
                 .build();
     }
 
@@ -91,12 +85,12 @@ public final class Destinations {
      * @param account account number
      * @return Destinations
      */
-    public static Destination ach(String routing, String account) {
-        return Destination.newBuilder()
-                .setAchDestination(AchDestination.newBuilder()
-                        .setRouting(routing)
-                        .setAccount(account)
-                        .build())
+    public static TransferEndpoint ach(String routing, String account) {
+        return TransferEndpoint.newBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setAch(Ach.newBuilder()
+                                .setRouting(routing)
+                                .setAccount(account)))
                 .build();
     }
 }

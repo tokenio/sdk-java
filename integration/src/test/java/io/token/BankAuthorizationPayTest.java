@@ -9,8 +9,8 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.sdk.BankAccount;
 import io.token.sdk.BankAccountAuthorizer;
+import io.token.sdk.NamedAccount;
 import io.token.security.testing.KeyStoreTestRule;
 
 import org.junit.Rule;
@@ -31,14 +31,14 @@ public class BankAuthorizationPayTest {
 
         Transfer transfer = payer.redeemToken(token);
         assertThat(transfer)
-                .isSuccessful()
+                .isProcessing()
                 .hasNoAmount()
                 .hasNSignatures(2)
                 .isSignedBy(payer, Key.Level.LOW);
     }
 
     private Token token(double amount) {
-        BankAccount account = rule.unlinkedAccount();
+        NamedAccount account = rule.unlinkedAccount();
         BankAccountAuthorizer authorizer = BankAccountAuthorizer
                 .builder("iron")
                 .useMethod(NOOP)
@@ -54,7 +54,7 @@ public class BankAuthorizationPayTest {
         return payer.createTransferToken(amount, "USD")
                 .setBankAuthorization(authorization)
                 .setRedeemerUsername(payer.firstUsername())
-                .addDestination(Destinations.token(payeeAccount.id(), payee.memberId()))
+                .addDestination(Destinations.token(payee.memberId(), payeeAccount.id()))
                 .execute();
     }
 }
