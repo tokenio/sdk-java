@@ -2,6 +2,7 @@ package io.token;
 
 import static io.token.testing.sample.Sample.string;
 import static java.lang.Double.parseDouble;
+import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableSet;
@@ -15,18 +16,27 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
+
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class TransactionsTest {
     @Rule public TokenRule rule = new TokenRule();
-    private final Account payerAccount = rule.account();
-    private final Account payeeAccount = rule.account();
-    private final Member payer = payerAccount.member();
-    private final Member payee = payeeAccount.member();
+
+    private Account payerAccount;
+    private Member payer;
+    private Member payee;
+
+    @Before
+    public void before() {
+        this.payerAccount = rule.account();
+        this.payer = payerAccount.member();
+
+        Account payeeAccount = rule.account();
+        this.payee = payeeAccount.member();
+    }
 
     @Test
     public void getBalance() {
@@ -63,12 +73,9 @@ public class TransactionsTest {
 
         PagedList<Transaction, String> result = payerAccount.getTransactions(null, 5);
         List<Transaction> transactions = new ArrayList<>(result.getList());
-        Collections.sort(transactions, new Comparator<Transaction>() {
-            public int compare(Transaction thisTransaction, Transaction otherTransaction) {
-                return thisTransaction.getAmount().getValue()
-                        .compareTo(otherTransaction.getAmount().getValue());
-            }
-        });
+        transactions.sort(comparing(transaction -> transaction
+                .getAmount()
+                .getValue()));
         assertThat(result.getOffset()).isNotEmpty();
 
         assertThat(transactions).hasSize(5);

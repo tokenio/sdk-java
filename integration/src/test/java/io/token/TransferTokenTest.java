@@ -1,12 +1,12 @@
 package io.token;
 
+import static io.grpc.Status.Code.FAILED_PRECONDITION;
 import static io.token.asserts.TokenAssertion.assertThat;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.google.common.collect.ImmutableSet;
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
@@ -14,16 +14,25 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 
-import org.assertj.core.api.ThrowableAssert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class TransferTokenTest {
     @Rule public TokenRule rule = new TokenRule();
-    private final Account payerAccount = rule.account();
-    private final Account payeeAccount = rule.account();
-    private final Member payer = payerAccount.member();
-    private final Member payee = payeeAccount.member();
+
+    private Account payerAccount;
+    private Member payer;
+    private Member payee;
+
+    @Before
+    public void before() {
+        this.payerAccount = rule.account();
+        this.payer = payerAccount.member();
+
+        Account payeeAccount = rule.account();
+        this.payee = payeeAccount.member();
+    }
 
     @Test
     public void createTransferToken() {
@@ -44,20 +53,12 @@ public class TransferTokenTest {
     @Test
     public void createTransferTokenWithUnlinkedAccount() {
         payer.unlinkAccounts(singletonList(payerAccount.id()));
-        assertThatThrownBy(
-                new ThrowableAssert.ThrowingCallable() {
-                    public void call() throws Throwable {
-                        payer.createTransferToken(100.0, "USD")
-                                .setRedeemerUsername(payee.firstUsername())
-                                .setAccountId(payerAccount.id())
-                                .execute();
-                    }
-                })
-                .isInstanceOf(StatusRuntimeException.class)
-                .extracting("status")
-                .extracting("code", Status.Code.class)
-                .extractingResultOf("value", int.class)
-                .contains(Status.Code.FAILED_PRECONDITION.value());
+        assertThatExceptionOfType(StatusRuntimeException.class)
+                .isThrownBy(() -> payer.createTransferToken(100.0, "USD")
+                        .setRedeemerUsername(payee.firstUsername())
+                        .setAccountId(payerAccount.id())
+                        .execute())
+                .matches(e -> e.getStatus().getCode() == FAILED_PRECONDITION);
     }
 
     @Test
@@ -97,7 +98,7 @@ public class TransferTokenTest {
     public void getTransferTokensPaged() {
         int num = 10;
         for (int i = 0; i < num; i++) {
-            Token token = payer.createTransferToken(100 + i, "EUR")
+            payer.createTransferToken(100 + i, "EUR")
                     .setAccountId(payerAccount.id())
                     .setRedeemerUsername(payee.firstUsername())
                     .execute();
@@ -138,17 +139,9 @@ public class TransferTokenTest {
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         payer.unlinkAccounts(singletonList(payerAccount.id()));
-        assertThatThrownBy(
-                new ThrowableAssert.ThrowingCallable() {
-                    public void call() throws Throwable {
-                        payer.endorseToken(token, Key.Level.STANDARD);
-                    }
-                })
-                .isInstanceOf(StatusRuntimeException.class)
-                .extracting("status")
-                .extracting("code", Status.Code.class)
-                .extractingResultOf("value", int.class)
-                .contains(Status.Code.FAILED_PRECONDITION.value());
+        assertThatExceptionOfType(StatusRuntimeException.class)
+                .isThrownBy(() -> payer.endorseToken(token, Key.Level.STANDARD))
+                .matches(e -> e.getStatus().getCode() == FAILED_PRECONDITION);
     }
 
     @Test
@@ -158,8 +151,7 @@ public class TransferTokenTest {
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         TokenOperationResult result = payer.cancelToken(token);
-        assertThat(result.getStatus())
-                .isEqualTo(TokenOperationResult.Status.SUCCESS);
+        assertThat(result.getStatus()).isEqualTo(TokenOperationResult.Status.SUCCESS);
 
         assertThat(result.getToken())
                 .hasNSignatures(2)

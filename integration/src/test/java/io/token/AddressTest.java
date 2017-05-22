@@ -1,11 +1,11 @@
 package io.token;
 
+import static io.grpc.Status.Code.NOT_FOUND;
 import static io.token.testing.sample.Sample.address;
 import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.token.common.TokenRule;
 import io.token.proto.common.address.AddressProtos.Address;
@@ -17,7 +17,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
-import org.assertj.core.api.ThrowableAssert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -25,6 +25,11 @@ public class AddressTest {
     @Rule
     public TokenRule rule = new TokenRule();
     private Member member = rule.member();
+
+    @Before
+    public void before() {
+        this.member = rule.member();
+    }
 
     @Test
     public void addAddress() {
@@ -80,17 +85,9 @@ public class AddressTest {
     @Test
     public void getAddress_NotFound() {
         final String fakeAddressId = string();
-        assertThatThrownBy(
-                new ThrowableAssert.ThrowingCallable() {
-                    public void call() throws Throwable {
-                        member.getAddress(fakeAddressId);
-                    }
-                })
-                .isInstanceOf(StatusRuntimeException.class)
-                .extracting("status")
-                .extracting("code", Status.Code.class)
-                .extractingResultOf("value", int.class)
-                .contains(Status.Code.NOT_FOUND.value());
+        assertThatExceptionOfType(StatusRuntimeException.class)
+                .isThrownBy(() -> member.getAddress(fakeAddressId))
+                .matches(e -> e.getStatus().getCode() == NOT_FOUND);
     }
 
     @Test
@@ -102,32 +99,16 @@ public class AddressTest {
 
         member.deleteAddress(address.getId());
 
-        assertThatThrownBy(
-                new ThrowableAssert.ThrowingCallable() {
-                    public void call() throws Throwable {
-                        member.getAddress(address.getId());
-                    }
-                })
-                .isInstanceOf(StatusRuntimeException.class)
-                .extracting("status")
-                .extracting("code", Status.Code.class)
-                .extractingResultOf("value", int.class)
-                .contains(Status.Code.NOT_FOUND.value());
+        assertThatExceptionOfType(StatusRuntimeException.class)
+                .isThrownBy(() -> member.getAddress(address.getId()))
+                .matches(e -> e.getStatus().getCode() == NOT_FOUND);
     }
 
     @Test
     public void deleteAddress_NotFound() {
         final String fakeAddressId = string();
-        assertThatThrownBy(
-                new ThrowableAssert.ThrowingCallable() {
-                    public void call() throws Throwable {
-                        member.getAddress(fakeAddressId);
-                    }
-                })
-                .isInstanceOf(StatusRuntimeException.class)
-                .extracting("status")
-                .extracting("code", Status.Code.class)
-                .extractingResultOf("value", int.class)
-                .contains(Status.Code.NOT_FOUND.value());
+        assertThatExceptionOfType(StatusRuntimeException.class)
+                .isThrownBy(() -> member.getAddress(fakeAddressId))
+                .matches(e -> e.getStatus().getCode() == NOT_FOUND);
     }
 }

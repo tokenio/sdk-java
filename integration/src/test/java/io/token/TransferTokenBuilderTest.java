@@ -13,16 +13,25 @@ import io.token.proto.common.token.TokenProtos.Token;
 import java.io.File;
 import java.io.IOException;
 
-import org.assertj.core.api.ThrowableAssert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class TransferTokenBuilderTest {
     @Rule public TokenRule rule = new TokenRule();
-    private final Account payerAccount = rule.account();
-    private final Account payeeAccount = rule.account();
-    private final Member payer = payerAccount.member();
-    private final Member payee = payeeAccount.member();
+
+    private Account payerAccount;
+    private Member payer;
+    private Member payee;
+
+    @Before
+    public void before() {
+        this.payerAccount = rule.account();
+        this.payer = payerAccount.member();
+
+        Account payeeAccount = rule.account();
+        this.payee = payeeAccount.member();
+    }
 
     @Test
     public void basicToken() {
@@ -35,26 +44,18 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void noSource() {
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                payer.createTransferToken(100.0, "USD")
-                        .setRedeemerUsername(payee.firstUsername())
-                        .setDescription("book purchase")
-                        .execute();
-            }
-        });
+        assertThatThrownBy(() -> payer.createTransferToken(100.0, "USD")
+                .setRedeemerUsername(payee.firstUsername())
+                .setDescription("book purchase")
+                .execute());
     }
 
     @Test
     public void noRedeemer() {
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                payer.createTransferToken(100.0, "USD")
-                        .setAccountId(payerAccount.id())
-                        .setDescription("book purchase")
-                        .execute();
-            }
-        });
+        assertThatThrownBy(() -> payer.createTransferToken(100.0, "USD")
+                .setAccountId(payerAccount.id())
+                .setDescription("book purchase")
+                .execute());
     }
 
     @Test

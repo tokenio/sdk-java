@@ -1,8 +1,10 @@
 package io.token;
 
+import static io.grpc.Status.Code.NOT_FOUND;
+import static io.grpc.Status.Code.PERMISSION_DENIED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
@@ -18,7 +20,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Random;
 
-import org.assertj.core.api.ThrowableAssert;
+import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -26,11 +28,21 @@ import org.junit.Test;
 public class BlobsTest {
     private static String FILENAME = "file.json";
     private static String FILETYPE = "application/json";
+
     @Rule public TokenRule rule = new TokenRule();
-    private final Account payerAccount = rule.account();
-    private final Member payer = payerAccount.member();
-    private final Member payee = rule.member();
-    private final Member otherMember = rule.member();
+
+    private Account payerAccount;
+    private Member payer;
+    private Member payee;
+    private Member otherMember;
+
+    @Before
+    public void before() {
+        this.payerAccount = rule.account();
+        this.payer = payerAccount.member();
+        this.payee = rule.member();
+        this.otherMember = rule.member();
+    }
 
     @Test
     public void checkHash() {
@@ -190,20 +202,12 @@ public class BlobsTest {
                 .addAttachment(attachment)
                 .execute();
         payer.endorseToken(token, PRIVILEGED);
-        assertThatThrownBy(
-                new ThrowableAssert.ThrowingCallable() {
-                    public void call() throws Throwable {
-                        otherMember.getBlob(attachment.getBlobId());
-                    }
-                })
-                .isInstanceOf(StatusRuntimeException.class);
+        assertThatExceptionOfType(StatusRuntimeException.class)
+                .isThrownBy(() -> otherMember.getBlob(attachment.getBlobId()))
+                .matches(e -> e.getStatus().getCode() == NOT_FOUND);
 
-        assertThatThrownBy(
-                new ThrowableAssert.ThrowingCallable() {
-                    public void call() throws Throwable {
-                        otherMember.getTokenBlob(token.getId(), attachment.getBlobId());
-                    }
-                })
-                .isInstanceOf(StatusRuntimeException.class);
+        assertThatExceptionOfType(StatusRuntimeException.class)
+                .isThrownBy(() -> otherMember.getTokenBlob(token.getId(), attachment.getBlobId()))
+                .matches(e -> e.getStatus().getCode() == PERMISSION_DENIED);
     }
 }
