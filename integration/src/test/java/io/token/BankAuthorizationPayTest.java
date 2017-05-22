@@ -13,16 +13,26 @@ import io.token.sdk.BankAccountAuthorizer;
 import io.token.sdk.NamedAccount;
 import io.token.security.testing.KeyStoreTestRule;
 
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class BankAuthorizationPayTest {
     @Rule public TokenRule rule = new TokenRule();
     @Rule public KeyStoreTestRule keyRule = new KeyStoreTestRule();
-    private final Account payerAccount = rule.account();
-    private final Account payeeAccount = rule.account();
-    private final Member payer = payerAccount.member();
-    private final Member payee = payeeAccount.member();
+
+    private Member payer;
+    private Account payeeAccount;
+    private Member payee;
+
+    @Before
+    public void before() {
+        Account payerAccount = rule.account();
+        this.payer = payerAccount.member();
+
+        this.payeeAccount = rule.account();
+        this.payee = payeeAccount.member();
+    }
 
     @Test
     public void redeemToken() {
