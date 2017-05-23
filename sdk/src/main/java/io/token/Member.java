@@ -681,12 +681,12 @@ public final class Member {
      * @param data file data
      * @return blob Id
      */
-    public Attachment uploadAttachment(
+    public Attachment createBlob(
             String ownerId,
             String type,
             String name,
             byte[] data) {
-        return async.uploadAttachment(ownerId, type, name, data).toBlocking().single();
+        return async.createBlob(ownerId, type, name, data).toBlocking().single();
     }
 
     /**
@@ -696,8 +696,8 @@ public final class Member {
      * @return attachment
      * @throws IOException if can't read from a file
      */
-    public Attachment uploadAttachment(String filename) throws IOException {
-        return async.uploadAttachment(filename).toBlocking().single();
+    public Attachment createBlob(String filename) throws IOException {
+        return async.createBlob(filename).toBlocking().single();
     }
 
     /**
@@ -706,8 +706,8 @@ public final class Member {
      * @param blobId blob Id
      * @return Blob
      */
-    public Blob downloadAttachment(String blobId) {
-        return async.downloadAttachment(blobId).toBlocking().single();
+    public Blob getBlob(String blobId) {
+        return async.getBlob(blobId).toBlocking().single();
     }
 
     /**
@@ -717,8 +717,8 @@ public final class Member {
      * @param blobId id of the blob
      * @return Blob
      */
-    public Blob downloadTokenAttachment(String tokenId, String blobId) {
-        return async.downloadTokenAttachment(tokenId, blobId).toBlocking().single();
+    public Blob getTokenBlob(String tokenId, String blobId) {
+        return async.getTokenBlob(tokenId, blobId).toBlocking().single();
     }
 
     /**

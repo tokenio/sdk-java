@@ -476,7 +476,7 @@ public final class MemberAsync {
      * @param data file data
      * @return attachment
      */
-    public Observable<Attachment> uploadAttachment(
+    public Observable<Attachment> createBlob(
             String ownerId,
             final String type,
             final String name,
@@ -507,7 +507,7 @@ public final class MemberAsync {
      * @return blob Id
      * @throws IOException if can't read from a file
      */
-    public Observable<Attachment> uploadAttachment(String filePath) throws IOException{
+    public Observable<Attachment> createBlob(String filePath) throws IOException{
         Path path = Paths.get(filePath);
         String type = Files.probeContentType(path);
         if (type == null) {
@@ -516,7 +516,7 @@ public final class MemberAsync {
         String name = path.getFileName().toString();
         byte[] fileBytes = Files.readAllBytes(path);
 
-        return uploadAttachment(memberId(), type, name, fileBytes);
+        return createBlob(memberId(), type, name, fileBytes);
     }
 
     /**
@@ -525,7 +525,7 @@ public final class MemberAsync {
      * @param blobId id of the blob
      * @return Blob
      */
-    public Observable<Blob> downloadAttachment(String blobId) {
+    public Observable<Blob> getBlob(String blobId) {
         return client.getBlob(blobId);
     }
 
@@ -536,7 +536,7 @@ public final class MemberAsync {
      * @param blobId id of the blob
      * @return Blob
      */
-    public Observable<Blob> downloadTokenAttachment(String tokenId, String blobId) {
+    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
         return client.getTokenBlob(tokenId, blobId);
     }
 

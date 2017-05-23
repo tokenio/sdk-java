@@ -39,7 +39,7 @@ public class BlobsTest {
         new Random().nextBytes(randomData);
 
         Attachment attachment = payer
-                .uploadAttachment(payer.memberId(), FILETYPE, FILENAME, randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Payload blobPayload = Payload.newBuilder()
                 .setData(ByteString.copyFrom(randomData))
@@ -57,7 +57,7 @@ public class BlobsTest {
         new Random().nextBytes(randomData);
 
         Attachment attachment = payer
-                .uploadAttachment(payer.memberId(), FILETYPE, FILENAME, randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
         assertThat(attachment.getName()).isEqualTo(FILENAME);
         assertThat(attachment.getType()).isEqualTo(FILETYPE);
         assertThat(attachment.getBlobId().length()).isGreaterThan(5);
@@ -68,11 +68,11 @@ public class BlobsTest {
         byte[] randomData = new byte[100];
         new Random().nextBytes(randomData);
 
-        Attachment attachment = payer.uploadAttachment(
+        Attachment attachment = payer.createBlob(
                 payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Attachment attachment2 = payer
-                .uploadAttachment(payer.memberId(), FILETYPE, FILENAME, randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
         assertThat(attachment).isEqualTo(attachment2);
     }
 
@@ -82,9 +82,9 @@ public class BlobsTest {
         new Random().nextBytes(randomData);
 
         Attachment attachment = payer
-                .uploadAttachment(payer.memberId(), FILETYPE, FILENAME, randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
-        Blob blob = payer.downloadAttachment(attachment.getBlobId());
+        Blob blob = payer.getBlob(attachment.getBlobId());
 
         assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
         assertThat(blob.getPayload().getData().toByteArray()).isEqualTo(randomData);
@@ -96,9 +96,9 @@ public class BlobsTest {
         byte[] randomData = new byte[0];
 
         Attachment attachment = payer
-                .uploadAttachment(payer.memberId(), FILETYPE, FILENAME, randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
-        Blob blob = payer.downloadAttachment(attachment.getBlobId());
+        Blob blob = payer.getBlob(attachment.getBlobId());
 
         assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
         assertThat(blob.getPayload().getData().toByteArray()).isEqualTo(randomData);
@@ -111,9 +111,9 @@ public class BlobsTest {
         new Random().nextBytes(randomData);
 
         Attachment attachment = payer
-                .uploadAttachment(payer.memberId(), FILETYPE, FILENAME, randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
-        Blob blob = payer.downloadAttachment(attachment.getBlobId());
+        Blob blob = payer.getBlob(attachment.getBlobId());
 
         assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
         assertThat(blob.getPayload().getData().toByteArray()).isEqualTo(randomData);
@@ -128,14 +128,14 @@ public class BlobsTest {
 
         String filename = file.getAbsolutePath();
 
-        Attachment attachment = payer.uploadAttachment(filename);
+        Attachment attachment = payer.createBlob(filename);
 
         assertThat(attachment.getBlobId().length()).isGreaterThan(5);
         assertThat(attachment.getName()).isEqualTo("local.conf");
         assertThat(attachment.getType()).isEqualTo("content/unknown");
         assertThat(attachment.getBlobId().length()).isGreaterThan(5);
 
-        Blob blob = payer.downloadAttachment(attachment.getBlobId());
+        Blob blob = payer.getBlob(attachment.getBlobId());
 
         assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
         assertThat(blob.getPayload().getOwnerId()).isEqualTo(payer.memberId());
@@ -150,10 +150,10 @@ public class BlobsTest {
         new Random().nextBytes(randomData2);
 
         Attachment attachment = payer
-                .uploadAttachment(payer.memberId(), FILETYPE, FILENAME, randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Attachment attachment2 = payer
-                .uploadAttachment(payer.memberId(), FILETYPE, FILENAME, randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Token token = payer.createTransferToken(100, "EUR")
                 .setAccountId(payerAccount.id())
@@ -163,13 +163,13 @@ public class BlobsTest {
                 .execute();
         payer.endorseToken(token, PRIVILEGED);
 
-        Blob blob = payer.downloadAttachment(attachment.getBlobId());
-        Blob blob2 = payer.downloadTokenAttachment(token.getId(), attachment.getBlobId());
-        Blob blob3 = payee.downloadTokenAttachment(token.getId(), attachment.getBlobId());
+        Blob blob = payer.getBlob(attachment.getBlobId());
+        Blob blob2 = payer.getTokenBlob(token.getId(), attachment.getBlobId());
+        Blob blob3 = payee.getTokenBlob(token.getId(), attachment.getBlobId());
 
-        Blob blob4 = payer.downloadAttachment(attachment2.getBlobId());
-        Blob blob5 = payer.downloadTokenAttachment(token.getId(), attachment2.getBlobId());
-        Blob blob6 = payee.downloadTokenAttachment(token.getId(), attachment2.getBlobId());
+        Blob blob4 = payer.getBlob(attachment2.getBlobId());
+        Blob blob5 = payer.getTokenBlob(token.getId(), attachment2.getBlobId());
+        Blob blob6 = payee.getTokenBlob(token.getId(), attachment2.getBlobId());
 
         assertThat(blob).isEqualTo(blob2).isEqualTo(blob3);
         assertThat(blob4).isEqualTo(blob5).isEqualTo(blob6);
@@ -182,7 +182,7 @@ public class BlobsTest {
         new Random().nextBytes(randomData);
 
         final Attachment attachment = payer
-                .uploadAttachment(payer.memberId(), FILETYPE, FILENAME, randomData);
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         final Token token = payer.createTransferToken(100, "EUR")
                 .setAccountId(payerAccount.id())
@@ -193,7 +193,7 @@ public class BlobsTest {
         assertThatThrownBy(
                 new ThrowableAssert.ThrowingCallable() {
                     public void call() throws Throwable {
-                        otherMember.downloadAttachment(attachment.getBlobId());
+                        otherMember.getBlob(attachment.getBlobId());
                     }
                 })
                 .isInstanceOf(StatusRuntimeException.class);
@@ -201,7 +201,7 @@ public class BlobsTest {
         assertThatThrownBy(
                 new ThrowableAssert.ThrowingCallable() {
                     public void call() throws Throwable {
-                        otherMember.downloadTokenAttachment(token.getId(), attachment.getBlobId());
+                        otherMember.getTokenBlob(token.getId(), attachment.getBlobId());
                     }
                 })
                 .isInstanceOf(StatusRuntimeException.class);
