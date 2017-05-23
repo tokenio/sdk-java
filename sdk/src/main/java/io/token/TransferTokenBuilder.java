@@ -25,21 +25,32 @@ package io.token;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN_AUTHORIZATION;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.toObservable;
 
 import com.google.common.base.Strings;
+import com.google.protobuf.ByteString;
 import io.token.exceptions.TokenArgumentsException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
+import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.blob.BlobProtos.Attachment;
+import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
 import rx.Observable;
+import rx.functions.Func1;
+import rx.functions.Func4;
+import rx.schedulers.Schedulers;
 
 /**
  * This class is used to build a transfer token. The required parameters are member, amount (which
@@ -50,6 +61,10 @@ import rx.Observable;
 public final class TransferTokenBuilder {
     private final MemberAsync member;
     private final TokenPayload.Builder payload;
+
+    // Used for attaching files / data to tokens
+    private final List<String> filepaths;
+    private final List<Payload> blobPayloads;
 
     /**
      * Creates the builder object.
@@ -70,6 +85,8 @@ public final class TransferTokenBuilder {
                         .setCurrency(currency)
                         .setLifetimeAmount(Double.toString(amount))
                         .build());
+        filepaths = new ArrayList<>();
+        blobPayloads = new ArrayList<>();
     }
 
     /**
@@ -204,6 +221,41 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Adds an attachment by filename (reads file, uploads it, and attaches it).
+     *
+     * @param ownerId id of the owner of the file
+     * @param type MIME type of file
+     * @param name name of the file
+     * @param data file binary data
+     * @return builder
+     */
+    public TransferTokenBuilder addAttachment(
+            String ownerId,
+            String type,
+            String name,
+            byte[] data) {
+        blobPayloads.add(Payload
+                .newBuilder()
+                .setOwnerId(ownerId)
+                .setType(type)
+                .setName(name)
+                .setData(ByteString.copyFrom(data))
+                .build());
+        return this;
+    }
+
+    /**
+     * Adds an attachment by filename (reads file, uploads it, and attaches it).
+     *
+     * @param path path of file
+     * @return builder
+     */
+    public TransferTokenBuilder addAttachment(String path) {
+        filepaths.add(path);
+        return this;
+    }
+
+    /**
      * Sets the username of the payee.
      *
      * @param toUsername username
@@ -250,6 +302,36 @@ public final class TransferTokenBuilder {
             throw new TokenArgumentsException("No redeemer on token");
         }
 
-        return member.createTransferToken(payload.build());
+        List<Observable<Attachment>> attachmentUploads = new ArrayList<>();
+
+        for (String path : filepaths) {
+            try {
+                attachmentUploads.add(member.createBlob(path));
+            } catch (IOException exception) {
+                throw new TokenArgumentsException("Failed to upload file, IOException.");
+            }
+        }
+
+        for (Payload p : blobPayloads) {
+            attachmentUploads.add(member.createBlob(
+                    p.getOwnerId(),
+                    p.getType(),
+                    p.getName(),
+                    p.getData().toByteArray()));
+        }
+        // Converts list of observable to observable of list of attachments, and
+        // finally creates the Token
+        return Observable.from(attachmentUploads)
+                .flatMap(new Func1<Observable<Attachment>, Observable<Attachment>>() {
+                    public Observable<Attachment> call(Observable<Attachment> attachment) {
+                        return attachment.observeOn(Schedulers.computation());
+                    }
+                }).toList()
+                .flatMap(new Func1<List<Attachment>, Observable<Token>>() {
+                    public Observable<Token> call(List<Attachment> attachments) {
+                        payload.getTransferBuilder().addAllAttachments(attachments);
+                        return member.createTransferToken(payload.build());
+                    }
+                });
     }
 }

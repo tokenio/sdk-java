@@ -507,7 +507,7 @@ public final class MemberAsync {
      * @return blob Id
      * @throws IOException if can't read from a file
      */
-    public Observable<Attachment> createBlob(String filePath) throws IOException {
+    public Observable<Attachment> createBlob(String filePath) throws IOException{
         Path path = Paths.get(filePath);
         String type = Files.probeContentType(path);
         if (type == null) {
