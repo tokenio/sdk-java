@@ -17,6 +17,7 @@ import io.token.Member;
 import io.token.TokenIO;
 import io.token.bank.TestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.sdk.NamedAccount;
 import io.token.util.Util;
 
@@ -111,6 +112,13 @@ public class TokenRule implements MethodRule {
                 member
                         .linkAccounts(auth)
                         .get(0));
+    }
+
+    public BankAccount bankAccount(Member member) {
+        NamedAccount account = testBank.randomAccount();
+        BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
+        member.linkAccounts(auth);
+        return account.getBankAccount();
     }
 
     public NamedAccount unlinkedAccount() {
