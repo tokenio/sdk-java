@@ -6,7 +6,7 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
-        classpath 'io.token.gradle:token-gradle:1.0.62'
+        classpath 'io.token.gradle:token-gradle:1.0.63'
         classpath 'net.ltgt.gradle:gradle-apt-plugin:0.8'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.13.0'
         classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1'
@@ -16,12 +16,12 @@ buildscript {
 allprojects {
     ext {
         ver = [
-            tokenProto           : '1.0.304',
+            tokenProto           : '1.0.305',
             tokenRpc             : '1.0.67',
             tokenSecurity        : '1.0.31',
             tokenUtil            : '1.0.13',
             retrofit             : '2.2.0',
-            tokenIntegrationSdk  : '1.0.51',
+            tokenIntegrationSdk  : '1.0.58',
         ]
     }
 
