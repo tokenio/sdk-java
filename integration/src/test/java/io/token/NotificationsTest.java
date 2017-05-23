@@ -31,7 +31,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import org.assertj.core.api.ThrowableAssert;
+
 import org.assertj.core.api.iterable.Extractor;
 import org.junit.Before;
 import org.junit.Rule;
@@ -45,14 +45,19 @@ public class NotificationsTest {
 
     @Rule public TokenRule rule = new TokenRule();
 
-    private final Account payerAccount = rule.account();
-    private final Account payeeAccount = rule.account();
-    private final Member payer = payerAccount.member();
-    private final Member payee = payeeAccount.member();
+    private Account payerAccount;
+    private Member payer;
+    private Account payeeAccount;
+    private Member payee;
     private BankAuthorization authorization;
 
     @Before
     public void setup() {
+        this.payerAccount = rule.account();
+        this.payeeAccount = rule.account();
+        this.payer = payerAccount.member();
+        this.payee = payeeAccount.member();
+
         String checking = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Checking")
                 .setAccount(BankAccount.newBuilder()
@@ -91,22 +96,16 @@ public class NotificationsTest {
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = payer.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                assertThat(payer.getNotifications(null, 100).getList().size())
-                        .isGreaterThan(0);
-            }
-        });
+        waitUntil(NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payer.getNotifications(null, 100).getList().size())
+                        .isGreaterThan(0));
         payer.unsubscribeFromNotifications(subscriber.getId());
 
         List<Subscriber> subscriberList2 = payer.getSubscribers();
         assertThat(subscriberList2.size()).isEqualTo(0);
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                assertThat(payer.getNotifications(null, 100).getList().size())
-                        .isEqualTo(0);
-            }
-        });
+        waitUntil(NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payer.getNotifications(null, 100).getList().size())
+                        .isEqualTo(0));
     }
 
     @Test
@@ -117,13 +116,9 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            @Override
-            public void run() {
-                assertThat(payer.getNotifications(null, 100).getList().size())
-                        .isGreaterThan(0);
-            }
-        });
+        waitUntil(NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payer.getNotifications(null, 100).getList().size())
+                        .isGreaterThan(0));
     }
 
     @Test
@@ -136,13 +131,9 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            @Override
-            public void run() {
-                assertThat(payer.getNotifications(null, 100).getList().size())
-                        .isGreaterThan(0);
-            }
-        });
+        waitUntil(NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payer.getNotifications(null, 100).getList().size())
+                        .isGreaterThan(0));
     }
 
     @Test
@@ -168,15 +159,11 @@ public class NotificationsTest {
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus())
                 .isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            @Override
-            public void run() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, () ->
                 assertThat(payer.getNotifications(null, 100).getList())
                         .hasSize(1)
                         .extracting(new NotificationStatusExtractor())
-                        .containsExactly(DELIVERED);
-            }
-        });
+                        .containsExactly(DELIVERED));
     }
 
     @Test
@@ -201,13 +188,10 @@ public class NotificationsTest {
         assertThat(res2.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
 
         // 2 subscribers, 2 step ups
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
+        waitUntil(NOTIFICATION_TIMEOUT_MS, () ->
                 assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationStatusExtractor())
-                        .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED);
-            }
-        });
+                        .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
     }
 
     @Test
@@ -221,14 +205,12 @@ public class NotificationsTest {
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
         assertThat(res.getStatus()).isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                assertThat(payer.getNotifications(null, 100).getList())
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payer.getNotifications(null, 100).getList())
                         .hasSize(1)
                         .extracting(new NotificationStatusExtractor())
-                        .containsExactly(DELIVERED);
-            }
-        });
+                        .containsExactly(DELIVERED));
     }
 
     @Test
@@ -266,25 +248,21 @@ public class NotificationsTest {
         payee.redeemToken(endorsed, null, null, destination);
         payee.redeemToken(endorsed2, null, null, destination);
 
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                assertThat(payer.getNotifications(null, 100).getList())
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationTypeExtractor())
                         .containsExactly(
                                 PAYER_TRANSFER_PROCESSED.toString(),
-                                PAYER_TRANSFER_PROCESSED.toString());
-            }
-        });
+                                PAYER_TRANSFER_PROCESSED.toString()));
 
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                assertThat(payee.getNotifications(null, 100).getList())
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payee.getNotifications(null, 100).getList())
                         .extracting(new NotificationTypeExtractor())
                         .containsExactly(
                                 PAYEE_TRANSFER_PROCESSED.toString(),
-                                PAYEE_TRANSFER_PROCESSED.toString());
-            }
-        });
+                                PAYEE_TRANSFER_PROCESSED.toString()));
     }
 
     @Test
@@ -314,19 +292,15 @@ public class NotificationsTest {
 
         payee.redeemToken(endorsed, null, null, destination);
 
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                assertThat(payer.getNotifications(null, 100).getList())
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationTypeExtractor())
-                        .containsExactly(PAYER_TRANSFER_PROCESSED.toString());
-            }
-        });
+                        .containsExactly(PAYER_TRANSFER_PROCESSED.toString()));
 
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                assertThat(payee.getNotifications(null, 100).getList()).isEmpty();
-            }
-        });
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payee.getNotifications(null, 100).getList()).isEmpty());
     }
 
     @Test
@@ -360,13 +334,11 @@ public class NotificationsTest {
                     "Chrome 52.0",
                     deviceInfo.getKeys().get(0));
 
-            waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-                public void run() {
-                    assertThat(payer.getNotifications(null, 100).getList())
+            waitUntil(
+                    NOTIFICATION_TIMEOUT_MS,
+                    () -> assertThat(payer.getNotifications(null, 100).getList())
                             .extracting(new NotificationStatusExtractor())
-                            .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED);
-                }
-            });
+                            .containsExactly(DELIVERED, DELIVERED, DELIVERED, DELIVERED));
         }
     }
 
@@ -380,13 +352,11 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
 
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                assertThat(payer.getNotifications(null, 100).getList())
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payer.getNotifications(null, 100).getList())
                         .extracting(new NotificationStatusExtractor())
-                        .containsExactly(DELIVERED);
-            }
-        });
+                        .containsExactly(DELIVERED));
     }
 
     @Test
@@ -405,13 +375,11 @@ public class NotificationsTest {
                             "Chrome",
                             deviceInfo.getKeys().get(0));
 
-            waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-                public void run() {
-                    assertThat(payer.getNotifications(null, 100).getList())
+            waitUntil(
+                    NOTIFICATION_TIMEOUT_MS,
+                    () -> assertThat(payer.getNotifications(null, 100).getList())
                             .extracting(new NotificationStatusExtractor())
-                            .containsExactly(DELIVERED);
-                }
-            });
+                            .containsExactly(DELIVERED));
         }
     }
 
@@ -422,11 +390,7 @@ public class NotificationsTest {
 
     @Test
     public void getNotificationFalse() {
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                payer.getNotification("123456789");
-            }
-        });
+        assertThatThrownBy(() -> payer.getNotification("123456789"));
     }
 
     @Test
@@ -439,14 +403,14 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
 
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                List<Notification> notifications = payer.getNotifications(null, 5).getList();
-                assertThat(notifications.size()).isGreaterThan(0);
-                assertThat(payer.getNotification(notifications.get(0).getId()))
-                        .isEqualTo(notifications.get(0));
-            }
-        });
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> {
+                    List<Notification> notifications = payer.getNotifications(null, 5).getList();
+                    assertThat(notifications.size()).isGreaterThan(0);
+                    assertThat(payer.getNotification(notifications.get(0).getId()))
+                            .isEqualTo(notifications.get(0));
+                });
     }
 
     @Test
@@ -468,16 +432,16 @@ public class NotificationsTest {
                 payer.firstUsername(),
                 authorization);
 
-        waitUntil(NOTIFICATION_TIMEOUT_MS, new Runnable() {
-            public void run() {
-                PagedList<Notification, String> notifications = payer.getNotifications(null, 2);
-                assertThat(notifications.getList().size()).isEqualTo(2);
-                PagedList<Notification, String> notifications2 = payer.getNotifications(
-                        notifications.getOffset(),
-                        100);
-                assertThat(notifications2.getList().size()).isEqualTo(2);
-            }
-        });
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> {
+                    PagedList<Notification, String> notifications = payer.getNotifications(null, 2);
+                    assertThat(notifications.getList().size()).isEqualTo(2);
+                    PagedList<Notification, String> notifications2 = payer.getNotifications(
+                            notifications.getOffset(),
+                            100);
+                    assertThat(notifications2.getList().size()).isEqualTo(2);
+                });
     }
 
     private static class NotificationStatusExtractor implements Extractor<Notification, Status> {

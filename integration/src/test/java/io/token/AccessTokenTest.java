@@ -23,17 +23,26 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.testing.sample.Sample;
 
-import org.assertj.core.api.ThrowableAssert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class AccessTokenTest {
     @Rule
     public TokenRule rule = new TokenRule();
-    private Member member1 = rule.member();
-    private Member member2 = rule.member();
-    private Account payerAccount = rule.account();
-    private Account payeeAccount = rule.account();
+
+    private Member member1;
+    private Member member2;
+    private Account payerAccount;
+    private Account payeeAccount;
+
+    @Before
+    public void before() {
+        this.member1 = rule.member();
+        this.member2 = rule.member();
+        this.payerAccount = rule.account();
+        this.payeeAccount = rule.account();
+    }
 
     @Test
     public void getAccessToken() {
@@ -90,11 +99,7 @@ public class AccessTokenTest {
                 .forAddress(address.getId()));
         member2.useAccessToken(accessToken.getId());
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                member2.getAddress(address.getId());
-            }
-        });
+        assertThatThrownBy(() -> member2.getAddress(address.getId()));
     }
 
     @Test
@@ -106,22 +111,14 @@ public class AccessTokenTest {
         TokenOperationResult res = member1.endorseToken(accessToken, STANDARD);
         assertThat(res.getStatus()).isEqualTo(Status.SUCCESS);
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                member2.getAddress(address.getId());
-            }
-        });
+        assertThatThrownBy(() -> member2.getAddress(address.getId()));
 
         member2.useAccessToken(accessToken.getId());
         AddressRecord result = member2.getAddress(address.getId());
         assertThat(result).isEqualTo(address);
 
         member2.clearAccessToken();
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                member2.getAddress(address.getId());
-            }
-        });
+        assertThatThrownBy(() -> member2.getAddress(address.getId()));
     }
 
     @Test
@@ -139,11 +136,7 @@ public class AccessTokenTest {
         TokenOperationResult res = member1.cancelToken(accessToken);
         assertThat(res.getStatus()).isEqualTo(Status.SUCCESS);
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                member2.getAddress(address.getId());
-            }
-        });
+        assertThatThrownBy(() -> member2.getAddress(address.getId()));
     }
 
     @Test
@@ -156,11 +149,7 @@ public class AccessTokenTest {
         member1.endorseToken(accessToken, STANDARD);
         member2.useAccessToken(accessToken.getId());
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                member2.getAddress(address2.getId());
-            }
-        });
+        assertThatThrownBy(() -> member2.getAddress(address2.getId()));
     }
 
     @Test
@@ -186,11 +175,7 @@ public class AccessTokenTest {
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                member1.getAccount(account.id());
-            }
-        });
+        assertThatThrownBy(() -> member1.getAccount(account.id()));
 
         member1.useAccessToken(accessToken.getId());
         Money balance = member1.getBalance(account.id());
@@ -231,11 +216,7 @@ public class AccessTokenTest {
                 .forAccountBalances(account.id()));
         accountMember.endorseToken(accessToken, STANDARD);
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                member1.getAccount(account.id());
-            }
-        });
+        assertThatThrownBy(() -> member1.getAccount(account.id()));
 
         member1.useAccessToken(accessToken.getId());
         Money balance = member1.getBalance(account.id());
@@ -247,11 +228,7 @@ public class AccessTokenTest {
     public void createAccountTransactionsAccessToken() {
         final Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
-        assertThatThrownBy(new ThrowableAssert.ThrowingCallable() {
-            public void call() throws Throwable {
-                member1.getTransaction(payerAccount.id(), transaction.getId());
-            }
-        });
+        assertThatThrownBy(() -> member1.getTransaction(payerAccount.id(), transaction.getId()));
 
         Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())

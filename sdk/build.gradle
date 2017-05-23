@@ -1,5 +1,9 @@
 apply plugin: 'com.github.hierynomus.license'
 
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+base.useJava7 = true
+
 publish {
     isPublic = true
 }

@@ -1,12 +1,12 @@
 package io.token;
 
+import static io.grpc.Status.Code.FAILED_PRECONDITION;
 import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
@@ -16,16 +16,25 @@ import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 
-import org.assertj.core.api.ThrowableAssert;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 public class TransferRedemptionTest {
     @Rule public TokenRule rule = new TokenRule();
-    private final Account payerAccount = rule.account();
-    private final Account payeeAccount = rule.account();
-    private final Member payer = payerAccount.member();
-    private final Member payee = payeeAccount.member();
+
+    private Account payerAccount;
+    private Member payer;
+    private Member payee;
+
+    @Before
+    public void before() {
+        this.payerAccount = rule.account();
+        this.payer = payerAccount.member();
+
+        Account payeeAccount = rule.account();
+        this.payee = payeeAccount.member();
+    }
 
     @Test
     public void redeemToken() {
@@ -45,17 +54,9 @@ public class TransferRedemptionTest {
         Token token = token(100.0);
         final Token endorsedToken = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         payer.unlinkAccounts(singletonList(payerAccount.id()));
-        assertThatThrownBy(
-                new ThrowableAssert.ThrowingCallable() {
-                    public void call() throws Throwable {
-                        payee.redeemToken(endorsedToken);
-                    }
-                })
-                .isInstanceOf(StatusRuntimeException.class)
-                .extracting("status")
-                .extracting("code", Status.Code.class)
-                .extractingResultOf("value", int.class)
-                .contains(Status.Code.FAILED_PRECONDITION.value());
+        assertThatExceptionOfType(StatusRuntimeException.class)
+                .isThrownBy(() -> payee.redeemToken(endorsedToken))
+                .matches(e -> e.getStatus().getCode() == FAILED_PRECONDITION);
     }
 
     @Test
