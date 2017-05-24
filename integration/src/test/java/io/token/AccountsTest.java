@@ -1,5 +1,6 @@
 package io.token;
 
+import static java.lang.Double.parseDouble;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -50,5 +51,12 @@ public class AccountsTest {
         Account account = rule.account();
         assertThat(account.member().getAccounts()).containsExactly(account);
         assertThat(account.member().getAccount(account.id())).isEqualTo(account);
+    }
+
+    @Test
+    public void getBalance() {
+        Account account = rule.account();
+        assertThat(parseDouble(account.getBalance().getValue())).isNotNaN();
+        assertThat(account.getBalance().getCurrency()).isNotEmpty();
     }
 }
