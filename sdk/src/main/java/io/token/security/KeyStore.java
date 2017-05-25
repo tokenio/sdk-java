@@ -24,6 +24,8 @@ package io.token.security;
 
 import io.token.proto.common.security.SecurityProtos;
 
+import java.util.List;
+
 /**
  * Provides key storage primitives.
  */
@@ -56,4 +58,12 @@ public interface KeyStore {
      * @throws KeyIOException if an error is encountered while fetching the key
      */
     SecretKey getById(String memberId, String keyId);
+
+    /**
+     * Gets all of a member's keys.
+     *
+     * @param memberId Id of member
+     * @return list of SecretKey
+     */
+    List<SecretKey> listKeys(String memberId);
 }
