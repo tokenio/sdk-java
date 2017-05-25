@@ -116,7 +116,12 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
         }
     }
 
-    private List<SecretKey> listKeys(String memberId) {
+    /**
+     * Get all of a member's keys.
+     * @param memberId Id of member
+     * @return the keys
+     */
+    public List<SecretKey> listKeys(String memberId) {
         File memberPath = getMemberPath(memberId);
         File[] keyFiles = memberPath.listFiles();
         if (keyFiles == null) {

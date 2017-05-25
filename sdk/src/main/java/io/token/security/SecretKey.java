@@ -33,7 +33,7 @@ import java.security.PublicKey;
  * Encapsulates secret key data.
  */
 @AutoValue
-abstract class SecretKey {
+public abstract class SecretKey {
     public static SecretKey create(
             String id,
             Key.Level level,

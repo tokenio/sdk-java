@@ -26,7 +26,9 @@ import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
 import io.token.proto.common.security.SecurityProtos;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 /**
  * In memory implementation of the {@link KeyStore}. Used for testing.
@@ -58,5 +60,10 @@ public final class InMemoryKeyStore implements KeyStore {
             throw new IllegalArgumentException("Key not found for id: " + keyId);
         }
         return key;
+    }
+
+    @Override
+    public List<SecretKey> listKeys(String memberId) {
+        return new ArrayList<>(keys.row(memberId).values());
     }
 }
