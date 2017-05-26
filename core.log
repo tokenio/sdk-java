@@ -1,0 +1,19 @@
+Will tail 3 logs...
+[31mcore-1637218583-4b1y7(B[m
+[32mcore-1637218583-dz3qe(B[m
+[33mcore-1637218583-hp8fk(B[m
+[32m[core-1637218583-dz3qe](B[m 01:09:15.671 [rpc-server-1] [] [34mINFO[0;39m i.t.core.store.OrderStore - Feeding order log entities: offset=0, int=100
+[33m[core-1637218583-hp8fk](B[m 01:09:14.753 [OkHttp https://kubernetes.default.svc/...] [] [34mINFO[0;39m i.t.r.k.KubernetesNameResolver - service:ledger changed, action: MODIFIED
+[33m[core-1637218583-hp8fk](B[m 01:09:14.761 [OkHttp https://kubernetes.default.svc/...] [] [34mINFO[0;39m i.t.r.k.KubernetesNameResolver - service:ledger new server set:
+[33m[core-1637218583-hp8fk](B[m ledger-1986526616-2japl --> /10.244.7.8:9006
+[33m[core-1637218583-hp8fk](B[m 01:09:14.881 [OkHttp https://kubernetes.default.svc/...] [] [34mINFO[0;39m i.t.r.k.KubernetesNameResolver - service:ledger changed, action: MODIFIED
+[33m[core-1637218583-hp8fk](B[m 01:09:14.882 [OkHttp https://kubernetes.default.svc/...] [] [34mINFO[0;39m i.t.r.k.KubernetesNameResolver - service:ledger new server set:
+[33m[core-1637218583-hp8fk](B[m ledger-1986526616-e07vv --> /10.244.8.103:9006
+[33m[core-1637218583-hp8fk](B[m ledger-1986526616-2japl --> /10.244.7.8:9006
+[33m[core-1637218583-hp8fk](B[m 01:09:14.946 [OkHttp https://kubernetes.default.svc/...] [] [34mINFO[0;39m i.t.r.k.KubernetesNameResolver - service:ledger changed, action: MODIFIED
+[33m[core-1637218583-hp8fk](B[m 01:09:14.947 [OkHttp https://kubernetes.default.svc/...] [] [34mINFO[0;39m i.t.r.k.KubernetesNameResolver - service:ledger new server set:
+[33m[core-1637218583-hp8fk](B[m ledger-1986526616-e07vv --> /10.244.8.103:9006
+[33m[core-1637218583-hp8fk](B[m ledger-1986526616-eguos --> /10.244.5.64:9006
+[33m[core-1637218583-hp8fk](B[m ledger-1986526616-2japl --> /10.244.7.8:9006
+[33m[core-1637218583-hp8fk](B[m 01:09:20.971 [rpc-server-3] [] [34mINFO[0;39m i.t.core.store.OrderStore - Feeding order log entities: offset=0, int=100
+[31m[core-1637218583-4b1y7](B[m 01:09:28.673 [rpc-server-1] [] [34mINFO[0;39m i.t.core.store.OrderStore - Feeding order log entities: offset=0, int=100
