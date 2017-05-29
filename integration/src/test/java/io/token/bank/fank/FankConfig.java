@@ -13,7 +13,7 @@ import com.typesafe.config.Config;
 /**
  * Parses per env fank test config.
  */
-public class FankConfig {
+final class FankConfig {
     private final Config config;
 
     public FankConfig(Config config) {

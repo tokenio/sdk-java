@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.collect.ImmutableSet;
 import io.grpc.StatusRuntimeException;
+import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.BankAccount;
@@ -33,15 +34,15 @@ public class AccessTokenTest {
 
     private Member member1;
     private Member member2;
-    private Account payerAccount;
-    private Account payeeAccount;
+    private LinkedAccount payerAccount;
+    private LinkedAccount payeeAccount;
 
     @Before
     public void before() {
         this.member1 = rule.member();
         this.member2 = rule.member();
-        this.payerAccount = rule.account();
-        this.payeeAccount = rule.account();
+        this.payerAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount();
     }
 
     @Test
@@ -168,74 +169,77 @@ public class AccessTokenTest {
 
     @Test
     public void createBalancesAccessToken() {
-        final Account account = rule.account();
-        Member accountMember = account.member();
+        LinkedAccount account = rule.linkedAccount();
+        Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
-        assertThatThrownBy(() -> member1.getAccount(account.id()));
+        assertThatThrownBy(() -> member1.getAccount(account.getId()));
 
         member1.useAccessToken(accessToken.getId());
-        Money balance = member1.getBalance(account.id());
+        Money balance = member1.getBalance(account.getId());
 
-        assertThat(balance).isEqualTo(account.getBalance());
+        assertThat(balance).isEqualTo(account.getAccount().getBalance());
     }
 
     @Test
     public void createAccountAccessToken() {
-        Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
+        Member payer = payerAccount.getMember();
+        Token accessToken = payer.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
-                .forAccount(payerAccount.id()));
-        payerAccount.member().endorseToken(accessToken, STANDARD);
+                .forAccount(payerAccount.getId()));
+        payer.endorseToken(accessToken, STANDARD);
         member2.useAccessToken(accessToken.getId());
-        Account result = member2.getAccount(payerAccount.id());
+        Account result = member2.getAccount(payerAccount.getId());
 
-        assertThat(result.name()).isEqualTo(payerAccount.name());
+        assertThat(result).isEqualTo(payerAccount.getAccount());
     }
 
     @Test
     public void createAccountsAccessToken() {
-        Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
+        Member payer = payerAccount.getMember();
+        Token accessToken = payer.createAccessToken(AccessTokenBuilder
                 .create(member2.firstUsername())
                 .forAllAccounts());
-        payerAccount.member().endorseToken(accessToken, STANDARD);
+        payer.endorseToken(accessToken, STANDARD);
         member2.useAccessToken(accessToken.getId());
-        Account result = member2.getAccount(payerAccount.id());
+        Account result = member2.getAccount(payerAccount.getId());
 
-        assertThat(result.name()).isEqualTo(payerAccount.name());
+        assertThat(result).isEqualTo(payerAccount.getAccount());
     }
 
     @Test
     public void createBalanceAccessToken() {
-        final Account account = rule.account();
-        Member accountMember = account.member();
+        LinkedAccount account = rule.linkedAccount();
+        Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
-                .forAccountBalances(account.id()));
+                .forAccountBalances(account.getId()));
         accountMember.endorseToken(accessToken, STANDARD);
 
-        assertThatThrownBy(() -> member1.getAccount(account.id()));
+        assertThatThrownBy(() -> member1.getAccount(account.getId()));
 
         member1.useAccessToken(accessToken.getId());
-        Money balance = member1.getBalance(account.id());
+        Money balance = member1.getBalance(account.getId());
 
-        assertThat(balance).isEqualTo(account.getBalance());
+        assertThat(balance).isEqualTo(account.getAccount().getBalance());
     }
 
     @Test
     public void createAccountTransactionsAccessToken() {
-        final Transaction transaction = getTransaction(payerAccount, payeeAccount);
+        Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
-        assertThatThrownBy(() -> member1.getTransaction(payerAccount.id(), transaction.getId()));
+        assertThatThrownBy(() -> member1.getTransaction(payerAccount.getId(), transaction.getId()));
 
-        Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
+        Member payer = payerAccount.getMember();
+        Token accessToken = payer.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
-                .forAccountTransactions(payerAccount.id()));
-        payerAccount.member().endorseToken(accessToken, STANDARD);
+                .forAccountTransactions(payerAccount.getId()));
+        payer.endorseToken(accessToken, STANDARD);
         member1.useAccessToken(accessToken.getId());
-        Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId());
+        Transaction result = member1.getTransaction(payerAccount.getId(), transaction.getId());
 
         assertThat(result).isEqualTo(transaction);
     }
@@ -243,14 +247,15 @@ public class AccessTokenTest {
     @Test
     public void createAccountsTransactionsAccessToken() {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
+        Member payer = payerAccount.getMember();
 
-        Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
+        Token accessToken = payer.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllTransactions());
 
-        payerAccount.member().endorseToken(accessToken, STANDARD);
+        payer.endorseToken(accessToken, STANDARD);
         member1.useAccessToken(accessToken.getId());
-        Transaction result = member1.getTransaction(payerAccount.id(), transaction.getId());
+        Transaction result = member1.getTransaction(payerAccount.getId(), transaction.getId());
 
         assertThat(result).isEqualTo(transaction);
     }
@@ -259,12 +264,16 @@ public class AccessTokenTest {
     public void accountAccess_getTransactions() {
         Transaction transaction = getTransaction(payerAccount, payeeAccount);
 
-        Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
+        Member payer = payerAccount.getMember();
+        Token accessToken = payer.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllTransactions());
-        payerAccount.member().endorseToken(accessToken, STANDARD);
+        payer.endorseToken(accessToken, STANDARD);
         member1.useAccessToken(accessToken.getId());
-        PagedList<Transaction, String> result = member1.getTransactions(payerAccount.id(), null, 1);
+        PagedList<Transaction, String> result = member1.getTransactions(
+                payerAccount.getId(),
+                null,
+                1);
 
         assertThat(result.getList()).contains(transaction);
         assertThat(result.getOffset()).isNotEmpty();
@@ -272,10 +281,11 @@ public class AccessTokenTest {
 
     @Test
     public void accountAccess_getTransactionsPaged() {
-        Token accessToken = payerAccount.member().createAccessToken(AccessTokenBuilder
+        Member payer = payerAccount.getMember();
+        Token accessToken = payer.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllTransactions());
-        payerAccount.member().endorseToken(accessToken, STANDARD);
+        payer.endorseToken(accessToken, STANDARD);
 
         int num = 10;
         for (int i = 0; i < num; i++) {
@@ -286,12 +296,12 @@ public class AccessTokenTest {
         ImmutableSet.Builder<Transaction> builder = ImmutableSet.builder();
         member1.useAccessToken(accessToken.getId());
         PagedList<Transaction, String> result = member1.getTransactions(
-                payerAccount.id(),
+                payerAccount.getId(),
                 null,
                 limit);
         for (int i = 0; i < num / limit; i++) {
             builder.addAll(result.getList());
-            result = member1.getTransactions(payerAccount.id(), result.getOffset(), limit);
+            result = member1.getTransactions(payerAccount.getId(), result.getOffset(), limit);
         }
 
         assertThat(builder.build().size()).isEqualTo(num);
@@ -299,16 +309,16 @@ public class AccessTokenTest {
 
     @Test
     public void replaceAddressTokenAndEndorse() {
-        Account account = rule.account();
-        Member accountMember = account.member();
+        LinkedAccount account = rule.linkedAccount();
+        Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
         member1.useAccessToken(accessToken.getId());
-        Money balance = member1.getBalance(account.id());
-        assertThat(balance).isEqualTo(account.getBalance());
+        Money balance = member1.getBalance(account.getId());
+        assertThat(balance).isEqualTo(account.getAccount().getBalance());
 
         TokenOperationResult result = accountMember.replaceAndEndorseAccessToken(
                 accessToken,
@@ -333,16 +343,16 @@ public class AccessTokenTest {
 
     @Test(expected = StatusRuntimeException.class)
     public void replaceAddressTokenRace() {
-        Account account = rule.account();
-        Member accountMember = account.member();
+        LinkedAccount account = rule.linkedAccount();
+        Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
         member1.useAccessToken(accessToken.getId());
-        Money balance = member1.getBalance(account.id());
-        assertThat(balance).isEqualTo(account.getBalance());
+        Money balance = member1.getBalance(account.getId());
+        assertThat(balance).isEqualTo(account.getAccount().getBalance());
 
         accountMember.replaceAndEndorseAccessToken(
                 accessToken,
@@ -355,16 +365,16 @@ public class AccessTokenTest {
 
     @Test
     public void replaceAddressTokenIdempotent() {
-        Account account = rule.account();
-        Member accountMember = account.member();
+        LinkedAccount account = rule.linkedAccount();
+        Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
         member1.useAccessToken(accessToken.getId());
-        Money balance = member1.getBalance(account.id());
-        assertThat(balance).isEqualTo(account.getBalance());
+        Money balance = member1.getBalance(account.getId());
+        assertThat(balance).isEqualTo(account.getAccount().getBalance());
 
         AccessTokenBuilder builder = AccessTokenBuilder
                 .fromPayload(accessToken.getPayload())
@@ -378,24 +388,24 @@ public class AccessTokenTest {
     @Test
     public void replaceTokenLoop() {
         // Replace token with a new one then replace once more to get back to the old one.
-        Account account = rule.account();
-        Member accountMember = account.member();
+        LinkedAccount account = rule.linkedAccount();
+        Member accountMember = account.getMember();
         Token originalToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
         accountMember.endorseToken(originalToken, STANDARD);
 
         member1.useAccessToken(originalToken.getId());
-        Money balance = member1.getBalance(account.id());
-        assertThat(balance).isEqualTo(account.getBalance());
+        Money balance = member1.getBalance(account.getId());
+        assertThat(balance).isEqualTo(account.getAccount().getBalance());
 
         Token replacedToken = accountMember.replaceAndEndorseAccessToken(
                 originalToken,
                 AccessTokenBuilder.fromPayload(originalToken.getPayload()).forAll()).getToken();
 
         member1.useAccessToken(replacedToken.getId());
-        balance = member1.getBalance(account.id());
-        assertThat(balance).isEqualTo(account.getBalance());
+        balance = member1.getBalance(account.getId());
+        assertThat(balance).isEqualTo(account.getAccount().getBalance());
 
         Token likeOriginal = accountMember.replaceAndEndorseAccessToken(
                 replacedToken,
@@ -403,22 +413,22 @@ public class AccessTokenTest {
                 .getToken();
 
         member1.useAccessToken(likeOriginal.getId());
-        balance = member1.getBalance(account.id());
-        assertThat(balance).isEqualTo(account.getBalance());
+        balance = member1.getBalance(account.getId());
+        assertThat(balance).isEqualTo(account.getAccount().getBalance());
     }
 
     @Test
     public void replaceAddressTokenNoEndorse() {
-        Account account = rule.account();
-        Member accountMember = account.member();
+        LinkedAccount account = rule.linkedAccount();
+        Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
         member1.useAccessToken(accessToken.getId());
-        Money balance = member1.getBalance(account.id());
-        assertThat(balance).isEqualTo(account.getBalance());
+        Money balance = member1.getBalance(account.getId());
+        assertThat(balance).isEqualTo(account.getAccount().getBalance());
 
         AccessTokenBuilder builder = AccessTokenBuilder.fromPayload(accessToken.getPayload())
                 .forAll();
@@ -429,20 +439,19 @@ public class AccessTokenTest {
         assertThat(result.getToken().getPayloadSignaturesList().isEmpty()).isTrue();
     }
 
-    private Transaction getTransaction(Account payerAccount, Account payeeAccount) {
-        Member payer = payerAccount.member();
-        Member payee = payeeAccount.member();
-        Token token = payer.createTransferToken(10, "USD")
-                .setAccountId(payerAccount.id())
+    private Transaction getTransaction(LinkedAccount payerAccount, LinkedAccount payeeAccount) {
+        Member payer = payerAccount.getMember();
+        Member payee = payeeAccount.getMember();
+        Token token = payerAccount.createTransferToken(10)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         token = payer.endorseToken(token, STANDARD).getToken();
-        Transfer transfer = payee.redeemToken(token, 1.0, "USD", "one",
+        Transfer transfer = payee.redeemToken(token, 1.0, payerAccount.getCurrency(), "one",
                 TransferEndpoint.newBuilder()
                         .setAccount(BankAccount.newBuilder()
                                 .setToken(BankAccount.Token.newBuilder()
                                         .setMemberId(payee.memberId())
-                                        .setAccountId(payeeAccount.id())))
+                                        .setAccountId(payeeAccount.getId())))
                         .build());
         return payerAccount.getTransaction(transfer.getReferenceId());
     }

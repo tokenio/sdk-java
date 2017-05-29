@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.protobuf.ByteString;
+import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
@@ -22,23 +23,22 @@ import org.junit.Test;
 public class TransferTokenBuilderTest {
     @Rule public TokenRule rule = new TokenRule();
 
-    private Account payerAccount;
+    private LinkedAccount payerAccount;
     private Member payer;
     private Member payee;
 
     @Before
     public void before() {
-        this.payerAccount = rule.account();
-        this.payer = payerAccount.member();
+        this.payerAccount = rule.linkedAccount();
+        this.payer = payerAccount.getMember();
 
-        Account payeeAccount = rule.account();
-        this.payee = payeeAccount.member();
+        LinkedAccount payeeAccount = rule.linkedAccount();
+        this.payee = payeeAccount.getMember();
     }
 
     @Test
     public void basicToken() {
-        payer.createTransferToken(100.0, "USD")
-                .setAccountId(payerAccount.id())
+        payerAccount.createTransferToken(100.0)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .execute();
@@ -46,7 +46,7 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void noSource() {
-        assertThatThrownBy(() -> payer.createTransferToken(100.0, "USD")
+        assertThatThrownBy(() -> payer.createTransferToken(100.0, payerAccount.getCurrency())
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .execute());
@@ -54,8 +54,7 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void noRedeemer() {
-        assertThatThrownBy(() -> payer.createTransferToken(100.0, "USD")
-                .setAccountId(payerAccount.id())
+        assertThatThrownBy(() -> payerAccount.createTransferToken(100.0)
                 .setDescription("book purchase")
                 .execute());
     }
@@ -74,8 +73,7 @@ public class TransferTokenBuilderTest {
             assert false;
         }
 
-        Token token = payer.createTransferToken(100.0, "USD")
-                .setAccountId(payerAccount.id())
+        Token token = payerAccount.createTransferToken(100.0)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .addAttachment(attachment)
@@ -95,8 +93,7 @@ public class TransferTokenBuilderTest {
         byte[] randomData3 = new byte[500];
         byte[] randomData4 = new byte[100];
 
-        Token token = payer.createTransferToken(100.0, "USD")
-                .setAccountId(payerAccount.id())
+        Token token = payerAccount.createTransferToken(100.0)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .addAttachment(payer.memberId(), string(), string(), randomData1)
@@ -119,8 +116,7 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void full() {
-        payer.createTransferToken(100.0, "USD")
-                .setAccountId(payerAccount.id())
+        payerAccount.createTransferToken(100.0)
                 .setRedeemerUsername(payee.firstUsername())
                 .setEffectiveAtMs(System.currentTimeMillis() + 10000)
                 .setExpiresAtMs(System.currentTimeMillis() + 1000000)

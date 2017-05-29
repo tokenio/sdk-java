@@ -1,10 +1,10 @@
 package io.token.bank.config;
 
-import static com.google.common.base.Preconditions.checkState;
 import static io.token.Destinations.swift;
 import static java.util.Collections.singletonList;
 
 import com.typesafe.config.Config;
+import io.token.bank.TestAccount;
 import io.token.bank.TestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.security.SecurityProtos;
@@ -23,36 +23,33 @@ import java.util.Random;
  */
 public final class ConfigBasedTestBank extends TestBank {
     private final String bankId;
-    private final String bic;
-    private final List<String> accounts;
+    private final List<BankAccountConfig> accounts;
     private final Random random;
+    private int lastAccountIndex;
 
     public ConfigBasedTestBank(Config config) {
         this(new BankConfig(config));
     }
 
     public ConfigBasedTestBank(BankConfig config) {
-        this(config.getBankId(), config.getBic(), config.getAccounts());
+        this(config.getBankId(), config.getAccounts());
     }
 
-    public ConfigBasedTestBank(String bankId, String bic, List<String> accounts) {
+    public ConfigBasedTestBank(String bankId, List<BankAccountConfig> accounts) {
         this.bankId = bankId;
-        this.bic = bic;
         this.accounts = accounts;
         this.random = new Random();
+        this.lastAccountIndex = 0;
     }
 
     @Override
-    public NamedAccount randomAccount() {
-        int index = random.nextInt(accounts.size());
-        String accountNumber = accounts.get(index);
-        return new NamedAccount(swift(bic, accountNumber).getAccount(), accountNumber);
-    }
-
-    @Override
-    public NamedAccount lookupAccount(String accountNumber) {
-        checkState(accounts.contains(accountNumber));
-        return new NamedAccount(swift(bic, accountNumber).getAccount(), accountNumber);
+    public TestAccount nextAccount() {
+        int index = lastAccountIndex++ % accounts.size();
+        BankAccountConfig accountConfig = accounts.get(index);
+        return new TestAccount(
+                accountConfig.getAccountName(),
+                accountConfig.getCurrency(),
+                swift(accountConfig.getBic(), accountConfig.getAccountNumber()).getAccount());
     }
 
     @Override

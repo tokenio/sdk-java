@@ -5,11 +5,13 @@ import static io.token.common.Polling.waitUntil;
 import static io.token.proto.TransactionStatusHelper.hasFailed;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.ACCEPTED;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.FAILURE_INSUFFICIENT_FUNDS;
-import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.PROCESSING;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.SUCCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.token.bank.TestAccount;
+import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
+import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -31,32 +33,31 @@ public class InstantPaymentTest {
 
     @Rule public TokenRule rule = new TokenRule();
 
-    private Account payerAccount;
-    private Account payeeAccount;
+    private LinkedAccount payerAccount;
+    private LinkedAccount payeeAccount;
     private Member payer;
     private Member payee;
 
     @Before
     public void before() {
-        this.payerAccount = rule.account();
-        this.payeeAccount = rule.account();
-        this.payer = payerAccount.member();
-        this.payee = payeeAccount.member();
+        this.payerAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount();
+        this.payer = payerAccount.getMember();
+        this.payee = payeeAccount.getMember();
     }
 
     @Test
     public void instantPayment_isSuccessful() {
-        final Transfer transfer = initiateInstantTransfer(100);
-
+        Transfer transfer = initiateInstantTransfer(100);
         assertThat(transfer).hasStatus(ACCEPTED);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction payerTransaction = payer.getTransaction(
-                    payerAccount.id(),
+                    payerAccount.getId(),
                     transfer.getReferenceId());
 
             Transaction payeeTransaction = payee.getTransaction(
-                    payeeAccount.id(),
+                    payeeAccount.getId(),
                     transfer.getReferenceId());
 
             Token token = payer.getToken(transfer.getPayload().getTokenId());
@@ -74,14 +75,16 @@ public class InstantPaymentTest {
                     .as("Destination Quote")
                     .isNotEmpty();
         });
+
+        PagedList<Transaction, String> result = payerAccount.getAccount().getTransactions(null, 5);
+        assertThat(result.getList()).isNotEmpty();
+        assertThat(result.getOffset()).isNotEmpty();
     }
 
     @Test
     public void instantPayment_debitFailure() {
-        double amount = Double.parseDouble(payerAccount.getBalance().getValue()) + 1;
-
+        double amount = payerAccount.getBalance() + 1;
         Transfer transfer = initiateInstantTransfer(amount);
-
         assertThat(transfer.getStatus()).isEqualTo(FAILURE_INSUFFICIENT_FUNDS);
     }
 
@@ -89,29 +92,22 @@ public class InstantPaymentTest {
     @Test
     public void instantPayment_adjustsAccountBalances() {
         final double transferAmount = 100.0;
-        final double expectedPayerBalance =
-                Double.parseDouble(payerAccount.getBalance().getValue()) - transferAmount;
-        final double expectedPayeeBalance =
-                Double.parseDouble(payeeAccount.getBalance().getValue()) + transferAmount;
+        final double expectedPayerBalance = payerAccount.getBalance() - transferAmount;
+        final double expectedPayeeBalance = payeeAccount.getBalance() + transferAmount;
 
         initiateInstantTransfer(transferAmount);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
-            double actualPayerBalance =
-                    Double.parseDouble(payerAccount.getBalance().getValue());
-            double actualPayeeBalance =
-                    Double.parseDouble(payeeAccount.getBalance().getValue());
-
-            assertThat(actualPayerBalance).isEqualTo(expectedPayerBalance);
-            assertThat(actualPayeeBalance).isEqualTo(expectedPayeeBalance);
+            assertThat(payerAccount.getBalance()).isEqualTo(expectedPayerBalance);
+            assertThat(payeeAccount.getBalance()).isEqualTo(expectedPayeeBalance);
         });
     }
 
     @Ignore("PR-751")
     @Test
     public void instantPayment_rollback() {
-        Token token = payer.createTransferToken(100.0, "USD")
-                .setAccountId(payerAccount.id())
+        Token token = payer.createTransferToken(100.0, payeeAccount.getCurrency())
+                .setAccountId(payerAccount.getId())
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
@@ -119,15 +115,19 @@ public class InstantPaymentTest {
         TransferEndpoint transferEndpoint = TransferEndpoint.newBuilder()
                 .setAccount(BankAccount.newBuilder()
                         .setToken(BankAccount.Token.newBuilder()
-                                .setAccountId(payeeAccount.id() + "invalidId")
+                                .setAccountId(payeeAccount.getId() + "invalidId")
                                 .setMemberId(payee.memberId())))
                 .build();
 
-        final Transfer transfer = payee.redeemToken(token, 100.00, "USD", transferEndpoint);
+        final Transfer transfer = payee.redeemToken(
+                token,
+                100.00,
+                payeeAccount.getCurrency(),
+                transferEndpoint);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction transaction = payer.getTransaction(
-                    payerAccount.id(),
+                    payerAccount.getId(),
                     transfer.getReferenceId());
 
             assertThat(hasFailed(transaction.getStatus()));
@@ -136,19 +136,17 @@ public class InstantPaymentTest {
 
     @Test
     public void instantPayment_nonTokenTipsDestination() {
-        Transfer transfer = initiateInstantTransfer(100, TransferEndpoint.newBuilder()
-                .setAccount(rule.bankAccount(payee))
-                .build());
+        Transfer transfer = initiateInstantTransfer(rule.unlinkedAccount(),100);
 
         assertThat(transfer).hasStatus(ACCEPTED);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction payerTransaction = payer.getTransaction(
-                    payerAccount.id(),
+                    payerAccount.getId(),
                     transfer.getReferenceId());
 
             Transaction payeeTransaction = payee.getTransaction(
-                    payeeAccount.id(),
+                    payeeAccount.getId(),
                     transfer.getReferenceId());
 
             Pricing pricing = payer.getToken(transfer.getPayload().getTokenId())
@@ -181,47 +179,50 @@ public class InstantPaymentTest {
                 .stream()
                 .map(Account::id)
                 .collect(Collectors.toList()));
-        BankAccount bankAccount = rule.bankAccount(payee);
-        Account merchantAccount = payee.getAccounts().get(0);
+        TestAccount destination = rule.unlinkedAccount();
 
-        final double expectedPayerBalance =
-                Double.parseDouble(payerAccount.getBalance().getValue()) - transferAmount;
-        final double expectedPayeeBalance =
-                Double.parseDouble(merchantAccount.getBalance().getValue()) + transferAmount;
+        final double expectedPayerBalance = payerAccount.getBalance() - transferAmount;
+        final double expectedPayeeBalance = payeeAccount.getBalance() + transferAmount;
 
-        initiateInstantTransfer(transferAmount, TransferEndpoint.newBuilder()
-                .setAccount(bankAccount)
-                .build());
+        initiateInstantTransfer(destination, transferAmount);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
-            double actualPayerBalance =
-                    Double.parseDouble(payerAccount.getBalance().getValue());
-            double actualPayeeBalance =
-                    Double.parseDouble(merchantAccount.getBalance().getValue());
-
-            assertThat(actualPayerBalance).isEqualTo(expectedPayerBalance);
-            assertThat(actualPayeeBalance).isEqualTo(expectedPayeeBalance);
+            assertThat(payerAccount.getBalance()).isEqualTo(expectedPayerBalance);
+            assertThat(payeeAccount.getBalance()).isEqualTo(expectedPayeeBalance);
         });
     }
 
     private Transfer initiateInstantTransfer(double amount) {
-        return initiateInstantTransfer(amount, TransferEndpoint.newBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setToken(BankAccount.Token.newBuilder()
-                                .setAccountId(payeeAccount.id())
-                                .setMemberId(payee.memberId())))
-                .build());
+        return initiateInstantTransfer(
+                TransferEndpoint.newBuilder()
+                        .setAccount(BankAccount.newBuilder()
+                                .setToken(BankAccount.Token.newBuilder()
+                                        .setAccountId(payeeAccount.getId())
+                                        .setMemberId(payee.memberId())))
+                        .build(),
+                amount,
+                payeeAccount.getCurrency());
     }
 
-    private Transfer initiateInstantTransfer(double amount, TransferEndpoint destination) {
-        Token token = payer.createTransferToken(amount, "USD")
-                .setAccountId(payerAccount.id())
+    private Transfer initiateInstantTransfer(TestAccount destination, double amount) {
+        return initiateInstantTransfer(
+                TransferEndpoint.newBuilder()
+                        .setAccount(destination.getBankAccount())
+                        .build(),
+                amount,
+                destination.getCurrency());
+    }
+
+    private Transfer initiateInstantTransfer(
+            TransferEndpoint destination,
+            double amount,
+            String currency) {
+        Token token = payer.createTransferToken(amount, currency)
+                .setAccountId(payerAccount.getId())
                 .setRedeemerUsername(payee.firstUsername())
                 .addDestination(destination)
                 .execute();
-
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
-
-        return payee.redeemToken(token, amount, "USD", "description");
+        return payee.redeemToken(token, amount, currency, "description");
     }
 }
