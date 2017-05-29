@@ -1,12 +1,12 @@
 package io.token;
 
 import static io.token.testing.sample.Sample.string;
-import static java.lang.Double.parseDouble;
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableSet;
 import io.token.asserts.TransactionAssertion;
+import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -25,36 +25,39 @@ import org.junit.Test;
 public class TransactionsTest {
     @Rule public TokenRule rule = new TokenRule();
 
-    private Account payerAccount;
+    private LinkedAccount payerAccount;
     private Member payer;
     private Member payee;
 
     @Before
     public void before() {
-        this.payerAccount = rule.account();
-        this.payer = payerAccount.member();
+        this.payerAccount = rule.linkedAccount();
+        this.payer = payerAccount.getMember();
 
-        Account payeeAccount = rule.account();
-        this.payee = payeeAccount.member();
+        LinkedAccount payeeAccount = rule.linkedAccount();
+        this.payee = payeeAccount.getMember();
     }
 
     @Test
     public void getBalance() {
-        assertThat(parseDouble(payerAccount.getBalance().getValue())).isGreaterThan(0);
-        assertThat(payerAccount.getBalance().getCurrency()).isEqualTo("USD");
+        assertThat(payerAccount.getBalance()).isGreaterThan(0);
     }
 
     @Test
     public void getTransaction() {
         Token token = token();
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
-        Transfer transfer = payee.redeemToken(token, 100.0, "USD", null, null);
+        Transfer transfer = payee.redeemToken(
+                token,
+                100.0,
+                payerAccount.getCurrency(),
+                null,
+                null);
 
         Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
         TransactionAssertion.assertThat(transaction)
                 .isSuccessful()
                 .hasAmount(100.0)
-                .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer.getId());
     }
@@ -65,11 +68,33 @@ public class TransactionsTest {
         Token token = tokenSwift(destination);
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
-        final Transfer transfer1 = payee.redeemToken(token, 100.0, "USD", "one");
-        final Transfer transfer2 = payee.redeemToken(token, 200.0, "USD", null, null);
-        final Transfer transfer3 = payee.redeemToken(token, 300.0, "USD", "three");
-        final Transfer transfer4 = payee.redeemToken(token, 400.0, "USD", destination);
-        final Transfer transfer5 = payee.redeemToken(token, 500.0, "USD", "five", destination);
+        final Transfer transfer1 = payee.redeemToken(
+                token,
+                100.0,
+                payerAccount.getCurrency(),
+                "one");
+        final Transfer transfer2 = payee.redeemToken(
+                token,
+                200.0,
+                payerAccount.getCurrency(),
+                null,
+                null);
+        final Transfer transfer3 = payee.redeemToken(
+                token,
+                300.0,
+                payerAccount.getCurrency(),
+                "three");
+        final Transfer transfer4 = payee.redeemToken(
+                token,
+                400.0,
+                payerAccount.getCurrency(),
+                destination);
+        final Transfer transfer5 = payee.redeemToken(
+                token,
+                500.0,
+                payerAccount.getCurrency(),
+                "five",
+                destination);
 
         PagedList<Transaction, String> result = payerAccount.getTransactions(null, 5);
         List<Transaction> transactions = new ArrayList<>(result.getList());
@@ -82,32 +107,27 @@ public class TransactionsTest {
         TransactionAssertion.assertThat(transactions.get(0))
                 .isSuccessful()
                 .hasAmount(100.0)
-                .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer1.getId());
         TransactionAssertion.assertThat(transactions.get(1))
                 .isSuccessful()
                 .hasAmount(200.0)
-                .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer2.getId());
         TransactionAssertion.assertThat(transactions.get(2))
                 .isSuccessful()
                 .hasAmount(300.0)
-                .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer3.getId())
                 .containsDescription("three");
         TransactionAssertion.assertThat(transactions.get(3))
                 .isSuccessful()
                 .hasAmount(400.0)
-                .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer4.getId());
         TransactionAssertion.assertThat(transactions.get(4))
                 .isSuccessful()
                 .hasAmount(500.0)
-                .hasCurrency("USD")
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer5.getId())
                 .containsDescription("five");
@@ -120,7 +140,12 @@ public class TransactionsTest {
 
         int num = 14;
         for (int i = 0; i < num; i++) {
-            payee.redeemToken(token, 100.0, "USD", null, null);
+            payee.redeemToken(
+                    token,
+                    100.0,
+                    payerAccount.getCurrency(),
+                    null,
+                    null);
         }
 
         int limit = 2;
@@ -136,17 +161,21 @@ public class TransactionsTest {
 
     @Test
     public void testBalanceUpdate() {
-        double initialBalance = parseDouble(payerAccount.getBalance().getValue());
+        double initialBalance = payerAccount.getBalance();
+
         Token token = token();
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
-        payee.redeemToken(token, 100.0, "USD", null, null);
-        double finalBalance = parseDouble(payerAccount.getBalance().getValue());
-        assertThat(initialBalance).isGreaterThan(finalBalance);
+        payee.redeemToken(
+                token,
+                100.0,
+                payerAccount.getCurrency(),
+                null,
+                null);
+        assertThat(initialBalance).isGreaterThan(payerAccount.getBalance());
     }
 
     private Token token() {
-        return payer.createTransferToken(1500.0, "USD")
-                .setAccountId(payerAccount.id())
+        return payerAccount.createTransferToken(1500.0)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("Multi charge token")
                 .addDestination(Destinations.sepa(string()))
@@ -154,8 +183,7 @@ public class TransactionsTest {
     }
 
     private Token tokenSwift(TransferEndpoint destination) {
-        return payer.createTransferToken(1500.0, "USD")
-                .setAccountId(payerAccount.id())
+        return payerAccount.createTransferToken(1500.0)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("Multi charge token")
                 .addDestination(destination)

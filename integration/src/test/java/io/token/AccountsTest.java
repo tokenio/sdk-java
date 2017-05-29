@@ -1,10 +1,9 @@
 package io.token;
 
-import static java.lang.Double.parseDouble;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.token.common.TestAccount;
+import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 
 import java.util.List;
@@ -18,45 +17,42 @@ public class AccountsTest {
 
     @Test
     public void linkAccountsTest() {
-        Account account = rule.account();
-        assertThat(account.member().getAccounts()).containsExactly(account);
+        LinkedAccount account = rule.linkedAccount();
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
 
-        account.member().unlinkAccounts(singletonList(account.id()));
-        assertThat(account.member().getAccounts()).isEmpty();
+        account.getMember().unlinkAccounts(singletonList(account.getId()));
+        assertThat(account.getMember().getAccounts()).isEmpty();
     }
 
     @Test
     public void linkAccounts_relinking() {
-        TestAccount account = rule.testAccount();
-        assertThat(account.getAccount().member().getAccounts())
-                .containsExactly(account.getAccount());
+        LinkedAccount account = rule.linkedAccount();
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
 
-        rule.account(account.getNumber());
-        rule.account(account.getNumber());
-        assertThat(account.getAccount().member().getAccounts())
-                .containsExactly(account.getAccount());
+        rule.relinkAccount(account);
+        rule.relinkAccount(account);
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
     }
 
     @Test
     public void getAccounts() {
-        Account account = rule.account();
-        assertThat(account.member().getAccounts()).containsExactly(account);
+        LinkedAccount account = rule.linkedAccount();
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
 
-        List<Account> accounts = account.member().getAccounts();
-        assertThat(accounts).containsExactly(account);
+        List<Account> accounts = account.getMember().getAccounts();
+        assertThat(accounts).containsExactly(account.getAccount());
     }
 
     @Test
     public void getAccount() {
-        Account account = rule.account();
-        assertThat(account.member().getAccounts()).containsExactly(account);
-        assertThat(account.member().getAccount(account.id())).isEqualTo(account);
+        LinkedAccount account = rule.linkedAccount();
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
+        assertThat(account.getMember().getAccount(account.getId())).isEqualTo(account.getAccount());
     }
 
     @Test
     public void getBalance() {
-        Account account = rule.account();
-        assertThat(parseDouble(account.getBalance().getValue())).isNotNaN();
-        assertThat(account.getBalance().getCurrency()).isNotEmpty();
+        LinkedAccount account = rule.linkedAccount();
+        assertThat(account.getBalance()).isNotNaN();
     }
 }

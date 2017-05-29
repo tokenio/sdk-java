@@ -7,6 +7,7 @@ import static org.apache.commons.lang3.RandomStringUtils.randomNumeric;
 
 import com.google.common.net.HostAndPort;
 import com.typesafe.config.Config;
+import io.token.bank.TestAccount;
 import io.token.bank.TestBank;
 import io.token.proto.bankapi.Fank;
 import io.token.proto.bankapi.Fank.Client;
@@ -14,8 +15,9 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.NamedAccount;
 
 public final class FankTestBank extends TestBank {
-    private String bic;
+    private static final String CURRENCY = "USD";
     private final FankClient fank;
+    private String bic;
 
     public FankTestBank(Config config) {
         this(new FankConfig(config));
@@ -34,21 +36,20 @@ public final class FankTestBank extends TestBank {
     }
 
     @Override
-    public NamedAccount randomAccount() {
+    public TestAccount nextAccount() {
+        String accountName = "Test Account";
         String bankAccountNumber = "iban:" + randomNumeric(7);
         Fank.Client client = fank.addClient("Test " + string(), "Testoff");
         fank.addAccount(
                 client,
-                "Test Account",
+                accountName,
                 bankAccountNumber,
                 1000000.00,
-                "USD");
-        return new NamedAccount(swift(bic, bankAccountNumber).getAccount(), "Test Account");
-    }
-
-    @Override
-    public NamedAccount lookupAccount(String accountNumber) {
-        return new NamedAccount(swift(bic, accountNumber).getAccount(), "Test Account");
+                CURRENCY);
+        return new TestAccount(
+                accountName,
+                CURRENCY,
+                swift(bic, bankAccountNumber).getAccount());
     }
 
     @Override
@@ -59,7 +60,7 @@ public final class FankTestBank extends TestBank {
                 account.getDisplayName(),
                 account.getBankAccount().getSwift().getAccount(),
                 1000000.00,
-                "USD");
+                CURRENCY);
         return fank.startAccountsLinking(
                 username,
                 client.getId(),

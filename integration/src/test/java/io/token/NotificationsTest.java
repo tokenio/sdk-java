@@ -7,6 +7,7 @@ import static io.token.proto.common.notification.NotificationProtos.NotifyBody.B
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
+import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
@@ -45,18 +46,18 @@ public class NotificationsTest {
 
     @Rule public TokenRule rule = new TokenRule();
 
-    private Account payerAccount;
+    private LinkedAccount payerAccount;
     private Member payer;
-    private Account payeeAccount;
+    private LinkedAccount payeeAccount;
     private Member payee;
     private BankAuthorization authorization;
 
     @Before
     public void setup() {
-        this.payerAccount = rule.account();
-        this.payeeAccount = rule.account();
-        this.payer = payerAccount.member();
-        this.payee = payeeAccount.member();
+        this.payerAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount();
+        this.payer = payerAccount.getMember();
+        this.payee = payeeAccount.getMember();
 
         String checking = ProtoJson.toJson(PlaintextBankAuthorization.newBuilder()
                 .setAccountName("Checking")
@@ -151,8 +152,7 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payer.createTransferToken(56, "USD")
-                .setAccountId(payerAccount.id())
+        Token token = payerAccount.createTransferToken(56)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 
@@ -173,12 +173,10 @@ public class NotificationsTest {
         payer.subscribeToNotifications("token", Sample
                 .handlerInstructions(NOTIFICATION_TARGET + "1", TEST));
 
-        Token token = payer.createTransferToken(56, "USD")
-                .setAccountId(payerAccount.id())
+        Token token = payerAccount.createTransferToken(56)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
-        Token token2 = payer.createTransferToken(56, "USD")
-                .setAccountId(payerAccount.id())
+        Token token2 = payerAccount.createTransferToken(56)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 
@@ -223,14 +221,12 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payer.createTransferToken(20, "USD")
-                .setAccountId(payerAccount.id())
+        Token token = payerAccount.createTransferToken(20)
                 .setRedeemerUsername(payee.firstUsername())
                 .setToUsername(payee.firstUsername())
                 .execute();
 
-        Token token2 = payer.createTransferToken(20, "USD")
-                .setAccountId(payerAccount.id())
+        Token token2 = payerAccount.createTransferToken(20)
                 .setRedeemerUsername(payee.firstUsername())
                 .setToMemberId(payee.memberId())
                 .execute();
@@ -243,7 +239,7 @@ public class NotificationsTest {
                 .setAccount(BankAccount.newBuilder()
                         .setToken(BankAccount.Token.newBuilder()
                                 .setMemberId(payer.memberId())
-                                .setAccountId(payerAccount.id())))
+                                .setAccountId(payerAccount.getId())))
                 .build();
         payee.redeemToken(endorsed, null, null, destination);
         payee.redeemToken(endorsed2, null, null, destination);
@@ -275,8 +271,7 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payer.createTransferToken(20, "USD")
-                .setAccountId(payerAccount.id())
+        Token token = payerAccount.createTransferToken(20)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 
@@ -287,7 +282,7 @@ public class NotificationsTest {
                 .setAccount(BankAccount.newBuilder()
                         .setToken(BankAccount.Token.newBuilder()
                                 .setMemberId(payee.memberId())
-                                .setAccountId(payeeAccount.id())))
+                                .setAccountId(payeeAccount.getId())))
                 .build();
 
         payee.redeemToken(endorsed, null, null, destination);

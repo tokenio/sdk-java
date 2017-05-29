@@ -8,9 +8,9 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import io.grpc.StatusRuntimeException;
+import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
-import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
@@ -23,17 +23,17 @@ import org.junit.Test;
 public class TransferRedemptionTest {
     @Rule public TokenRule rule = new TokenRule();
 
-    private Account payerAccount;
+    private LinkedAccount payerAccount;
     private Member payer;
     private Member payee;
 
     @Before
     public void before() {
-        this.payerAccount = rule.account();
-        this.payer = payerAccount.member();
+        this.payerAccount = rule.linkedAccount();
+        this.payer = payerAccount.getMember();
 
-        Account payeeAccount = rule.account();
-        this.payee = payeeAccount.member();
+        LinkedAccount payeeAccount = rule.linkedAccount();
+        this.payee = payeeAccount.getMember();
     }
 
     @Test
@@ -53,7 +53,7 @@ public class TransferRedemptionTest {
     public void redeemTokenWithUnlinkedAccount() {
         Token token = token(100.0);
         final Token endorsedToken = payer.endorseToken(token, Key.Level.STANDARD).getToken();
-        payer.unlinkAccounts(singletonList(payerAccount.id()));
+        payer.unlinkAccounts(singletonList(payerAccount.getId()));
         assertThatExceptionOfType(StatusRuntimeException.class)
                 .isThrownBy(() -> payee.redeemToken(endorsedToken))
                 .matches(e -> e.getStatus().getCode() == FAILED_PRECONDITION);
@@ -64,28 +64,35 @@ public class TransferRedemptionTest {
         Token token = token(100.0);
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
-        Transfer transfer = payee.redeemToken(token, 99.0, "USD", "transfer description");
+        Transfer transfer = payee.redeemToken(
+                token,
+                99.0,
+                payerAccount.getCurrency(),
+                "transfer description");
         assertThat(transfer)
                 .isSuccessful()
                 .hasAmount(99.0)
-                .hasCurrency("USD")
+                .hasCurrency(payerAccount.getCurrency())
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
     }
 
     @Test
     public void redeemToken_failure() {
-        Money balance = payerAccount.getBalance();
-        double amount = Double.parseDouble(balance.getValue()) + 1; // 1 over the limit.
+        double amount = payerAccount.getBalance() + 1; // 1 over the limit.
 
         Token token = token(amount);
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
-        Transfer transfer = payee.redeemToken(token, amount, "USD", "transfer description");
+        Transfer transfer = payee.redeemToken(
+                token,
+                amount,
+                payerAccount.getCurrency(),
+                "transfer description");
         assertThat(transfer)
                 .hasStatus(TransactionStatus.FAILURE_INSUFFICIENT_FUNDS)
                 .hasAmount(amount)
-                .hasCurrency("USD")
+                .hasCurrency(payerAccount.getCurrency())
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
     }
@@ -107,24 +114,36 @@ public class TransferRedemptionTest {
         Token token = token(100.0);
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
-        Transfer transfer1 = payee.redeemToken(token, 10.0, "USD", "first");
-        Transfer transfer2 = payee.redeemToken(token, 20.0, "USD", "second");
-        Transfer transfer3 = payee.redeemToken(token, 70.0, "USD", "third");
+        Transfer transfer1 = payee.redeemToken(
+                token,
+                10.0,
+                payerAccount.getCurrency(),
+                "first");
+        Transfer transfer2 = payee.redeemToken(
+                token,
+                20.0,
+                payerAccount.getCurrency(),
+                "second");
+        Transfer transfer3 = payee.redeemToken(
+                token,
+                70.0,
+                payerAccount.getCurrency(),
+                "third");
 
         assertThat(transfer1)
                 .isSuccessful()
                 .hasAmount(10.0)
-                .hasCurrency("USD")
+                .hasCurrency(payerAccount.getCurrency())
                 .hasDescription("first");
         assertThat(transfer2)
                 .isSuccessful()
                 .hasAmount(20.0)
-                .hasCurrency("USD")
+                .hasCurrency(payerAccount.getCurrency())
                 .hasDescription("second");
         assertThat(transfer3)
                 .isSuccessful()
                 .hasAmount(70.0)
-                .hasCurrency("USD")
+                .hasCurrency(payerAccount.getCurrency())
                 .hasDescription("third");
 
         PagedList<Transfer, String> lookedUp = payer.getTransfers(null, 100, token.getId());
@@ -138,8 +157,8 @@ public class TransferRedemptionTest {
     }
 
     private Token token(double amount) {
-        return payer.createTransferToken(amount, "USD")
-                .setAccountId(payerAccount.id())
+        return payerAccount.createTransferToken(amount)
+                .setAccountId(payerAccount.getId())
                 .setRedeemerUsername(payee.firstUsername())
                 .addDestination(Destinations.sepa(string()))
                 .execute();

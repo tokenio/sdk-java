@@ -7,6 +7,8 @@
 
 package io.token.bank.config;
 
+import static java.util.stream.Collectors.toList;
+
 import com.typesafe.config.Config;
 
 import java.util.List;
@@ -14,22 +16,27 @@ import java.util.List;
 /**
  * Parses per env test bank config.
  */
-public class BankConfig {
-    private final Config config;
+final class BankConfig {
+    private final String bankId;
+    private final List<BankAccountConfig> accounts;
 
     public BankConfig(Config config) {
-        this.config = config;
+        this.bankId = config.getString("bank-id");
+        this.accounts = config.getConfigList("bank.accounts")
+                .stream()
+                .map(c -> new BankAccountConfig(
+                        c.getString("name"),
+                        c.getString("bic"),
+                        c.getString("number"),
+                        c.getString("currency")))
+                .collect(toList());
     }
 
     public String getBankId() {
-        return config.getString("bank-id");
+        return bankId;
     }
 
-    public String getBic() {
-        return config.getString("bank-bic");
-    }
-
-    public List<String> getAccounts() {
-        return config.getStringList("bank.accounts");
+    public List<BankAccountConfig> getAccounts() {
+        return accounts;
     }
 }

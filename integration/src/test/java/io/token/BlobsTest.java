@@ -8,6 +8,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.google.protobuf.ByteString;
 import io.grpc.StatusRuntimeException;
+import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.ProtoHasher;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -31,15 +32,15 @@ public class BlobsTest {
 
     @Rule public TokenRule rule = new TokenRule();
 
-    private Account payerAccount;
+    private LinkedAccount payerAccount;
     private Member payer;
     private Member payee;
     private Member otherMember;
 
     @Before
     public void before() {
-        this.payerAccount = rule.account();
-        this.payer = payerAccount.member();
+        this.payerAccount = rule.linkedAccount();
+        this.payer = payerAccount.getMember();
         this.payee = rule.member();
         this.otherMember = rule.member();
     }
@@ -167,8 +168,7 @@ public class BlobsTest {
         Attachment attachment2 = payer
                 .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
-        Token token = payer.createTransferToken(100, "EUR")
-                .setAccountId(payerAccount.id())
+        Token token = payerAccount.createTransferToken(100)
                 .setRedeemerUsername(payee.firstUsername())
                 .addAttachment(attachment)
                 .addAttachment(attachment2)
@@ -193,11 +193,10 @@ public class BlobsTest {
 
         new Random().nextBytes(randomData);
 
-        final Attachment attachment = payer
+        Attachment attachment = payer
                 .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
-        final Token token = payer.createTransferToken(100, "EUR")
-                .setAccountId(payerAccount.id())
+        Token token = payerAccount.createTransferToken(100)
                 .setRedeemerUsername(payee.firstUsername())
                 .addAttachment(attachment)
                 .execute();

@@ -4,13 +4,14 @@ import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.proto.common.security.SecurityProtos.SealedMessage.MethodCase.NOOP;
 import static java.util.Collections.singletonList;
 
+import io.token.bank.TestAccount;
+import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.sdk.BankAccountAuthorizer;
-import io.token.sdk.NamedAccount;
 import io.token.security.testing.KeyStoreTestRule;
 
 import org.junit.Before;
@@ -22,16 +23,16 @@ public class BankAuthorizationPayTest {
     @Rule public KeyStoreTestRule keyRule = new KeyStoreTestRule();
 
     private Member payer;
-    private Account payeeAccount;
+    private LinkedAccount payeeAccount;
     private Member payee;
 
     @Before
     public void before() {
-        Account payerAccount = rule.account();
-        this.payer = payerAccount.member();
+        LinkedAccount payerAccount = rule.linkedAccount();
+        this.payer = payerAccount.getMember();
 
-        this.payeeAccount = rule.account();
-        this.payee = payeeAccount.member();
+        this.payeeAccount = rule.linkedAccount();
+        this.payee = payeeAccount.getMember();
     }
 
     @Test
@@ -48,7 +49,7 @@ public class BankAuthorizationPayTest {
     }
 
     private Token token(double amount) {
-        NamedAccount account = rule.unlinkedAccount();
+        TestAccount account = rule.unlinkedAccount();
         BankAccountAuthorizer authorizer = BankAccountAuthorizer
                 .builder("iron")
                 .useMethod(NOOP)
@@ -59,12 +60,12 @@ public class BankAuthorizationPayTest {
 
         BankAuthorization authorization = authorizer.createAuthorization(
                 payer.firstUsername(),
-                singletonList(account));
+                singletonList(account.toNamedAccount()));
 
-        return payer.createTransferToken(amount, "USD")
+        return payer.createTransferToken(amount, payeeAccount.getCurrency())
                 .setBankAuthorization(authorization)
                 .setRedeemerUsername(payer.firstUsername())
-                .addDestination(Destinations.token(payee.memberId(), payeeAccount.id()))
+                .addDestination(Destinations.token(payee.memberId(), payeeAccount.getId()))
                 .execute();
     }
 }

@@ -26,19 +26,11 @@ public abstract class TestBank {
     }
 
     /**
-     * Returns a random account that can be linked.
+     * Returns a next account that can be linked.
      *
-     * @return random account
+     * @return next account
      */
-    public abstract NamedAccount randomAccount();
-
-    /**
-     * Looks up an account given the account number.
-     *
-     * @param accountNumber account number
-     * @return looked up account
-     */
-    public abstract NamedAccount lookupAccount(String accountNumber);
+    public abstract TestAccount nextAccount();
 
     /**
      * Produces bank authorization for the given account.

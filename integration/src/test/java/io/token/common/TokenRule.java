@@ -15,13 +15,14 @@ import com.typesafe.config.ConfigFactory;
 import io.token.Account;
 import io.token.Member;
 import io.token.TokenIO;
+import io.token.bank.TestAccount;
 import io.token.bank.TestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.sdk.NamedAccount;
 import io.token.util.Util;
 
 import java.util.regex.Pattern;
+
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -84,45 +85,16 @@ public class TokenRule implements MethodRule {
         return tokenIO.createMember(username);
     }
 
-    public Account account() {
-        return testAccount().getAccount();
+    public LinkedAccount linkedAccount() {
+        return linkAccount(testBank.nextAccount());
     }
 
-    public Account account(String accountNumber) {
-        return testAccount(accountNumber).getAccount();
+    public TestAccount unlinkedAccount() {
+        return testBank.nextAccount();
     }
 
-    public TestAccount testAccount() {
-        Member member = member();
-        NamedAccount account = testBank.randomAccount();
-        BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
-        return new TestAccount(
-                account.getBankAccount().getSwift().getAccount(),
-                member
-                        .linkAccounts(auth)
-                        .get(0));
-    }
-
-    public TestAccount testAccount(String accountNumber) {
-        Member member = member();
-        NamedAccount account = testBank.lookupAccount(accountNumber);
-        BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
-        return new TestAccount(
-                accountNumber,
-                member
-                        .linkAccounts(auth)
-                        .get(0));
-    }
-
-    public BankAccount bankAccount(Member member) {
-        NamedAccount account = testBank.randomAccount();
-        BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(), account);
-        member.linkAccounts(auth);
-        return account.getBankAccount();
-    }
-
-    public NamedAccount unlinkedAccount() {
-        return testBank.randomAccount();
+    public LinkedAccount relinkAccount(LinkedAccount account) {
+        return linkAccount(account.testAccount());
     }
 
     public TokenIO token() {
@@ -141,5 +113,16 @@ public class TokenRule implements MethodRule {
         }
 
         return defaultValue;
+    }
+
+    private LinkedAccount linkAccount(TestAccount testAccount) {
+        Member member = member();
+        BankAuthorization auth = testBank.authorizeAccount(
+                member.firstUsername(),
+                new NamedAccount(testAccount.getBankAccount(), testAccount.getAccountName()));
+        Account account = member
+                        .linkAccounts(auth)
+                        .get(0);
+        return new LinkedAccount(testAccount, account);
     }
 }
