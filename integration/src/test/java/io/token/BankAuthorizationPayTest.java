@@ -41,7 +41,7 @@ public class BankAuthorizationPayTest {
 
         Transfer transfer = payer.redeemToken(token);
         assertThat(transfer)
-                .isProcessing()
+                .isAccepted()
                 .hasNoAmount()
                 .hasNSignatures(2)
                 .isSignedBy(payer, Key.Level.LOW);

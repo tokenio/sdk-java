@@ -3,6 +3,7 @@ package io.token;
 import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.common.Polling.waitUntil;
 import static io.token.proto.TransactionStatusHelper.hasFailed;
+import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.ACCEPTED;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.FAILURE_INSUFFICIENT_FUNDS;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.PROCESSING;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.SUCCESS;
@@ -47,7 +48,7 @@ public class InstantPaymentTest {
     public void instantPayment_isSuccessful() {
         final Transfer transfer = initiateInstantTransfer(100);
 
-        assertThat(transfer).hasStatus(PROCESSING);
+        assertThat(transfer).hasStatus(ACCEPTED);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction payerTransaction = payer.getTransaction(
@@ -139,7 +140,7 @@ public class InstantPaymentTest {
                 .setAccount(rule.bankAccount(payee))
                 .build());
 
-        assertThat(transfer).hasStatus(PROCESSING);
+        assertThat(transfer).hasStatus(ACCEPTED);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction payerTransaction = payer.getTransaction(
