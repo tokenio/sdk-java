@@ -56,18 +56,11 @@ public class InstantPaymentTest {
                     payerAccount.getId(),
                     transfer.getReferenceId());
 
-            Transaction payeeTransaction = payee.getTransaction(
-                    payeeAccount.getId(),
-                    transfer.getReferenceId());
-
             Token token = payer.getToken(transfer.getPayload().getTokenId());
             Pricing pricing = token.getPayload().getTransfer().getPricing();
 
             assertThat(payerTransaction.getStatus())
                     .as("Payer Transaction Status")
-                    .isEqualTo(SUCCESS);
-            assertThat(payeeTransaction.getStatus())
-                    .as("Payee Transaction Status")
                     .isEqualTo(SUCCESS);
 
             assertThat(pricing.getSourceQuote().getId()).as("Source Quote").isNotEmpty();
@@ -145,10 +138,6 @@ public class InstantPaymentTest {
                     payerAccount.getId(),
                     transfer.getReferenceId());
 
-            Transaction payeeTransaction = payee.getTransaction(
-                    payeeAccount.getId(),
-                    transfer.getReferenceId());
-
             Pricing pricing = payer.getToken(transfer.getPayload().getTokenId())
                     .getPayload()
                     .getTransfer()
@@ -158,12 +147,7 @@ public class InstantPaymentTest {
                     .as("Payer Transaction Status")
                     .isEqualTo(SUCCESS);
 
-            assertThat(payeeTransaction.getStatus())
-                    .as("Payee Transaction Status")
-                    .isEqualTo(SUCCESS);
-
             assertThat(pricing.getSourceQuote().getId()).as("Source Quote").isNotEmpty();
-
             assertThat(pricing.getDestinationQuote().getId())
                     .as("Destination Quote")
                     .isNotEmpty();
