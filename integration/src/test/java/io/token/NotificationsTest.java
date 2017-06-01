@@ -338,6 +338,31 @@ public class NotificationsTest {
     }
 
     @Test
+    public void testUnicode() {
+        String username = payer.firstUsername();
+
+        try (TokenIO newSdk = rule.newSdkInstance()) {
+            DeviceInfo deviceInfo = newSdk.provisionDevice(username);
+
+            payer.subscribeToNotifications(
+                    "token",
+                    Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+            NotifyStatus res1 = newSdk.notifyAddKey(
+                    username,
+                    "Chrome 52.0 ₫",
+                    deviceInfo.getKeys().get(0));
+
+            assertThat(res1).isEqualTo(NotifyStatus.ACCEPTED);
+
+            waitUntil(
+                    NOTIFICATION_TIMEOUT_MS,
+                    () -> assertThat(payer.getNotifications(null, 100).getList())
+                            .extracting(new NotificationStatusExtractor())
+                            .containsExactly(DELIVERED));
+        }
+    }
+
+    @Test
     public void sendLinkAccounts() {
         payer.subscribeToNotifications(
                 "token",
