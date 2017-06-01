@@ -7,8 +7,10 @@ import io.token.Member;
 import io.token.TransferTokenBuilder;
 import io.token.bank.TestAccount;
 import io.token.proto.PagedList;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 
 import javax.annotation.Nullable;
 
@@ -40,6 +42,18 @@ public class LinkedAccount {
         return getMember()
                 .createTransferToken(amount, getCurrency())
                 .setAccountId(getId());
+    }
+
+    public TransferTokenBuilder createTransferToken(double amount, LinkedAccount destination) {
+        return getMember()
+                .createTransferToken(amount, destination.getCurrency())
+                .setAccountId(getId())
+                .addDestination(TransferInstructionsProtos.TransferEndpoint.newBuilder()
+                        .setAccount(BankAccount.newBuilder()
+                                .setToken(BankAccount.Token.newBuilder()
+                                        .setMemberId(destination.getMember().memberId())
+                                        .setAccountId(destination.getId())))
+                        .build());
     }
 
     public Double getBalance() {

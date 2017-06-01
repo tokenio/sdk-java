@@ -25,14 +25,14 @@ public class TransferRedemptionTest {
 
     private LinkedAccount payerAccount;
     private Member payer;
+    private LinkedAccount payeeAccount;
     private Member payee;
 
     @Before
     public void before() {
         this.payerAccount = rule.linkedAccount();
         this.payer = payerAccount.getMember();
-
-        LinkedAccount payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount();
         this.payee = payeeAccount.getMember();
     }
 
@@ -43,7 +43,7 @@ public class TransferRedemptionTest {
 
         Transfer transfer = payee.redeemToken(token);
         assertThat(transfer)
-                .isSuccessful()
+                .isProcessing()
                 .hasNoAmount()
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
@@ -70,7 +70,7 @@ public class TransferRedemptionTest {
                 payerAccount.getCurrency(),
                 "transfer description");
         assertThat(transfer)
-                .isSuccessful()
+                .isProcessing()
                 .hasAmount(99.0)
                 .hasCurrency(payerAccount.getCurrency())
                 .hasNSignatures(2)
@@ -105,7 +105,7 @@ public class TransferRedemptionTest {
         Transfer transfer = payee.redeemToken(token);
         Transfer lookedUp = payer.getTransfer(transfer.getId());
         assertThat(lookedUp)
-                .isSuccessful()
+                .isProcessing()
                 .isEqualTo(transfer);
     }
 
@@ -131,17 +131,17 @@ public class TransferRedemptionTest {
                 "third");
 
         assertThat(transfer1)
-                .isSuccessful()
+                .isProcessing()
                 .hasAmount(10.0)
                 .hasCurrency(payerAccount.getCurrency())
                 .hasDescription("first");
         assertThat(transfer2)
-                .isSuccessful()
+                .isProcessing()
                 .hasAmount(20.0)
                 .hasCurrency(payerAccount.getCurrency())
                 .hasDescription("second");
         assertThat(transfer3)
-                .isSuccessful()
+                .isProcessing()
                 .hasAmount(70.0)
                 .hasCurrency(payerAccount.getCurrency())
                 .hasDescription("third");
@@ -157,8 +157,7 @@ public class TransferRedemptionTest {
     }
 
     private Token token(double amount) {
-        return payerAccount.createTransferToken(amount)
-                .setAccountId(payerAccount.getId())
+        return payerAccount.createTransferToken(amount, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .addDestination(Destinations.sepa(string()))
                 .execute();

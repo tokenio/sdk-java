@@ -15,13 +15,19 @@ public class AccessTokenBuilderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void throwsOnMissingResource() {
-        AccessTokenBuilder.create("username").from("member").build();
+        AccessTokenBuilder
+                .create("username")
+                .from("member")
+                .build();
     }
 
     @Test
     public void allValidationsPass() {
-        TokenProtos.TokenPayload payload =
-                AccessTokenBuilder.create("username").from("member").forAllAccounts().build();
+        TokenProtos.TokenPayload payload = AccessTokenBuilder
+                .create("username")
+                .from("member")
+                .forAllAccounts()
+                .build();
         assertThat(payload).isNotNull();
     }
 }

@@ -4,6 +4,7 @@ import static io.token.common.Polling.waitUntil;
 import static io.token.proto.common.notification.NotificationProtos.Notification.Status.DELIVERED;
 import static io.token.proto.common.notification.NotificationProtos.NotifyBody.BodyCase.PAYEE_TRANSFER_PROCESSED;
 import static io.token.proto.common.notification.NotificationProtos.NotifyBody.BodyCase.PAYER_TRANSFER_PROCESSED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -19,12 +20,10 @@ import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.security.sealed.NoopSealedMessageEncrypter;
 import io.token.testing.sample.Sample;
 
@@ -221,28 +220,22 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payerAccount.createTransferToken(20)
+        Token token = payerAccount.createTransferToken(20, payeeAccount)
+                .setAccountId(payerAccount.getId())
                 .setRedeemerUsername(payee.firstUsername())
-                .setToUsername(payee.firstUsername())
+                .setToUsername(payee.firstUsername()) // to Username.
                 .execute();
 
-        Token token2 = payerAccount.createTransferToken(20)
+        Token token2 = payerAccount.createTransferToken(20, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
-                .setToMemberId(payee.memberId())
+                .setToMemberId(payee.memberId()) // to Member id.
                 .execute();
 
-        Token endorsed = payer.endorseToken(token, Key.Level.STANDARD).getToken();
-        Token endorsed2 = payer.endorseToken(token2, Level.STANDARD).getToken();
+        Token endorsed = payer.endorseToken(token, STANDARD).getToken();
+        Token endorsed2 = payer.endorseToken(token2, STANDARD).getToken();
 
-        TransferEndpoint destination = TransferEndpoint
-                .newBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setToken(BankAccount.Token.newBuilder()
-                                .setMemberId(payer.memberId())
-                                .setAccountId(payerAccount.getId())))
-                .build();
-        payee.redeemToken(endorsed, null, null, destination);
-        payee.redeemToken(endorsed2, null, null, destination);
+        payee.redeemToken(endorsed);
+        payee.redeemToken(endorsed2);
 
         waitUntil(
                 NOTIFICATION_TIMEOUT_MS,
@@ -271,21 +264,12 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payerAccount.createTransferToken(20)
+        Token token = payerAccount.createTransferToken(20, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 
-        Token endorsed = payer.endorseToken(token, Key.Level.STANDARD).getToken();
-
-        TransferEndpoint destination = TransferEndpoint
-                .newBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setToken(BankAccount.Token.newBuilder()
-                                .setMemberId(payee.memberId())
-                                .setAccountId(payeeAccount.getId())))
-                .build();
-
-        payee.redeemToken(endorsed, null, null, destination);
+        Token endorsed = payer.endorseToken(token, STANDARD).getToken();
+        payee.redeemToken(endorsed);
 
         waitUntil(
                 NOTIFICATION_TIMEOUT_MS,

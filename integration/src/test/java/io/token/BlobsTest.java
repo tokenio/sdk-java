@@ -33,6 +33,7 @@ public class BlobsTest {
     @Rule public TokenRule rule = new TokenRule();
 
     private LinkedAccount payerAccount;
+    private LinkedAccount payeeAccount;
     private Member payer;
     private Member payee;
     private Member otherMember;
@@ -40,8 +41,9 @@ public class BlobsTest {
     @Before
     public void before() {
         this.payerAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount();
         this.payer = payerAccount.getMember();
-        this.payee = rule.member();
+        this.payee = payeeAccount.getMember();
         this.otherMember = rule.member();
     }
 
@@ -168,7 +170,7 @@ public class BlobsTest {
         Attachment attachment2 = payer
                 .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
-        Token token = payerAccount.createTransferToken(100)
+        Token token = payerAccount.createTransferToken(100, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .addAttachment(attachment)
                 .addAttachment(attachment2)
@@ -196,7 +198,7 @@ public class BlobsTest {
         Attachment attachment = payer
                 .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
-        Token token = payerAccount.createTransferToken(100)
+        Token token = payerAccount.createTransferToken(100, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .addAttachment(attachment)
                 .execute();
