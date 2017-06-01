@@ -3,8 +3,8 @@ package io.token;
 import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.common.Polling.waitUntil;
 import static io.token.proto.TransactionStatusHelper.hasFailed;
-import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.ACCEPTED;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.FAILURE_INSUFFICIENT_FUNDS;
+import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.PROCESSING;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.SUCCESS;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -49,7 +49,7 @@ public class InstantPaymentTest {
     @Test
     public void instantPayment_isSuccessful() {
         Transfer transfer = initiateInstantTransfer(100);
-        assertThat(transfer).hasStatus(ACCEPTED);
+        assertThat(transfer).hasStatus(PROCESSING);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction payerTransaction = payer.getTransaction(
@@ -131,7 +131,7 @@ public class InstantPaymentTest {
     public void instantPayment_nonTokenTipsDestination() {
         Transfer transfer = initiateInstantTransfer(rule.unlinkedAccount(),100);
 
-        assertThat(transfer).hasStatus(ACCEPTED);
+        assertThat(transfer).hasStatus(PROCESSING);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction payerTransaction = payer.getTransaction(

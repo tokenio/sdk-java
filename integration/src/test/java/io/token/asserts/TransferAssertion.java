@@ -16,6 +16,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
+
 import org.assertj.core.api.AbstractAssert;
 import org.assertj.core.api.Assertions;
 
@@ -30,10 +31,6 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
 
     public TransferAssertion isSuccessful() {
         return hasStatus(TransactionStatus.SUCCESS);
-    }
-
-    public TransferAssertion isAccepted() {
-        return hasStatus(TransactionStatus.ACCEPTED);
     }
 
     public TransferAssertion isProcessing() {
