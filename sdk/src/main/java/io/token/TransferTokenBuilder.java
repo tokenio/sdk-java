@@ -319,14 +319,9 @@ public final class TransferTokenBuilder {
                     p.getName(),
                     p.getData().toByteArray()));
         }
-        // Converts list of observable to observable of list of attachments, and
-        // finally creates the Token
-        return Observable.from(attachmentUploads)
-                .flatMap(new Func1<Observable<Attachment>, Observable<Attachment>>() {
-                    public Observable<Attachment> call(Observable<Attachment> attachment) {
-                        return attachment.observeOn(Schedulers.io());
-                    }
-                }).toList()
+
+        return Observable.merge(attachmentUploads)
+                .toList()
                 .flatMap(new Func1<List<Attachment>, Observable<Token>>() {
                     public Observable<Token> call(List<Attachment> attachments) {
                         payload.getTransferBuilder().addAllAttachments(attachments);
