@@ -24,6 +24,7 @@ public class TransferTokenTest {
 
     private LinkedAccount payerAccount;
     private Member payer;
+    private LinkedAccount payeeAccount;
     private Member payee;
 
     @Before
@@ -31,12 +32,27 @@ public class TransferTokenTest {
         this.payerAccount = rule.linkedAccount();
         this.payer = payerAccount.getMember();
 
-        LinkedAccount payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount();
         this.payee = payeeAccount.getMember();
     }
 
     @Test
     public void createTransferToken() {
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+                .setRedeemerUsername(payee.firstUsername())
+                .setDescription("book purchase")
+                .execute();
+
+        assertThat(token)
+                .hasFrom(payer)
+                .hasRedeemerUsername(payee.firstUsername())
+                .hasAmount(100.0)
+                .hasCurrency(payerAccount.getCurrency())
+                .hasNoSignatures();
+    }
+
+    @Test
+    public void createTransferToken_noDestination() {
         Token token = payerAccount.createTransferToken(100.0)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
@@ -54,7 +70,7 @@ public class TransferTokenTest {
     public void createTransferTokenWithUnlinkedAccount() {
         payer.unlinkAccounts(singletonList(payerAccount.getId()));
         assertThatExceptionOfType(StatusRuntimeException.class)
-                .isThrownBy(() -> payerAccount.createTransferToken(100.0)
+                .isThrownBy(() -> payerAccount.createTransferToken(100.0, payeeAccount)
                         .setRedeemerUsername(payee.firstUsername())
                         .execute())
                 .matches(e -> e.getStatus().getCode() == FAILED_PRECONDITION);
@@ -62,7 +78,7 @@ public class TransferTokenTest {
 
     @Test
     public void getTransferToken() {
-        Token token = payerAccount.createTransferToken(100.0)
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         assertThat(payer.getToken(token.getId()))
@@ -74,14 +90,13 @@ public class TransferTokenTest {
 
     @Test
     public void getTransferTokens() {
-        Token token1 = payer.createTransferToken(123.45, "EUR")
-                .setAccountId(payerAccount.getId())
+        Token token1 = payerAccount.createTransferToken(123.45, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
-        Token token2 = payerAccount.createTransferToken(678.90)
+        Token token2 = payerAccount.createTransferToken(678.90, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
-        Token token3 = payerAccount.createTransferToken(100.99)
+        Token token3 = payerAccount.createTransferToken(100.99, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 
@@ -94,8 +109,7 @@ public class TransferTokenTest {
     public void getTransferTokensPaged() {
         int num = 10;
         for (int i = 0; i < num; i++) {
-            payer.createTransferToken(100 + i, "EUR")
-                    .setAccountId(payerAccount.getId())
+            payerAccount.createTransferToken(100 + i, payeeAccount)
                     .setRedeemerUsername(payee.firstUsername())
                     .execute();
         }
@@ -129,7 +143,7 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenWithUnlinkedAccount() {
-        final Token token = payerAccount.createTransferToken(100.0)
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         payer.unlinkAccounts(singletonList(payerAccount.getId()));
@@ -140,7 +154,7 @@ public class TransferTokenTest {
 
     @Test
     public void cancelTransferToken() {
-        Token token = payerAccount.createTransferToken(100.0)
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         TokenOperationResult result = payer.cancelToken(token);
@@ -156,7 +170,7 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenMoreSignaturesNeeded() {
-        Token token = payerAccount.createTransferToken(100.0)
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         TokenOperationResult result = payer.endorseToken(token, Key.Level.LOW);
@@ -168,6 +182,6 @@ public class TransferTokenTest {
                 .isEndorsedBy(payer, Key.Level.LOW)
                 .hasFrom(payer)
                 .hasAmount(100.0)
-                .hasCurrency(payerAccount.getCurrency());
+                .hasCurrency(payeeAccount.getCurrency());
     }
 }

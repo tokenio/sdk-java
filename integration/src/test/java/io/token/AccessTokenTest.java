@@ -11,7 +11,6 @@ import io.grpc.StatusRuntimeException;
 import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
-import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.token.TokenProtos;
@@ -21,7 +20,6 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult.Status;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.testing.sample.Sample;
 
 import org.junit.Before;
@@ -442,17 +440,14 @@ public class AccessTokenTest {
     private Transaction getTransaction(LinkedAccount payerAccount, LinkedAccount payeeAccount) {
         Member payer = payerAccount.getMember();
         Member payee = payeeAccount.getMember();
-        Token token = payerAccount.createTransferToken(10)
+        Token token = payerAccount.createTransferToken(10, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         token = payer.endorseToken(token, STANDARD).getToken();
-        Transfer transfer = payee.redeemToken(token, 1.0, payerAccount.getCurrency(), "one",
-                TransferEndpoint.newBuilder()
-                        .setAccount(BankAccount.newBuilder()
-                                .setToken(BankAccount.Token.newBuilder()
-                                        .setMemberId(payee.memberId())
-                                        .setAccountId(payeeAccount.getId())))
-                        .build());
+        Transfer transfer = payee.redeemToken(token,
+                1.0,
+                payeeAccount.getCurrency(),
+                "one");
         return payerAccount.getTransaction(transfer.getReferenceId());
     }
 }
