@@ -324,7 +324,7 @@ public final class TransferTokenBuilder {
         return Observable.from(attachmentUploads)
                 .flatMap(new Func1<Observable<Attachment>, Observable<Attachment>>() {
                     public Observable<Attachment> call(Observable<Attachment> attachment) {
-                        return attachment.observeOn(Schedulers.computation());
+                        return attachment.observeOn(Schedulers.io());
                     }
                 }).toList()
                 .flatMap(new Func1<List<Attachment>, Observable<Token>>() {

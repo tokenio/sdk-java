@@ -64,6 +64,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import rx.Observable;
 import rx.functions.Func1;
@@ -507,16 +508,25 @@ public final class MemberAsync {
      * @return blob Id
      * @throws IOException if can't read from a file
      */
-    public Observable<Attachment> createBlob(String filePath) throws IOException {
-        Path path = Paths.get(filePath);
+    public Observable<Attachment> createBlob(final String filePath) throws IOException {
+        final Path path = Paths.get(filePath);
         String type = Files.probeContentType(path);
         if (type == null) {
             type = "content/unknown";
         }
-        String name = path.getFileName().toString();
-        byte[] fileBytes = Files.readAllBytes(path);
+        final String finalType = type;
+        final String name = path.getFileName().toString();
 
-        return createBlob(memberId(), type, name, fileBytes);
+        return Observable.fromCallable(new Callable<byte[]>() {
+            @Override
+            public byte[] call() throws Exception {
+                return Files.readAllBytes(path);
+            }
+        }).flatMap(new Func1<byte[], Observable<Attachment>>() {
+            public Observable<Attachment> call(byte[] bytes) {
+                return createBlob(memberId(), finalType, name, bytes);
+            }
+        });
     }
 
     /**

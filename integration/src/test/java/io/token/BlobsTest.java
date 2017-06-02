@@ -15,10 +15,15 @@ import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.rpc.Client;
+import io.token.testing.sample.Sample;
 import io.token.util.codec.ByteEncoding;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
 
 import org.junit.Before;
@@ -135,18 +140,20 @@ public class BlobsTest {
         assertThat(blob.getPayload().getOwnerId()).isEqualTo(payer.memberId());
     }
 
-    @Ignore("Fails in bamboo. Tracked in PR-721")
     @Test
     public void filename() throws IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("local.conf").getFile());
-
-        String filename = file.getAbsolutePath();
+        byte[] randomData = new byte[100];
+        new Random().nextBytes(randomData);
+        Path file = Paths.get("test-file");
+        Files.write(file, randomData);
+        String filename = file.toAbsolutePath().toString();
 
         Attachment attachment = payer.createBlob(filename);
 
+        Files.deleteIfExists(file);
+
         assertThat(attachment.getBlobId().length()).isGreaterThan(5);
-        assertThat(attachment.getName()).isEqualTo("local.conf");
+        assertThat(attachment.getName()).isEqualTo("test-file");
         assertThat(attachment.getType()).isEqualTo("content/unknown");
         assertThat(attachment.getBlobId().length()).isGreaterThan(5);
 
@@ -154,6 +161,14 @@ public class BlobsTest {
 
         assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
         assertThat(blob.getPayload().getOwnerId()).isEqualTo(payer.memberId());
+    }
+
+    @Test
+    public void filenameBad() throws IOException {
+        String filename = Sample.string(60);
+
+        assertThatExceptionOfType(RuntimeException.class)
+                .isThrownBy(() -> payer.createBlob(filename));
     }
 
     @Test
