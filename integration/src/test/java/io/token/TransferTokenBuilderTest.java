@@ -25,6 +25,7 @@ public class TransferTokenBuilderTest {
 
     private LinkedAccount payerAccount;
     private Member payer;
+    private LinkedAccount payeeAccount;
     private Member payee;
 
     @Before
@@ -32,13 +33,13 @@ public class TransferTokenBuilderTest {
         this.payerAccount = rule.linkedAccount();
         this.payer = payerAccount.getMember();
 
-        LinkedAccount payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount();
         this.payee = payeeAccount.getMember();
     }
 
     @Test
     public void basicToken() {
-        payerAccount.createTransferToken(100.0)
+        payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .execute();
@@ -54,7 +55,7 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void noRedeemer() {
-        assertThatThrownBy(() -> payerAccount.createTransferToken(100.0)
+        assertThatThrownBy(() -> payerAccount.createTransferToken(100.0, payeeAccount)
                 .setDescription("book purchase")
                 .execute());
     }
@@ -73,7 +74,7 @@ public class TransferTokenBuilderTest {
             assert false;
         }
 
-        Token token = payerAccount.createTransferToken(100.0)
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .addAttachment(attachment)
@@ -93,7 +94,7 @@ public class TransferTokenBuilderTest {
         byte[] randomData3 = new byte[500];
         byte[] randomData4 = new byte[100];
 
-        Token token = payerAccount.createTransferToken(100.0)
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .addAttachment(payer.memberId(), string(), string(), randomData1)
@@ -116,7 +117,7 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void full() {
-        payerAccount.createTransferToken(100.0)
+        payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setEffectiveAtMs(System.currentTimeMillis() + 10000)
                 .setExpiresAtMs(System.currentTimeMillis() + 1000000)

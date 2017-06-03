@@ -1,6 +1,5 @@
 package io.token;
 
-import static io.token.testing.sample.Sample.string;
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,7 +12,6 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,14 +49,14 @@ public class TransactionsTest {
         Transfer transfer = payee.redeemToken(
                 token,
                 100.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 null,
                 null);
 
         Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
         TransactionAssertion.assertThat(transaction)
-                .isSuccessful()
-                .hasAmount(100.0)
+                .isProcessing()
+                .hasCurrency(payerAccount.getCurrency())
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer.getId());
     }
@@ -76,7 +74,7 @@ public class TransactionsTest {
         Transfer transfer = payee.redeemToken(
                 token,
                 100.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 null,
                 null);
 
@@ -86,37 +84,37 @@ public class TransactionsTest {
 
     @Test
     public void getTransactions() {
-        TransferEndpoint destination = Destinations.swift(string(), string());
-        Token token = tokenSwift(destination);
+        Token token = token();
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         final Transfer transfer1 = payee.redeemToken(
                 token,
                 100.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 "one");
         final Transfer transfer2 = payee.redeemToken(
                 token,
                 200.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 null,
                 null);
         final Transfer transfer3 = payee.redeemToken(
                 token,
                 300.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 "three");
         final Transfer transfer4 = payee.redeemToken(
                 token,
                 400.0,
-                payerAccount.getCurrency(),
-                destination);
+                payeeAccount.getCurrency(),
+                "four",
+                null);
         final Transfer transfer5 = payee.redeemToken(
                 token,
                 500.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 "five",
-                destination);
+                null);
 
         PagedList<Transaction, String> result = payerAccount.getTransactions(null, 5);
         List<Transaction> transactions = new ArrayList<>(result.getList());
@@ -127,28 +125,28 @@ public class TransactionsTest {
 
         assertThat(transactions).hasSize(5);
         TransactionAssertion.assertThat(transactions.get(0))
-                .isSuccessful()
+                .isProcessing()
                 .hasAmount(100.0)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer1.getId());
         TransactionAssertion.assertThat(transactions.get(1))
-                .isSuccessful()
+                .isProcessing()
                 .hasAmount(200.0)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer2.getId());
         TransactionAssertion.assertThat(transactions.get(2))
-                .isSuccessful()
+                .isProcessing()
                 .hasAmount(300.0)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer3.getId())
                 .containsDescription("three");
         TransactionAssertion.assertThat(transactions.get(3))
-                .isSuccessful()
+                .isProcessing()
                 .hasAmount(400.0)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer4.getId());
         TransactionAssertion.assertThat(transactions.get(4))
-                .isSuccessful()
+                .isProcessing()
                 .hasAmount(500.0)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer5.getId())
@@ -165,7 +163,7 @@ public class TransactionsTest {
             payee.redeemToken(
                     token,
                     100.0,
-                    payerAccount.getCurrency(),
+                    payeeAccount.getCurrency(),
                     null,
                     null);
         }
@@ -190,25 +188,16 @@ public class TransactionsTest {
         payee.redeemToken(
                 token,
                 100.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 null,
                 null);
         assertThat(initialBalance).isGreaterThan(payerAccount.getBalance());
     }
 
     private Token token() {
-        return payerAccount.createTransferToken(1500.0)
+        return payerAccount.createTransferToken(1500.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("Multi charge token")
-                .addDestination(Destinations.sepa(string()))
-                .execute();
-    }
-
-    private Token tokenSwift(TransferEndpoint destination) {
-        return payerAccount.createTransferToken(1500.0)
-                .setRedeemerUsername(payee.firstUsername())
-                .setDescription("Multi charge token")
-                .addDestination(destination)
                 .execute();
     }
 }

@@ -151,7 +151,7 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payerAccount.createTransferToken(56)
+        Token token = payerAccount.createTransferToken(56, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 
@@ -172,10 +172,10 @@ public class NotificationsTest {
         payer.subscribeToNotifications("token", Sample
                 .handlerInstructions(NOTIFICATION_TARGET + "1", TEST));
 
-        Token token = payerAccount.createTransferToken(56)
+        Token token = payerAccount.createTransferToken(56, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
-        Token token2 = payerAccount.createTransferToken(56)
+        Token token2 = payerAccount.createTransferToken(56, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 

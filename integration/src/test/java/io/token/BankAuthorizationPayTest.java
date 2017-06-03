@@ -51,7 +51,7 @@ public class BankAuthorizationPayTest {
     private Token token(double amount) {
         TestAccount account = rule.unlinkedAccount();
         BankAccountAuthorizer authorizer = BankAccountAuthorizer
-                .builder("iron")
+                .builder(rule.getBankId())
                 .useMethod(NOOP)
                 .withSecretKeystore(keyRule.getSecretKeyStore())
                 .withTrustedKeystore(keyRule.getTrustedKeyStore())
