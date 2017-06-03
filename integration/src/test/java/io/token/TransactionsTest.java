@@ -27,6 +27,7 @@ public class TransactionsTest {
 
     private LinkedAccount payerAccount;
     private Member payer;
+    private LinkedAccount payeeAccount;
     private Member payee;
 
     @Before
@@ -34,7 +35,7 @@ public class TransactionsTest {
         this.payerAccount = rule.linkedAccount();
         this.payer = payerAccount.getMember();
 
-        LinkedAccount payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount();
         this.payee = payeeAccount.getMember();
     }
 
@@ -60,6 +61,27 @@ public class TransactionsTest {
                 .hasAmount(100.0)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer.getId());
+    }
+
+    @Test
+    public void getTransaction_wrongId() {
+        Transaction lookedUp = payerAccount.getAccount().getTransaction("invalid_id");
+        assertThat(lookedUp).isNull();
+    }
+
+    @Test
+    public void getTransaction_wrongAccount() {
+        Token token = token();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        Transfer transfer = payee.redeemToken(
+                token,
+                100.0,
+                payerAccount.getCurrency(),
+                null,
+                null);
+
+        Transaction lookedUp = payeeAccount.getAccount().getTransaction(transfer.getReferenceId());
+        assertThat(lookedUp).isNull();
     }
 
     @Test

@@ -103,7 +103,7 @@ public final class Account {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
-    public Transaction getTransaction(String transactionId) {
+    public @Nullable Transaction getTransaction(String transactionId) {
         return async.getTransaction(transactionId).toBlocking().single();
     }
 
