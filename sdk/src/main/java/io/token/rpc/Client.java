@@ -683,7 +683,9 @@ public final class Client {
                         .build()))
                 .map(new Func1<GetTransactionResponse, Transaction>() {
                     public Transaction call(GetTransactionResponse response) {
-                        return response.getTransaction();
+                        return response.hasTransaction()
+                                ? response.getTransaction()
+                                : null;
                     }
                 });
     }
