@@ -141,37 +141,6 @@ public class BlobsTest {
     }
 
     @Test
-    public void filename() throws IOException {
-        byte[] randomData = new byte[100];
-        new Random().nextBytes(randomData);
-        Path file = Paths.get("test-file");
-        Files.write(file, randomData);
-        String filename = file.toAbsolutePath().toString();
-
-        Attachment attachment = payer.createBlob(filename);
-
-        Files.deleteIfExists(file);
-
-        assertThat(attachment.getBlobId().length()).isGreaterThan(5);
-        assertThat(attachment.getName()).isEqualTo("test-file");
-        assertThat(attachment.getType()).isEqualTo("content/unknown");
-        assertThat(attachment.getBlobId().length()).isGreaterThan(5);
-
-        Blob blob = payer.getBlob(attachment.getBlobId());
-
-        assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
-        assertThat(blob.getPayload().getOwnerId()).isEqualTo(payer.memberId());
-    }
-
-    @Test
-    public void filenameBad() throws IOException {
-        String filename = Sample.string(60);
-
-        assertThatExceptionOfType(RuntimeException.class)
-                .isThrownBy(() -> payer.createBlob(filename));
-    }
-
-    @Test
     public void tokenBlob() {
         byte[] randomData = new byte[50];
         byte[] randomData2 = new byte[150];

@@ -66,17 +66,10 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void blobs() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("local.conf").getFile());
-        Attachment attachment = null;
-        String filename = file.getAbsolutePath();
+        byte[] randomData1 = new byte[100];
+        new Random().nextBytes(randomData1);
 
-        try {
-            attachment = payer.createBlob(filename);
-        } catch (IOException exception) {
-            // Fail test
-            assert false;
-        }
+        Attachment attachment = payer.createBlob(payer.memberId(), string(), string(), randomData1);
 
         Token token = payerAccount.createTransferToken(100.0)
                 .setRedeemerUsername(payee.firstUsername())
@@ -93,41 +86,35 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void blobs_direct() throws IOException {
-        byte[] randomData0 = new byte[100];
-        new Random().nextBytes(randomData0);
-        Path file = Paths.get("test-file2");
-        Files.write(file, randomData0);
-
-        String filename = file.toAbsolutePath().toString();
-
         byte[] randomData1 = new byte[100];
         byte[] randomData2 = new byte[300];
         byte[] randomData3 = new byte[500];
         byte[] randomData4 = new byte[100];
 
+        new Random().nextBytes(randomData1);
+        new Random().nextBytes(randomData2);
+        new Random().nextBytes(randomData3);
+        new Random().nextBytes(randomData4);
+
         Token token = payerAccount.createTransferToken(100.0)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
-                .addAttachment(filename)
                 .addAttachment(payer.memberId(), string(), string(), randomData1)
                 .addAttachment(payer.memberId(), string(), string(), randomData2)
                 .addAttachment(payer.memberId(), string(), string(), randomData3)
                 .addAttachment(payer.memberId(), string(), string(), randomData4)
                 .execute();
 
-        Files.deleteIfExists(file);
-
         payer.endorseToken(token, SecurityProtos.Key.Level.STANDARD);
 
         Blob blob = payer.getTokenBlob(
                 token.getId(),
                 token.getPayload().getTransfer().getAttachments(3).getBlobId());
-        boolean eq0 = blob.getPayload().getData().equals(ByteString.copyFrom(randomData0));
         boolean eq1 = blob.getPayload().getData().equals(ByteString.copyFrom(randomData1));
         boolean eq2 = blob.getPayload().getData().equals(ByteString.copyFrom(randomData2));
         boolean eq3 = blob.getPayload().getData().equals(ByteString.copyFrom(randomData3));
         boolean eq4 = blob.getPayload().getData().equals(ByteString.copyFrom(randomData4));
-        assertThat(eq1 || eq2 || eq3 || eq4 || eq0);
+        assertThat(eq1 || eq2 || eq3 || eq4);
     }
 
     @Test

@@ -690,17 +690,6 @@ public final class Member {
     }
 
     /**
-     * Creates and uploads a blob.
-     *
-     * @param filename absolute path and name of file
-     * @return attachment
-     * @throws IOException if can't read from a file
-     */
-    public Attachment createBlob(String filename) throws IOException {
-        return async.createBlob(filename).toBlocking().single();
-    }
-
-    /**
      * Gets a blob from the server.
      *
      * @param blobId blob Id

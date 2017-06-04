@@ -502,34 +502,6 @@ public final class MemberAsync {
     }
 
     /**
-     * Creates and uploads a blob.
-     *
-     * @param filePath name of the file to read
-     * @return blob Id
-     * @throws IOException if can't read from a file
-     */
-    public Observable<Attachment> createBlob(final String filePath) throws IOException {
-        final Path path = Paths.get(filePath);
-        String type = Files.probeContentType(path);
-        if (type == null) {
-            type = "content/unknown";
-        }
-        final String finalType = type;
-        final String name = path.getFileName().toString();
-
-        return Observable.fromCallable(new Callable<byte[]>() {
-            @Override
-            public byte[] call() throws Exception {
-                return Files.readAllBytes(path);
-            }
-        }).flatMap(new Func1<byte[], Observable<Attachment>>() {
-            public Observable<Attachment> call(byte[] bytes) {
-                return createBlob(memberId(), finalType, name, bytes);
-            }
-        });
-    }
-
-    /**
      * Retrieves a blob from the server.
      *
      * @param blobId id of the blob

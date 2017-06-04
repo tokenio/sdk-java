@@ -63,7 +63,6 @@ public final class TransferTokenBuilder {
     private final TokenPayload.Builder payload;
 
     // Used for attaching files / data to tokens
-    private final List<String> filepaths;
     private final List<Payload> blobPayloads;
 
     /**
@@ -85,7 +84,6 @@ public final class TransferTokenBuilder {
                         .setCurrency(currency)
                         .setLifetimeAmount(Double.toString(amount))
                         .build());
-        filepaths = new ArrayList<>();
         blobPayloads = new ArrayList<>();
     }
 
@@ -245,17 +243,6 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Adds an attachment by filename (reads file, uploads it, and attaches it).
-     *
-     * @param path path of file
-     * @return builder
-     */
-    public TransferTokenBuilder addAttachment(String path) {
-        filepaths.add(path);
-        return this;
-    }
-
-    /**
      * Sets the username of the payee.
      *
      * @param toUsername username
@@ -303,14 +290,6 @@ public final class TransferTokenBuilder {
         }
 
         List<Observable<Attachment>> attachmentUploads = new ArrayList<>();
-
-        for (String path : filepaths) {
-            try {
-                attachmentUploads.add(member.createBlob(path));
-            } catch (IOException exception) {
-                throw new TokenArgumentsException("Failed to upload file, IOException.");
-            }
-        }
 
         for (Payload p : blobPayloads) {
             attachmentUploads.add(member.createBlob(
