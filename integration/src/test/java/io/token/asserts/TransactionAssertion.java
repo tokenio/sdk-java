@@ -24,13 +24,20 @@ public final class TransactionAssertion extends AbstractAssert<TransactionAssert
     }
 
     private static BigDecimal normalize(BigDecimal decimal) {
-        return decimal.setScale(2, BigDecimal.ROUND_UNNECESSARY);
+        return decimal.setScale(2, BigDecimal.ROUND_DOWN);
     }
 
     public TransactionAssertion isSuccessful() {
         Assertions
                 .assertThat(actual.getStatus())
                 .isEqualTo(TransactionProtos.TransactionStatus.SUCCESS);
+        return this;
+    }
+
+    public TransactionAssertion isProcessing() {
+        Assertions
+                .assertThat(actual.getStatus())
+                .isEqualTo(TransactionProtos.TransactionStatus.PROCESSING);
         return this;
     }
 

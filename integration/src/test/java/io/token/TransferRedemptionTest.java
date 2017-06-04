@@ -67,12 +67,12 @@ public class TransferRedemptionTest {
         Transfer transfer = payee.redeemToken(
                 token,
                 99.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 "transfer description");
         assertThat(transfer)
                 .isProcessing()
                 .hasAmount(99.0)
-                .hasCurrency(payerAccount.getCurrency())
+                .hasCurrency(payeeAccount.getCurrency())
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
     }
@@ -87,12 +87,12 @@ public class TransferRedemptionTest {
         Transfer transfer = payee.redeemToken(
                 token,
                 amount,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 "transfer description");
         assertThat(transfer)
                 .hasStatus(TransactionStatus.FAILURE_INSUFFICIENT_FUNDS)
                 .hasAmount(amount)
-                .hasCurrency(payerAccount.getCurrency())
+                .hasCurrency(payeeAccount.getCurrency())
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
     }
@@ -117,33 +117,33 @@ public class TransferRedemptionTest {
         Transfer transfer1 = payee.redeemToken(
                 token,
                 10.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 "first");
         Transfer transfer2 = payee.redeemToken(
                 token,
                 20.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 "second");
         Transfer transfer3 = payee.redeemToken(
                 token,
                 70.0,
-                payerAccount.getCurrency(),
+                payeeAccount.getCurrency(),
                 "third");
 
         assertThat(transfer1)
                 .isProcessing()
                 .hasAmount(10.0)
-                .hasCurrency(payerAccount.getCurrency())
+                .hasCurrency(payeeAccount.getCurrency())
                 .hasDescription("first");
         assertThat(transfer2)
                 .isProcessing()
                 .hasAmount(20.0)
-                .hasCurrency(payerAccount.getCurrency())
+                .hasCurrency(payeeAccount.getCurrency())
                 .hasDescription("second");
         assertThat(transfer3)
                 .isProcessing()
                 .hasAmount(70.0)
-                .hasCurrency(payerAccount.getCurrency())
+                .hasCurrency(payeeAccount.getCurrency())
                 .hasDescription("third");
 
         PagedList<Transfer, String> lookedUp = payer.getTransfers(null, 100, token.getId());

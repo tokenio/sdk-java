@@ -47,13 +47,13 @@ public class TransferTokenTest {
                 .hasFrom(payer)
                 .hasRedeemerUsername(payee.firstUsername())
                 .hasAmount(100.0)
-                .hasCurrency(payerAccount.getCurrency())
+                .hasCurrency(payeeAccount.getCurrency())
                 .hasNoSignatures();
     }
 
     @Test
     public void createTransferToken_noDestination() {
-        Token token = payerAccount.createTransferToken(100.0)
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .execute();
@@ -62,7 +62,7 @@ public class TransferTokenTest {
                 .hasFrom(payer)
                 .hasRedeemerUsername(payee.firstUsername())
                 .hasAmount(100.0)
-                .hasCurrency(payerAccount.getCurrency())
+                .hasCurrency(payeeAccount.getCurrency())
                 .hasNoSignatures();
     }
 
@@ -84,7 +84,7 @@ public class TransferTokenTest {
         assertThat(payer.getToken(token.getId()))
                 .hasFrom(payer)
                 .hasAmount(100.0)
-                .hasCurrency(payerAccount.getCurrency())
+                .hasCurrency(payeeAccount.getCurrency())
                 .hasNoSignatures();
     }
 
@@ -127,7 +127,7 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferToken() {
-        Token token = payerAccount.createTransferToken(100.0)
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         TokenOperationResult result = payer.endorseToken(token, Key.Level.STANDARD);
@@ -138,7 +138,7 @@ public class TransferTokenTest {
                 .isEndorsedBy(payer, Key.Level.STANDARD)
                 .hasFrom(payer)
                 .hasAmount(100.0)
-                .hasCurrency(payerAccount.getCurrency());
+                .hasCurrency(payeeAccount.getCurrency());
     }
 
     @Test
@@ -165,7 +165,7 @@ public class TransferTokenTest {
                 .isCancelledBy(payer, Key.Level.LOW)
                 .hasFrom(payer)
                 .hasAmount(100.0)
-                .hasCurrency(payerAccount.getCurrency());
+                .hasCurrency(payeeAccount.getCurrency());
     }
 
     @Test
