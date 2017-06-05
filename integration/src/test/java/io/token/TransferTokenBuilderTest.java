@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.protobuf.ByteString;
+import com.typesafe.config.ConfigException;
 import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -15,6 +16,10 @@ import io.token.proto.common.token.TokenProtos.Token;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -62,17 +67,10 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void blobs() {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("local.conf").getFile());
-        Attachment attachment = null;
-        String filename = file.getAbsolutePath();
+        byte[] randomData1 = new byte[100];
+        new Random().nextBytes(randomData1);
 
-        try {
-            attachment = payer.createBlob(filename);
-        } catch (IOException exception) {
-            // Fail test
-            assert false;
-        }
+        Attachment attachment = payer.createBlob(payer.memberId(), string(), string(), randomData1);
 
         Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
@@ -88,11 +86,16 @@ public class TransferTokenBuilderTest {
     }
 
     @Test
-    public void blobs_direct() {
+    public void blobs_direct() throws IOException {
         byte[] randomData1 = new byte[100];
         byte[] randomData2 = new byte[300];
         byte[] randomData3 = new byte[500];
         byte[] randomData4 = new byte[100];
+
+        new Random().nextBytes(randomData1);
+        new Random().nextBytes(randomData2);
+        new Random().nextBytes(randomData3);
+        new Random().nextBytes(randomData4);
 
         Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())

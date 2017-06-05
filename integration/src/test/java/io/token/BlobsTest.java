@@ -15,10 +15,15 @@ import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.rpc.Client;
+import io.token.testing.sample.Sample;
 import io.token.util.codec.ByteEncoding;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Random;
 
 import org.junit.Before;
@@ -132,27 +137,6 @@ public class BlobsTest {
 
         assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
         assertThat(blob.getPayload().getData().toByteArray()).isEqualTo(randomData);
-        assertThat(blob.getPayload().getOwnerId()).isEqualTo(payer.memberId());
-    }
-
-    @Ignore("Fails in bamboo. Tracked in PR-721")
-    @Test
-    public void filename() throws IOException {
-        ClassLoader classLoader = getClass().getClassLoader();
-        File file = new File(classLoader.getResource("local.conf").getFile());
-
-        String filename = file.getAbsolutePath();
-
-        Attachment attachment = payer.createBlob(filename);
-
-        assertThat(attachment.getBlobId().length()).isGreaterThan(5);
-        assertThat(attachment.getName()).isEqualTo("local.conf");
-        assertThat(attachment.getType()).isEqualTo("content/unknown");
-        assertThat(attachment.getBlobId().length()).isGreaterThan(5);
-
-        Blob blob = payer.getBlob(attachment.getBlobId());
-
-        assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
         assertThat(blob.getPayload().getOwnerId()).isEqualTo(payer.memberId());
     }
 

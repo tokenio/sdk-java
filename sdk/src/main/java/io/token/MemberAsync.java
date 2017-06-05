@@ -64,6 +64,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 import rx.Observable;
 import rx.functions.Func1;
@@ -498,25 +499,6 @@ public final class MemberAsync {
                             .build();
                     }
                 });
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param filePath name of the file to read
-     * @return blob Id
-     * @throws IOException if can't read from a file
-     */
-    public Observable<Attachment> createBlob(String filePath) throws IOException {
-        Path path = Paths.get(filePath);
-        String type = Files.probeContentType(path);
-        if (type == null) {
-            type = "content/unknown";
-        }
-        String name = path.getFileName().toString();
-        byte[] fileBytes = Files.readAllBytes(path);
-
-        return createBlob(memberId(), type, name, fileBytes);
     }
 
     /**
