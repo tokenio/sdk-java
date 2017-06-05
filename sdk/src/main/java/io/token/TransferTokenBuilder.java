@@ -25,7 +25,6 @@ package io.token;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN_AUTHORIZATION;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.toObservable;
 
 import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
@@ -34,7 +33,6 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
-import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.token.TokenProtos;
@@ -43,14 +41,11 @@ import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import rx.Observable;
 import rx.functions.Func1;
-import rx.functions.Func4;
-import rx.schedulers.Schedulers;
 
 /**
  * This class is used to build a transfer token. The required parameters are member, amount (which
