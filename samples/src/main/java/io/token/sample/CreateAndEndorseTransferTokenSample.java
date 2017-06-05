@@ -15,17 +15,62 @@ public final class CreateAndEndorseTransferTokenSample {
      * @param payeeUsername payee Token member username
      * @return a transfer Token
      */
-    public static Token createTransferToken(Member payer, String payeeUsername) {
+    public static Token createTransferToken(
+            Member payer,
+            String payeeUsername) {
 
         // Create a transfer token.
-        Token transferToken = payer.createTransferToken(100.0, "EUR") /* amount and currency */
-                .setAccountId(payer.getAccounts().get(0).id()) /* source account */
-                .setRedeemerUsername(payeeUsername) /* payee token username to transfer money to */
-                .setDescription("Book purchase") /* optional description */
-                .execute();
+        Token transferToken =
+                payer.createTransferToken(
+                        100.0, // amount
+                        "EUR")  // currency
+                        .setAccountId(payer.getAccounts().get(0).id()) // source account
+                        .setRedeemerUsername(payeeUsername) // payee token username
+                        .setDescription("Book purchase") // optional description
+                        .execute();
 
         // Payer endorses a token to a payee by signing it with her secure private key.
-        transferToken = payer.endorseToken(transferToken, Key.Level.STANDARD).getToken();
+        transferToken = payer.endorseToken(
+                transferToken,
+                Key.Level.STANDARD).getToken();
+
+        return transferToken;
+    }
+
+    // Fake function to make example more plausible
+    private static byte[] loadImageByteArray(String filename) {
+        return new byte[0];
+    }
+
+    /**
+     * Create a new transfer token, including an attached image file.
+     * @param payer Payer member token
+     * @param payeeUsername Token member username of payee
+     * @return Token
+     */
+    public static Token createTransferTokenWithNewAttachment(
+            Member payer,
+            String payeeUsername) {
+
+        // Create a transfer token.
+        Token transferToken =
+                payer.createTransferToken(
+                        100.0, // amount
+                        "EUR")  // currency
+                        .setAccountId(payer.getAccounts().get(0).id()) // source account
+                        .setRedeemerUsername(payeeUsername) // payee token username
+                        .setDescription("Invoice payment") // optional description
+                        .addAttachment(
+                                payer.memberId(),
+                                "image/jpeg",
+                                "invoice.jpg",
+                                loadImageByteArray("invoice.jpg"))
+                        .execute();
+
+        // Payer endorses a token to a payee by signing it with her secure private key.
+        transferToken = payer.endorseToken(
+                transferToken,
+                Key.Level.STANDARD).getToken();
 
         return transferToken;
     }
