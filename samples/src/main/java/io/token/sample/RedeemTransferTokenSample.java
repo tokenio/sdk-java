@@ -17,7 +17,10 @@ public final class RedeemTransferTokenSample {
      * @param tokenId ID of the token to redeem
      * @return a transfer Transfer
      */
-    public static Transfer redeemTransferToken(Member payee, String accountId, String tokenId) {
+    public static Transfer redeemTransferToken(
+            Member payee,
+            String accountId, // account ID of the payee
+            String tokenId) { // ID of token to redeem
         // Retrieve a transfer token to redeem.
         Token transferToken = payee.getToken(tokenId);
 
