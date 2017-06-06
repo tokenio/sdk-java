@@ -35,6 +35,9 @@ import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
+import io.token.proto.common.pricing.PricingProtos;
+import io.token.proto.common.pricing.PricingProtos.Pricing;
+import io.token.proto.common.pricing.PricingProtos.PricingInstructions;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -256,6 +259,17 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder setToMemberId(String toMemberId) {
         payload.getToBuilder().setId(toMemberId);
+        return this;
+    }
+
+    /**
+     * Sets the pricing (fees/fx) on the token
+     *
+     * @param pricing pricing
+     * @return builder
+     */
+    public TransferTokenBuilder setPricing(Pricing pricing) {
+        payload.getTransferBuilder().setPricing(pricing);
         return this;
     }
 

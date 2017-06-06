@@ -11,6 +11,9 @@ import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.pricing.PricingProtos;
+import io.token.proto.common.pricing.PricingProtos.Pricing;
+import io.token.proto.common.pricing.PricingProtos.TransferQuote;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 
@@ -120,12 +123,25 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void full() {
-        payerAccount.createTransferToken(100.0, payeeAccount)
+        Pricing pricing = Pricing.newBuilder()
+                .setDestinationQuote(TransferQuote.newBuilder()
+                        .setAccountCurrency("USD")
+                        .setFeesTotal("12.5")
+                        .setId("123")
+                        .build())
+                .build();
+        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setEffectiveAtMs(System.currentTimeMillis() + 10000)
                 .setExpiresAtMs(System.currentTimeMillis() + 1000000)
                 .setChargeAmount(40)
                 .setDescription("book purchase")
+                .setPricing(pricing)
                 .execute();
+
+        assertThat(token.getPayload().getTransfer().getPricing().getDestinationQuote())
+                .isEqualTo(pricing.getDestinationQuote());
+        assertThat(token.getPayload().getTransfer().getPricing().getDestinationQuote())
+                .isNotEqualTo(Pricing.getDefaultInstance());
     }
 }
