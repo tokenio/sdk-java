@@ -123,31 +123,34 @@ public class TransactionsTest {
                 .getValue()));
         assertThat(result.getOffset()).isNotEmpty();
 
+        double fee = Double.parseDouble(
+                token.getPayload().getTransfer().getPricing().getSourceQuote().getFeesTotal());
+
         assertThat(transactions).hasSize(5);
         TransactionAssertion.assertThat(transactions.get(0))
                 .isProcessing()
-                .hasAmount(100.0)
+                .hasAmount(100.0 + fee)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer1.getId());
         TransactionAssertion.assertThat(transactions.get(1))
                 .isProcessing()
-                .hasAmount(200.0)
+                .hasAmount(200.0 + fee)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer2.getId());
         TransactionAssertion.assertThat(transactions.get(2))
                 .isProcessing()
-                .hasAmount(300.0)
+                .hasAmount(300.0 + fee)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer3.getId())
                 .containsDescription("three");
         TransactionAssertion.assertThat(transactions.get(3))
                 .isProcessing()
-                .hasAmount(400.0)
+                .hasAmount(400.0 + fee)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer4.getId());
         TransactionAssertion.assertThat(transactions.get(4))
                 .isProcessing()
-                .hasAmount(500.0)
+                .hasAmount(500.0 + fee)
                 .hasTokenId(token.getId())
                 .hasTokenTransferId(transfer5.getId())
                 .containsDescription("five");
