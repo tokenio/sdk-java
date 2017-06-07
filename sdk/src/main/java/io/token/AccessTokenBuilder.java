@@ -46,7 +46,7 @@ public final class AccessTokenBuilder {
     private AccessTokenBuilder() {
         payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
-                .setNonce(generateNonce())
+                .setRefId(generateNonce())
                 .setAccess(AccessBody.getDefaultInstance());
     }
 
@@ -73,7 +73,7 @@ public final class AccessTokenBuilder {
     public static AccessTokenBuilder fromPayload(TokenPayload payload) {
         TokenPayload.Builder builder = payload.toBuilder()
                 .clearAccess()
-                .setNonce(generateNonce());
+                .setRefId(generateNonce());
         return new AccessTokenBuilder(builder);
     }
 

@@ -54,7 +54,7 @@ public class InstantPaymentTest {
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction payerTransaction = payer.getTransaction(
                     payerAccount.getId(),
-                    transfer.getReferenceId());
+                    transfer.getTransactionId());
 
             Token token = payer.getToken(transfer.getPayload().getTokenId());
             Pricing pricing = token.getPayload().getTransfer().getPricing();
@@ -121,7 +121,7 @@ public class InstantPaymentTest {
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction transaction = payer.getTransaction(
                     payerAccount.getId(),
-                    transfer.getReferenceId());
+                    transfer.getTransactionId());
 
             assertThat(hasFailed(transaction.getStatus()));
         });
@@ -136,7 +136,7 @@ public class InstantPaymentTest {
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction payerTransaction = payer.getTransaction(
                     payerAccount.getId(),
-                    transfer.getReferenceId());
+                    transfer.getTransactionId());
 
             Pricing pricing = payer.getToken(transfer.getPayload().getTokenId())
                     .getPayload()

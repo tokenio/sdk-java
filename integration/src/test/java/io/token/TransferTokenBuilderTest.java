@@ -137,6 +137,7 @@ public class TransferTokenBuilderTest {
                 .setChargeAmount(40)
                 .setDescription("book purchase")
                 .setPricing(pricing)
+                .setRefId(string())
                 .execute();
 
         assertThat(token.getPayload().getTransfer().getPricing().getDestinationQuote())

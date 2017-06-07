@@ -66,6 +66,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -74,6 +77,8 @@ import rx.functions.Func1;
  * and public key pair that is used to perform authentication.
  */
 public final class MemberAsync {
+    private static final Logger logger = LoggerFactory.getLogger(MemberAsync.class);
+
     private final Client client;
     private final MemberProtos.Member.Builder member;
 
@@ -690,7 +695,18 @@ public final class MemberAsync {
      * @return transfer record
      */
     public Observable<Transfer> redeemToken(Token token) {
-        return redeemToken(token, null, null, null, null);
+        return redeemToken(token, null, null, null, null, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(Token token, String refId) {
+        return redeemToken(token, null, null, null, null, refId);
     }
 
     /**
@@ -701,7 +717,22 @@ public final class MemberAsync {
      * @return transfer record
      */
     public Observable<Transfer> redeemToken(Token token, TransferEndpoint destination) {
-        return redeemToken(token, null, null, null, destination);
+        return redeemToken(token, null, null, null, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            TransferEndpoint destination,
+            String refId) {
+        return redeemToken(token, null, null, null, destination, refId);
     }
 
     /**
@@ -719,9 +750,9 @@ public final class MemberAsync {
             @Nullable Double amount,
             @Nullable String currency,
             @Nullable String description,
-            @Nullable TransferEndpoint destination) {
+            @Nullable TransferEndpoint destination,
+            @Nullable String refId) {
         TransferPayload.Builder payload = TransferPayload.newBuilder()
-                .setNonce(generateNonce())
                 .setTokenId(token.getId())
                 .setDescription(token
                         .getPayload()
@@ -741,6 +772,13 @@ public final class MemberAsync {
         }
         if (destination != null) {
             payload.addDestinations(destination);
+        }
+
+        if (refId != null) {
+            payload.setRefId(refId);
+        } else {
+            logger.warn("refId is not set. A random ID will be used.");
+            payload.setRefId(generateNonce());
         }
 
         return client.createTransfer(payload.build());
