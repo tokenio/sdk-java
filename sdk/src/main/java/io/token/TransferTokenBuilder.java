@@ -42,6 +42,9 @@ import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
+import io.token.proto.common.transfer.TransferProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.ArrayList;
@@ -277,13 +280,24 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the pricing (fees/fx) on the token
+     * Sets the pricing (fees/fx) on the token.
      *
      * @param pricing pricing
      * @return builder
      */
     public TransferTokenBuilder setPricing(Pricing pricing) {
         payload.getTransferBuilder().setPricing(pricing);
+        return this;
+    }
+
+    /**
+     * Sets the purpose of payment.
+     *
+     * @param purposeOfPayment purpose of payment
+     * @return builder
+     */
+    public TransferTokenBuilder setPurposeOfPayment(PurposeOfPayment purposeOfPayment) {
+        payload.getTransferBuilder().getInstructionsBuilder().setTransferPurpose(purposeOfPayment);
         return this;
     }
 
