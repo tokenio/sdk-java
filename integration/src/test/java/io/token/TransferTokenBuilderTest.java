@@ -16,6 +16,8 @@ import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.pricing.PricingProtos.TransferQuote;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 
 import java.io.File;
 import java.io.IOException;
@@ -137,11 +139,14 @@ public class TransferTokenBuilderTest {
                 .setChargeAmount(40)
                 .setDescription("book purchase")
                 .setPricing(pricing)
+                .setPurposeOfPayment(PurposeOfPayment.OTHER)
                 .execute();
 
         assertThat(token.getPayload().getTransfer().getPricing().getDestinationQuote())
                 .isEqualTo(pricing.getDestinationQuote());
         assertThat(token.getPayload().getTransfer().getPricing().getDestinationQuote())
                 .isNotEqualTo(Pricing.getDefaultInstance());
+        assertThat(token.getPayload().getTransfer().getInstructions().getTransferPurpose())
+                .isEqualTo(PurposeOfPayment.OTHER);
     }
 }
