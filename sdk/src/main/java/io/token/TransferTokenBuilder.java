@@ -263,7 +263,7 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the pricing (fees/fx) on the token
+     * Sets the pricing (fees/fx) on the token.
      *
      * @param pricing pricing
      * @return builder
