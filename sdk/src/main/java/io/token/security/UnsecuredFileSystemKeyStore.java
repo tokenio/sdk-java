@@ -97,8 +97,9 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
     }
 
     private File getMemberPath(String memberId) {
-        // Assumes memberId does not contain file separators.
-        return new File(keyStoreRoot, memberId);
+        // Assumes memberId does not contain file separators, other than ':' which
+        // has special meaning on Windows.
+        return new File(keyStoreRoot, memberId.replace(":", "_"));
     }
 
     private File getKeyFile(String memberId, String keyId) {
