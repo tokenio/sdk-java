@@ -66,6 +66,11 @@ public final class TransferAssertion extends AbstractAssert<TransferAssertion, T
         return this;
     }
 
+    public TransferAssertion hasRefId(String refId) {
+        Assertions.assertThat(actual.getPayload().getRefId()).isEqualTo(refId);
+        return this;
+    }
+
     public TransferAssertion hasNSignatures(int count) {
         Assertions.assertThat(actual.getPayloadSignaturesCount()).isEqualTo(count);
         return this;

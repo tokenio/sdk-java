@@ -430,7 +430,7 @@ public class AccessTokenTest {
 
         AccessTokenBuilder builder = AccessTokenBuilder.fromPayload(accessToken.getPayload())
                 .forAll();
-        assertThat(accessToken.getPayload().getNonce()).isNotEqualTo(builder.build().getNonce());
+        assertThat(accessToken.getPayload().getRefId()).isNotEqualTo(builder.build().getRefId());
 
         TokenOperationResult result = accountMember.replaceAccessToken(accessToken, builder);
         assertThat(result.getStatus()).isEqualTo(Status.MORE_SIGNATURES_NEEDED);
@@ -448,6 +448,6 @@ public class AccessTokenTest {
                 1.0,
                 payeeAccount.getCurrency(),
                 "one");
-        return payerAccount.getTransaction(transfer.getReferenceId());
+        return payerAccount.getTransaction(transfer.getTransactionId());
     }
 }

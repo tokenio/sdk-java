@@ -50,6 +50,8 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import rx.Observable;
 import rx.functions.Func1;
 
@@ -60,6 +62,8 @@ import rx.functions.Func1;
  * or memberId.
  */
 public final class TransferTokenBuilder {
+    private static final Logger logger = LoggerFactory.getLogger(TransferTokenBuilder.class);
+
     private final MemberAsync member;
     private final TokenPayload.Builder payload;
 
@@ -77,7 +81,6 @@ public final class TransferTokenBuilder {
         this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
-                .setNonce(generateNonce())
                 .setFrom(TokenProtos.TokenMember.newBuilder()
                         .setId(member.memberId())
                         .build())
@@ -266,6 +269,17 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the referenceId of the token.
+     *
+     * @param refId referenceId
+     * @return builder
+     */
+    public TransferTokenBuilder setRefId(String refId) {
+        payload.setRefId(refId);
+        return this;
+    }
+
+    /**
      * Sets the pricing (fees/fx) on the token.
      *
      * @param pricing pricing
@@ -310,6 +324,11 @@ public final class TransferTokenBuilder {
         if (Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getId())
                 && Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getUsername())) {
             throw new TokenArgumentsException("No redeemer on token");
+        }
+
+        if (payload.getRefId().isEmpty()) {
+            logger.warn("refId is not set. A random ID will be used.");
+            payload.setRefId(generateNonce());
         }
 
         List<Observable<Attachment>> attachmentUploads = new ArrayList<>();

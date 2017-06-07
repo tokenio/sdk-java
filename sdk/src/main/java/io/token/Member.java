@@ -548,11 +548,34 @@ public final class Member {
      * Redeems a transfer token.
      *
      * @param token transfer token to redeem
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Transfer redeemToken(Token token, String refId) {
+        return async.redeemToken(token, refId).toBlocking().single();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
      * @param destination transfer instruction destination
      * @return transfer record
      */
     public Transfer redeemToken(Token token, TransferEndpoint destination) {
         return async.redeemToken(token, destination).toBlocking().single();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Transfer redeemToken(Token token, TransferEndpoint destination, String refId) {
+        return async.redeemToken(token, destination, refId).toBlocking().single();
     }
 
     /**
@@ -570,7 +593,7 @@ public final class Member {
             @Nullable String currency,
             @Nullable String description) {
         return async
-                .redeemToken(token, amount, currency, description, null)
+                .redeemToken(token, amount, currency, description, null, null)
                 .toBlocking()
                 .single();
     }
@@ -590,7 +613,7 @@ public final class Member {
             @Nullable String currency,
             @Nullable TransferEndpoint destination) {
         return async
-                .redeemToken(token, amount, currency, null, destination)
+                .redeemToken(token, amount, currency, null, destination, null)
                 .toBlocking()
                 .single();
     }
@@ -612,7 +635,31 @@ public final class Member {
             @Nullable String description,
             @Nullable TransferEndpoint destination) {
         return async
-                .redeemToken(token, amount, currency, description, destination)
+                .redeemToken(token, amount, currency, description, destination, null)
+                .toBlocking()
+                .single();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Transfer redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination,
+            @Nullable String refId) {
+        return async
+                .redeemToken(token, amount, currency, description, destination, refId)
                 .toBlocking()
                 .single();
     }

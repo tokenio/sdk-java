@@ -132,6 +132,7 @@ public class TransferTokenBuilderTest {
                 .setChargeAmount(40)
                 .setDescription("book purchase")
                 .setPricing(pricing)
+                .setRefId(string())
                 .setPurposeOfPayment(PurposeOfPayment.SAVINGS)
                 .execute();
 

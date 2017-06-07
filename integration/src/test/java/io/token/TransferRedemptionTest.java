@@ -63,16 +63,20 @@ public class TransferRedemptionTest {
     public void redeemToken_withParams() {
         Token token = token(100.0);
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        String refId = string();
 
         Transfer transfer = payee.redeemToken(
                 token,
                 99.0,
                 payeeAccount.getCurrency(),
-                "transfer description");
+                "transfer description",
+                null,
+                refId);
         assertThat(transfer)
                 .isProcessing()
                 .hasAmount(99.0)
                 .hasCurrency(payeeAccount.getCurrency())
+                .hasRefId(refId)
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
     }

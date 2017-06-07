@@ -53,7 +53,7 @@ public class TransactionsTest {
                 null,
                 null);
 
-        Transaction transaction = payerAccount.getTransaction(transfer.getReferenceId());
+        Transaction transaction = payerAccount.getTransaction(transfer.getTransactionId());
         TransactionAssertion.assertThat(transaction)
                 .isProcessing()
                 .hasCurrency(payerAccount.getCurrency())
@@ -78,7 +78,8 @@ public class TransactionsTest {
                 null,
                 null);
 
-        Transaction lookedUp = payeeAccount.getAccount().getTransaction(transfer.getReferenceId());
+        Transaction lookedUp =
+                payeeAccount.getAccount().getTransaction(transfer.getTransactionId());
         assertThat(lookedUp).isNull();
     }
 
