@@ -6,24 +6,17 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.protobuf.ByteString;
-import com.typesafe.config.ConfigException;
 import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
-import io.token.proto.common.pricing.PricingProtos;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.pricing.PricingProtos.TransferQuote;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Random;
 
 import org.junit.Before;
@@ -139,7 +132,7 @@ public class TransferTokenBuilderTest {
                 .setChargeAmount(40)
                 .setDescription("book purchase")
                 .setPricing(pricing)
-                .setPurposeOfPayment(PurposeOfPayment.OTHER)
+                .setPurposeOfPayment(PurposeOfPayment.SAVINGS)
                 .execute();
 
         assertThat(token.getPayload().getTransfer().getPricing().getDestinationQuote())
@@ -147,6 +140,6 @@ public class TransferTokenBuilderTest {
         assertThat(token.getPayload().getTransfer().getPricing().getDestinationQuote())
                 .isNotEqualTo(Pricing.getDefaultInstance());
         assertThat(token.getPayload().getTransfer().getInstructions().getTransferPurpose())
-                .isEqualTo(PurposeOfPayment.OTHER);
+                .isEqualTo(PurposeOfPayment.SAVINGS);
     }
 }
