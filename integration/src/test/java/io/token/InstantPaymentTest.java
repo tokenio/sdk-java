@@ -28,7 +28,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class InstantPaymentTest {
-    private static final int PAYMENT_CLEARING_TIMEOUT_MS = 90000;
+    private static final int PAYMENT_CLEARING_TIMEOUT_MS = 180000;
     private static final int PAYMENT_CLEARING_POLL_FREQUENCY_MS = 1000;
 
     @Rule public TokenRule rule = new TokenRule();
