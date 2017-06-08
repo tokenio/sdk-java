@@ -743,6 +743,7 @@ public final class MemberAsync {
      * @param currency transfer currency code, e.g. "EUR"
      * @param description transfer description
      * @param destination the transfer instruction destination
+     * @param refId transfer reference id
      * @return transfer record
      */
     public Observable<Transfer> redeemToken(
