@@ -11,9 +11,12 @@ import io.grpc.StatusRuntimeException;
 import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -74,6 +77,45 @@ public class TransferTokenTest {
                         .setRedeemerUsername(payee.firstUsername())
                         .execute())
                 .matches(e -> e.getStatus().getCode() == FAILED_PRECONDITION);
+    }
+
+    @Test
+    public void createTransferToken_invalidAccount() {
+        assertThatExceptionOfType(TransferTokenException.class)
+                .isThrownBy(() -> payerAccount.createTransferToken(100.0, payeeAccount)
+                        .setAccountId(payeeAccount.getId()) // Wrong account
+                        .setRedeemerUsername(payee.firstUsername())
+                        .setDescription("book purchase")
+                        .execute())
+                .matches(e -> e.getStatus() == TransferTokenStatus.FAILURE_SOURCE_ACCOUNT_NOT_FOUND);
+    }
+
+    @Test
+    public void createTransferToken_invalidCurrency() {
+        assertThatExceptionOfType(TransferTokenException.class)
+                .isThrownBy(() -> payerAccount.getMember().createTransferToken(100.0, "XXX")
+                        .setAccountId(payerAccount.getId())
+                        .setRedeemerUsername(payee.firstUsername())
+                        .setDescription("book purchase")
+                        .execute())
+        .matches(e -> e.getStatus() == TransferTokenStatus.FAILURE_INVALID_CURRENCY);
+    }
+
+    @Test
+    public void createTransferToken_instant_invalidCurrency() {
+        assertThatExceptionOfType(TransferTokenException.class)
+                .isThrownBy(() -> payerAccount.getMember().createTransferToken(100.0, "XXX")
+                        .setAccountId(payerAccount.getId())
+                        .setRedeemerUsername(payee.firstUsername())
+                        .setDescription("book purchase")
+                        .addDestination(TransferEndpoint.newBuilder()
+                                .setAccount(BankAccount.newBuilder()
+                                        .setToken(BankAccount.Token.newBuilder()
+                                                .setMemberId(payeeAccount.getMember().memberId())
+                                                .setAccountId(payeeAccount.getId())))
+                                .build())
+                        .execute())
+                .matches(e -> e.getStatus() == TransferTokenStatus.FAILURE_INVALID_CURRENCY);
     }
 
     @Test

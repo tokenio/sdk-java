@@ -27,6 +27,7 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANC
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.util.Util.toObservable;
 
+import io.token.TransferTokenException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
@@ -48,6 +49,7 @@ import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
+import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
@@ -56,13 +58,15 @@ import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
+import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
+import io.token.proto.gateway.Gateway.CreateAccessTokenResponse;
 import io.token.proto.gateway.Gateway.CreateBlobResponse;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountRequest;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountResponse;
-import io.token.proto.gateway.Gateway.CreateTokenRequest;
-import io.token.proto.gateway.Gateway.CreateTokenResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
 import io.token.proto.gateway.Gateway.CreateTransferResponse;
+import io.token.proto.gateway.Gateway.CreateTransferTokenRequest;
+import io.token.proto.gateway.Gateway.CreateTransferTokenResponse;
 import io.token.proto.gateway.Gateway.DeleteAddressRequest;
 import io.token.proto.gateway.Gateway.DeleteAddressResponse;
 import io.token.proto.gateway.Gateway.EndorseTokenRequest;
@@ -424,19 +428,41 @@ public final class Client {
     }
 
     /**
-     * Creates a new token.
+     * Creates a new transfer token.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
-    public Observable<Token> createToken(TokenPayload payload) {
+    public Observable<Token> createTransferToken(TokenPayload payload) {
         return toObservable(gateway
-                .createToken(CreateTokenRequest
+                .createTransferToken(CreateTransferTokenRequest
                         .newBuilder()
                         .setPayload(payload)
                         .build()))
-                .map(new Func1<CreateTokenResponse, Token>() {
-                    public Token call(CreateTokenResponse response) {
+                .map(new Func1<CreateTransferTokenResponse, Token>() {
+                    public Token call(CreateTransferTokenResponse response) {
+                        if (response.getStatus() != TransferTokenStatus.SUCCESS) {
+                            throw new TransferTokenException(response.getStatus());
+                        }
+                        return response.getToken();
+                    }
+                });
+    }
+
+    /**
+     * Creates a new access token.
+     *
+     * @param payload transfer token payload
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createAccessToken(TokenPayload payload) {
+        return toObservable(gateway
+                .createAccessToken(CreateAccessTokenRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .build()))
+                .map(new Func1<CreateAccessTokenResponse, Token>() {
+                    public Token call(CreateAccessTokenResponse response) {
                         return response.getToken();
                     }
                 });
