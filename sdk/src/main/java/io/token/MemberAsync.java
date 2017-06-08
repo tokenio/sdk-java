@@ -56,15 +56,10 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -585,9 +580,8 @@ public final class MemberAsync {
      * @return transfer token returned by the server
      */
     public Observable<Token> createTransferToken(TokenPayload payload) {
-        return client.createToken(payload);
+        return client.createTransferToken(payload);
     }
-
 
     /**
      * Creates an access token built from a given {@link AccessTokenBuilder}.
@@ -596,7 +590,7 @@ public final class MemberAsync {
      * @return the access token created
      */
     public Observable<Token> createAccessToken(AccessTokenBuilder accessTokenBuilder) {
-        return createTransferToken(accessTokenBuilder.from(memberId()).build());
+        return client.createAccessToken(accessTokenBuilder.from(memberId()).build());
     }
 
     /**
