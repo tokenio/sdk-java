@@ -2,6 +2,8 @@ package io.token;
 
 import static io.grpc.Status.Code.FAILED_PRECONDITION;
 import static io.token.asserts.TokenAssertion.assertThat;
+import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INVALID_CURRENCY;
+import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_SOURCE_ACCOUNT_NOT_FOUND;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -15,7 +17,6 @@ import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import org.junit.Before;
@@ -87,7 +88,7 @@ public class TransferTokenTest {
                         .setRedeemerUsername(payee.firstUsername())
                         .setDescription("book purchase")
                         .execute())
-                .matches(e -> e.getStatus() == TransferTokenStatus.FAILURE_SOURCE_ACCOUNT_NOT_FOUND);
+                .matches(e -> e.getStatus() == FAILURE_SOURCE_ACCOUNT_NOT_FOUND);
     }
 
     @Test
@@ -98,7 +99,7 @@ public class TransferTokenTest {
                         .setRedeemerUsername(payee.firstUsername())
                         .setDescription("book purchase")
                         .execute())
-        .matches(e -> e.getStatus() == TransferTokenStatus.FAILURE_INVALID_CURRENCY);
+                .matches(e -> e.getStatus() == FAILURE_INVALID_CURRENCY);
     }
 
     @Test
@@ -115,7 +116,7 @@ public class TransferTokenTest {
                                                 .setAccountId(payeeAccount.getId())))
                                 .build())
                         .execute())
-                .matches(e -> e.getStatus() == TransferTokenStatus.FAILURE_INVALID_CURRENCY);
+                .matches(e -> e.getStatus() == FAILURE_INVALID_CURRENCY);
     }
 
     @Test
