@@ -36,6 +36,20 @@ public final class Destinations {
      * Creates a destination of type token (Paying to a token member account).
      *
      * @param memberId token memberId
+     * @return Destinations
+     */
+    public static TransferEndpoint token(String memberId) {
+        return TransferEndpoint.newBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setToken(Token.newBuilder()
+                                .setMemberId(memberId)))
+                .build();
+    }
+
+    /**
+     * Creates a destination of type token (Paying to a token member account).
+     *
+     * @param memberId token memberId
      * @param accountId token accountId
      * @return Destinations
      */
