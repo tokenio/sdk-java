@@ -2,6 +2,7 @@ package io.token;
 
 import static io.grpc.Status.Code.FAILED_PRECONDITION;
 import static io.token.asserts.TransferAssertion.assertThat;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -39,7 +40,7 @@ public class TransferRedemptionTest {
     @Test
     public void redeemToken() {
         Token token = token(100.0);
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(token);
         assertThat(transfer)
@@ -69,7 +70,7 @@ public class TransferRedemptionTest {
     @Test
     public void redeemTokenWithUnlinkedAccount() {
         Token token = token(100.0);
-        final Token endorsedToken = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        final Token endorsedToken = payer.endorseToken(token, STANDARD).getToken();
         payer.unlinkAccounts(singletonList(payerAccount.getId()));
         assertThatExceptionOfType(StatusRuntimeException.class)
                 .isThrownBy(() -> payee.redeemToken(endorsedToken))
@@ -79,7 +80,7 @@ public class TransferRedemptionTest {
     @Test
     public void redeemToken_withParams() {
         Token token = token(100.0);
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
         String refId = string();
 
         Transfer transfer = payee.redeemToken(
@@ -103,7 +104,7 @@ public class TransferRedemptionTest {
         double amount = payerAccount.getBalance() + 1; // 1 over the limit.
 
         Token token = token(amount);
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(
                 token,
@@ -121,7 +122,7 @@ public class TransferRedemptionTest {
     @Test
     public void getTransfer() {
         Token token = token(100.0);
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(token);
         Transfer lookedUp = payer.getTransfer(transfer.getId());
@@ -133,7 +134,7 @@ public class TransferRedemptionTest {
     @Test
     public void getTransfers() {
         Token token = token(100.0);
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
 
         Transfer transfer1 = payee.redeemToken(
                 token,
