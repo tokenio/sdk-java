@@ -2,6 +2,10 @@ package io.token;
 
 import static io.grpc.Status.Code.FAILED_PRECONDITION;
 import static io.token.asserts.TokenAssertion.assertThat;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Status.MORE_SIGNATURES_NEEDED;
+import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Status.SUCCESS;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_DESTINATION_ACCOUNT_NOT_FOUND;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INVALID_CURRENCY;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_SOURCE_ACCOUNT_NOT_FOUND;
@@ -15,7 +19,6 @@ import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.BankAccount;
-import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -191,12 +194,12 @@ public class TransferTokenTest {
         Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
-        TokenOperationResult result = payer.endorseToken(token, Key.Level.STANDARD);
+        TokenOperationResult result = payer.endorseToken(token, STANDARD);
         assertThat(result.getStatus())
-                .isEqualTo(TokenOperationResult.Status.SUCCESS);
+                .isEqualTo(SUCCESS);
         assertThat(result.getToken())
                 .hasNSignatures(2)
-                .isEndorsedBy(payer, Key.Level.STANDARD)
+                .isEndorsedBy(payer, STANDARD)
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency(payeeAccount.getCurrency());
@@ -209,7 +212,7 @@ public class TransferTokenTest {
                 .execute();
         payer.unlinkAccounts(singletonList(payerAccount.getId()));
         assertThatExceptionOfType(StatusRuntimeException.class)
-                .isThrownBy(() -> payer.endorseToken(token, Key.Level.STANDARD))
+                .isThrownBy(() -> payer.endorseToken(token, STANDARD))
                 .matches(e -> e.getStatus().getCode() == FAILED_PRECONDITION);
     }
 
@@ -219,11 +222,11 @@ public class TransferTokenTest {
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         TokenOperationResult result = payer.cancelToken(token);
-        assertThat(result.getStatus()).isEqualTo(TokenOperationResult.Status.SUCCESS);
+        assertThat(result.getStatus()).isEqualTo(SUCCESS);
 
         assertThat(result.getToken())
                 .hasNSignatures(2)
-                .isCancelledBy(payer, Key.Level.LOW)
+                .isCancelledBy(payer, LOW)
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency(payeeAccount.getCurrency());
@@ -234,13 +237,13 @@ public class TransferTokenTest {
         Token token = payerAccount.createTransferToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
-        TokenOperationResult result = payer.endorseToken(token, Key.Level.LOW);
+        TokenOperationResult result = payer.endorseToken(token, LOW);
 
         assertThat(result.getStatus())
-                .isEqualTo(TokenOperationResult.Status.MORE_SIGNATURES_NEEDED);
+                .isEqualTo(MORE_SIGNATURES_NEEDED);
         assertThat(result.getToken())
                 .hasNSignatures(1)
-                .isEndorsedBy(payer, Key.Level.LOW)
+                .isEndorsedBy(payer, LOW)
                 .hasFrom(payer)
                 .hasAmount(100.0)
                 .hasCurrency(payeeAccount.getCurrency());

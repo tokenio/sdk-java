@@ -1,5 +1,6 @@
 package io.token;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static java.util.Comparator.comparing;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -8,7 +9,6 @@ import io.token.asserts.TransactionAssertion;
 import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
-import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -45,7 +45,7 @@ public class TransactionsTest {
     @Test
     public void getTransaction() {
         Token token = token();
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
         Transfer transfer = payee.redeemToken(
                 token,
                 100.0,
@@ -70,7 +70,7 @@ public class TransactionsTest {
     @Test
     public void getTransaction_wrongAccount() {
         Token token = token();
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
         Transfer transfer = payee.redeemToken(
                 token,
                 100.0,
@@ -86,7 +86,7 @@ public class TransactionsTest {
     @Test
     public void getTransactions() {
         Token token = token();
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
 
         final Transfer transfer1 = payee.redeemToken(
                 token,
@@ -160,7 +160,7 @@ public class TransactionsTest {
     @Test
     public void getTransactionsPaged() {
         Token token = token();
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
 
         int num = 14;
         for (int i = 0; i < num; i++) {
@@ -188,7 +188,7 @@ public class TransactionsTest {
         double initialBalance = payerAccount.getBalance();
 
         Token token = token();
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        token = payer.endorseToken(token, STANDARD).getToken();
         payee.redeemToken(
                 token,
                 100.0,
