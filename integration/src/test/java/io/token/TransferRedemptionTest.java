@@ -47,6 +47,23 @@ public class TransferRedemptionTest {
                 .hasNoAmount()
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
+
+    }
+
+    @Test
+    public void redeemToken_defaultDestinationAccount() {
+        Token token = payerAccount.createTransferToken(100, payeeAccount)
+                .setRedeemerUsername(payee.firstUsername())
+                .addDestination(Destinations.token(payee.memberId()))
+                .execute();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+
+        Transfer transfer = payee.redeemToken(token);
+        assertThat(transfer)
+                .isProcessing()
+                .hasNoAmount()
+                .hasNSignatures(2)
+                .isSignedBy(payee, Key.Level.LOW);
     }
 
     @Test
