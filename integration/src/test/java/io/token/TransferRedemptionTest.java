@@ -68,6 +68,21 @@ public class TransferRedemptionTest {
     }
 
     @Test
+    public void redeemToken_idempotentRefId() {
+        Token token1 = token(100.0);
+        token1 = payer.endorseToken(token1, STANDARD).getToken();
+
+        Token token2 = token(200.0);
+        token2 = payer.endorseToken(token2, STANDARD).getToken();
+
+        String transferRefId = string();
+        Transfer transfer1 = payee.redeemToken(token1, transferRefId);
+        Transfer transfer2 = payee.redeemToken(token2, transferRefId);
+
+        assertThat(transfer1).isEqualTo(transfer2);
+    }
+
+    @Test
     public void redeemTokenWithUnlinkedAccount() {
         Token token = token(100.0);
         final Token endorsedToken = payer.endorseToken(token, STANDARD).getToken();
