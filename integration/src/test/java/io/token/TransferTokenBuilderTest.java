@@ -1,6 +1,8 @@
 package io.token;
 
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment.SAVINGS;
 import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -11,9 +13,7 @@ import io.token.common.TokenRule;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
-import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 
 import java.io.IOException;
 import java.util.Random;
@@ -75,7 +75,7 @@ public class TransferTokenBuilderTest {
                 .addAttachment(attachment)
                 .execute();
 
-        payer.endorseToken(token, SecurityProtos.Key.Level.STANDARD);
+        payer.endorseToken(token, STANDARD);
 
         Blob blob = payer.getTokenBlob(token.getId(), attachment.getBlobId());
         assertThat(blob.getId()).isEqualTo(attachment.getBlobId());
@@ -103,7 +103,7 @@ public class TransferTokenBuilderTest {
                 .addAttachment(payer.memberId(), string(), string(), randomData4)
                 .execute();
 
-        payer.endorseToken(token, SecurityProtos.Key.Level.STANDARD);
+        payer.endorseToken(token, STANDARD);
 
         Blob blob = payer.getTokenBlob(
                 token.getId(),
@@ -124,12 +124,12 @@ public class TransferTokenBuilderTest {
                 .setChargeAmount(40)
                 .setDescription("book purchase")
                 .setRefId(string())
-                .setPurposeOfPayment(PurposeOfPayment.SAVINGS)
+                .setPurposeOfPayment(SAVINGS)
                 .execute();
 
         assertThat(token.getPayload().getTransfer().getPricing().getDestinationQuote())
                 .isNotEqualTo(Pricing.getDefaultInstance());
         assertThat(token.getPayload().getTransfer().getInstructions().getTransferPurpose())
-                .isEqualTo(PurposeOfPayment.SAVINGS);
+                .isEqualTo(SAVINGS);
     }
 }
