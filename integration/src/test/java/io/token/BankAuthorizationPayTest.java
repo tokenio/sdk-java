@@ -22,13 +22,14 @@ public class BankAuthorizationPayTest {
     @Rule public TokenRule rule = new TokenRule();
     @Rule public KeyStoreTestRule keyRule = new KeyStoreTestRule();
 
+    private LinkedAccount payerAccount;
     private Member payer;
     private LinkedAccount payeeAccount;
     private Member payee;
 
     @Before
     public void before() {
-        LinkedAccount payerAccount = rule.linkedAccount();
+        this.payerAccount = rule.linkedAccount();
         this.payer = payerAccount.getMember();
 
         this.payeeAccount = rule.linkedAccount();

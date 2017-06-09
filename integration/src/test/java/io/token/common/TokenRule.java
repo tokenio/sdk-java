@@ -89,6 +89,10 @@ public class TokenRule implements MethodRule {
         return linkAccount(testBank.nextAccount());
     }
 
+    public LinkedAccount invalidLinkedAccount() {
+        return linkAccount(testBank.invalidAccount());
+    }
+
     public TestAccount unlinkedAccount() {
         return testBank.nextAccount();
     }
@@ -121,8 +125,8 @@ public class TokenRule implements MethodRule {
                 member.firstUsername(),
                 new NamedAccount(testAccount.getBankAccount(), testAccount.getAccountName()));
         Account account = member
-                        .linkAccounts(auth)
-                        .get(0);
+                .linkAccounts(auth)
+                .get(0);
         return new LinkedAccount(testAccount, account);
     }
 }

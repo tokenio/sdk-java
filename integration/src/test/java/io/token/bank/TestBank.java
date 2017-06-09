@@ -33,6 +33,13 @@ public abstract class TestBank {
     public abstract TestAccount nextAccount();
 
     /**
+     * Returns a next account that can be linked.
+     *
+     * @return next account
+     */
+    public abstract TestAccount invalidAccount();
+
+    /**
      * Produces bank authorization for the given account.
      *
      * @param username username to authorize
