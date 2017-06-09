@@ -2,6 +2,7 @@ package io.token.bank.config;
 
 import static io.token.Destinations.swift;
 import static java.util.Collections.singletonList;
+import static org.apache.commons.lang3.StringUtils.reverse;
 
 import com.typesafe.config.Config;
 import io.token.bank.TestAccount;
@@ -44,12 +45,24 @@ public final class ConfigBasedTestBank extends TestBank {
 
     @Override
     public TestAccount nextAccount() {
-        int index = lastAccountIndex++ % accounts.size();
-        BankAccountConfig accountConfig = accounts.get(index);
+        BankAccountConfig accountConfig = nextAccountConfig();
         return new TestAccount(
                 accountConfig.getAccountName(),
                 accountConfig.getCurrency(),
-                swift(accountConfig.getBic(), accountConfig.getAccountNumber()).getAccount());
+                swift(
+                        accountConfig.getBic(),
+                        accountConfig.getAccountNumber()).getAccount());
+    }
+
+    @Override
+    public TestAccount invalidAccount() {
+        BankAccountConfig accountConfig = nextAccountConfig();
+        return new TestAccount(
+                accountConfig.getAccountName(),
+                accountConfig.getCurrency(),
+                swift(
+                        accountConfig.getBic(),
+                        reverse(accountConfig.getAccountNumber())).getAccount());
     }
 
     @Override
@@ -59,5 +72,10 @@ public final class ConfigBasedTestBank extends TestBank {
                 .withExpiration(Duration.ofMinutes(1))
                 .build()
                         .createAuthorization(username, singletonList(account));
+    }
+
+    private BankAccountConfig nextAccountConfig() {
+        int index = lastAccountIndex++ % accounts.size();
+        return accounts.get(index);
     }
 }

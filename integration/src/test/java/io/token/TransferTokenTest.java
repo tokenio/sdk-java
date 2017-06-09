@@ -2,6 +2,7 @@ package io.token;
 
 import static io.grpc.Status.Code.FAILED_PRECONDITION;
 import static io.token.asserts.TokenAssertion.assertThat;
+import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_DESTINATION_ACCOUNT_NOT_FOUND;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INVALID_CURRENCY;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_SOURCE_ACCOUNT_NOT_FOUND;
 import static java.util.Collections.singletonList;
@@ -81,7 +82,7 @@ public class TransferTokenTest {
     }
 
     @Test
-    public void createTransferToken_invalidAccount() {
+    public void createTransferToken_invalidAccount_source() {
         assertThatExceptionOfType(TransferTokenException.class)
                 .isThrownBy(() -> payerAccount.createTransferToken(100.0, payeeAccount)
                         .setAccountId(payeeAccount.getId()) // Wrong account
@@ -89,6 +90,23 @@ public class TransferTokenTest {
                         .setDescription("book purchase")
                         .execute())
                 .matches(e -> e.getStatus() == FAILURE_SOURCE_ACCOUNT_NOT_FOUND);
+    }
+
+    @Test
+    public void createTransferToken_invalidAccount_destination() {
+        assertThatExceptionOfType(TransferTokenException.class)
+                .isThrownBy(() -> payerAccount.getMember()
+                        .createTransferToken(100.0, payeeAccount.getCurrency())
+                        .setAccountId(payerAccount.getId())
+                        .setRedeemerUsername(payee.firstUsername())
+                        .setDescription("book purchase")
+                        .addDestination(TransferEndpoint.newBuilder()
+                                // Invalid account.
+                                .setAccount(
+                                        rule.invalidLinkedAccount().testAccount().getBankAccount())
+                                .build())
+                        .execute())
+                .matches(e -> e.getStatus() == FAILURE_DESTINATION_ACCOUNT_NOT_FOUND);
     }
 
     @Test
