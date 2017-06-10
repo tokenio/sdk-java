@@ -6,9 +6,8 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Status.MORE_SIGNATURES_NEEDED;
 import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Status.SUCCESS;
-import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_DESTINATION_ACCOUNT_NOT_FOUND;
+import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_CUSTOMER_NOT_FOUND;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INVALID_CURRENCY;
-import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_SOURCE_ACCOUNT_NOT_FOUND;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -18,8 +17,6 @@ import io.grpc.StatusRuntimeException;
 import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
-import io.token.proto.common.account.AccountProtos.BankAccount;
-import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -92,7 +89,7 @@ public class TransferTokenTest {
                         .setRedeemerUsername(payee.firstUsername())
                         .setDescription("book purchase")
                         .execute())
-                .matches(e -> e.getStatus() == FAILURE_SOURCE_ACCOUNT_NOT_FOUND);
+                .matches(e -> e.getStatus() == FAILURE_CUSTOMER_NOT_FOUND);
     }
 
     @Test
@@ -109,7 +106,7 @@ public class TransferTokenTest {
                                         rule.invalidLinkedAccount().testAccount().getBankAccount())
                                 .build())
                         .execute())
-                .matches(e -> e.getStatus() == FAILURE_DESTINATION_ACCOUNT_NOT_FOUND);
+                .matches(e -> e.getStatus() == FAILURE_CUSTOMER_NOT_FOUND);
     }
 
     @Test
