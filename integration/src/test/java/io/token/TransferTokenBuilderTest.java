@@ -41,7 +41,7 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void basicToken() {
-        payerAccount.createTransferToken(100.0, payeeAccount)
+        payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .execute();
@@ -57,7 +57,9 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void noRedeemer() {
-        assertThatThrownBy(() -> payerAccount.createTransferToken(100.0, payeeAccount)
+        assertThatThrownBy(() -> payerAccount.createInstantToken(100.0, payeeAccount)
+                .setRedeemerMemberId("")
+                .setRedeemerUsername("")
                 .setDescription("book purchase")
                 .execute());
     }
@@ -69,7 +71,7 @@ public class TransferTokenBuilderTest {
 
         Attachment attachment = payer.createBlob(payer.memberId(), string(), string(), randomData1);
 
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+        Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .addAttachment(attachment)
@@ -94,7 +96,7 @@ public class TransferTokenBuilderTest {
         new Random().nextBytes(randomData3);
         new Random().nextBytes(randomData4);
 
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+        Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .addAttachment(payer.memberId(), string(), string(), randomData1)
@@ -117,7 +119,7 @@ public class TransferTokenBuilderTest {
 
     @Test
     public void full() {
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+        Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setEffectiveAtMs(System.currentTimeMillis() + 10000)
                 .setExpiresAtMs(System.currentTimeMillis() + 1000000)

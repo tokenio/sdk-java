@@ -2,6 +2,7 @@ package io.token;
 
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableSet;
@@ -15,7 +16,10 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.DoubleStream;
+import java.util.stream.IntStream;
 
+import org.assertj.core.api.Assertions;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -85,6 +89,35 @@ public class TransactionsTest {
 
     @Test
     public void getTransactions() {
+        List<Transfer> transfers = DoubleStream
+                .of(100.0, 200.0, 300.0, 400.0, 500.0)
+                .mapToObj(amount -> {
+                    Token token = payerAccount
+                            .createInstantToken(amount, payeeAccount)
+                            .execute();
+                    token = payer.endorseToken(token, STANDARD).getToken();
+                    return payee.redeemToken(token);
+                })
+                .collect(toList());
+
+        PagedList<Transaction, String> result = payerAccount.getTransactions(
+                null,
+                transfers.size() * 5); // To account for concurrent tests.
+
+        List<Transaction> transactions = new ArrayList<>(result.getList());
+        Assertions
+                .assertThat(transactions
+                        .stream()
+                        .map(Transaction::getId)
+                        .collect(toList()))
+                .containsAll(transfers
+                        .stream()
+                        .map(Transfer::getTransactionId)
+                        .collect(toList()));
+    }
+
+    @Test
+    public void getTransactions_multiUse() {
         Token token = token();
         token = payer.endorseToken(token, STANDARD).getToken();
 
@@ -159,6 +192,30 @@ public class TransactionsTest {
 
     @Test
     public void getTransactionsPaged() {
+        int num = 10;
+        IntStream
+                .range(1, num + 1)
+                .forEach(i -> {
+                    Token token = payerAccount
+                            .createInstantToken(i * 100, payeeAccount)
+                            .execute();
+                    token = payer.endorseToken(token, STANDARD).getToken();
+                    payee.redeemToken(token);
+                });
+
+        int limit = 2;
+        ImmutableSet.Builder<Transaction> builder = ImmutableSet.builder();
+        PagedList<Transaction, String> result = payerAccount.getTransactions(null, limit);
+        for (int i = 0; i < num / limit; i++) {
+            builder.addAll(result.getList());
+            result = payerAccount.getTransactions(result.getOffset(), limit);
+        }
+
+        assertThat(builder.build().size()).isEqualTo(num);
+    }
+
+    @Test
+    public void getTransactionsPaged_multiUse() {
         Token token = token();
         token = payer.endorseToken(token, STANDARD).getToken();
 
@@ -199,7 +256,7 @@ public class TransactionsTest {
     }
 
     private Token token() {
-        return payerAccount.createTransferToken(1500.0, payeeAccount)
+        return payerAccount.createInstantToken(1500.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("Multi charge token")
                 .execute();

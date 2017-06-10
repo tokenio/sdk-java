@@ -19,6 +19,7 @@ import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.BankAccount;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -46,9 +47,8 @@ public class TransferTokenTest {
 
     @Test
     public void createTransferToken() {
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
-                .setDescription("book purchase")
+        Token token = payerAccount
+                .createInstantToken(100.0, payeeAccount)
                 .execute();
 
         assertThat(token)
@@ -61,7 +61,7 @@ public class TransferTokenTest {
 
     @Test
     public void createTransferToken_noDestination() {
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+        Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription("book purchase")
                 .execute();
@@ -78,7 +78,7 @@ public class TransferTokenTest {
     public void createTransferTokenWithUnlinkedAccount() {
         payer.unlinkAccounts(singletonList(payerAccount.getId()));
         assertThatExceptionOfType(StatusRuntimeException.class)
-                .isThrownBy(() -> payerAccount.createTransferToken(100.0, payeeAccount)
+                .isThrownBy(() -> payerAccount.createInstantToken(100.0, payeeAccount)
                         .setRedeemerUsername(payee.firstUsername())
                         .execute())
                 .matches(e -> e.getStatus().getCode() == FAILED_PRECONDITION);
@@ -87,7 +87,7 @@ public class TransferTokenTest {
     @Test
     public void createTransferToken_invalidAccount_source() {
         assertThatExceptionOfType(TransferTokenException.class)
-                .isThrownBy(() -> payerAccount.createTransferToken(100.0, payeeAccount)
+                .isThrownBy(() -> payerAccount.createInstantToken(100.0, payeeAccount)
                         .setAccountId(payeeAccount.getId()) // Wrong account
                         .setRedeemerUsername(payee.firstUsername())
                         .setDescription("book purchase")
@@ -130,19 +130,16 @@ public class TransferTokenTest {
                         .setAccountId(payerAccount.getId())
                         .setRedeemerUsername(payee.firstUsername())
                         .setDescription("book purchase")
-                        .addDestination(TransferEndpoint.newBuilder()
-                                .setAccount(BankAccount.newBuilder()
-                                        .setToken(BankAccount.Token.newBuilder()
-                                                .setMemberId(payeeAccount.getMember().memberId())
-                                                .setAccountId(payeeAccount.getId())))
-                                .build())
+                        .addDestination(Destinations.token(
+                                payeeAccount.getMember().memberId(),
+                                payeeAccount.getId()))
                         .execute())
                 .matches(e -> e.getStatus() == FAILURE_INVALID_CURRENCY);
     }
 
     @Test
     public void getTransferToken() {
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+        Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         assertThat(payer.getToken(token.getId()))
@@ -154,13 +151,13 @@ public class TransferTokenTest {
 
     @Test
     public void getTransferTokens() {
-        Token token1 = payerAccount.createTransferToken(123.45, payeeAccount)
+        Token token1 = payerAccount.createInstantToken(123.45, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
-        Token token2 = payerAccount.createTransferToken(678.90, payeeAccount)
+        Token token2 = payerAccount.createInstantToken(678.90, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
-        Token token3 = payerAccount.createTransferToken(100.99, payeeAccount)
+        Token token3 = payerAccount.createInstantToken(100.99, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 
@@ -173,7 +170,7 @@ public class TransferTokenTest {
     public void getTransferTokensPaged() {
         int num = 10;
         for (int i = 0; i < num; i++) {
-            payerAccount.createTransferToken(100 + i, payeeAccount)
+            payerAccount.createInstantToken(100 + i, payeeAccount)
                     .setRedeemerUsername(payee.firstUsername())
                     .execute();
         }
@@ -191,7 +188,7 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferToken() {
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+        Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         TokenOperationResult result = payer.endorseToken(token, STANDARD);
@@ -207,7 +204,7 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenWithUnlinkedAccount() {
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+        Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         payer.unlinkAccounts(singletonList(payerAccount.getId()));
@@ -218,7 +215,7 @@ public class TransferTokenTest {
 
     @Test
     public void cancelTransferToken() {
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+        Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         TokenOperationResult result = payer.cancelToken(token);
@@ -234,7 +231,7 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenMoreSignaturesNeeded() {
-        Token token = payerAccount.createTransferToken(100.0, payeeAccount)
+        Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         TokenOperationResult result = payer.endorseToken(token, LOW);

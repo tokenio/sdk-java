@@ -1,5 +1,6 @@
 package io.token.common;
 
+import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Account;
@@ -10,7 +11,7 @@ import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import javax.annotation.Nullable;
 
@@ -38,17 +39,26 @@ public class LinkedAccount {
         return getAccount().member();
     }
 
-    public TransferTokenBuilder createTransferToken(double amount) {
+    public TransferTokenBuilder createLegacyToken(double amount, LinkedAccount destination) {
         return getMember()
                 .createTransferToken(amount, getCurrency())
+                .setRedeemerMemberId(destination.getMember().memberId())
+                .addDestination(TransferEndpoint.newBuilder()
+                        .setAccount(BankAccount.newBuilder()
+                                .setSwift(BankAccount.Swift.newBuilder()
+                                        .setBic("TESTUSCAXXXX")
+                                        .setAccount(string())))
+                        .build())
                 .setAccountId(getId());
     }
 
-    public TransferTokenBuilder createTransferToken(double amount, LinkedAccount destination) {
+    public TransferTokenBuilder createInstantToken(double amount, LinkedAccount destination) {
         return getMember()
                 .createTransferToken(amount, destination.getCurrency())
+                .setRedeemerUsername(destination.getMember().firstUsername())
+                .setRedeemerMemberId(destination.getMember().memberId())
                 .setAccountId(getId())
-                .addDestination(TransferInstructionsProtos.TransferEndpoint.newBuilder()
+                .addDestination(TransferEndpoint.newBuilder()
                         .setAccount(BankAccount.newBuilder()
                                 .setToken(BankAccount.Token.newBuilder()
                                         .setMemberId(destination.getMember().memberId())

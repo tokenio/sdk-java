@@ -440,7 +440,7 @@ public class AccessTokenTest {
     private Transaction getTransaction(LinkedAccount payerAccount, LinkedAccount payeeAccount) {
         Member payer = payerAccount.getMember();
         Member payee = payeeAccount.getMember();
-        Token token = payerAccount.createTransferToken(10, payeeAccount)
+        Token token = payerAccount.createInstantToken(10, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
         token = payer.endorseToken(token, STANDARD).getToken();

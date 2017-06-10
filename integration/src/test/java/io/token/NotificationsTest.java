@@ -151,7 +151,7 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payerAccount.createTransferToken(56, payeeAccount)
+        Token token = payerAccount.createInstantToken(56, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 
@@ -172,10 +172,10 @@ public class NotificationsTest {
         payer.subscribeToNotifications("token", Sample
                 .handlerInstructions(NOTIFICATION_TARGET + "1", TEST));
 
-        Token token = payerAccount.createTransferToken(56, payeeAccount)
+        Token token = payerAccount.createInstantToken(56, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
-        Token token2 = payerAccount.createTransferToken(56, payeeAccount)
+        Token token2 = payerAccount.createInstantToken(56, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 
@@ -220,13 +220,13 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payerAccount.createTransferToken(20, payeeAccount)
+        Token token = payerAccount.createInstantToken(20, payeeAccount)
                 .setAccountId(payerAccount.getId())
                 .setRedeemerUsername(payee.firstUsername())
                 .setToUsername(payee.firstUsername()) // to Username.
                 .execute();
 
-        Token token2 = payerAccount.createTransferToken(20, payeeAccount)
+        Token token2 = payerAccount.createInstantToken(20, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setToMemberId(payee.memberId()) // to Member id.
                 .execute();
@@ -264,7 +264,7 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payerAccount.createTransferToken(20, payeeAccount)
+        Token token = payerAccount.createInstantToken(20, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .execute();
 

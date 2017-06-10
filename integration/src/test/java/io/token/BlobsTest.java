@@ -15,19 +15,11 @@ import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.rpc.Client;
-import io.token.testing.sample.Sample;
 import io.token.util.codec.ByteEncoding;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Random;
 
 import org.junit.Before;
-import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -154,7 +146,7 @@ public class BlobsTest {
         Attachment attachment2 = payer
                 .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
-        Token token = payerAccount.createTransferToken(100, payeeAccount)
+        Token token = payerAccount.createInstantToken(100, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .addAttachment(attachment)
                 .addAttachment(attachment2)
@@ -182,7 +174,7 @@ public class BlobsTest {
         Attachment attachment = payer
                 .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
-        Token token = payerAccount.createTransferToken(100, payeeAccount)
+        Token token = payerAccount.createInstantToken(100, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .addAttachment(attachment)
                 .execute();

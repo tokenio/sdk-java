@@ -3,6 +3,7 @@ package io.token;
 import static io.grpc.Status.Code.FAILED_PRECONDITION;
 import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INSUFFICIENT_FUNDS;
 import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -38,9 +39,11 @@ public class TransferRedemptionTest {
     }
 
     @Test
-    public void redeemToken() {
-        Token token = token(100.0);
-        token = payer.endorseToken(token, STANDARD).getToken();
+    public void redeemToken_instant() {
+        Token token = payerAccount
+                .createInstantToken(100.0, payeeAccount)
+                .execute();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(token);
         assertThat(transfer)
@@ -48,12 +51,26 @@ public class TransferRedemptionTest {
                 .hasNoAmount()
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
+    }
 
+    @Test
+    public void redeemToken_legacy() {
+        Token token = payerAccount
+                .createLegacyToken(100, payeeAccount)
+                .execute();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+
+        Transfer transfer = payee.redeemToken(token);
+        assertThat(transfer)
+                .isSuccessful()
+                .hasNoAmount()
+                .hasNSignatures(2)
+                .isSignedBy(payee, Key.Level.LOW);
     }
 
     @Test
     public void redeemToken_defaultDestinationAccount() {
-        Token token = payerAccount.createTransferToken(100, payeeAccount)
+        Token token = payerAccount.createInstantToken(100, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .addDestination(Destinations.token(payee.memberId()))
                 .execute();
@@ -69,10 +86,14 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemToken_idempotentRefId() {
-        Token token1 = token(100.0);
+        Token token1 = payerAccount
+                .createInstantToken(100.0, payeeAccount)
+                .execute();
         token1 = payer.endorseToken(token1, STANDARD).getToken();
 
-        Token token2 = token(200.0);
+        Token token2 = payerAccount
+                .createInstantToken(100.0, payeeAccount)
+                .execute();
         token2 = payer.endorseToken(token2, STANDARD).getToken();
 
         String transferRefId = string();
@@ -84,8 +105,10 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemTokenWithUnlinkedAccount() {
-        Token token = token(100.0);
-        final Token endorsedToken = payer.endorseToken(token, STANDARD).getToken();
+        Token token = payerAccount
+                .createInstantToken(100.0, payeeAccount)
+                .execute();
+        final Token endorsedToken = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         payer.unlinkAccounts(singletonList(payerAccount.getId()));
         assertThatExceptionOfType(StatusRuntimeException.class)
                 .isThrownBy(() -> payee.redeemToken(endorsedToken))
@@ -94,8 +117,10 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemToken_withParams() {
-        Token token = token(100.0);
-        token = payer.endorseToken(token, STANDARD).getToken();
+        Token token = payerAccount
+                .createInstantToken(100.0, payeeAccount)
+                .execute();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
         String refId = string();
 
         Transfer transfer = payee.redeemToken(
@@ -115,11 +140,24 @@ public class TransferRedemptionTest {
     }
 
     @Test
-    public void redeemToken_failure() {
+    public void redeemToken_instant_failure() {
         double amount = payerAccount.getBalance() + 1; // 1 over the limit.
 
-        Token token = token(amount);
-        token = payer.endorseToken(token, STANDARD).getToken();
+        assertThatExceptionOfType(TransferTokenException.class)
+                .isThrownBy(() -> payerAccount
+                        .createInstantToken(amount, payeeAccount)
+                        .execute())
+                .matches(e -> e.getStatus() == FAILURE_INSUFFICIENT_FUNDS);
+    }
+
+    @Test
+    public void redeemToken_legacy_failure() {
+        double amount = payerAccount.getBalance() + 1; // 1 over the limit.
+
+        Token token = payerAccount
+                .createLegacyToken(amount, payeeAccount)
+                .execute();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(
                 token,
@@ -136,8 +174,10 @@ public class TransferRedemptionTest {
 
     @Test
     public void getTransfer() {
-        Token token = token(100.0);
-        token = payer.endorseToken(token, STANDARD).getToken();
+        Token token = payerAccount
+                .createInstantToken(100.0, payeeAccount)
+                .execute();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(token);
         Transfer lookedUp = payer.getTransfer(transfer.getId());
@@ -148,8 +188,10 @@ public class TransferRedemptionTest {
 
     @Test
     public void getTransfers() {
-        Token token = token(100.0);
-        token = payer.endorseToken(token, STANDARD).getToken();
+        Token token = payerAccount
+                .createInstantToken(100.0, payeeAccount)
+                .execute();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
 
         Transfer transfer1 = payee.redeemToken(
                 token,
@@ -191,12 +233,5 @@ public class TransferRedemptionTest {
         lookedUp = payer.getTransfers(null, 100, null);
         assertThat(lookedUp.getList()).containsOnly(transfer1, transfer2, transfer3);
         assertThat(lookedUp.getOffset()).isNotEmpty();
-    }
-
-    private Token token(double amount) {
-        return payerAccount.createTransferToken(amount, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
-                .addDestination(Destinations.sepa(string()))
-                .execute();
     }
 }

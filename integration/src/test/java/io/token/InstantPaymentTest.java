@@ -4,11 +4,11 @@ import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.common.Polling.waitUntil;
 import static io.token.proto.TransactionStatusHelper.hasFailed;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
-import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.FAILURE_INSUFFICIENT_FUNDS;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.PROCESSING;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.SUCCESS;
 import static java.lang.Double.parseDouble;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import io.token.bank.TestAccount;
 import io.token.common.LinkedAccount;
@@ -17,6 +17,7 @@ import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -75,10 +76,13 @@ public class InstantPaymentTest {
     }
 
     @Test
-    public void instantPayment_debitFailure() {
+    public void instantPayment_insufficientFunds() {
         double amount = payerAccount.getBalance() + 1;
-        Transfer transfer = initiateInstantTransfer(amount);
-        assertThat(transfer.getStatus()).isEqualTo(FAILURE_INSUFFICIENT_FUNDS);
+        assertThatExceptionOfType(TransferTokenException.class)
+                .isThrownBy(() -> payerAccount.createInstantToken(amount, payeeAccount)
+                        .setRedeemerUsername(payee.firstUsername())
+                        .execute())
+                .matches(e -> e.getStatus() == TransferTokenStatus.FAILURE_INSUFFICIENT_FUNDS);
     }
 
     @Test
