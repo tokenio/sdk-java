@@ -97,8 +97,7 @@ public class TransferTokenTest {
                 .hasCurrency(payeeAccount.getCurrency())
                 .hasNoSignatures();
 
-        assertThat(token2)
-                .isEqualTo(token1);
+        assertThat(token2).isEqualTo(token1);
     }
 
     @Test
