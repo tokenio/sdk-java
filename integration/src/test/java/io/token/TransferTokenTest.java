@@ -101,23 +101,34 @@ public class TransferTokenTest {
     }
 
     @Test
-    public void createTransferToken_repeatRequestDifferentPayer() {
-        LinkedAccount thirdParty = rule.linkedAccount();
+    public void createTransferToken_sameRefIdDifferentPayer() {
         String refId = string();
 
-        payerAccount.createInstantToken(100.0, payeeAccount)
+        Token token1 = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRefId(refId)
                 .setRedeemerUsername(payee.firstUsername())
-                .setDescription("book purchase")
+                .setDescription("book purchase 1")
                 .execute();
 
-        assertThatExceptionOfType(StatusRuntimeException.class)
-                .isThrownBy(() -> thirdParty.createInstantToken(100.0, payeeAccount)
-                        .setRefId(refId)
-                        .setRedeemerUsername(payee.firstUsername())
-                        .setDescription("book purchase")
-                        .execute())
-                .matches(e -> e.getStatus().getCode() == PERMISSION_DENIED);
+        Token token2 = payeeAccount.createInstantToken(200.0, payerAccount)
+                .setRefId(refId)
+                .setRedeemerUsername(payer.firstUsername())
+                .setDescription("book purchase 2")
+                .execute();
+
+        assertThat(token1)
+                .hasFrom(payer)
+                .hasRedeemerUsername(payee.firstUsername())
+                .hasAmount(100.0)
+                .hasCurrency(payeeAccount.getCurrency())
+                .hasNoSignatures();
+
+        assertThat(token2)
+                .hasFrom(payee)
+                .hasRedeemerUsername(payer.firstUsername())
+                .hasAmount(200.0)
+                .hasCurrency(payerAccount.getCurrency())
+                .hasNoSignatures();
     }
 
     @Test
