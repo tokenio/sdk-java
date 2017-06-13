@@ -1,6 +1,7 @@
 package io.token;
 
 import static io.grpc.Status.Code.FAILED_PRECONDITION;
+import static io.grpc.Status.Code.PERMISSION_DENIED;
 import static io.token.asserts.TokenAssertion.assertThat;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -8,6 +9,7 @@ import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Statu
 import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Status.SUCCESS;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_CUSTOMER_NOT_FOUND;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INVALID_CURRENCY;
+import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -68,6 +70,64 @@ public class TransferTokenTest {
                 .hasRedeemerUsername(payee.firstUsername())
                 .hasAmount(100.0)
                 .hasCurrency(payeeAccount.getCurrency())
+                .hasNoSignatures();
+    }
+
+
+    @Test
+    public void createTransferToken_idempotentRefId() {
+        String refId = string();
+
+        Token token1 = payerAccount.createInstantToken(100.0, payeeAccount)
+                .setRefId(refId)
+                .setRedeemerUsername(payee.firstUsername())
+                .setDescription("book purchase 1")
+                .execute();
+
+        Token token2 = payerAccount.createInstantToken(200.0, payeeAccount)
+                .setRefId(refId)
+                .setRedeemerUsername(payee.firstUsername())
+                .setDescription("book purchase 2")
+                .execute();
+
+        assertThat(token1)
+                .hasFrom(payer)
+                .hasRedeemerUsername(payee.firstUsername())
+                .hasAmount(100.0)
+                .hasCurrency(payeeAccount.getCurrency())
+                .hasNoSignatures();
+
+        assertThat(token2).isEqualTo(token1);
+    }
+
+    @Test
+    public void createTransferToken_sameRefIdDifferentPayer() {
+        String refId = string();
+
+        Token token1 = payerAccount.createInstantToken(100.0, payeeAccount)
+                .setRefId(refId)
+                .setRedeemerUsername(payee.firstUsername())
+                .setDescription("book purchase 1")
+                .execute();
+
+        Token token2 = payeeAccount.createInstantToken(200.0, payerAccount)
+                .setRefId(refId)
+                .setRedeemerUsername(payer.firstUsername())
+                .setDescription("book purchase 2")
+                .execute();
+
+        assertThat(token1)
+                .hasFrom(payer)
+                .hasRedeemerUsername(payee.firstUsername())
+                .hasAmount(100.0)
+                .hasCurrency(payeeAccount.getCurrency())
+                .hasNoSignatures();
+
+        assertThat(token2)
+                .hasFrom(payee)
+                .hasRedeemerUsername(payer.firstUsername())
+                .hasAmount(200.0)
+                .hasCurrency(payerAccount.getCurrency())
                 .hasNoSignatures();
     }
 
