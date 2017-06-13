@@ -255,6 +255,45 @@ public class NotificationsTest {
     }
 
     @Test
+    public void transferProcessed_containsOtherPartyUsername() {
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        payee.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        Token token = payerAccount.createInstantToken(20, payeeAccount)
+                .setAccountId(payerAccount.getId())
+                .setRedeemerUsername(payee.firstUsername())
+                .setToUsername(payee.firstUsername())
+                .execute();
+
+        Token endorsed = payer.endorseToken(token, STANDARD).getToken();
+
+        payee.redeemToken(endorsed);
+
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> {
+                    List<Notification> notifications = payer.getNotifications(null, 100).getList();
+                    assertThat(notifications).hasSize(1);
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .contains(payee.firstUsername());
+                });
+
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> {
+                    List<Notification> notifications = payee.getNotifications(null, 100).getList();
+                    assertThat(notifications).hasSize(1);
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .contains(payer.firstUsername());
+                });
+    }
+
+    @Test
     public void triggerPayerTransferProcessedNotification() {
         payer.subscribeToNotifications(
                 "token",
@@ -459,6 +498,14 @@ public class NotificationsTest {
         @Override
         public String extract(Notification notification) {
             return notification.getContent().getType();
+        }
+    }
+
+    private static class NotificationArgumentsExtractor
+            implements Extractor<Notification, List<String>> {
+        @Override
+        public List<String> extract(Notification notification) {
+            return notification.getContent().getLocArgsList();
         }
     }
 }
