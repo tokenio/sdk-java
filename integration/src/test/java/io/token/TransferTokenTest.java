@@ -9,6 +9,7 @@ import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Statu
 import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Status.SUCCESS;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_CUSTOMER_NOT_FOUND;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INVALID_CURRENCY;
+import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_SOURCE_ACCOUNT_NOT_FOUND;
 import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -149,7 +150,7 @@ public class TransferTokenTest {
                         .setRedeemerUsername(payee.firstUsername())
                         .setDescription("book purchase")
                         .execute())
-                .matches(e -> e.getStatus() == FAILURE_CUSTOMER_NOT_FOUND);
+                .matches(e -> e.getStatus() == FAILURE_SOURCE_ACCOUNT_NOT_FOUND);
     }
 
     @Test
