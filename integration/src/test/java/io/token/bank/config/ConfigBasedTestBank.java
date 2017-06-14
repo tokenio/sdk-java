@@ -14,7 +14,6 @@ import io.token.sdk.NamedAccount;
 
 import java.time.Duration;
 import java.util.List;
-import java.util.Random;
 
 /**
  * Config based implementation of the test bank. We assume that the bank we
@@ -26,7 +25,6 @@ public final class ConfigBasedTestBank extends TestBank {
     private final String bankId;
     private final List<BankAccountConfig> accounts;
     private final BankAccountConfig rejectAccount;
-    private final Random random;
     private int lastAccountIndex;
 
     public ConfigBasedTestBank(Config config) {
@@ -44,7 +42,6 @@ public final class ConfigBasedTestBank extends TestBank {
         this.bankId = bankId;
         this.accounts = accounts;
         this.rejectAccount = rejectAccount;
-        this.random = new Random();
         this.lastAccountIndex = 0;
     }
 

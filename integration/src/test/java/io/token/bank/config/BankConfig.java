@@ -27,7 +27,7 @@ final class BankConfig {
                 .stream()
                 .map(BankAccountConfig::new)
                 .collect(toList());
-        this.rejectAccount = new BankAccountConfig(config.getConfig("banks.reject-account"));
+        this.rejectAccount = new BankAccountConfig(config.getConfig("bank.reject-account"));
     }
 
     public String getBankId() {
