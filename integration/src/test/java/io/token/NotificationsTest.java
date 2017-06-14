@@ -500,12 +500,4 @@ public class NotificationsTest {
             return notification.getContent().getType();
         }
     }
-
-    private static class NotificationArgumentsExtractor
-            implements Extractor<Notification, List<String>> {
-        @Override
-        public List<String> extract(Notification notification) {
-            return notification.getContent().getLocArgsList();
-        }
-    }
 }
