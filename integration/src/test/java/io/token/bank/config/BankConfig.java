@@ -19,17 +19,15 @@ import java.util.List;
 final class BankConfig {
     private final String bankId;
     private final List<BankAccountConfig> accounts;
+    private final BankAccountConfig rejectAccount;
 
     public BankConfig(Config config) {
         this.bankId = config.getString("bank-id");
         this.accounts = config.getConfigList("bank.accounts")
                 .stream()
-                .map(c -> new BankAccountConfig(
-                        c.getString("name"),
-                        c.getString("bic"),
-                        c.getString("number"),
-                        c.getString("currency")))
+                .map(BankAccountConfig::new)
                 .collect(toList());
+        this.rejectAccount = new BankAccountConfig(config.getConfig("banks.reject-account"));
     }
 
     public String getBankId() {
@@ -38,5 +36,9 @@ final class BankConfig {
 
     public List<BankAccountConfig> getAccounts() {
         return accounts;
+    }
+
+    public BankAccountConfig getRejectAccount() {
+        return rejectAccount;
     }
 }

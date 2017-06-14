@@ -110,7 +110,7 @@ public class NotificationsTest {
 
     @Test
     public void testHandlerSubscriber() {
-        payer.subscribeToNotifications("iron", new HashMap<String, String>());
+        payer.subscribeToNotifications("iron", new HashMap<>());
         List<Subscriber> subscriberList = payer.getSubscribers();
         rule.token().notifyLinkAccounts(
                 payer.firstUsername(),
@@ -404,6 +404,30 @@ public class NotificationsTest {
 
     @Test
     public void sendLinkAccountsAndAddKey() {
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        try (TokenIO newSdk = rule.newSdkInstance()) {
+            DeviceInfo deviceInfo = newSdk.provisionDevice(payer.firstUsername());
+            rule
+                    .token()
+                    .notifyLinkAccountsAndAddKey(
+                            payer.firstUsername(),
+                            authorization,
+                            "Chrome",
+                            deviceInfo.getKeys().get(0));
+
+            waitUntil(
+                    NOTIFICATION_TIMEOUT_MS,
+                    () -> assertThat(payer.getNotifications(null, 100).getList())
+                            .extracting(new NotificationStatusExtractor())
+                            .containsExactly(DELIVERED));
+        }
+    }
+
+    @Test
+    public void sendRequestPayment() {
         payer.subscribeToNotifications(
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));

@@ -93,6 +93,11 @@ public class TokenRule implements MethodRule {
         return linkAccount(testBank.invalidAccount());
     }
 
+
+    public LinkedAccount rejectLinkedAccount() {
+        return linkAccount(testBank.rejectAccount());
+    }
+
     public TestAccount unlinkedAccount() {
         return testBank.nextAccount();
     }

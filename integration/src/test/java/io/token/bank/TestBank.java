@@ -33,11 +33,20 @@ public abstract class TestBank {
     public abstract TestAccount nextAccount();
 
     /**
-     * Returns a next account that can be linked.
+     * Returns an invalid account that can be linked.
      *
-     * @return next account
+     * @return invalid account
      */
     public abstract TestAccount invalidAccount();
+
+
+    /**
+     * Returns a valid but 'reject' account, transfers to/from that account
+     * always rejected.
+     *
+     * @return reject account
+     */
+    public abstract TestAccount rejectAccount();
 
     /**
      * Produces bank authorization for the given account.
