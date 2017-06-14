@@ -1,13 +1,12 @@
 package io.token;
 
 import static io.grpc.Status.Code.FAILED_PRECONDITION;
-import static io.grpc.Status.Code.PERMISSION_DENIED;
 import static io.token.asserts.TokenAssertion.assertThat;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Status.MORE_SIGNATURES_NEEDED;
 import static io.token.proto.common.token.TokenProtos.TokenOperationResult.Status.SUCCESS;
-import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_CUSTOMER_NOT_FOUND;
+import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_DESTINATION_ACCOUNT_NOT_FOUND;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INVALID_CURRENCY;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_SOURCE_ACCOUNT_NOT_FOUND;
 import static io.token.testing.sample.Sample.string;
@@ -167,7 +166,7 @@ public class TransferTokenTest {
                                         rule.invalidLinkedAccount().testAccount().getBankAccount())
                                 .build())
                         .execute())
-                .matches(e -> e.getStatus() == FAILURE_CUSTOMER_NOT_FOUND);
+                .matches(e -> e.getStatus() == FAILURE_DESTINATION_ACCOUNT_NOT_FOUND);
     }
 
     @Test

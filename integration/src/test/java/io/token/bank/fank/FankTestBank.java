@@ -63,6 +63,16 @@ public final class FankTestBank extends TestBank {
     }
 
     @Override
+    public TestAccount rejectAccount() {
+        String accountName = "Reject Account";
+        String bankAccountNumber = "reject:" + randomNumeric(7);
+        return new TestAccount(
+                accountName,
+                CURRENCY,
+                swift(bic, bankAccountNumber).getAccount());
+    }
+
+    @Override
     public BankAuthorization authorizeAccount(String username, NamedAccount account) {
         Client client = fank.addClient("Test " + string(), "Testoff");
         fank.addAccount(

@@ -1,10 +1,20 @@
 package io.token.bank.config;
 
+import com.typesafe.config.Config;
+
 final class BankAccountConfig {
     private final String accountName;
     private final String bic;
     private final String accountNumber;
     private final String currency;
+
+    public BankAccountConfig(Config config) {
+        this(
+                config.getString("name"),
+                config.getString("bic"),
+                config.getString("number"),
+                config.getString("currency"));
+    }
 
     public BankAccountConfig(
             String accountName,

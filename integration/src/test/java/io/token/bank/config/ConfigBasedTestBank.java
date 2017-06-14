@@ -25,6 +25,7 @@ import java.util.Random;
 public final class ConfigBasedTestBank extends TestBank {
     private final String bankId;
     private final List<BankAccountConfig> accounts;
+    private final BankAccountConfig rejectAccount;
     private final Random random;
     private int lastAccountIndex;
 
@@ -33,12 +34,16 @@ public final class ConfigBasedTestBank extends TestBank {
     }
 
     public ConfigBasedTestBank(BankConfig config) {
-        this(config.getBankId(), config.getAccounts());
+        this(config.getBankId(), config.getAccounts(), config.getRejectAccount());
     }
 
-    public ConfigBasedTestBank(String bankId, List<BankAccountConfig> accounts) {
+    public ConfigBasedTestBank(
+            String bankId,
+            List<BankAccountConfig> accounts,
+            BankAccountConfig rejectAccount) {
         this.bankId = bankId;
         this.accounts = accounts;
+        this.rejectAccount = rejectAccount;
         this.random = new Random();
         this.lastAccountIndex = 0;
     }
@@ -63,6 +68,17 @@ public final class ConfigBasedTestBank extends TestBank {
                 swift(
                         accountConfig.getBic(),
                         reverse(accountConfig.getAccountNumber())).getAccount());
+    }
+
+    @Override
+    public TestAccount rejectAccount() {
+        BankAccountConfig accountConfig = rejectAccount;
+        return new TestAccount(
+                accountConfig.getAccountName(),
+                accountConfig.getCurrency(),
+                swift(
+                        accountConfig.getBic(),
+                        accountConfig.getAccountNumber()).getAccount());
     }
 
     @Override

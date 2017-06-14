@@ -2,8 +2,8 @@ package io.token;
 
 import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.common.Polling.waitUntil;
-import static io.token.proto.TransactionStatusHelper.hasFailed;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.FAILURE_CANCELED;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.PROCESSING;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.SUCCESS;
 import static java.lang.Double.parseDouble;
@@ -87,18 +87,18 @@ public class InstantPaymentTest {
 
     @Test
     public void instantPayment_adjustsAccountBalances() {
-        final double transferAmount = 100.0;
-        final double payerBalance = payerAccount.getBalance();
-        final double payeeBalance = payeeAccount.getBalance();
+        double transferAmount = 100.0;
+        double payerBalance = payerAccount.getBalance();
+        double payeeBalance = payeeAccount.getBalance();
 
         Transfer transfer = initiateInstantTransfer(transferAmount);
         Token token = payer.getToken(transfer.getPayload().getTokenId());
         Pricing pricing = token.getPayload().getTransfer().getPricing();
 
-        final double payerFee = parseDouble(pricing.getSourceQuote().getFeesTotal());
-        final double payeeFee = parseDouble(pricing.getDestinationQuote().getFeesTotal());
-        final double expectedPayerBalance = payerBalance - transferAmount - payerFee;
-        final double expectedPayeeBalance = payeeBalance + transferAmount - payeeFee;
+        double payerFee = parseDouble(pricing.getSourceQuote().getFeesTotal());
+        double payeeFee = parseDouble(pricing.getDestinationQuote().getFeesTotal());
+        double expectedPayerBalance = payerBalance - transferAmount - payerFee;
+        double expectedPayeeBalance = payeeBalance + transferAmount - payeeFee;
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             double payerAccountBalance = payerAccount.getBalance();
@@ -110,31 +110,18 @@ public class InstantPaymentTest {
 
     @Test
     public void instantPayment_rollback() {
-        Token token = payer.createTransferToken(100.0, payeeAccount.getCurrency())
-                .setAccountId(payerAccount.getId())
-                .setRedeemerUsername(payee.firstUsername())
+        LinkedAccount rejectAccount = rule.rejectLinkedAccount();
+        Token token = payerAccount
+                .createInstantToken(100.0, rejectAccount)
                 .execute();
         token = payer.endorseToken(token, STANDARD).getToken();
-
-        TransferEndpoint transferEndpoint = TransferEndpoint.newBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setToken(BankAccount.Token.newBuilder()
-                                .setAccountId(payeeAccount.getId() + "invalidId")
-                                .setMemberId(payee.memberId())))
-                .build();
-
-        final Transfer transfer = payee.redeemToken(
-                token,
-                100.00,
-                payeeAccount.getCurrency(),
-                transferEndpoint);
+        Transfer transfer = rejectAccount.getMember().redeemToken(token);
 
         waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
             Transaction transaction = payer.getTransaction(
                     payerAccount.getId(),
                     transfer.getTransactionId());
-
-            assertThat(hasFailed(transaction.getStatus()));
+            assertThat(transaction.getStatus()).isEqualTo(FAILURE_CANCELED);
         });
     }
 
