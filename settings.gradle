@@ -1,5 +1,6 @@
 rootProject.name='java'
 
 include 'sdk'
+include 'sdk-android'
 include 'integration'
 include 'samples'
