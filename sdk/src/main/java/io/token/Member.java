@@ -31,7 +31,10 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
+import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -50,6 +53,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
+
 import rx.functions.Func1;
 
 /**
@@ -427,6 +431,25 @@ public final class Member {
     }
 
     /**
+     * Sets auth'd member's profile. If profile's member id doesn't match auth'd member, throws.
+     *
+     * @param profile Profile to set
+     */
+    public void setProfile(Profile profile) {
+        async.setProfile(profile).toBlocking().single();
+    }
+
+    /**
+     * Gets a member's public profile. Unlike setProfile, you can get another member's profile.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return their profile
+     */
+    public Profile getProfile(String memberId) {
+        return async.getProfile(memberId).toBlocking().single();
+    }
+
+    /**
      * Creates a new transfer token builder.
      *
      * @param amount transfer amount
@@ -726,6 +749,25 @@ public final class Member {
      * @param type MIME type of the file
      * @param name name
      * @param data file data
+     * @param accessMode Default or public
+     * @return blob Id
+     */
+    public Attachment createBlob(
+            String ownerId,
+            String type,
+            String name,
+            byte[] data,
+            AccessMode accessMode) {
+        return async.createBlob(ownerId, type, name, data, accessMode).toBlocking().single();
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
      * @return blob Id
      */
     public Attachment createBlob(
@@ -733,7 +775,10 @@ public final class Member {
             String type,
             String name,
             byte[] data) {
-        return async.createBlob(ownerId, type, name, data).toBlocking().single();
+        return async
+                .createBlob(ownerId, type, name, data, AccessMode.DEFAULT)
+                .toBlocking()
+                .single();
     }
 
     /**

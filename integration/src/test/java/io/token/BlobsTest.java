@@ -2,6 +2,7 @@ package io.token;
 
 import static io.grpc.Status.Code.NOT_FOUND;
 import static io.grpc.Status.Code.PERMISSION_DENIED;
+import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -13,6 +14,7 @@ import io.token.common.TokenRule;
 import io.token.proto.ProtoHasher;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.util.codec.ByteEncoding;
@@ -186,5 +188,19 @@ public class BlobsTest {
         assertThatExceptionOfType(StatusRuntimeException.class)
                 .isThrownBy(() -> otherMember.getTokenBlob(token.getId(), attachment.getBlobId()))
                 .matches(e -> e.getStatus().getCode() == PERMISSION_DENIED);
+    }
+
+    @Test
+    public void publicAccess() {
+        byte[] randomData = new byte[50];
+
+        new Random().nextBytes(randomData);
+
+        Attachment attachment = payer
+                .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData, PUBLIC);
+
+        Blob blob1 = payer.getBlob(attachment.getBlobId());
+        Blob blob2 = otherMember.getBlob(attachment.getBlobId());
+        assertThat(blob1).isEqualTo(blob2);
     }
 }

@@ -36,10 +36,12 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
+import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -92,6 +94,8 @@ import io.token.proto.gateway.Gateway.GetNotificationRequest;
 import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
 import io.token.proto.gateway.Gateway.GetNotificationsResponse;
+import io.token.proto.gateway.Gateway.GetProfileRequest;
+import io.token.proto.gateway.Gateway.GetProfileResponse;
 import io.token.proto.gateway.Gateway.GetSubscriberRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberResponse;
 import io.token.proto.gateway.Gateway.GetSubscribersRequest;
@@ -117,6 +121,8 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.SetProfileRequest;
+import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
@@ -885,6 +891,38 @@ public final class Client {
         ).map(new Func1<DeleteAddressResponse, Void>() {
             public Void call(DeleteAddressResponse response) {
                 return null;
+            }
+        });
+    }
+
+    /**
+     * Sets a member's profile. Should be the member's own profile, or throws
+     * @param profile Profile to set
+     * @return observable that completes when request handled
+     */
+    public Observable<Void> setProfile(Profile profile) {
+        return toObservable(gateway.setProfile(SetProfileRequest.newBuilder()
+                .setProfile(profile)
+                .build())
+        ).map(new Func1<SetProfileResponse, Void>() {
+            public Void call(SetProfileResponse response) {
+                return null;
+            }
+        });
+    }
+
+    /**
+     * Gets a member's public profile.
+     * @param memberId member Id whose profile we want
+     * @return their profile
+     */
+    public Observable<Profile> getProfile(String memberId) {
+        return toObservable(gateway.getProfile(GetProfileRequest.newBuilder()
+                .setMemberId(memberId)
+                .build())
+        ).map(new Func1<GetProfileResponse, Profile>() {
+            public Profile call(GetProfileResponse response) {
+                return response.getProfile();
             }
         });
     }
