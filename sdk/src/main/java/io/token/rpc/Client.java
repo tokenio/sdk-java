@@ -900,13 +900,13 @@ public final class Client {
      * @param profile Profile to set
      * @return observable that completes when request handled
      */
-    public Observable<Void> setProfile(Profile profile) {
+    public Observable<Profile> setProfile(Profile profile) {
         return toObservable(gateway.setProfile(SetProfileRequest.newBuilder()
                 .setProfile(profile)
                 .build())
-        ).map(new Func1<SetProfileResponse, Void>() {
-            public Void call(SetProfileResponse response) {
-                return null;
+        ).map(new Func1<SetProfileResponse, Profile>() {
+            public Profile call(SetProfileResponse response) {
+                return response.getProfile();
             }
         });
     }

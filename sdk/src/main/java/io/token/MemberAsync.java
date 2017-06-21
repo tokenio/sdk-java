@@ -591,7 +591,7 @@ public final class MemberAsync {
      * @param profile profile to set
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> setProfile(Profile profile) {
+    public Observable<Profile> setProfile(Profile profile) {
         return client.setProfile(profile);
     }
 

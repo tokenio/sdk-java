@@ -433,8 +433,8 @@ public final class Member {
      *
      * @param profile Profile to set
      */
-    public void setProfile(Profile profile) {
-        async.setProfile(profile).toBlocking().single();
+    public Profile setProfile(Profile profile) {
+        return async.setProfile(profile).toBlocking().single();
     }
 
     /**
