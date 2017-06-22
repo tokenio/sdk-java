@@ -470,7 +470,6 @@ public final class MemberAsync {
         return client.getTransfers(offset, limit, tokenId);
     }
 
-
     /**
      * Creates and uploads a blob.
      *

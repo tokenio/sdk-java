@@ -14,7 +14,6 @@ import io.token.common.TokenRule;
 import io.token.proto.ProtoHasher;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
-import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.util.codec.ByteEncoding;
