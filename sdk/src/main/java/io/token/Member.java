@@ -33,7 +33,7 @@ import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
-import io.token.proto.common.member.MemberProtos.ProfileText;
+import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -434,8 +434,8 @@ public final class Member {
      * @param profile Profile to set
      * @return updated profile
      */
-    public ProfileText setProfileText(ProfileText profile) {
-        return async.setProfileText(profile).toBlocking().single();
+    public Profile setProfile(Profile profile) {
+        return async.setProfile(profile).toBlocking().single();
     }
 
     /**
@@ -444,8 +444,8 @@ public final class Member {
      * @param memberId member ID of member whose profile we want
      * @return profile info
      */
-    public ProfileText getProfileText(String memberId) {
-        return async.getProfileText(memberId).toBlocking().single();
+    public Profile getProfile(String memberId) {
+        return async.getProfile(memberId).toBlocking().single();
     }
 
     /**
