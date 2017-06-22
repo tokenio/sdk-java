@@ -3,7 +3,7 @@ package io.token;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.common.TokenRule;
-import io.token.proto.common.member.MemberProtos.ProfileText;
+import io.token.proto.common.member.MemberProtos.Profile;
 
 import org.junit.Rule;
 import org.junit.Test;
@@ -13,46 +13,46 @@ public class ProfileTest {
     public TokenRule rule = new TokenRule();
 
     @Test
-    public void setProfileText() {
+    public void setProfile() {
         Member member = rule.member();
-        ProfileText inProfileText = ProfileText.newBuilder()
+        Profile inProfile = Profile.newBuilder()
                 .setDisplayNameFirst("Tomás")
                 .setDisplayNameLast("de Aquino")
                 .build();
-        ProfileText backProfileText = member.setProfileText(inProfileText);
-        ProfileText outProfileText = member.getProfileText(member.memberId());
-        assertThat(inProfileText).isEqualTo(backProfileText).isEqualTo(outProfileText);
+        Profile backProfile = member.setProfile(inProfile);
+        Profile outProfile = member.getProfile(member.memberId());
+        assertThat(inProfile).isEqualTo(backProfile).isEqualTo(outProfile);
     }
 
-    public void updateProfileText() {
+    public void updateProfile() {
         Member member = rule.member();
-        ProfileText firstProfileText = ProfileText.newBuilder()
+        Profile firstProfile = Profile.newBuilder()
                 .setDisplayNameFirst("Katy")
                 .setDisplayNameLast("Hudson")
                 .build();
-        ProfileText backProfileText = member.setProfileText(firstProfileText);
-        ProfileText outProfileText = member.getProfileText(member.memberId());
-        assertThat(firstProfileText).isEqualTo(backProfileText).isEqualTo(outProfileText);
-        ProfileText secondProfileText = ProfileText.newBuilder()
+        Profile backProfile = member.setProfile(firstProfile);
+        Profile outProfile = member.getProfile(member.memberId());
+        assertThat(firstProfile).isEqualTo(backProfile).isEqualTo(outProfile);
+        Profile secondProfile = Profile.newBuilder()
                 .setDisplayNameFirst("Katy")
                 .setDisplayNameLast("Perry")
                 .build();
-        backProfileText = member.setProfileText(secondProfileText);
-        outProfileText = member.getProfileText(member.memberId());
-        assertThat(secondProfileText).isEqualTo(backProfileText).isEqualTo(outProfileText);
+        backProfile = member.setProfile(secondProfile);
+        outProfile = member.getProfile(member.memberId());
+        assertThat(secondProfile).isEqualTo(backProfile).isEqualTo(outProfile);
     }
 
     @Test
-    public void readProfileText_notYours() {
+    public void readProfile_notYours() {
         Member member = rule.member();
-        ProfileText inProfileText = ProfileText.newBuilder()
+        Profile inProfile = Profile.newBuilder()
                 .setDisplayNameFirst("Tomás")
                 .setDisplayNameFirst("de Aquino")
                 .build();
-        member.setProfileText(inProfileText);
+        member.setProfile(inProfile);
 
         Member otherMember = rule.member();
-        ProfileText outProfileText = otherMember.getProfileText(member.memberId());
-        assertThat(inProfileText).isEqualTo(outProfileText);
+        Profile outProfile = otherMember.getProfile(member.memberId());
+        assertThat(inProfile).isEqualTo(outProfile);
     }
 }
