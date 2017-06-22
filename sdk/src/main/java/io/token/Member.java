@@ -33,7 +33,7 @@ import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
-import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfileText;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -429,22 +429,22 @@ public final class Member {
     }
 
     /**
-     * Sets auth'd member's profile. If profile's member id doesn't match auth'd member, throws.
+     * Sets auth'd member's profile text.
      *
      * @param profile Profile to set
      */
-    public Profile setProfile(Profile profile) {
-        return async.setProfile(profile).toBlocking().single();
+    public ProfileText setProfileText(ProfileText profile) {
+        return async.setProfileText(profile).toBlocking().single();
     }
 
     /**
-     * Gets a member's public profile. Unlike setProfile, you can get another member's profile.
+     * Gets a member's public profile text.
      *
      * @param memberId member ID of member whose profile we want
-     * @return their profile
+     * @return text parts of their ProfileText
      */
-    public Profile getProfile(String memberId) {
-        return async.getProfile(memberId).toBlocking().single();
+    public ProfileText getProfileText(String memberId) {
+        return async.getProfileText(memberId).toBlocking().single();
     }
 
     /**

@@ -36,12 +36,11 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
-import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfileText;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -94,8 +93,8 @@ import io.token.proto.gateway.Gateway.GetNotificationRequest;
 import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
 import io.token.proto.gateway.Gateway.GetNotificationsResponse;
-import io.token.proto.gateway.Gateway.GetProfileRequest;
-import io.token.proto.gateway.Gateway.GetProfileResponse;
+import io.token.proto.gateway.Gateway.GetProfileTextRequest;
+import io.token.proto.gateway.Gateway.GetProfileTextResponse;
 import io.token.proto.gateway.Gateway.GetSubscriberRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberResponse;
 import io.token.proto.gateway.Gateway.GetSubscribersRequest;
@@ -121,8 +120,8 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
-import io.token.proto.gateway.Gateway.SetProfileRequest;
-import io.token.proto.gateway.Gateway.SetProfileResponse;
+import io.token.proto.gateway.Gateway.SetProfileTextRequest;
+import io.token.proto.gateway.Gateway.SetProfileTextResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
@@ -896,17 +895,17 @@ public final class Client {
     }
 
     /**
-     * Sets a member's profile. Should be the member's own profile, or throws
+     * Sets a member's profile text.
      * @param profile Profile to set
      * @return observable that completes when request handled
      */
-    public Observable<Profile> setProfile(Profile profile) {
-        return toObservable(gateway.setProfile(SetProfileRequest.newBuilder()
-                .setProfile(profile)
+    public Observable<ProfileText> setProfileText(ProfileText profile) {
+        return toObservable(gateway.setProfileText(SetProfileTextRequest.newBuilder()
+                .setProfileText(profile)
                 .build())
-        ).map(new Func1<SetProfileResponse, Profile>() {
-            public Profile call(SetProfileResponse response) {
-                return response.getProfile();
+        ).map(new Func1<SetProfileTextResponse, ProfileText>() {
+            public ProfileText call(SetProfileTextResponse response) {
+                return response.getProfileText();
             }
         });
     }
@@ -914,15 +913,15 @@ public final class Client {
     /**
      * Gets a member's public profile.
      * @param memberId member Id whose profile we want
-     * @return their profile
+     * @return their profile text
      */
-    public Observable<Profile> getProfile(String memberId) {
-        return toObservable(gateway.getProfile(GetProfileRequest.newBuilder()
+    public Observable<ProfileText> getProfileText(String memberId) {
+        return toObservable(gateway.getProfileText(GetProfileTextRequest.newBuilder()
                 .setMemberId(memberId)
                 .build())
-        ).map(new Func1<GetProfileResponse, Profile>() {
-            public Profile call(GetProfileResponse response) {
-                return response.getProfile();
+        ).map(new Func1<GetProfileTextResponse, ProfileText>() {
+            public ProfileText call(GetProfileTextResponse response) {
+                return response.getProfileText();
             }
         });
     }

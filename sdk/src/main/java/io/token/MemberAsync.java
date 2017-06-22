@@ -41,7 +41,7 @@ import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
-import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfileText;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -591,8 +591,8 @@ public final class MemberAsync {
      * @param profile profile to set
      * @return observable that completes when the operation has finished
      */
-    public Observable<Profile> setProfile(Profile profile) {
-        return client.setProfile(profile);
+    public Observable<ProfileText> setProfileText(ProfileText profile) {
+        return client.setProfileText(profile);
     }
 
     /**
@@ -601,8 +601,8 @@ public final class MemberAsync {
      * @param memberId member ID of member whose profile we want
      * @return their profile
      */
-    public Observable<Profile> getProfile(String memberId) {
-        return client.getProfile(memberId);
+    public Observable<ProfileText> getProfileText(String memberId) {
+        return client.getProfileText(memberId);
     }
 
     /**
