@@ -432,6 +432,7 @@ public final class Member {
      * Sets auth'd member's profile text.
      *
      * @param profile Profile to set
+     * @return updated profile
      */
     public ProfileText setProfileText(ProfileText profile) {
         return async.setProfileText(profile).toBlocking().single();
@@ -441,7 +442,7 @@ public final class Member {
      * Gets a member's public profile text.
      *
      * @param memberId member ID of member whose profile we want
-     * @return text parts of their ProfileText
+     * @return profile info
      */
     public ProfileText getProfileText(String memberId) {
         return async.getProfileText(memberId).toBlocking().single();
