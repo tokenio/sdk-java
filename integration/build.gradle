@@ -10,4 +10,5 @@ dependencies {
     testCompile group: 'com.squareup.retrofit2', name: 'converter-scalars', version: ver.retrofit
     testCompile group: 'io.token.security', name: 'tokenio-security-testing', version: ver.tokenSecurity
     testCompile group: 'io.token.sdk', name: 'tokenio-sdk-integration', version: ver.tokenIntegrationSdk
+    testCompile group: 'io.token.rpc', name: 'tokenio-rpc-client-netty', version: ver.tokenRpc
 }
