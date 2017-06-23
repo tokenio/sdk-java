@@ -34,12 +34,14 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
+import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -482,12 +484,32 @@ public final class MemberAsync {
             final String type,
             final String name,
             byte[] data) {
+        return createBlob(ownerId, type, name, data, AccessMode.DEFAULT);
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @param accessMode Normal access or public
+     * @return attachment
+     */
+    public Observable<Attachment> createBlob(
+            String ownerId,
+            final String type,
+            final String name,
+            byte[] data,
+            AccessMode accessMode) {
         Payload payload = Payload
                 .newBuilder()
                 .setOwnerId(ownerId)
                 .setType(type)
                 .setName(name)
                 .setData(ByteString.copyFrom(data))
+                .setAccessMode(accessMode)
                 .build();
         return client.createBlob(payload)
                 .map(new Func1<String, Attachment>() {
@@ -560,6 +582,26 @@ public final class MemberAsync {
      */
     public Observable<Void> deleteAddress(String addressId) {
         return client.deleteAddress(addressId);
+    }
+
+    /**
+     * Replaces auth'd member's public profile.
+     *
+     * @param profile profile to set
+     * @return updated profile
+     */
+    public Observable<Profile> setProfile(Profile profile) {
+        return client.setProfile(profile);
+    }
+
+    /**
+     * Gets a member's public profile. Unlike setProfile, you can get another member's profile.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return their profile
+     */
+    public Observable<Profile> getProfile(String memberId) {
+        return client.getProfile(memberId);
     }
 
     /**

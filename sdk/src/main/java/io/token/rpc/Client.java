@@ -40,6 +40,7 @@ import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -92,6 +93,8 @@ import io.token.proto.gateway.Gateway.GetNotificationRequest;
 import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
 import io.token.proto.gateway.Gateway.GetNotificationsResponse;
+import io.token.proto.gateway.Gateway.GetProfileRequest;
+import io.token.proto.gateway.Gateway.GetProfileResponse;
 import io.token.proto.gateway.Gateway.GetSubscriberRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberResponse;
 import io.token.proto.gateway.Gateway.GetSubscribersRequest;
@@ -117,6 +120,8 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.SetProfileRequest;
+import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
@@ -128,6 +133,7 @@ import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.util.Util;
 
 import java.util.List;
 import java.util.Map;
@@ -887,6 +893,42 @@ public final class Client {
                 return null;
             }
         });
+    }
+
+    /**
+     * Replaces a member's public profile.
+     *
+     * @param profile Profile to set
+     * @return observable that completes when request handled
+     */
+    public Observable<Profile> setProfile(Profile profile) {
+        return Util
+                .toObservable(gateway.setProfile(SetProfileRequest.newBuilder()
+                        .setProfile(profile)
+                        .build()))
+                .map(new Func1<SetProfileResponse, Profile>() {
+                    public Profile call(SetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
+    }
+
+    /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member Id whose profile we want
+     * @return their profile text
+     */
+    public Observable<Profile> getProfile(String memberId) {
+        return Util
+                .toObservable(gateway.getProfile(GetProfileRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Func1<GetProfileResponse, Profile>() {
+                    public Profile call(GetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
     }
 
     /**
