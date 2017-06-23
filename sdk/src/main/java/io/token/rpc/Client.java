@@ -896,7 +896,7 @@ public final class Client {
     }
 
     /**
-     * Sets a member's profile text.
+     * Replaces a member's public profile.
      *
      * @param profile Profile to set
      * @return observable that completes when request handled

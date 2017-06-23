@@ -585,10 +585,10 @@ public final class MemberAsync {
     }
 
     /**
-     * Sets auth'd member's profile. If profile's member id doesn't match auth'd member, throws.
+     * Replaces auth'd member's public profile.
      *
      * @param profile profile to set
-     * @return observable that completes when the operation has finished
+     * @return updated profile
      */
     public Observable<Profile> setProfile(Profile profile) {
         return client.setProfile(profile);

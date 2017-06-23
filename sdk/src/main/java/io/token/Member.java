@@ -429,7 +429,7 @@ public final class Member {
     }
 
     /**
-     * Sets auth'd member's profile text.
+     * Replaces the authenticated member's public profile.
      *
      * @param profile Profile to set
      * @return updated profile
@@ -439,7 +439,7 @@ public final class Member {
     }
 
     /**
-     * Gets a member's public profile text.
+     * Gets a member's public profile.
      *
      * @param memberId member ID of member whose profile we want
      * @return profile info
