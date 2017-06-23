@@ -905,8 +905,8 @@ public final class Client {
         return Util
                 .toObservable(gateway.setProfile(SetProfileRequest.newBuilder()
                         .setProfile(profile)
-                        .build())
-                ).map(new Func1<SetProfileResponse, Profile>() {
+                        .build()))
+                .map(new Func1<SetProfileResponse, Profile>() {
                     public Profile call(SetProfileResponse response) {
                         return response.getProfile();
                     }
@@ -923,8 +923,8 @@ public final class Client {
         return Util
                 .toObservable(gateway.getProfile(GetProfileRequest.newBuilder()
                         .setMemberId(memberId)
-                        .build())
-                ).map(new Func1<GetProfileResponse, Profile>() {
+                        .build()))
+                .map(new Func1<GetProfileResponse, Profile>() {
                     public Profile call(GetProfileResponse response) {
                         return response.getProfile();
                     }
