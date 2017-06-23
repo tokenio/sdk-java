@@ -1,11 +1,14 @@
 package io.token;
 
+import static io.token.proto.common.member.MemberProtos.ProfilePictureSize.ORIGINAL;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.common.TokenRule;
+import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.Profile;
 
-import org.apache.commons.lang3.builder.ToStringExclude;
+import java.util.Base64;
+
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -45,7 +48,7 @@ public class ProfileTest {
     }
 
     @Test
-    public void updatePartial() {
+    public void updateToMononym() {
         Member member = rule.member();
         Profile firstProfile = Profile.newBuilder()
                 .setDisplayNameFirst("Paul")
@@ -55,7 +58,7 @@ public class ProfileTest {
         Profile outProfile = member.getProfile(member.memberId());
         assertThat(firstProfile).isEqualTo(backProfile).isEqualTo(outProfile);
         Profile secondProfile = Profile.newBuilder()
-                .setDisplayNameFirst("Bono")
+                .setDisplayNameFirst("Bono") // we expect replace, not merge, not "Bono Hewson"
                 .build();
         backProfile = member.setProfile(secondProfile);
         outProfile = member.getProfile(member.memberId());
@@ -74,5 +77,21 @@ public class ProfileTest {
         Member otherMember = rule.member();
         Profile outProfile = otherMember.getProfile(member.memberId());
         assertThat(inProfile).isEqualTo(outProfile);
+    }
+
+    @Test
+    public void setProfilePicture() {
+        // "The tiniest gif ever" , a 1x1 gif
+        // http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
+        byte[] tinyGif = Base64.getDecoder()
+                .decode("R0lGODlhAQABAIABAP///wAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==");
+
+        Member member = rule.member();
+        member.setProfilePicture("image/gif", tinyGif);
+
+        Member otherMember = rule.member();
+        Blob blob = otherMember.getProfilePicture(member.memberId(), ORIGINAL);
+
+        assertThat(blob.getPayload().getData()).isEqualTo(tinyGif);
     }
 }
