@@ -133,6 +133,7 @@ import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.util.Util;
 
 import java.util.List;
 import java.util.Map;
@@ -896,34 +897,38 @@ public final class Client {
 
     /**
      * Sets a member's profile text.
+     *
      * @param profile Profile to set
      * @return observable that completes when request handled
      */
     public Observable<Profile> setProfile(Profile profile) {
-        return toObservable(gateway.setProfile(SetProfileRequest.newBuilder()
-                .setProfile(profile)
-                .build())
-        ).map(new Func1<SetProfileResponse, Profile>() {
-            public Profile call(SetProfileResponse response) {
-                return response.getProfile();
-            }
-        });
+        return Util
+                .toObservable(gateway.setProfile(SetProfileRequest.newBuilder()
+                        .setProfile(profile)
+                        .build())
+                ).map(new Func1<SetProfileResponse, Profile>() {
+                    public Profile call(SetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
     }
 
     /**
      * Gets a member's public profile.
+     *
      * @param memberId member Id whose profile we want
      * @return their profile text
      */
     public Observable<Profile> getProfile(String memberId) {
-        return toObservable(gateway.getProfile(GetProfileRequest.newBuilder()
-                .setMemberId(memberId)
-                .build())
-        ).map(new Func1<GetProfileResponse, Profile>() {
-            public Profile call(GetProfileResponse response) {
-                return response.getProfile();
-            }
-        });
+        return Util
+                .toObservable(gateway.getProfile(GetProfileRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build())
+                ).map(new Func1<GetProfileResponse, Profile>() {
+                    public Profile call(GetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
     }
 
     /**

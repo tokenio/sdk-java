@@ -5,6 +5,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.token.common.TokenRule;
 import io.token.proto.common.member.MemberProtos.Profile;
 
+import org.apache.commons.lang3.builder.ToStringExclude;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -24,6 +25,7 @@ public class ProfileTest {
         assertThat(inProfile).isEqualTo(backProfile).isEqualTo(outProfile);
     }
 
+    @Test
     public void updateProfile() {
         Member member = rule.member();
         Profile firstProfile = Profile.newBuilder()
@@ -36,6 +38,24 @@ public class ProfileTest {
         Profile secondProfile = Profile.newBuilder()
                 .setDisplayNameFirst("Katy")
                 .setDisplayNameLast("Perry")
+                .build();
+        backProfile = member.setProfile(secondProfile);
+        outProfile = member.getProfile(member.memberId());
+        assertThat(secondProfile).isEqualTo(backProfile).isEqualTo(outProfile);
+    }
+
+    @Test
+    public void updatePartial() {
+        Member member = rule.member();
+        Profile firstProfile = Profile.newBuilder()
+                .setDisplayNameFirst("Paul")
+                .setDisplayNameLast("Hewson")
+                .build();
+        Profile backProfile = member.setProfile(firstProfile);
+        Profile outProfile = member.getProfile(member.memberId());
+        assertThat(firstProfile).isEqualTo(backProfile).isEqualTo(outProfile);
+        Profile secondProfile = Profile.newBuilder()
+                .setDisplayNameFirst("Bono")
                 .build();
         backProfile = member.setProfile(secondProfile);
         outProfile = member.getProfile(member.memberId());
