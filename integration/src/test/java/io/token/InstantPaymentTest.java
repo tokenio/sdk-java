@@ -9,7 +9,6 @@ import static io.token.proto.common.transaction.TransactionProtos.TransactionSta
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.SUCCESS;
 import static java.lang.Double.parseDouble;
 import static java.math.BigDecimal.valueOf;
-import static java.math.BigDecimal.ONE;
 import static java.math.RoundingMode.HALF_EVEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
@@ -19,9 +18,7 @@ import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.BankAccount;
-import io.token.proto.common.pricing.PricingProtos;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
-import io.token.proto.common.pricing.PricingProtos.TransferQuote.FxRate;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
