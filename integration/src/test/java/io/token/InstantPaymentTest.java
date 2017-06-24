@@ -2,11 +2,15 @@ package io.token;
 
 import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.common.Polling.waitUntil;
+import static io.token.proto.MoneyUtil.normalize;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.FAILURE_CANCELED;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.PROCESSING;
 import static io.token.proto.common.transaction.TransactionProtos.TransactionStatus.SUCCESS;
 import static java.lang.Double.parseDouble;
+import static java.math.BigDecimal.valueOf;
+import static java.math.BigDecimal.ONE;
+import static java.math.RoundingMode.HALF_EVEN;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
@@ -15,13 +19,16 @@ import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.BankAccount;
+import io.token.proto.common.pricing.PricingProtos;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
+import io.token.proto.common.pricing.PricingProtos.TransferQuote.FxRate;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
+import java.math.BigDecimal;
 import java.util.stream.Collectors;
 
 import org.junit.Before;
@@ -100,12 +107,7 @@ public class InstantPaymentTest {
         double expectedPayerBalance = payerBalance - transferAmount - payerFee;
         double expectedPayeeBalance = payeeBalance + transferAmount - payeeFee;
 
-        waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
-            double payerAccountBalance = payerAccount.getBalance();
-            double payeeAccountBalance = payeeAccount.getBalance();
-            assertThat(payerAccountBalance).isEqualTo(expectedPayerBalance);
-            assertThat(payeeAccountBalance).isEqualTo(expectedPayeeBalance);
-        });
+        assertBalances(expectedPayerBalance, expectedPayeeBalance);
     }
 
     @Test
@@ -176,7 +178,51 @@ public class InstantPaymentTest {
         });
     }
 
+    @Test
+    public void instantPayment_differentCurrency() {
+        double transferAmount = 100.0;
+        String transferCurrency = "GBP";
+        double payerBalance = payerAccount.getBalance();
+        double payeeBalance = payeeAccount.getBalance();
+
+        Transfer transfer = initiateInstantTransfer(transferAmount, transferCurrency);
+        Token token = payer.getToken(transfer.getPayload().getTokenId());
+        Pricing pricing = token.getPayload().getTransfer().getPricing();
+
+        double fxRate = pricing.getSourceQuote().getRatesList().stream()
+                .findFirst()
+                .map(fx -> (transferCurrency.equals(fx.getBaseCurrency()))
+                        ? new BigDecimal(fx.getRate())
+                        : new BigDecimal(fx.getRate()).pow(-1))
+                .orElseThrow(() -> new RuntimeException("fx rate not found"))
+                .doubleValue();
+
+        double transferAmountLocal = normalize(valueOf(transferAmount * fxRate), HALF_EVEN)
+                .doubleValue();
+
+        double payerFee = parseDouble(pricing.getSourceQuote().getFeesTotal());
+        double payeeFee = parseDouble(pricing.getDestinationQuote().getFeesTotal());
+
+        double expectedPayerBalance = payerBalance - transferAmountLocal - payerFee;
+        double expectedPayeeBalance = payeeBalance + transferAmountLocal - payeeFee;
+
+        assertBalances(expectedPayerBalance, expectedPayeeBalance);
+    }
+
+    private void assertBalances(double expectedPayerBalance, double expectedPayeeBalance) {
+        waitUntil(PAYMENT_CLEARING_TIMEOUT_MS, PAYMENT_CLEARING_POLL_FREQUENCY_MS, () -> {
+            double payerAccountBalance = payerAccount.getBalance();
+            double payeeAccountBalance = payeeAccount.getBalance();
+            assertThat(payerAccountBalance).isEqualTo(expectedPayerBalance);
+            assertThat(payeeAccountBalance).isEqualTo(expectedPayeeBalance);
+        });
+    }
+
     private Transfer initiateInstantTransfer(double amount) {
+        return initiateInstantTransfer(amount, payeeAccount.getCurrency());
+    }
+
+    private Transfer initiateInstantTransfer(double amount, String currency) {
         return initiateInstantTransfer(
                 TransferEndpoint.newBuilder()
                         .setAccount(BankAccount.newBuilder()
@@ -185,7 +231,7 @@ public class InstantPaymentTest {
                                         .setMemberId(payee.memberId())))
                         .build(),
                 amount,
-                payeeAccount.getCurrency());
+                currency);
     }
 
     private Transfer initiateInstantTransfer(TestAccount destination, double amount) {
