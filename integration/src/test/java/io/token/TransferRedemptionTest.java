@@ -86,15 +86,8 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemToken_idempotentRefId() {
-        Token token1 = payerAccount
-                .createInstantToken(100.0, payeeAccount)
-                .execute();
-        token1 = payer.endorseToken(token1, STANDARD).getToken();
-
-        Token token2 = payerAccount
-                .createInstantToken(100.0, payeeAccount)
-                .execute();
-        token2 = payer.endorseToken(token2, STANDARD).getToken();
+        Token token1 = instantToken(100);
+        Token token2 = instantToken(100);
 
         String transferRefId = string();
         Transfer transfer1 = payee.redeemToken(token1, transferRefId);
@@ -117,10 +110,7 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemToken_withParams() {
-        Token token = payerAccount
-                .createInstantToken(100.0, payeeAccount)
-                .execute();
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        Token token = instantToken(100);
         String refId = string();
 
         Transfer transfer = payee.redeemToken(
@@ -174,10 +164,7 @@ public class TransferRedemptionTest {
 
     @Test
     public void getTransfer() {
-        Token token = payerAccount
-                .createInstantToken(100.0, payeeAccount)
-                .execute();
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        Token token = instantToken(100);
 
         Transfer transfer = payee.redeemToken(token);
         Transfer lookedUp = payer.getTransfer(transfer.getId());
@@ -187,11 +174,8 @@ public class TransferRedemptionTest {
     }
 
     @Test
-    public void getTransfers() {
-        Token token = payerAccount
-                .createInstantToken(100.0, payeeAccount)
-                .execute();
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+    public void getTransfers_by_token() {
+        Token token = instantToken(100);
 
         Transfer transfer1 = payee.redeemToken(
                 token,
@@ -233,5 +217,51 @@ public class TransferRedemptionTest {
         lookedUp = payer.getTransfers(null, 100, null);
         assertThat(lookedUp.getList()).containsOnly(transfer1, transfer2, transfer3);
         assertThat(lookedUp.getOffset()).isNotEmpty();
+    }
+
+    @Test
+    public void getTransfers_all_tokens() {
+        Transfer transfer1 = payee.redeemToken(
+                instantToken(10.0),
+                10.0,
+                payeeAccount.getCurrency(),
+                "first");
+        Transfer transfer2 = payee.redeemToken(
+                instantToken(20.0),
+                20.0,
+                payeeAccount.getCurrency(),
+                "second");
+        Transfer transfer3 = payee.redeemToken(
+                instantToken(70.0),
+                70.0,
+                payeeAccount.getCurrency(),
+                "third");
+
+        assertThat(transfer1)
+                .isProcessing()
+                .hasAmount(10.0)
+                .hasCurrency(payeeAccount.getCurrency())
+                .hasDescription("first");
+        assertThat(transfer2)
+                .isProcessing()
+                .hasAmount(20.0)
+                .hasCurrency(payeeAccount.getCurrency())
+                .hasDescription("second");
+        assertThat(transfer3)
+                .isProcessing()
+                .hasAmount(70.0)
+                .hasCurrency(payeeAccount.getCurrency())
+                .hasDescription("third");
+
+        PagedList<Transfer, String> lookedUp = payer.getTransfers(null, 100, null);
+        assertThat(lookedUp.getList()).containsOnly(transfer1, transfer2, transfer3);
+        assertThat(lookedUp.getOffset()).isNotEmpty();
+    }
+
+    private Token instantToken(double amount) {
+        Token token = payerAccount
+                .createInstantToken(amount, payeeAccount)
+                .execute();
+        return payer.endorseToken(token, Key.Level.STANDARD).getToken();
     }
 }
