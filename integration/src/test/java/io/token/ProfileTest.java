@@ -1,8 +1,12 @@
 package io.token;
 
+import static io.grpc.Status.Code.UNKNOWN;
 import static io.token.proto.common.member.MemberProtos.ProfilePictureSize.ORIGINAL;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
+import com.google.protobuf.ByteString;
+import io.grpc.StatusRuntimeException;
 import io.token.common.TokenRule;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.Profile;
@@ -92,6 +96,15 @@ public class ProfileTest {
         Member otherMember = rule.member();
         Blob blob = otherMember.getProfilePicture(member.memberId(), ORIGINAL);
 
-        assertThat(blob.getPayload().getData()).isEqualTo(tinyGif);
+        ByteString tinyGifString = ByteString.copyFrom(tinyGif);
+        assertThat(blob.getPayload().getData()).isEqualTo(tinyGifString);
+    }
+
+    @Test
+    public void getNoProfilePicture() {
+        Member member = rule.member();
+        assertThatExceptionOfType(StatusRuntimeException.class)
+                .isThrownBy(() -> member.getProfilePicture(member.memberId(), ORIGINAL))
+                .matches(e -> e.getStatus().getCode() == UNKNOWN);
     }
 }
