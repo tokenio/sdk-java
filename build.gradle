@@ -16,7 +16,7 @@ buildscript {
 allprojects {
     ext {
         ver = [
-            tokenProto           : '1.0.340',
+            tokenProto           : '1.0.342',
             tokenRpc             : '1.0.74',
             tokenSecurity        : '1.0.32',
             tokenUtil            : '1.0.13',
