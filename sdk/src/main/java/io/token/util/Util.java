@@ -22,20 +22,18 @@
 
 package io.token.util;
 
-import static io.token.proto.common.security.SecurityProtos.Key.Algorithm.ED25519;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
-import io.token.proto.common.member.MemberProtos;
+import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
-import io.token.security.crypto.CryptoType;
 
-import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ExecutionException;
+
 import rx.Observable;
 import rx.Single;
 import rx.SingleSubscriber;
@@ -57,21 +55,6 @@ public abstract class Util {
     }
 
     /**
-     * Converts String algorithm into proto representation.
-     *
-     * @param cryptoType the type of the algorithm
-     * @return a proto algorithm
-     */
-    public static Algorithm toProtoAlgorithm(CryptoType cryptoType) {
-        switch (cryptoType) {
-            case EDDSA:
-                return ED25519;
-            default:
-                throw new RuntimeException(new NoSuchAlgorithmException(cryptoType.toString()));
-        }
-    }
-
-    /**
      * Converts Key to AddKey operation.
      *
      * @param key key to add
@@ -79,7 +62,9 @@ public abstract class Util {
      */
     public static MemberOperation toAddKeyOperation(Key key) {
         return MemberOperation.newBuilder()
-                .setAddKey(MemberProtos.MemberAddKeyOperation.newBuilder().setKey(key)).build();
+                .setAddKey(MemberAddKeyOperation.newBuilder()
+                        .setKey(key))
+                .build();
     }
 
     /**
@@ -90,10 +75,9 @@ public abstract class Util {
      */
     public static MemberOperation toAddUsernameOperation(String username) {
         return MemberOperation.newBuilder()
-                .setAddUsername(MemberProtos.MemberUsernameOperation.newBuilder()
+                .setAddUsername(MemberUsernameOperation.newBuilder()
                         .setUsername(username))
                 .build();
-
     }
 
     /**

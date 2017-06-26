@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.token.common.TokenRule;
 import io.token.proto.common.member.MemberProtos.Profile;
 
-import org.apache.commons.lang3.builder.ToStringExclude;
 import org.junit.Rule;
 import org.junit.Test;
 
