@@ -16,7 +16,7 @@ public class AccountsTest {
     public TokenRule rule = new TokenRule();
 
     @Test
-    public void linkAccountsTest() {
+    public void linkAccounts() {
         LinkedAccount account = rule.linkedAccount();
         assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
 

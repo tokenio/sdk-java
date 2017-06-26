@@ -38,7 +38,6 @@ public abstract class SecretKey {
             String id,
             Key.Level level,
             KeyPair keyPair) {
-
         return new AutoValue_SecretKey(id, level, keyPair.getPublic(), keyPair.getPrivate());
     }
 

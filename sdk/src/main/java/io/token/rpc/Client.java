@@ -137,6 +137,7 @@ import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 import io.token.util.Util;
@@ -194,10 +195,14 @@ public final class Client {
      * Looks up member information for the current user. The user is defined by
      * the key used for authentication.
      *
+     * @param memberId member id
      * @return member information
      */
-    public Observable<Member> getMember() {
-        return toObservable(gateway.getMember(GetMemberRequest.getDefaultInstance()))
+    public Observable<Member> getMember(String memberId) {
+        return Converters
+                .toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
                 .map(new Func1<GetMemberResponse, Member>() {
                     public Member call(GetMemberResponse response) {
                         return response.getMember();

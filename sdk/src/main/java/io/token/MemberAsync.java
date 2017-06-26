@@ -233,7 +233,7 @@ public final class MemberAsync {
     public Observable<Void> approveKey(SecretKeyPair key, Key.Level level) {
         return approveKey(Key.newBuilder()
                 .setId(key.id())
-                .setAlgorithm(Util.toProtoAlgorithm(key.cryptoType()))
+                .setAlgorithm(key.cryptoType().getKeyAlgorithm())
                 .setLevel(level)
                 .setPublicKey(key.publicKeyString())
                 .build());
