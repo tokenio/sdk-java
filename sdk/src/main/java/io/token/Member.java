@@ -465,7 +465,7 @@ public final class Member {
      *
      * @param memberId member ID of member whose profile we want
      * @param size Size category desired (small/medium/large/original)
-     * @return profile info
+     * @return blob with picture; empty blob (no fields set) if has no picture
      */
     public Blob getProfilePicture(String memberId, ProfilePictureSize size) {
         return async.getProfilePicture(memberId, size).toBlocking().single();

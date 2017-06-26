@@ -103,8 +103,7 @@ public class ProfileTest {
     @Test
     public void getNoProfilePicture() {
         Member member = rule.member();
-        assertThatExceptionOfType(StatusRuntimeException.class)
-                .isThrownBy(() -> member.getProfilePicture(member.memberId(), ORIGINAL))
-                .matches(e -> e.getStatus().getCode() == UNKNOWN);
+        Blob blob = member.getProfilePicture(member.memberId(), ORIGINAL);
+        assertThat(blob).isEqualTo(Blob.getDefaultInstance());
     }
 }

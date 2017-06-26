@@ -965,7 +965,7 @@ public final class Client {
      *
      * @param memberId member Id whose profile we want
      * @param size size category we want (small, medium, large, original)
-     * @return their profile text
+     * @return blob with picture; empty blob (no fields set) if has no picture
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
         return Util

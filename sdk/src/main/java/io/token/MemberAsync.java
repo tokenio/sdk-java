@@ -629,7 +629,7 @@ public final class MemberAsync {
      *
      * @param memberId member ID of member whose profile we want
      * @param size desired size category (small, medium, large, original)
-     * @return blob with picture
+     * @return blob with picture; empty blob (no fields set) if has no picture
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
         return client.getProfilePicture(memberId, size);
