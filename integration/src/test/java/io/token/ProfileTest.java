@@ -1,12 +1,9 @@
 package io.token;
 
-import static io.grpc.Status.Code.UNKNOWN;
 import static io.token.proto.common.member.MemberProtos.ProfilePictureSize.ORIGINAL;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.google.protobuf.ByteString;
-import io.grpc.StatusRuntimeException;
 import io.token.common.TokenRule;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.Profile;
