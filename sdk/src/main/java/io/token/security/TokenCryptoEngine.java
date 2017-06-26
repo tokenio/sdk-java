@@ -22,12 +22,11 @@
 
 package io.token.security;
 
-import static io.token.security.keystore.SecurityConfigHelper.keyIdFor;
-
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.security.crypto.Crypto;
 import io.token.security.crypto.CryptoRegistry;
 import io.token.security.crypto.CryptoType;
+import io.token.security.keystore.SecretKeyPair;
 
 import java.security.KeyPair;
 
@@ -59,9 +58,11 @@ public final class TokenCryptoEngine implements CryptoEngine {
 
     @Override
     public Key generateKey(Key.Level keyLevel) {
-        KeyPair keyPair = crypto.generateKeyPair();
-        String id = keyIdFor(crypto.serialize(keyPair.getPublic()));
-        SecretKey key = SecretKey.create(id, keyLevel, keyPair);
+        SecretKeyPair keyPair = SecretKeyPair.create(CRYPTO_TYPE);
+        SecretKey key = SecretKey.create(
+                keyPair.id(),
+                keyLevel,
+                new KeyPair(keyPair.publicKey(), keyPair.privateKey()));
         keyStore.put(memberId, key);
         return Key.newBuilder()
                 .setId(key.getId())

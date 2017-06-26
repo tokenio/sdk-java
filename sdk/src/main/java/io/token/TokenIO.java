@@ -120,6 +120,16 @@ public final class TokenIO implements Closeable {
     }
 
     /**
+     * Looks up member id for a given username.
+     *
+     * @param username username to check
+     * @return member id if username already exists, null otherwise
+     */
+    public String getMemberId(String username) {
+        return async.getMemberId(username).toBlocking().single();
+    }
+
+    /**
      * Creates a new Token member with a pair of auto generated keys and the
      * given username.
      *
@@ -244,7 +254,7 @@ public final class TokenIO implements Closeable {
         private boolean useSsl;
         private String hostName;
         private long timeoutMs;
-        private KeyStore keyStore;
+        private CryptoEngineFactory cryptoEngine;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -307,7 +317,18 @@ public final class TokenIO implements Closeable {
          * @return this builder instance
          */
         public Builder withKeyStore(KeyStore keyStore) {
-            this.keyStore = keyStore;
+            this.cryptoEngine = new TokenCryptoEngineFactory(keyStore);
+            return this;
+        }
+
+        /**
+         * Sets the crypto engine to be used with the SDK.
+         *
+         * @param cryptoEngineFactory the crypto engine factory to use
+         * @return this builder instance
+         */
+        public Builder withCryptoEngine(CryptoEngineFactory cryptoEngineFactory) {
+            this.cryptoEngine = cryptoEngineFactory;
             return this;
         }
 
@@ -326,10 +347,6 @@ public final class TokenIO implements Closeable {
          * @return {@link TokenIO} instance
          */
         public TokenIOAsync buildAsync() {
-            if (keyStore == null) {
-                keyStore = new InMemoryKeyStore();
-            }
-            CryptoEngineFactory cryptoFactory = new TokenCryptoEngineFactory(keyStore);
             Metadata versionHeaders = new Metadata();
             versionHeaders.put(
                     Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
@@ -343,7 +360,9 @@ public final class TokenIO implements Closeable {
                             .withTimeout(timeoutMs)
                             .withMetadata(versionHeaders)
                             .build(),
-                    cryptoFactory);
+                    cryptoEngine != null
+                            ? cryptoEngine
+                            : new TokenCryptoEngineFactory(new InMemoryKeyStore()));
         }
     }
 

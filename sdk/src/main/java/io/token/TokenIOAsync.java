@@ -108,6 +108,17 @@ public final class TokenIOAsync implements Closeable {
     }
 
     /**
+     * Looks up member id for a given username.
+     *
+     * @param username username to check
+     * @return member id if username already exists, null otherwise
+     */
+    public Observable<String> getMemberId(String username) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getMemberId(username);
+    }
+
+    /**
      * Creates a new Token member with a set of auto-generated keys and a given username.
      *
      * @param username member username to use, must be unique
@@ -180,7 +191,7 @@ public final class TokenIOAsync implements Closeable {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client
-                .getMember()
+                .getMember(memberId)
                 .map(new Func1<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync call(MemberProtos.Member member) {
                         return new MemberAsync(member, client);
