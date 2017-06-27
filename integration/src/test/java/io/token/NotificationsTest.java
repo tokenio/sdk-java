@@ -291,7 +291,6 @@ public class NotificationsTest {
                     assertThat(notifications).hasSize(1);
                     assertThat(notifications.get(0).getContent().getBody())
                             .contains(payer.firstUsername());
-                    System.out.println(notifications.get(0).getContent().getBody());
                 });
     }
 
