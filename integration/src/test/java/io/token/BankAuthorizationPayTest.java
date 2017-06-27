@@ -4,7 +4,6 @@ import static io.token.asserts.TransferAssertion.assertThat;
 import static io.token.proto.common.security.SecurityProtos.SealedMessage.MethodCase.NOOP;
 import static java.util.Collections.singletonList;
 
-import io.token.bank.TestAccount;
 import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -32,7 +31,7 @@ public class BankAuthorizationPayTest {
         this.payerAccount = rule.linkedAccount();
         this.payer = payerAccount.getMember();
 
-        this.payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount(payerAccount);
         this.payee = payeeAccount.getMember();
     }
 
@@ -50,7 +49,6 @@ public class BankAuthorizationPayTest {
     }
 
     private Token token(double amount) {
-        TestAccount account = rule.unlinkedAccount();
         BankAccountAuthorizer authorizer = BankAccountAuthorizer
                 .builder(rule.getBankId())
                 .useMethod(NOOP)
@@ -61,7 +59,7 @@ public class BankAuthorizationPayTest {
 
         BankAuthorization authorization = authorizer.createAuthorization(
                 payer.firstUsername(),
-                singletonList(account.toNamedAccount()));
+                singletonList(payerAccount.testAccount().toNamedAccount()));
 
         return payer.createTransferToken(amount, payeeAccount.getCurrency())
                 .setBankAuthorization(authorization)

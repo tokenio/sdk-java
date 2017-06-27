@@ -39,7 +39,7 @@ public class BlobsTest {
     @Before
     public void before() {
         this.payerAccount = rule.linkedAccount();
-        this.payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount(payerAccount);
         this.payer = payerAccount.getMember();
         this.payee = payeeAccount.getMember();
         this.otherMember = rule.member();

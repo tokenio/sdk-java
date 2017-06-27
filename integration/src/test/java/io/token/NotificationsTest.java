@@ -54,7 +54,7 @@ public class NotificationsTest {
     @Before
     public void setup() {
         this.payerAccount = rule.linkedAccount();
-        this.payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount(payerAccount);
         this.payer = payerAccount.getMember();
         this.payee = payeeAccount.getMember();
 
