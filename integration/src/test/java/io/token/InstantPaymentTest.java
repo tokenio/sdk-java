@@ -46,7 +46,7 @@ public class InstantPaymentTest {
     @Before
     public void before() {
         this.payerAccount = rule.linkedAccount();
-        this.payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount(payerAccount);
         this.payer = payerAccount.getMember();
         this.payee = payeeAccount.getMember();
     }
@@ -126,7 +126,7 @@ public class InstantPaymentTest {
 
     @Test
     public void instantPayment_nonTokenTipsDestination() {
-        Transfer transfer = initiateInstantTransfer(rule.unlinkedAccount(),100);
+        Transfer transfer = initiateInstantTransfer(rule.unlinkedAccount(payerAccount),100);
 
         assertThat(transfer).hasStatus(PROCESSING);
 
@@ -160,7 +160,7 @@ public class InstantPaymentTest {
                 .stream()
                 .map(Account::id)
                 .collect(Collectors.toList()));
-        TestAccount destination = rule.unlinkedAccount();
+        TestAccount destination = rule.unlinkedAccount(payerAccount);
 
         Transfer transfer = initiateInstantTransfer(destination, transferAmount);
         Token token = payer.getToken(transfer.getPayload().getTokenId());

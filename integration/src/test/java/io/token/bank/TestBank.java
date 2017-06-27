@@ -6,6 +6,8 @@ import io.token.bank.fank.FankTestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.NamedAccount;
 
+import java.util.Optional;
+
 /**
  * Abstracts away a test bank backend.
  */
@@ -28,9 +30,11 @@ public abstract class TestBank {
     /**
      * Returns a next account that can be linked.
      *
+     * @param counterParty optional counter party account, used to make sure
+     *     we don't return the same account as the counter party
      * @return next account
      */
-    public abstract TestAccount nextAccount();
+    public abstract TestAccount nextAccount(Optional<TestAccount> counterParty);
 
     /**
      * Returns an invalid account that can be linked.
