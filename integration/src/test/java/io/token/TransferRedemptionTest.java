@@ -2,7 +2,6 @@ package io.token;
 
 import static io.grpc.Status.Code.FAILED_PRECONDITION;
 import static io.token.asserts.TransferAssertion.assertThat;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INSUFFICIENT_FUNDS;
 import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
@@ -34,7 +33,7 @@ public class TransferRedemptionTest {
     public void before() {
         this.payerAccount = rule.linkedAccount();
         this.payer = payerAccount.getMember();
-        this.payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount(payerAccount);
         this.payee = payeeAccount.getMember();
     }
 

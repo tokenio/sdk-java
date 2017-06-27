@@ -35,7 +35,7 @@ public class TransferTokenBuilderTest {
         this.payerAccount = rule.linkedAccount();
         this.payer = payerAccount.getMember();
 
-        this.payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount(payerAccount);
         this.payee = payeeAccount.getMember();
     }
 
