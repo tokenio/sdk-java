@@ -16,6 +16,7 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.Swift;
 import io.token.proto.common.account.AccountProtos.PlaintextBankAuthorization;
+import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -290,6 +291,55 @@ public class NotificationsTest {
                     assertThat(notifications).hasSize(1);
                     assertThat(notifications.get(0).getContent().getBody())
                             .contains(payer.firstUsername());
+                    System.out.println(notifications.get(0).getContent().getBody());
+                });
+    }
+
+    @Test
+    public void transferProcessed_containsDisplayName() {
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        payee.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        payer.setProfile(Profile.newBuilder()
+                .setDisplayNameFirst("Payer First Name")
+                .build());
+
+        payee.setProfile(Profile.newBuilder()
+                .setDisplayNameFirst("Payee First Name")
+                .setDisplayNameLast("Payee Last Name")
+                .build());
+
+        Token token = payerAccount.createInstantToken(20, payeeAccount)
+                .setAccountId(payerAccount.getId())
+                .setRedeemerUsername(payee.firstUsername())
+                .setToUsername(payee.firstUsername())
+                .execute();
+
+        Token endorsed = payer.endorseToken(token, STANDARD).getToken();
+
+        payee.redeemToken(endorsed);
+
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> {
+                    List<Notification> notifications = payer.getNotifications(null, 100).getList();
+                    assertThat(notifications).hasSize(1);
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .contains("Payee First Name Payee Last Name");
+                });
+
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> {
+                    List<Notification> notifications = payee.getNotifications(null, 100).getList();
+                    assertThat(notifications).hasSize(1);
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .contains("Payer First Name");
                 });
     }
 
