@@ -32,10 +32,8 @@ import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Profile;
-import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -448,27 +446,6 @@ public final class Member {
      */
     public Profile getProfile(String memberId) {
         return async.getProfile(memberId).toBlocking().single();
-    }
-
-    /**
-     * Replaces auth'd member's public profile picture.
-     *
-     * @param type MIME type of picture
-     * @param data image data
-     */
-    public void setProfilePicture(final String type, byte[] data) {
-        async.setProfilePicture(type, data).toBlocking().single();
-    }
-
-    /**
-     * Gets a member's public profile picture.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @param size Size category desired (small/medium/large/original)
-     * @return blob with picture; empty blob (no fields set) if has no picture
-     */
-    public Blob getProfilePicture(String memberId, ProfilePictureSize size) {
-        return async.getProfilePicture(memberId, size).toBlocking().single();
     }
 
     /**
