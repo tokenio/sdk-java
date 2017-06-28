@@ -22,7 +22,6 @@
 
 package io.token;
 
-import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
@@ -43,7 +42,6 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
 import io.token.proto.common.member.MemberProtos.Profile;
-import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -517,10 +515,10 @@ public final class MemberAsync {
                 .map(new Func1<String, Attachment>() {
                     public Attachment call(String id) {
                         return Attachment.newBuilder()
-                                .setBlobId(id)
-                                .setName(name)
-                                .setType(type)
-                                .build();
+                            .setBlobId(id)
+                            .setName(name)
+                            .setType(type)
+                            .build();
                     }
                 });
     }
@@ -604,35 +602,6 @@ public final class MemberAsync {
      */
     public Observable<Profile> getProfile(String memberId) {
         return client.getProfile(memberId);
-    }
-
-    /**
-     * Replaces auth'd member's public profile picture.
-     *
-     * @param type MIME type of picture
-     * @param data image data
-     * @return observable that completes when the operation has finished
-     */
-    public Observable<Void> setProfilePicture(final String type, byte[] data) {
-        Payload payload = Payload.newBuilder()
-                .setOwnerId(memberId())
-                .setType(type)
-                .setName("profile")
-                .setData(ByteString.copyFrom(data))
-                .setAccessMode(PUBLIC)
-                .build();
-        return client.setProfilePicture(payload);
-    }
-
-    /**
-     * Gets a member's public profile picture. Unlike set, you can get another member's picture.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @param size desired size category (small, medium, large, original)
-     * @return blob with picture; empty blob (no fields set) if has no picture
-     */
-    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
-        return client.getProfilePicture(memberId, size);
     }
 
     /**
