@@ -29,4 +29,18 @@ public final class TestAccount {
     public NamedAccount toNamedAccount() {
         return new NamedAccount(bankAccount, accountName);
     }
+
+    @Override
+    public int hashCode() {
+        return bankAccount.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof TestAccount)) {
+            return false;
+        }
+
+        return bankAccount.equals(((TestAccount) obj).bankAccount);
+    }
 }

@@ -14,6 +14,8 @@ import io.token.proto.bankapi.Fank.Client;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.NamedAccount;
 
+import java.util.Optional;
+
 public final class FankTestBank extends TestBank {
     private static final String CURRENCY = "USD";
     private final FankClient fank;
@@ -36,7 +38,7 @@ public final class FankTestBank extends TestBank {
     }
 
     @Override
-    public TestAccount nextAccount() {
+    public TestAccount nextAccount(Optional<TestAccount> counterParty) {
         String accountName = "Test Account";
         String bankAccountNumber = "iban:" + randomNumeric(7);
         Fank.Client client = fank.addClient("Test " + string(), "Testoff");

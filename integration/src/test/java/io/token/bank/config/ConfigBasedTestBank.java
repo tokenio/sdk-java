@@ -2,7 +2,6 @@ package io.token.bank.config;
 
 import static io.token.Destinations.swift;
 import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.StringUtils.reverse;
 
 import com.typesafe.config.Config;
 import io.token.bank.TestAccount;
@@ -14,6 +13,7 @@ import io.token.sdk.NamedAccount;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Optional;
 
 /**
  * Config based implementation of the test bank. We assume that the bank we
@@ -46,25 +46,19 @@ public final class ConfigBasedTestBank extends TestBank {
     }
 
     @Override
-    public TestAccount nextAccount() {
-        BankAccountConfig accountConfig = nextAccountConfig();
-        return new TestAccount(
-                accountConfig.getAccountName(),
-                accountConfig.getCurrency(),
-                swift(
-                        accountConfig.getBic(),
-                        accountConfig.getAccountNumber()).getAccount());
+    public TestAccount nextAccount(Optional<TestAccount> counterParty) {
+        return findNextAccount(counterParty);
     }
 
     @Override
     public TestAccount invalidAccount() {
-        BankAccountConfig accountConfig = nextAccountConfig();
+        TestAccount nextAccount = findNextAccount(Optional.empty());
         return new TestAccount(
-                accountConfig.getAccountName(),
-                accountConfig.getCurrency(),
+                nextAccount.getAccountName(),
+                nextAccount.getCurrency(),
                 swift(
-                        accountConfig.getBic(),
-                        reverse(accountConfig.getAccountNumber())).getAccount());
+                        nextAccount.getBankAccount().getSwift().getBic(),
+                        "9999999999").getAccount());
     }
 
     @Override
@@ -87,8 +81,25 @@ public final class ConfigBasedTestBank extends TestBank {
                         .createAuthorization(username, singletonList(account));
     }
 
-    private BankAccountConfig nextAccountConfig() {
-        int index = lastAccountIndex++ % accounts.size();
-        return accounts.get(index);
+    private TestAccount findNextAccount(Optional<TestAccount> counterParty) {
+        while (true) {
+            int index = lastAccountIndex++ % accounts.size();
+            BankAccountConfig nextConfig = accounts.get(index);
+            TestAccount nextAccount = new TestAccount(
+                    nextConfig.getAccountName(),
+                    nextConfig.getCurrency(),
+                    swift(
+                            nextConfig.getBic(),
+                            nextConfig.getAccountNumber()).getAccount());
+
+            // Check if the nextAccount is different from counter party account.
+            boolean found = counterParty
+                    .map(cp -> !cp.equals(nextAccount))
+                    .orElse(true);
+
+            if (found) {
+                return nextAccount;
+            }
+        }
     }
 }

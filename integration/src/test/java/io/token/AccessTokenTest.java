@@ -40,7 +40,7 @@ public class AccessTokenTest {
         this.member1 = rule.member();
         this.member2 = rule.member();
         this.payerAccount = rule.linkedAccount();
-        this.payeeAccount = rule.linkedAccount();
+        this.payeeAccount = rule.linkedAccount(payerAccount);
     }
 
     @Test
@@ -167,7 +167,7 @@ public class AccessTokenTest {
 
     @Test
     public void createBalancesAccessToken() {
-        LinkedAccount account = rule.linkedAccount();
+        LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
@@ -210,7 +210,7 @@ public class AccessTokenTest {
 
     @Test
     public void createBalanceAccessToken() {
-        LinkedAccount account = rule.linkedAccount();
+        LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
@@ -307,7 +307,7 @@ public class AccessTokenTest {
 
     @Test
     public void replaceAddressTokenAndEndorse() {
-        LinkedAccount account = rule.linkedAccount();
+        LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
@@ -341,7 +341,7 @@ public class AccessTokenTest {
 
     @Test(expected = StatusRuntimeException.class)
     public void replaceAddressTokenRace() {
-        LinkedAccount account = rule.linkedAccount();
+        LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
@@ -363,7 +363,7 @@ public class AccessTokenTest {
 
     @Test
     public void replaceAddressTokenIdempotent() {
-        LinkedAccount account = rule.linkedAccount();
+        LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
@@ -386,7 +386,7 @@ public class AccessTokenTest {
     @Test
     public void replaceTokenLoop() {
         // Replace token with a new one then replace once more to get back to the old one.
-        LinkedAccount account = rule.linkedAccount();
+        LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token originalToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())
@@ -417,7 +417,7 @@ public class AccessTokenTest {
 
     @Test
     public void replaceAddressTokenNoEndorse() {
-        LinkedAccount account = rule.linkedAccount();
+        LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
                 .create(member1.firstUsername())

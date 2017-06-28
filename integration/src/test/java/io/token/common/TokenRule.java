@@ -21,6 +21,7 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.NamedAccount;
 import io.token.util.Util;
 
+import java.util.Optional;
 import java.util.regex.Pattern;
 
 import org.junit.rules.MethodRule;
@@ -86,7 +87,11 @@ public class TokenRule implements MethodRule {
     }
 
     public LinkedAccount linkedAccount() {
-        return linkAccount(testBank.nextAccount());
+        return linkAccount(testBank.nextAccount(Optional.empty()));
+    }
+
+    public LinkedAccount linkedAccount(LinkedAccount counterParty) {
+        return linkAccount(testBank.nextAccount(Optional.of(counterParty.testAccount())));
     }
 
     public LinkedAccount invalidLinkedAccount() {
@@ -98,8 +103,8 @@ public class TokenRule implements MethodRule {
         return linkAccount(testBank.rejectAccount());
     }
 
-    public TestAccount unlinkedAccount() {
-        return testBank.nextAccount();
+    public TestAccount unlinkedAccount(LinkedAccount counterParty) {
+        return testBank.nextAccount(Optional.of(counterParty.testAccount()));
     }
 
     public LinkedAccount relinkAccount(LinkedAccount account) {
