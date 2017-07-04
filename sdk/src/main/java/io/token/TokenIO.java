@@ -29,6 +29,8 @@ import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
@@ -222,6 +224,22 @@ public final class TokenIO implements Closeable {
                 authorization,
                 name,
                 key).toBlocking().single();
+    }
+
+    /**
+     * Sends a notification to request payment.
+     *
+     * @param username the username of the member to notify
+     * @param tokenPayload the payload of a token to be sent
+     * @return status of the notification request
+     */
+    public NotifyStatus notifyPaymentRequest(
+            String username,
+            TokenPayload tokenPayload) {
+        return async
+                .notifyPaymentRequest(username, tokenPayload)
+                .toBlocking()
+                .single();
     }
 
     /**
