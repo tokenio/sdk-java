@@ -452,6 +452,29 @@ public class NotificationsTest {
     }
 
     @Test
+    public void sendNotifyPaymentRequest() {
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        Token token = payerAccount
+                .createInstantToken(100.0, payeeAccount)
+                .execute();
+
+        rule
+                .token()
+                .notifyPaymentRequest(
+                        payer.firstUsername(),
+                        token.getPayload());
+
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> assertThat(payer.getNotifications(null, 100).getList())
+                        .extracting(new NotificationStatusExtractor())
+                        .containsExactly(DELIVERED));
+    }
+
+    @Test
     public void sendLinkAccountsAndAddKey() {
         payer.subscribeToNotifications(
                 "token",
