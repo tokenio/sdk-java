@@ -30,13 +30,17 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
 import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.PaymentRequest;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetMemberIdRequest;
@@ -235,6 +239,32 @@ public final class UnauthenticatedClient {
                                                 .setName(name)
                                                 .setKey(key)
                                                 .build())
+                                        .build())
+                                .build())
+                        .build()))
+                .map(new Func1<NotifyResponse, NotifyStatus>() {
+                    public NotifyStatus call(NotifyResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Notifies subscribed devices that on payment requests.
+     *
+     * @param username the username of the member to notify
+     * @param tokenPayload the pyload of a token to be sent
+     * @return status of the notification request
+     */
+    public Observable<NotifyStatus> notifyPaymentRequest(
+            String username,
+            TokenPayload tokenPayload) {
+        return toObservable(gateway.notify(
+                NotifyRequest.newBuilder()
+                        .setUsername(username)
+                        .setBody(NotifyBody.newBuilder()
+                                .setPaymentRequest(PaymentRequest.newBuilder()
+                                        .setPayload(tokenPayload)
                                         .build())
                                 .build())
                         .build()))

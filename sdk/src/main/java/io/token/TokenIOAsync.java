@@ -37,6 +37,8 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
@@ -250,5 +252,19 @@ public final class TokenIOAsync implements Closeable {
                 authorization,
                 name,
                 key);
+    }
+
+    /**
+     * Sends a notification to request payment.
+     *
+     * @param username the username of the member to notify
+     * @param tokenPayload the payload of a token to be sent
+     * @return status of the notification request
+     */
+    public Observable<NotifyStatus> notifyPaymentRequest(
+            String username,
+            TokenPayload tokenPayload) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.notifyPaymentRequest(username, tokenPayload);
     }
 }
