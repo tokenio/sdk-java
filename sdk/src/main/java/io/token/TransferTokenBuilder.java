@@ -144,7 +144,7 @@ public final class TransferTokenBuilder {
      * @return builder
      */
     public TransferTokenBuilder setEffectiveAtMs(long effectiveAtMs) {
-        payload.setExpiresAtMs(effectiveAtMs);
+        payload.setEffectiveAtMs(effectiveAtMs);
         return this;
     }
 
