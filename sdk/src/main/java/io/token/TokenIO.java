@@ -227,7 +227,7 @@ public final class TokenIO implements Closeable {
     }
 
     /**
-     * Sends a notification to request payment.
+     * Sends a notification to request a payment.
      *
      * @param username the username of the member to notify
      * @param tokenPayload the payload of a token to be sent
