@@ -416,7 +416,7 @@ public final class MemberAsync {
      *
      * @return list of accounts
      */
-    public Observable<List<AccountAsync>> getAccount() {
+    public Observable<List<AccountAsync>> getAccounts() {
         return client
                 .getAccounts()
                 .map(new Func1<List<AccountProtos.Account>, List<AccountAsync>>() {
