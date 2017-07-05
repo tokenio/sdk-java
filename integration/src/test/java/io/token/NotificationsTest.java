@@ -24,7 +24,10 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SealedMessage;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.security.sealed.NoopSealedMessageEncrypter;
 import io.token.testing.sample.Sample;
 
@@ -504,22 +507,27 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        try (TokenIO newSdk = rule.newSdkInstance()) {
-            DeviceInfo deviceInfo = newSdk.provisionDevice(payer.firstUsername());
-            rule
-                    .token()
-                    .notifyLinkAccountsAndAddKey(
-                            payer.firstUsername(),
-                            authorization,
-                            "Chrome",
-                            deviceInfo.getKeys().get(0));
+        payee.setProfile(Profile.newBuilder()
+                .setDisplayNameFirst("Payee First Name")
+                .build());
 
-            waitUntil(
-                    NOTIFICATION_TIMEOUT_MS,
-                    () -> assertThat(payer.getNotifications(null, 100).getList())
-                            .extracting(new NotificationStatusExtractor())
-                            .containsExactly(DELIVERED));
-        }
+        rule.token().notifyPaymentRequest(payer.firstUsername(), TokenPayload.newBuilder()
+                .setDescription("Payment request")
+                .setFrom(TokenMember.newBuilder().setUsername(payer.firstUsername()))
+                .setTo(TokenMember.newBuilder().setUsername(payee.firstUsername()))
+                .setTransfer(TransferBody.newBuilder()
+                        .setAmount("100")
+                        .setCurrency("USD"))
+                .build());
+
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> {
+                    List<Notification> notifications = payer.getNotifications(null, 100).getList();
+                    assertThat(notifications).hasSize(1);
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .contains("Payee First Name");
+                });
     }
 
     @Test
