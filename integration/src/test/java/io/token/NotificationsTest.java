@@ -460,21 +460,33 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
-        Token token = payerAccount
-                .createInstantToken(100.0, payeeAccount)
-                .execute();
+        payee.setProfile(Profile.newBuilder()
+                .setDisplayNameFirst("Payee First Name")
+                .build());
 
         rule
                 .token()
                 .notifyPaymentRequest(
                         payer.firstUsername(),
-                        token.getPayload());
+                        TokenPayload.newBuilder()
+                                .setDescription("Payment request")
+                                .setFrom(TokenMember.newBuilder().setUsername(payer.firstUsername()))
+                                .setTo(TokenMember.newBuilder().setUsername(payee.firstUsername()))
+                                .setTransfer(TransferBody.newBuilder()
+                                        .setAmount("100")
+                                        .setCurrency("USD"))
+                                .build());
 
         waitUntil(
                 NOTIFICATION_TIMEOUT_MS,
-                () -> assertThat(payer.getNotifications(null, 100).getList())
-                        .extracting(new NotificationStatusExtractor())
-                        .containsExactly(DELIVERED));
+                () -> {
+                    List<Notification> notifications = payer.getNotifications(null, 100).getList();
+                    assertThat(notifications)
+                            .extracting(new NotificationStatusExtractor())
+                            .containsExactly(DELIVERED);
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .contains("Payee First Name");
+                });
     }
 
     @Test
@@ -499,35 +511,6 @@ public class NotificationsTest {
                             .extracting(new NotificationStatusExtractor())
                             .containsExactly(DELIVERED));
         }
-    }
-
-    @Test
-    public void sendRequestPayment() {
-        payer.subscribeToNotifications(
-                "token",
-                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
-
-        payee.setProfile(Profile.newBuilder()
-                .setDisplayNameFirst("Payee First Name")
-                .build());
-
-        rule.token().notifyPaymentRequest(payer.firstUsername(), TokenPayload.newBuilder()
-                .setDescription("Payment request")
-                .setFrom(TokenMember.newBuilder().setUsername(payer.firstUsername()))
-                .setTo(TokenMember.newBuilder().setUsername(payee.firstUsername()))
-                .setTransfer(TransferBody.newBuilder()
-                        .setAmount("100")
-                        .setCurrency("USD"))
-                .build());
-
-        waitUntil(
-                NOTIFICATION_TIMEOUT_MS,
-                () -> {
-                    List<Notification> notifications = payer.getNotifications(null, 100).getList();
-                    assertThat(notifications).hasSize(1);
-                    assertThat(notifications.get(0).getContent().getBody())
-                            .contains("Payee First Name");
-                });
     }
 
     @Test
