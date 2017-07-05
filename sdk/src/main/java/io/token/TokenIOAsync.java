@@ -26,6 +26,7 @@ import static io.grpc.Status.NOT_FOUND;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toAddKeyOperation;
 import static io.token.util.Util.toAddUsernameOperation;
 import static java.util.Arrays.asList;
@@ -265,6 +266,9 @@ public final class TokenIOAsync implements Closeable {
             String username,
             TokenPayload tokenPayload) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        if (tokenPayload.getRefId().isEmpty()) {
+            tokenPayload = tokenPayload.toBuilder().setRefId(generateNonce()).build();
+        }
         return unauthenticated.notifyPaymentRequest(username, tokenPayload);
     }
 }
