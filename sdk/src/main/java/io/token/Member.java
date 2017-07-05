@@ -334,7 +334,7 @@ public final class Member {
      * @return list of linked accounts
      */
     public List<Account> getAccounts() {
-        return async.getAccount()
+        return async.getAccounts()
                 .map(new Func1<List<AccountAsync>, List<Account>>() {
                     public List<Account> call(List<AccountAsync> asyncList) {
                         List<Account> accounts = new LinkedList<>();
