@@ -305,11 +305,11 @@ public class TransferTokenTest {
 
     @Test
     public void endorseTransferTokenUnicode() {
-        String description = "\\u263A\\uFE0Fs\\uD83D\\uDC69\\u200D\\uD83D\\uDC69\\u200D" +
-                "\\uD83D\\uDC67\\u200D\\uD83D\\uDC67\\uD83D\\uDC69\\u200D\\uD83D\\uDC69" +
-                "\\u200D\\uD83D\\uDC67\\uD83D\\uDC69\\u200D\\u2764\\uFE0F\\u200D\\uD83D" +
-                "\\uDC8B\\u200D\\uD83D\\uDC69\\uD83D\\uDC70\\uD83C\\uDFFF\\uD83C\\uDDE6" +
-                "\\uD83C\\uDDFC\\uD83C\\uDDE7\\uD83C\\uDDED";
+        String description = "\\u263A\\uFE0Fs\\uD83D\\uDC69\\u200D\\uD83D\\uDC69\\u200D"
+                + "\\uD83D\\uDC67\\u200D\\uD83D\\uDC67\\uD83D\\uDC69\\u200D\\uD83D\\uDC69"
+                + "\\u200D\\uD83D\\uDC67\\uD83D\\uDC69\\u200D\\u2764\\uFE0F\\u200D\\uD83D"
+                + "\\uDC8B\\u200D\\uD83D\\uDC69\\uD83D\\uDC70\\uD83C\\uDFFF\\uD83C\\uDDE6"
+                + "\\uD83C\\uDDFC\\uD83C\\uDDE7\\uD83C\\uDDED";
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerUsername(payee.firstUsername())
                 .setDescription(description)
