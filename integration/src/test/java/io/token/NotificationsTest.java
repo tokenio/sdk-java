@@ -470,7 +470,8 @@ public class NotificationsTest {
                         payer.firstUsername(),
                         TokenPayload.newBuilder()
                                 .setDescription("Payment request")
-                                .setFrom(TokenMember.newBuilder().setUsername(payer.firstUsername()))
+                                .setFrom(TokenMember.newBuilder()
+                                        .setUsername(payer.firstUsername()))
                                 .setTo(TokenMember.newBuilder().setUsername(payee.firstUsername()))
                                 .setTransfer(TransferBody.newBuilder()
                                         .setAmount("100")
