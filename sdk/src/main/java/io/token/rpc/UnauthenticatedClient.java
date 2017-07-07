@@ -47,6 +47,8 @@ import io.token.proto.gateway.Gateway.GetMemberIdRequest;
 import io.token.proto.gateway.Gateway.GetMemberIdResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
+import io.token.proto.gateway.Gateway.RequestTransferRequest;
+import io.token.proto.gateway.Gateway.RequestTransferResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -259,17 +261,13 @@ public final class UnauthenticatedClient {
     public Observable<NotifyStatus> notifyPaymentRequest(
             String username,
             TokenPayload tokenPayload) {
-        return toObservable(gateway.notify(
-                NotifyRequest.newBuilder()
+        return toObservable(gateway.requestTransfer(
+                RequestTransferRequest.newBuilder()
                         .setUsername(username)
-                        .setBody(NotifyBody.newBuilder()
-                                .setPaymentRequest(PaymentRequest.newBuilder()
-                                        .setPayload(tokenPayload)
-                                        .build())
-                                .build())
+                        .setTokenPayload(tokenPayload)
                         .build()))
-                .map(new Func1<NotifyResponse, NotifyStatus>() {
-                    public NotifyStatus call(NotifyResponse response) {
+                .map(new Func1<RequestTransferResponse, NotifyStatus>() {
+                    public NotifyStatus call(RequestTransferResponse response) {
                         return response.getStatus();
                     }
                 });
