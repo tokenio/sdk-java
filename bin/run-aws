@@ -5,9 +5,10 @@ if [ "$#" -eq 0 ] ; then
 fi
 
 env=${1:-development}
+args=${2:-""}
 
 ./gradlew \
   -DTOKEN_ENV=${env} \
   -PmaxTestForks=4 \
-  cleanTest :sdk:javadoc check
+  cleanTest :sdk:javadoc check ${args}
 
