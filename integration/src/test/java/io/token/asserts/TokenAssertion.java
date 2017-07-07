@@ -46,6 +46,13 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
         return this;
     }
 
+    public TokenAssertion hasDescription(String description) {
+        Assertions
+                .assertThat(actual.getPayload().getDescription())
+                .isEqualTo(description);
+        return this;
+    }
+
     public TokenAssertion hasAmount(double amount) {
         Assertions
                 .assertThat(actual.getPayload().getTransfer().getLifetimeAmount())
