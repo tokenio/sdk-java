@@ -16,12 +16,13 @@ buildscript {
 allprojects {
     ext {
         ver = [
-            tokenProto           : '1.0.348',
+            tokenProto           : '1.0.351',
             tokenRpc             : '1.0.74',
             tokenSecurity        : '1.0.34',
             tokenUtil            : '1.0.13',
             retrofit             : '2.2.0',
             tokenIntegrationSdk  : '1.0.64',
+            tokenFank            : '1.0.2',
         ]
     }
 
