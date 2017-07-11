@@ -37,9 +37,11 @@ final class FankClient {
                 .create(FankClientApi.class);
     }
 
-    public Fank.Client addClient(String firstName, String lastName) {
+    public Fank.Client addClient(String bic, String firstName, String lastName) {
         AddClientResponse response = wrap(
-                fankApi.addClient(protoToJson(
+                fankApi.addClient(
+                        bic,
+                        protoToJson(
                         Fank.AddClientRequest.newBuilder()
                                 .setFirstName(firstName)
                                 .setFirstName(lastName))),
@@ -50,19 +52,21 @@ final class FankClient {
     public Fank.Account addAccount(
             Fank.Client client,
             String name,
+            String bic,
             String number,
             double amount,
             String currency) {
         AddAccountResponse response = wrap(
                 fankApi.addAccount(
+                        bic,
+                        client.getId(),
                         protoToJson(Fank.AddAccountRequest.newBuilder()
                                 .setClientId(client.getId())
                                 .setName(name)
                                 .setAccountNumber(number)
                                 .setBalance(MoneyProtos.Money.newBuilder()
                                         .setValue(Double.toString(amount))
-                                        .setCurrency(currency))),
-                        client.getId()),
+                                        .setCurrency(currency)))),
                 AddAccountResponse.newBuilder());
         return response.getAccount();
     }
@@ -70,14 +74,16 @@ final class FankClient {
     public BankAuthorization startAccountsLinking(
             String username,
             String clientId,
+            String bic,
             List<String> accountNumbers) {
         return wrap(
                 fankApi.authorizeLinkAccounts(
+                        bic,
+                        clientId,
                         protoToJson(AuthorizeLinkAccountsRequest.newBuilder()
                                 .setUsername(username)
                                 .setClientId(clientId)
-                                .addAllAccounts(accountNumbers)),
-                        clientId),
+                                .addAllAccounts(accountNumbers))),
                 BankAuthorization.newBuilder());
     }
 
