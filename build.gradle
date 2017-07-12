@@ -27,7 +27,7 @@ allprojects {
     }
 
     group = 'io.token.sdk'
-    version = '1.0.43'
+    version = '1.0.44'
 
     apply plugin: 'io.token.gradle.lib'
     apply plugin: 'io.token.gradle.publish'
