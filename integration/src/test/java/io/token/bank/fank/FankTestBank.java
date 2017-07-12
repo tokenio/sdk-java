@@ -41,10 +41,11 @@ public final class FankTestBank extends TestBank {
     public TestAccount nextAccount(Optional<TestAccount> counterParty) {
         String accountName = "Test Account";
         String bankAccountNumber = "iban:" + randomNumeric(7);
-        Fank.Client client = fank.addClient("Test " + string(), "Testoff");
+        Fank.Client client = fank.addClient(bic,"Test " + string(), "Testoff");
         fank.addAccount(
                 client,
                 accountName,
+                bic,
                 bankAccountNumber,
                 1000000.00,
                 CURRENCY);
@@ -76,16 +77,18 @@ public final class FankTestBank extends TestBank {
 
     @Override
     public BankAuthorization authorizeAccount(String username, NamedAccount account) {
-        Client client = fank.addClient("Test " + string(), "Testoff");
+        Client client = fank.addClient(bic, "Test " + string(), "Testoff");
         fank.addAccount(
                 client,
                 account.getDisplayName(),
+                account.getBankAccount().getSwift().getBic(),
                 account.getBankAccount().getSwift().getAccount(),
                 1000000.00,
                 CURRENCY);
         return fank.startAccountsLinking(
                 username,
                 client.getId(),
+                account.getBankAccount().getSwift().getBic(),
                 singletonList(account.getBankAccount().getSwift().getAccount()));
     }
 }
