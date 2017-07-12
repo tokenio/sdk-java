@@ -253,7 +253,10 @@ public class TransferRedemptionTest {
                 .hasDescription("third");
 
         PagedList<Transfer, String> lookedUp = payer.getTransfers(null, 100, null);
-        assertThat(lookedUp.getList()).containsOnly(transfer1, transfer2, transfer3);
+        assertThat(lookedUp.getList().stream().map(Transfer::getId)).containsOnly(
+                transfer1.getId(),
+                transfer2.getId(),
+                transfer3.getId());
         assertThat(lookedUp.getOffset()).isNotEmpty();
     }
 
