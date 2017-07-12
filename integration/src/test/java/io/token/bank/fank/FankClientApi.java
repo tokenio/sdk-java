@@ -16,12 +16,20 @@ import retrofit2.http.Path;
  * Wraps around HTTP REST API for the fake bank client.
  */
 interface FankClientApi {
-    @PUT("/clients")
-    Call<String> addClient(@Body String request);
+    @PUT("/banks/{bic}/clients")
+    Call<String> addClient(
+            @Path("bic") String bic,
+            @Body String request);
 
-    @PUT("/clients/{client_id}/accounts")
-    Call<String> addAccount(@Body String request, @Path("client_id") String clientId);
+    @PUT("/banks/{bic}/clients/{client_id}/accounts")
+    Call<String> addAccount(
+            @Path("bic") String bic,
+            @Path("client_id") String clientId,
+            @Body String request);
 
-    @PUT("/clients/{client_id}/link-accounts")
-    Call<String> authorizeLinkAccounts(@Body String request, @Path("client_id") String clientId);
+    @PUT("/banks/{bic}/clients/{client_id}/link-accounts")
+    Call<String> authorizeLinkAccounts(
+            @Path("bic") String bic,
+            @Path("client_id") String clientId,
+            @Body String request);
 }
