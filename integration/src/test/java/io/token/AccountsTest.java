@@ -44,6 +44,16 @@ public class AccountsTest {
     }
 
     @Test
+    public void getAccountsMultiple() {
+        LinkedAccount account1 = rule.linkedAccount();
+        LinkedAccount account2 = rule.linkedAccount(account1.getMember());
+
+        List<Account> accounts = account1.getMember().getAccounts();
+        assertThat(accounts).contains(account1.getAccount());
+        assertThat(accounts).contains(account2.getAccount());
+    }
+
+    @Test
     public void getAccount() {
         LinkedAccount account = rule.linkedAccount();
         assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());

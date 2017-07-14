@@ -94,6 +94,10 @@ public class TokenRule implements MethodRule {
         return linkAccount(testBank.nextAccount(Optional.of(counterParty.testAccount())));
     }
 
+    public LinkedAccount linkedAccount(Member member) {
+        return linkAccount(testBank.nextAccount(Optional.empty()), member);
+    }
+
     public LinkedAccount invalidLinkedAccount() {
         return linkAccount(testBank.invalidAccount());
     }
@@ -130,7 +134,10 @@ public class TokenRule implements MethodRule {
     }
 
     private LinkedAccount linkAccount(TestAccount testAccount) {
-        Member member = member();
+        return linkAccount(testAccount, member());
+    }
+
+    private LinkedAccount linkAccount(TestAccount testAccount, Member member) {
         BankAuthorization auth = testBank.authorizeAccount(
                 member.firstUsername(),
                 new NamedAccount(testAccount.getBankAccount(), testAccount.getAccountName()));
