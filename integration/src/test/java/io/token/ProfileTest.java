@@ -1,12 +1,15 @@
 package io.token;
 
 import static io.token.proto.common.member.MemberProtos.ProfilePictureSize.ORIGINAL;
+import static io.token.proto.common.member.MemberProtos.ProfilePictureSize.SMALL;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.protobuf.ByteString;
 import io.token.common.TokenRule;
 import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 
 import java.util.Base64;
 
@@ -92,9 +95,13 @@ public class ProfileTest {
 
         Member otherMember = rule.member();
         Blob blob = otherMember.getProfilePicture(member.memberId(), ORIGINAL);
-
         ByteString tinyGifString = ByteString.copyFrom(tinyGif);
         assertThat(blob.getPayload().getData()).isEqualTo(tinyGifString);
+
+        // Because our example picture is so small, asking for a "small" version
+        // gets us the original
+        Blob sameBlob = otherMember.getProfilePicture(member.memberId(), SMALL);
+        assertThat(sameBlob.getPayload().getData()).isEqualTo(tinyGifString);
     }
 
     @Test
