@@ -22,6 +22,7 @@
 
 package io.token;
 
+import io.reactivex.Observable;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -29,7 +30,6 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.rpc.Client;
 
 import javax.annotation.Nullable;
-import rx.Observable;
 
 /**
  * Represents a funding account in the Token system.

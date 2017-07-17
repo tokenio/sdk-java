@@ -25,6 +25,7 @@ package io.token;
 import static io.token.proto.common.address.AddressProtos.Address;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
+import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -32,7 +33,6 @@ import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
@@ -53,8 +53,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
-
-import rx.functions.Func1;
 
 /**
  * Represents a Member in the Token system. Each member has an active secret
@@ -141,7 +139,7 @@ public final class Member {
      * @param username username, e.g. 'john', must be unique
      */
     public void addUsername(String username) {
-        async.addUsername(username).toBlocking().single();
+        async.addUsername(username).blockingSingle();
     }
 
     /**
@@ -150,7 +148,7 @@ public final class Member {
      * @param usernames usernames, e.g. 'john', must be unique
      */
     public void addUsernames(List<String> usernames) {
-        async.addUsernames(usernames).toBlocking().single();
+        async.addUsernames(usernames).blockingSingle();
     }
 
     /**
@@ -159,7 +157,7 @@ public final class Member {
      * @param username username, e.g. 'john'
      */
     public void removeUsername(String username) {
-        async.removeUsername(username).toBlocking().single();
+        async.removeUsername(username).blockingSingle();
     }
 
     /**
@@ -168,7 +166,7 @@ public final class Member {
      * @param usernames usernames, e.g. 'john'
      */
     public void removeUsernames(List<String> usernames) {
-        async.removeUsernames(usernames).toBlocking().single();
+        async.removeUsernames(usernames).blockingSingle();
     }
 
     /**
@@ -179,7 +177,7 @@ public final class Member {
      * @param level key privilege level
      */
     public void approveKey(SecretKeyPair key, Level level) {
-        async.approveKey(key, level).toBlocking().single();
+        async.approveKey(key, level).blockingSingle();
     }
 
     /**
@@ -189,7 +187,7 @@ public final class Member {
      * @param key key to add to the approved list
      */
     public void approveKey(Key key) {
-        async.approveKey(key).toBlocking().single();
+        async.approveKey(key).blockingSingle();
     }
 
     /**
@@ -199,7 +197,7 @@ public final class Member {
      * @param keys keys to add to the approved list
      */
     public void approveKeys(List<Key> keys) {
-        async.approveKeys(keys).toBlocking().single();
+        async.approveKeys(keys).blockingSingle();
     }
 
     /**
@@ -208,7 +206,7 @@ public final class Member {
      * @param keyId key ID of the key to remove
      */
     public void removeKey(String keyId) {
-        async.removeKey(keyId).toBlocking().single();
+        async.removeKey(keyId).blockingSingle();
     }
 
     /**
@@ -217,7 +215,7 @@ public final class Member {
      * @param keyIds key IDs of the keys to remove
      */
     public void removeKeys(List<String> keyIds) {
-        async.removeKeys(keyIds).toBlocking().single();
+        async.removeKeys(keyIds).blockingSingle();
     }
 
     /**
@@ -241,7 +239,7 @@ public final class Member {
     public Subscriber subscribeToNotifications(
             String handler,
             Map<String, String> handlerInstructions) {
-        return async.subscribeToNotifications(handler, handlerInstructions).toBlocking().single();
+        return async.subscribeToNotifications(handler, handlerInstructions).blockingSingle();
     }
 
     /**
@@ -251,8 +249,7 @@ public final class Member {
      */
     public List<Subscriber> getSubscribers() {
         return async.getSubscribers()
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -262,7 +259,7 @@ public final class Member {
      * @return subscribers Subscribers
      */
     public Subscriber getSubscriber(String subscriberId) {
-        return async.getSubscriber(subscriberId).toBlocking().single();
+        return async.getSubscriber(subscriberId).blockingSingle();
     }
 
     /**
@@ -271,7 +268,7 @@ public final class Member {
      * @param subscriberId subscriberId
      */
     public void unsubscribeFromNotifications(String subscriberId) {
-        async.unsubscribeFromNotifications(subscriberId).toBlocking().single();
+        async.unsubscribeFromNotifications(subscriberId).blockingSingle();
     }
 
 
@@ -285,7 +282,7 @@ public final class Member {
     public PagedList<Notification, String> getNotifications(
             @Nullable String offset,
             int limit) {
-        return async.getNotifications(offset, limit).toBlocking().single();
+        return async.getNotifications(offset, limit).blockingSingle();
     }
 
     /**
@@ -295,7 +292,7 @@ public final class Member {
      * @return notification
      */
     public Notification getNotification(String notificationId) {
-        return async.getNotification(notificationId).toBlocking().single();
+        return async.getNotification(notificationId).blockingSingle();
     }
 
     /**
@@ -306,8 +303,8 @@ public final class Member {
      */
     public List<Account> linkAccounts(BankAuthorization authorization) {
         return async.linkAccounts(authorization)
-                .map(new Func1<List<AccountAsync>, List<Account>>() {
-                    public List<Account> call(List<AccountAsync> asyncList) {
+                .map(new Function<List<AccountAsync>, List<Account>>() {
+                    public List<Account> apply(List<AccountAsync> asyncList) {
                         List<Account> accounts = new LinkedList<>();
                         for (AccountAsync async : asyncList) {
                             accounts.add(async.sync());
@@ -315,8 +312,7 @@ public final class Member {
                         return accounts;
                     }
                 })
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -325,7 +321,7 @@ public final class Member {
      * @param accountIds list of account ids to unlink
      */
     public void unlinkAccounts(List<String> accountIds) {
-        async.unlinkAccounts(accountIds).toBlocking().single();
+        async.unlinkAccounts(accountIds).blockingSingle();
     }
 
     /**
@@ -335,8 +331,8 @@ public final class Member {
      */
     public List<Account> getAccounts() {
         return async.getAccounts()
-                .map(new Func1<List<AccountAsync>, List<Account>>() {
-                    public List<Account> call(List<AccountAsync> asyncList) {
+                .map(new Function<List<AccountAsync>, List<Account>>() {
+                    public List<Account> apply(List<AccountAsync> asyncList) {
                         List<Account> accounts = new LinkedList<>();
                         for (AccountAsync async : asyncList) {
                             accounts.add(async.sync());
@@ -344,8 +340,7 @@ public final class Member {
                         return accounts;
                     }
                 })
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -357,13 +352,12 @@ public final class Member {
     public Account getAccount(String accountId) {
         return async
                 .getAccount(accountId)
-                .map(new Func1<AccountAsync, Account>() {
-                    public Account call(AccountAsync async) {
+                .map(new Function<AccountAsync, Account>() {
+                    public Account apply(AccountAsync async) {
                         return async.sync();
                     }
                 })
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -373,7 +367,7 @@ public final class Member {
      * @return transfer record
      */
     public Transfer getTransfer(String transferId) {
-        return async.getTransfer(transferId).toBlocking().single();
+        return async.getTransfer(transferId).blockingSingle();
     }
 
     /**
@@ -388,7 +382,7 @@ public final class Member {
             @Nullable String offset,
             int limit,
             @Nullable String tokenId) {
-        return async.getTransfers(offset, limit, tokenId).toBlocking().single();
+        return async.getTransfers(offset, limit, tokenId).blockingSingle();
     }
 
     /**
@@ -399,7 +393,7 @@ public final class Member {
      * @return the address record created
      */
     public AddressRecord addAddress(String name, Address address) {
-        return async.addAddress(name, address).toBlocking().single();
+        return async.addAddress(name, address).blockingSingle();
     }
 
     /**
@@ -409,7 +403,7 @@ public final class Member {
      * @return an address record
      */
     public AddressRecord getAddress(String addressId) {
-        return async.getAddress(addressId).toBlocking().single();
+        return async.getAddress(addressId).blockingSingle();
     }
 
     /**
@@ -418,7 +412,7 @@ public final class Member {
      * @return a list of addresses
      */
     public List<AddressRecord> getAddresses() {
-        return async.getAddresses().toBlocking().single();
+        return async.getAddresses().blockingSingle();
     }
 
     /**
@@ -427,7 +421,7 @@ public final class Member {
      * @param addressId the id of the address
      */
     public void deleteAddress(String addressId) {
-        async.deleteAddress(addressId).toBlocking().single();
+        async.deleteAddress(addressId).blockingSingle();
     }
 
     /**
@@ -437,7 +431,7 @@ public final class Member {
      * @return updated profile
      */
     public Profile setProfile(Profile profile) {
-        return async.setProfile(profile).toBlocking().single();
+        return async.setProfile(profile).blockingSingle();
     }
 
     /**
@@ -447,7 +441,7 @@ public final class Member {
      * @return profile info
      */
     public Profile getProfile(String memberId) {
-        return async.getProfile(memberId).toBlocking().single();
+        return async.getProfile(memberId).blockingSingle();
     }
 
     /**
@@ -457,7 +451,7 @@ public final class Member {
      * @param data image data
      */
     public void setProfilePicture(final String type, byte[] data) {
-        async.setProfilePicture(type, data).toBlocking().single();
+        async.setProfilePicture(type, data).blockingSingle();
     }
 
     /**
@@ -468,7 +462,7 @@ public final class Member {
      * @return blob with picture; empty blob (no fields set) if has no picture
      */
     public Blob getProfilePicture(String memberId, ProfilePictureSize size) {
-        return async.getProfilePicture(memberId, size).toBlocking().single();
+        return async.getProfilePicture(memberId, size).blockingSingle();
     }
 
     /**
@@ -489,7 +483,7 @@ public final class Member {
      * @return the access token created
      */
     public Token createAccessToken(AccessTokenBuilder accessTokenBuilder) {
-        return async.createAccessToken(accessTokenBuilder).toBlocking().single();
+        return async.createAccessToken(accessTokenBuilder).blockingSingle();
     }
 
     /**
@@ -499,7 +493,7 @@ public final class Member {
      * @return transfer token returned by the server
      */
     public Token getToken(String tokenId) {
-        return async.getToken(tokenId).toBlocking().single();
+        return async.getToken(tokenId).blockingSingle();
     }
 
     /**
@@ -510,7 +504,7 @@ public final class Member {
      * @return transfer tokens owned by the member
      */
     public PagedList<Token, String> getTransferTokens(@Nullable String offset, int limit) {
-        return async.getTransferTokens(offset, limit).toBlocking().single();
+        return async.getTransferTokens(offset, limit).blockingSingle();
     }
 
     /**
@@ -521,7 +515,7 @@ public final class Member {
      * @return transfer tokens owned by the member
      */
     public PagedList<Token, String> getAccessTokens(@Nullable String offset, int limit) {
-        return async.getAccessTokens(offset, limit).toBlocking().single();
+        return async.getAccessTokens(offset, limit).blockingSingle();
     }
 
     /**
@@ -533,7 +527,7 @@ public final class Member {
      * @return result of endorse token
      */
     public TokenOperationResult endorseToken(Token token, Key.Level keyLevel) {
-        return async.endorseToken(token, keyLevel).toBlocking().single();
+        return async.endorseToken(token, keyLevel).blockingSingle();
     }
 
     /**
@@ -544,7 +538,7 @@ public final class Member {
      * @return result of endorsed token
      */
     public TokenOperationResult cancelToken(Token token) {
-        return async.cancelToken(token).toBlocking().single();
+        return async.cancelToken(token).blockingSingle();
     }
 
     /**
@@ -559,8 +553,7 @@ public final class Member {
             AccessTokenBuilder tokenToCreate) {
         return async
                 .replaceAccessToken(tokenToCancel, tokenToCreate)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -575,8 +568,7 @@ public final class Member {
             AccessTokenBuilder tokenToCreate) {
         return async
                 .replaceAndEndorseAccessToken(tokenToCancel, tokenToCreate)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -586,7 +578,7 @@ public final class Member {
      * @return transfer record
      */
     public Transfer redeemToken(Token token) {
-        return async.redeemToken(token).toBlocking().single();
+        return async.redeemToken(token).blockingSingle();
     }
 
     /**
@@ -597,7 +589,7 @@ public final class Member {
      * @return transfer record
      */
     public Transfer redeemToken(Token token, String refId) {
-        return async.redeemToken(token, refId).toBlocking().single();
+        return async.redeemToken(token, refId).blockingSingle();
     }
 
     /**
@@ -608,7 +600,7 @@ public final class Member {
      * @return transfer record
      */
     public Transfer redeemToken(Token token, TransferEndpoint destination) {
-        return async.redeemToken(token, destination).toBlocking().single();
+        return async.redeemToken(token, destination).blockingSingle();
     }
 
     /**
@@ -620,7 +612,7 @@ public final class Member {
      * @return transfer record
      */
     public Transfer redeemToken(Token token, TransferEndpoint destination, String refId) {
-        return async.redeemToken(token, destination, refId).toBlocking().single();
+        return async.redeemToken(token, destination, refId).blockingSingle();
     }
 
     /**
@@ -639,8 +631,7 @@ public final class Member {
             @Nullable String description) {
         return async
                 .redeemToken(token, amount, currency, description, null, null)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -659,8 +650,7 @@ public final class Member {
             @Nullable TransferEndpoint destination) {
         return async
                 .redeemToken(token, amount, currency, null, destination, null)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -681,8 +671,7 @@ public final class Member {
             @Nullable TransferEndpoint destination) {
         return async
                 .redeemToken(token, amount, currency, description, destination, null)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -705,8 +694,7 @@ public final class Member {
             @Nullable String refId) {
         return async
                 .redeemToken(token, amount, currency, description, destination, refId)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -717,7 +705,7 @@ public final class Member {
      * @return transaction record
      */
     public Transaction getTransaction(String accountId, String transactionId) {
-        return async.getTransaction(accountId, transactionId).toBlocking().single();
+        return async.getTransaction(accountId, transactionId).blockingSingle();
     }
 
     /**
@@ -732,7 +720,7 @@ public final class Member {
             String accountId,
             @Nullable String offset,
             int limit) {
-        return async.getTransactions(accountId, offset, limit).toBlocking().single();
+        return async.getTransactions(accountId, offset, limit).blockingSingle();
     }
 
     /**
@@ -742,7 +730,7 @@ public final class Member {
      * @return balance
      */
     public Money getBalance(String accountId) {
-        return async.getBalance(accountId).toBlocking().single();
+        return async.getBalance(accountId).blockingSingle();
     }
 
     /**
@@ -751,7 +739,7 @@ public final class Member {
      * @return a list of banks
      */
     public List<Bank> getBanks() {
-        return async.getBanks().toBlocking().single();
+        return async.getBanks().blockingSingle();
     }
 
     /**
@@ -761,7 +749,7 @@ public final class Member {
      * @return bank linking information
      */
     public BankInfo getBankInfo(String bankId) {
-        return async.getBankInfo(bankId).toBlocking().single();
+        return async.getBankInfo(bankId).blockingSingle();
     }
 
     /**
@@ -780,7 +768,7 @@ public final class Member {
             String name,
             byte[] data,
             AccessMode accessMode) {
-        return async.createBlob(ownerId, type, name, data, accessMode).toBlocking().single();
+        return async.createBlob(ownerId, type, name, data, accessMode).blockingSingle();
     }
 
     /**
@@ -799,8 +787,7 @@ public final class Member {
             byte[] data) {
         return async
                 .createBlob(ownerId, type, name, data, AccessMode.DEFAULT)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -810,7 +797,7 @@ public final class Member {
      * @return Blob
      */
     public Blob getBlob(String blobId) {
-        return async.getBlob(blobId).toBlocking().single();
+        return async.getBlob(blobId).blockingSingle();
     }
 
     /**
@@ -821,7 +808,7 @@ public final class Member {
      * @return Blob
      */
     public Blob getTokenBlob(String tokenId, String blobId) {
-        return async.getTokenBlob(tokenId, blobId).toBlocking().single();
+        return async.getTokenBlob(tokenId, blobId).blockingSingle();
     }
 
     /**
@@ -832,7 +819,7 @@ public final class Member {
      * @return bank authorization
      */
     public BankAuthorization createTestBankAccount(double balance, String currency) {
-        return async.createTestBankAccount(balance, currency).toBlocking().single();
+        return async.createTestBankAccount(balance, currency).blockingSingle();
     }
 
     @Override

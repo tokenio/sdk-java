@@ -94,7 +94,7 @@ public final class Account {
      * @return account balance
      */
     public Money getBalance() {
-        return async.getBalance().toBlocking().single();
+        return async.getBalance().blockingSingle();
     }
 
     /**
@@ -103,8 +103,8 @@ public final class Account {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
-    public @Nullable Transaction getTransaction(String transactionId) {
-        return async.getTransaction(transactionId).toBlocking().single();
+    public Transaction getTransaction(String transactionId) {
+        return async.getTransaction(transactionId).blockingSingle();
     }
 
     /**
@@ -115,7 +115,7 @@ public final class Account {
      * @return list of transactions
      */
     public PagedList<Transaction, String> getTransactions(@Nullable String offset, int limit) {
-        return async.getTransactions(offset, limit).toBlocking().single();
+        return async.getTransactions(offset, limit).blockingSingle();
     }
 
     @Override

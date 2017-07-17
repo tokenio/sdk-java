@@ -25,11 +25,11 @@ package io.token;
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
 import io.grpc.Metadata;
+import io.reactivex.functions.Function;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngineFactory;
@@ -39,12 +39,10 @@ import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
 
-import rx.functions.Func1;
-
 /**
  * Main entry point to the Token SDK. Use {@link TokenIO.Builder}
  * class to create an instance of the {@link TokenIOAsync} or {@link TokenIO}.
- *
+ * <p>
  * <p>The class provides synchronous API with {@link TokenIOAsync} providing an
  * asynchronous version. {@link TokenIOAsync} instance can be obtained by
  * calling {@link #async} method.</p>
@@ -59,11 +57,6 @@ public final class TokenIO implements Closeable {
      */
     TokenIO(TokenIOAsync async) {
         this.async = async;
-    }
-
-    @Override
-    public void close() {
-        async.close();
     }
 
     /**
@@ -102,6 +95,11 @@ public final class TokenIO implements Closeable {
                 .buildAsync();
     }
 
+    @Override
+    public void close() {
+        async.close();
+    }
+
     /**
      * Returns an async version of the API.
      *
@@ -118,7 +116,7 @@ public final class TokenIO implements Closeable {
      * @return {@code true} if username exists, {@code false} otherwise
      */
     public boolean usernameExists(String username) {
-        return async.usernameExists(username).toBlocking().single();
+        return async.usernameExists(username).blockingSingle();
     }
 
     /**
@@ -128,7 +126,7 @@ public final class TokenIO implements Closeable {
      * @return member id if username already exists, null otherwise
      */
     public String getMemberId(String username) {
-        return async.getMemberId(username).toBlocking().single();
+        return async.getMemberId(username).blockingSingle();
     }
 
     /**
@@ -141,8 +139,7 @@ public final class TokenIO implements Closeable {
     public Member createMember(String username) {
         return async.createMember(username)
                 .map(new MemberFunction())
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -155,8 +152,7 @@ public final class TokenIO implements Closeable {
      */
     public DeviceInfo provisionDevice(String username) {
         return async.provisionDevice(username)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -168,8 +164,7 @@ public final class TokenIO implements Closeable {
     public Member login(String memberId) {
         return async.login(memberId)
                 .map(new MemberFunction())
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -183,8 +178,7 @@ public final class TokenIO implements Closeable {
             String username,
             BankAuthorization authorization) {
         return async.notifyLinkAccounts(username, authorization)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -202,7 +196,7 @@ public final class TokenIO implements Closeable {
         return async.notifyAddKey(
                 username,
                 name,
-                key).toBlocking().single();
+                key).blockingSingle();
     }
 
     /**
@@ -223,7 +217,7 @@ public final class TokenIO implements Closeable {
                 username,
                 authorization,
                 name,
-                key).toBlocking().single();
+                key).blockingSingle();
     }
 
     /**
@@ -238,8 +232,7 @@ public final class TokenIO implements Closeable {
             TokenPayload tokenPayload) {
         return async
                 .notifyPaymentRequest(username, tokenPayload)
-                .toBlocking()
-                .single();
+                .blockingSingle();
     }
 
     /**
@@ -385,8 +378,8 @@ public final class TokenIO implements Closeable {
         }
     }
 
-    private class MemberFunction implements Func1<MemberAsync, Member> {
-        public Member call(MemberAsync memberAsync) {
+    private class MemberFunction implements Function<MemberAsync, Member> {
+        public Member apply(MemberAsync memberAsync) {
             return memberAsync.sync();
         }
     }

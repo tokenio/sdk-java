@@ -4,6 +4,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.toList;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
 import com.google.common.collect.ImmutableSet;
 import io.token.asserts.TransactionAssertion;
@@ -67,8 +68,9 @@ public class TransactionsTest {
 
     @Test
     public void getTransaction_wrongId() {
-        Transaction lookedUp = payerAccount.getAccount().getTransaction("invalid_id");
-        assertThat(lookedUp).isNull();
+        assertThatThrownBy(() -> payerAccount
+                .getAccount()
+                .getTransaction("invalid_id"));
     }
 
     @Test
@@ -82,9 +84,9 @@ public class TransactionsTest {
                 null,
                 null);
 
-        Transaction lookedUp =
-                payeeAccount.getAccount().getTransaction(transfer.getTransactionId());
-        assertThat(lookedUp).isNull();
+        assertThatThrownBy(() ->  payeeAccount
+                .getAccount()
+                .getTransaction(transfer.getTransactionId()));
     }
 
     @Test

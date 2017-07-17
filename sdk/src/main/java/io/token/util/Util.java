@@ -27,6 +27,13 @@ import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleObserver;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Function;
+import io.reactivex.internal.functions.ObjectHelper;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
@@ -34,9 +41,6 @@ import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.util.concurrent.ExecutionException;
 
-import rx.Observable;
-import rx.Single;
-import rx.SingleSubscriber;
 
 /**
  * Utility methods.
@@ -89,28 +93,29 @@ public abstract class Util {
      */
     public static <T> Observable<T> toObservable(final ListenableFuture<T> future) {
         return Single
-                .create(new Single.OnSubscribe<T>() {
-                    public void call(final SingleSubscriber<? super T> subscriber) {
+                .create(new SingleOnSubscribe<T>() {
+                    @Override
+                    public void subscribe(final SingleEmitter<T> emitter) throws Exception {
                         future.addListener(
                                 new Runnable() {
                                     public void run() {
-                                        if (subscriber.isUnsubscribed()) {
+                                        if (emitter.isDisposed()) {
                                             return;
                                         }
                                         try {
-                                            subscriber.onSuccess(Uninterruptibles
+                                            emitter.onSuccess(Uninterruptibles
                                                     .getUninterruptibly(future));
                                         } catch (ExecutionException ex) {
                                             // We are dealing with StatusRuntimeExceptions here,
                                             // possibly wrapping the actual custom Token exceptions.
                                             Throwable cause = ex.getCause().getCause();
                                             if (cause != null) {
-                                                subscriber.onError(cause);
+                                                emitter.onError(cause);
                                             } else {
-                                                subscriber.onError(ex.getCause());
+                                                emitter.onError(ex.getCause());
                                             }
                                         } catch (Throwable ex) {
-                                            subscriber.onError(ex);
+                                            emitter.onError(ex);
                                         }
                                     }
                                 },

@@ -28,6 +28,8 @@ import static io.token.util.Util.generateNonce;
 
 import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import io.token.exceptions.TokenArgumentsException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
@@ -35,15 +37,11 @@ import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
-import io.token.proto.common.pricing.PricingProtos;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
-import io.token.proto.common.pricing.PricingProtos.PricingInstructions;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
-import io.token.proto.common.transfer.TransferProtos;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
@@ -52,8 +50,6 @@ import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.functions.Func1;
 
 /**
  * This class is used to build a transfer token. The required parameters are member, amount (which
@@ -307,7 +303,7 @@ public final class TransferTokenBuilder {
      * @return Token
      */
     public Token execute() {
-        return executeAsync().toBlocking().single();
+        return executeAsync().blockingSingle();
     }
 
     /**
@@ -343,8 +339,8 @@ public final class TransferTokenBuilder {
 
         return Observable.merge(attachmentUploads)
                 .toList()
-                .flatMap(new Func1<List<Attachment>, Observable<Token>>() {
-                    public Observable<Token> call(List<Attachment> attachments) {
+                .flatMapObservable(new Function<List<Attachment>, Observable<Token>>() {
+                    public Observable<Token> apply(List<Attachment> attachments) {
                         payload.getTransferBuilder().addAllAttachments(attachments);
                         return member.createTransferToken(payload.build());
                     }

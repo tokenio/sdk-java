@@ -26,20 +26,19 @@ import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toObservable;
 
 import com.google.common.base.Strings;
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
 import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.notification.NotificationProtos.PaymentRequest;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
@@ -55,9 +54,6 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.Signer;
 
 import java.util.List;
-
-import rx.Observable;
-import rx.functions.Func1;
 
 /**
  * Similar to {@link Client} but is only used for a handful of requests that
@@ -88,8 +84,8 @@ public final class UnauthenticatedClient {
                         .newBuilder()
                         .setUsername(username)
                         .build()))
-                .map(new Func1<GetMemberIdResponse, Boolean>() {
-                    public Boolean call(GetMemberIdResponse response) {
+                .map(new Function<GetMemberIdResponse, Boolean>() {
+                    public Boolean apply(GetMemberIdResponse response) {
                         return !response.getMemberId().isEmpty();
                     }
                 });
@@ -106,8 +102,8 @@ public final class UnauthenticatedClient {
                 gateway.getMemberId(GetMemberIdRequest.newBuilder()
                         .setUsername(username)
                         .build()))
-                .map(new Func1<GetMemberIdResponse, String>() {
-                    public String call(GetMemberIdResponse response) {
+                .map(new Function<GetMemberIdResponse, String>() {
+                    public String apply(GetMemberIdResponse response) {
                         return Strings.emptyToNull(response.getMemberId());
                     }
                 });
@@ -123,8 +119,8 @@ public final class UnauthenticatedClient {
                 toObservable(gateway.createMember(CreateMemberRequest.newBuilder()
                         .setNonce(generateNonce())
                         .build()))
-                        .map(new Func1<CreateMemberResponse, String>() {
-                            public String call(CreateMemberResponse response) {
+                        .map(new Function<CreateMemberResponse, String>() {
+                            public String apply(CreateMemberResponse response) {
                                 return response.getMemberId();
                             }
                         });
@@ -152,8 +148,8 @@ public final class UnauthenticatedClient {
                         .setKeyId(signer.getKeyId())
                         .setSignature(signer.sign(update.build())))
                 .build()))
-                .map(new Func1<UpdateMemberResponse, Member>() {
-                    public Member call(UpdateMemberResponse response) {
+                .map(new Function<UpdateMemberResponse, Member>() {
+                    public Member apply(UpdateMemberResponse response) {
                         return response.getMember();
                     }
                 });
@@ -178,8 +174,8 @@ public final class UnauthenticatedClient {
                                         .build())
                                 .build())
                         .build()))
-                .map(new Func1<NotifyResponse, NotifyStatus>() {
-                    public NotifyStatus call(NotifyResponse response) {
+                .map(new Function<NotifyResponse, NotifyStatus>() {
+                    public NotifyStatus apply(NotifyResponse response) {
                         return response.getStatus();
                     }
                 });
@@ -208,8 +204,8 @@ public final class UnauthenticatedClient {
                                         .build())
                                 .build())
                         .build()))
-                .map(new Func1<NotifyResponse, NotifyStatus>() {
-                    public NotifyStatus call(NotifyResponse response) {
+                .map(new Function<NotifyResponse, NotifyStatus>() {
+                    public NotifyStatus apply(NotifyResponse response) {
                         return response.getStatus();
                     }
                 });
@@ -244,8 +240,8 @@ public final class UnauthenticatedClient {
                                         .build())
                                 .build())
                         .build()))
-                .map(new Func1<NotifyResponse, NotifyStatus>() {
-                    public NotifyStatus call(NotifyResponse response) {
+                .map(new Function<NotifyResponse, NotifyStatus>() {
+                    public NotifyStatus apply(NotifyResponse response) {
                         return response.getStatus();
                     }
                 });
@@ -266,8 +262,8 @@ public final class UnauthenticatedClient {
                         .setUsername(username)
                         .setTokenPayload(tokenPayload)
                         .build()))
-                .map(new Func1<RequestTransferResponse, NotifyStatus>() {
-                    public NotifyStatus call(RequestTransferResponse response) {
+                .map(new Function<RequestTransferResponse, NotifyStatus>() {
+                    public NotifyStatus apply(RequestTransferResponse response) {
                         return response.getStatus();
                     }
                 });

@@ -6,7 +6,7 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
-        classpath 'io.token.gradle:token-gradle:1.0.64'
+        classpath 'io.token.gradle:token-gradle:1.0.66'
         classpath 'net.ltgt.gradle:gradle-apt-plugin:0.8'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.13.0'
         classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1'
@@ -17,17 +17,18 @@ allprojects {
     ext {
         ver = [
             tokenProto           : '1.0.352',
-            tokenRpc             : '1.0.74',
-            tokenSecurity        : '1.0.34',
+            tokenRpc             : '1.0.81',
+            tokenSecurity        : '1.0.37',
             tokenUtil            : '1.0.13',
             retrofit             : '2.2.0',
-            tokenIntegrationSdk  : '1.0.64',
+            tokenIntegrationSdk  : '1.0.82',
             tokenFank            : '1.0.3',
+            rxjava               : '2.1.1',
         ]
     }
 
     group = 'io.token.sdk'
-    version = '1.0.46'
+    version = '1.0.47'
 
     apply plugin: 'io.token.gradle.lib'
     apply plugin: 'io.token.gradle.publish'

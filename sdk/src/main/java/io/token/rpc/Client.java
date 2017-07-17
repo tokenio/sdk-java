@@ -27,6 +27,8 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANC
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.util.Util.toObservable;
 
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import io.token.TransferTokenException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -36,7 +38,6 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -138,6 +139,7 @@ import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
+import io.token.rpc.util.Unit;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 import io.token.util.Util;
@@ -146,8 +148,6 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
-import rx.Observable;
-import rx.functions.Func1;
 
 /**
  * An authenticated RPC client that is used to talk to Token gateway. The
@@ -203,8 +203,8 @@ public final class Client {
                 .toObservable(gateway.getMember(GetMemberRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
-                .map(new Func1<GetMemberResponse, Member>() {
-                    public Member call(GetMemberResponse response) {
+                .map(new Function<GetMemberResponse, Member>() {
+                    public Member apply(GetMemberResponse response) {
                         return response.getMember();
                     }
                 });
@@ -237,8 +237,8 @@ public final class Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(update)))
                         .build()))
-                .map(new Func1<UpdateMemberResponse, Member>() {
-                    public Member call(UpdateMemberResponse response) {
+                .map(new Function<UpdateMemberResponse, Member>() {
+                    public Member apply(UpdateMemberResponse response) {
                         return response.getMember();
                     }
                 });
@@ -261,8 +261,8 @@ public final class Client {
                 .build();
         return toObservable(gateway
                 .subscribeToNotifications(request))
-                .map(new Func1<SubscribeToNotificationsResponse, Subscriber>() {
-                    public Subscriber call(SubscribeToNotificationsResponse response) {
+                .map(new Function<SubscribeToNotificationsResponse, Subscriber>() {
+                    public Subscriber apply(SubscribeToNotificationsResponse response) {
                         return response.getSubscriber();
                     }
                 });
@@ -278,9 +278,9 @@ public final class Client {
                 .getSubscribers(GetSubscribersRequest
                         .newBuilder()
                         .build()))
-                .map(new Func1<GetSubscribersResponse, List<Subscriber>>() {
+                .map(new Function<GetSubscribersResponse, List<Subscriber>>() {
                     @Override
-                    public List<Subscriber> call(GetSubscribersResponse response) {
+                    public List<Subscriber> apply(GetSubscribersResponse response) {
                         return response.getSubscribersList();
                     }
                 });
@@ -298,8 +298,8 @@ public final class Client {
                         .newBuilder()
                         .setSubscriberId(subscriberId)
                         .build()))
-                .map(new Func1<GetSubscriberResponse, Subscriber>() {
-                    public Subscriber call(GetSubscriberResponse response) {
+                .map(new Function<GetSubscriberResponse, Subscriber>() {
+                    public Subscriber apply(GetSubscriberResponse response) {
                         return response.getSubscriber();
                     }
                 });
@@ -311,16 +311,16 @@ public final class Client {
      * @param subscriberId id of the subscriber
      * @return nothing
      */
-    public Observable<Void> unsubscribeFromNotifications(
+    public Observable<Unit> unsubscribeFromNotifications(
             String subscriberId) {
         return toObservable(gateway
                 .unsubscribeFromNotifications(UnsubscribeFromNotificationsRequest
                         .newBuilder()
                         .setSubscriberId(subscriberId)
                         .build()))
-                .map(new Func1<UnsubscribeFromNotificationsResponse, Void>() {
-                    public Void call(UnsubscribeFromNotificationsResponse response) {
-                        return null;
+                .map(new Function<UnsubscribeFromNotificationsResponse, Unit>() {
+                    public Unit apply(UnsubscribeFromNotificationsResponse response) {
+                        return Unit.INSTANCE;
                     }
                 });
     }
@@ -340,8 +340,9 @@ public final class Client {
                         .newBuilder()
                         .setPage(pageBuilder(offset, limit))
                         .build()))
-                .map(new Func1<GetNotificationsResponse, PagedList<Notification, String>>() {
-                    public PagedList<Notification, String> call(GetNotificationsResponse response) {
+                .map(new Function<GetNotificationsResponse, PagedList<Notification, String>>() {
+                    public PagedList<Notification, String> apply(
+                            GetNotificationsResponse response) {
                         return PagedList.create(
                                 response.getNotificationsList(),
                                 response.getOffset());
@@ -361,8 +362,8 @@ public final class Client {
                         .newBuilder()
                         .setNotificationId(notificationId)
                         .build()))
-                .map(new Func1<GetNotificationResponse, Notification>() {
-                    public Notification call(GetNotificationResponse response) {
+                .map(new Function<GetNotificationResponse, Notification>() {
+                    public Notification apply(GetNotificationResponse response) {
                         return response.getNotification();
                     }
                 });
@@ -381,8 +382,8 @@ public final class Client {
                         .newBuilder()
                         .setBankAuthorization(authorization)
                         .build()))
-                .map(new Func1<LinkAccountsResponse, List<Account>>() {
-                    public List<Account> call(LinkAccountsResponse response) {
+                .map(new Function<LinkAccountsResponse, List<Account>>() {
+                    public List<Account> apply(LinkAccountsResponse response) {
                         return response.getAccountsList();
                     }
                 });
@@ -394,14 +395,14 @@ public final class Client {
      * @param accountIds account ids to unlink
      * @return nothing
      */
-    public Observable<Void> unlinkAccounts(List<String> accountIds) {
+    public Observable<Unit> unlinkAccounts(List<String> accountIds) {
         return toObservable(gateway.unlinkAccounts(
                 UnlinkAccountsRequest.newBuilder()
                         .addAllAccountIds(accountIds)
                         .build()))
-                .map(new Func1<UnlinkAccountsResponse, Void>() {
-                    public Void call(UnlinkAccountsResponse response) {
-                        return null;
+                .map(new Function<UnlinkAccountsResponse, Unit>() {
+                    public Unit apply(UnlinkAccountsResponse response) {
+                        return Unit.INSTANCE;
                     }
                 });
     }
@@ -419,8 +420,8 @@ public final class Client {
                         .newBuilder()
                         .setAccountId(accountId)
                         .build()))
-                .map(new Func1<GetAccountResponse, Account>() {
-                    public Account call(GetAccountResponse response) {
+                .map(new Function<GetAccountResponse, Account>() {
+                    public Account apply(GetAccountResponse response) {
                         return response.getAccount();
                     }
                 });
@@ -437,8 +438,8 @@ public final class Client {
                 .getAccounts(GetAccountsRequest
                         .newBuilder()
                         .build()))
-                .map(new Func1<GetAccountsResponse, List<Account>>() {
-                    public List<Account> call(GetAccountsResponse response) {
+                .map(new Function<GetAccountsResponse, List<Account>>() {
+                    public List<Account> apply(GetAccountsResponse response) {
                         return response.getAccountsList();
                     }
                 });
@@ -456,8 +457,8 @@ public final class Client {
                         .newBuilder()
                         .setPayload(payload)
                         .build()))
-                .map(new Func1<CreateTransferTokenResponse, Token>() {
-                    public Token call(CreateTransferTokenResponse response) {
+                .map(new Function<CreateTransferTokenResponse, Token>() {
+                    public Token apply(CreateTransferTokenResponse response) {
                         if (response.getStatus() != TransferTokenStatus.SUCCESS) {
                             throw new TransferTokenException(response.getStatus());
                         }
@@ -478,8 +479,8 @@ public final class Client {
                         .newBuilder()
                         .setPayload(payload)
                         .build()))
-                .map(new Func1<CreateAccessTokenResponse, Token>() {
-                    public Token call(CreateAccessTokenResponse response) {
+                .map(new Function<CreateAccessTokenResponse, Token>() {
+                    public Token apply(CreateAccessTokenResponse response) {
                         return response.getToken();
                     }
                 });
@@ -497,8 +498,8 @@ public final class Client {
                         .newBuilder()
                         .setTokenId(tokenId)
                         .build()))
-                .map(new Func1<GetTokenResponse, Token>() {
-                    public Token call(GetTokenResponse response) {
+                .map(new Function<GetTokenResponse, Token>() {
+                    public Token apply(GetTokenResponse response) {
                         return response.getToken();
                     }
                 });
@@ -522,8 +523,8 @@ public final class Client {
                         .setType(type)
                         .setPage(pageBuilder(offset, limit))
                         .build()))
-                .map(new Func1<GetTokensResponse, PagedList<Token, String>>() {
-                    public PagedList<Token, String> call(GetTokensResponse response) {
+                .map(new Function<GetTokensResponse, PagedList<Token, String>>() {
+                    public PagedList<Token, String> apply(GetTokensResponse response) {
                         return PagedList.create(response.getTokensList(), response.getOffset());
                     }
                 });
@@ -548,9 +549,9 @@ public final class Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(tokenAction(token, ENDORSED))))
                         .build()))
-                .map(new Func1<EndorseTokenResponse, TokenOperationResult>() {
+                .map(new Function<EndorseTokenResponse, TokenOperationResult>() {
                     @Override
-                    public TokenOperationResult call(EndorseTokenResponse response) {
+                    public TokenOperationResult apply(EndorseTokenResponse response) {
                         return response.getResult();
                     }
                 });
@@ -574,8 +575,8 @@ public final class Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(tokenAction(token, CANCELLED))))
                         .build()))
-                .map(new Func1<CancelTokenResponse, TokenOperationResult>() {
-                    public TokenOperationResult call(CancelTokenResponse response) {
+                .map(new Function<CancelTokenResponse, TokenOperationResult>() {
+                    public TokenOperationResult apply(CancelTokenResponse response) {
                         return response.getResult();
                     }
                 });
@@ -628,8 +629,8 @@ public final class Client {
                         .newBuilder()
                         .setAccountId(accountId)
                         .build()))
-                .map(new Func1<GetBalanceResponse, Money>() {
-                    public Money call(GetBalanceResponse response) {
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
                         return response.getCurrent();
                     }
                 });
@@ -653,8 +654,8 @@ public final class Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(transfer)))
                         .build()))
-                .map(new Func1<CreateTransferResponse, Transfer>() {
-                    public Transfer call(CreateTransferResponse response) {
+                .map(new Function<CreateTransferResponse, Transfer>() {
+                    public Transfer apply(CreateTransferResponse response) {
                         return response.getTransfer();
                     }
                 });
@@ -672,8 +673,8 @@ public final class Client {
                         .newBuilder()
                         .setTransferId(transferId)
                         .build()))
-                .map(new Func1<GetTransferResponse, Transfer>() {
-                    public Transfer call(GetTransferResponse response) {
+                .map(new Function<GetTransferResponse, Transfer>() {
+                    public Transfer apply(GetTransferResponse response) {
                         return response.getTransfer();
                     }
                 });
@@ -700,8 +701,8 @@ public final class Client {
         }
 
         return toObservable(gateway.getTransfers(request.build()))
-                .map(new Func1<GetTransfersResponse, PagedList<Transfer, String>>() {
-                    public PagedList<Transfer, String> call(GetTransfersResponse response) {
+                .map(new Function<GetTransfersResponse, PagedList<Transfer, String>>() {
+                    public PagedList<Transfer, String> apply(GetTransfersResponse response) {
                         return PagedList.create(response.getTransfersList(), response.getOffset());
                     }
                 });
@@ -724,11 +725,9 @@ public final class Client {
                         .setAccountId(accountId)
                         .setTransactionId(transactionId)
                         .build()))
-                .map(new Func1<GetTransactionResponse, Transaction>() {
-                    public Transaction call(GetTransactionResponse response) {
-                        return response.hasTransaction()
-                                ? response.getTransaction()
-                                : null;
+                .map(new Function<GetTransactionResponse, Transaction>() {
+                    public Transaction apply(GetTransactionResponse response) {
+                        return response.getTransaction();
                     }
                 });
     }
@@ -753,8 +752,8 @@ public final class Client {
                         .setAccountId(accountId)
                         .setPage(pageBuilder(offset, limit))
                         .build()))
-                .map(new Func1<GetTransactionsResponse, PagedList<Transaction, String>>() {
-                    public PagedList<Transaction, String> call(GetTransactionsResponse response) {
+                .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
+                    public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
                         return PagedList.create(
                                 response.getTransactionsList(),
                                 response.getOffset());
@@ -774,8 +773,8 @@ public final class Client {
                         .newBuilder()
                         .setPayload(payload)
                         .build()))
-                .map(new Func1<CreateBlobResponse, String>() {
-                    public String call(CreateBlobResponse response) {
+                .map(new Function<CreateBlobResponse, String>() {
+                    public String apply(CreateBlobResponse response) {
                         return response.getBlobId();
                     }
                 });
@@ -793,8 +792,8 @@ public final class Client {
                         .newBuilder()
                         .setBlobId(blobId)
                         .build()))
-                .map(new Func1<GetBlobResponse, Blob>() {
-                    public Blob call(GetBlobResponse response) {
+                .map(new Function<GetBlobResponse, Blob>() {
+                    public Blob apply(GetBlobResponse response) {
                         return response.getBlob();
                     }
                 });
@@ -814,8 +813,8 @@ public final class Client {
                         .setTokenId(tokenId)
                         .setBlobId(blobId)
                         .build()))
-                .map(new Func1<GetTokenBlobResponse, Blob>() {
-                    public Blob call(GetTokenBlobResponse response) {
+                .map(new Function<GetTokenBlobResponse, Blob>() {
+                    public Blob apply(GetTokenBlobResponse response) {
                         return response.getBlob();
                     }
                 });
@@ -842,8 +841,8 @@ public final class Client {
                                 .setSignature(signer.sign(address))
                                 .build())
                         .build()))
-                .map(new Func1<AddAddressResponse, AddressRecord>() {
-                    public AddressRecord call(AddAddressResponse response) {
+                .map(new Function<AddAddressResponse, AddressRecord>() {
+                    public AddressRecord apply(AddAddressResponse response) {
                         return response.getAddress();
                     }
                 });
@@ -862,8 +861,8 @@ public final class Client {
                         .newBuilder()
                         .setAddressId(addressId)
                         .build()))
-                .map(new Func1<GetAddressResponse, AddressRecord>() {
-                    public AddressRecord call(GetAddressResponse response) {
+                .map(new Function<GetAddressResponse, AddressRecord>() {
+                    public AddressRecord apply(GetAddressResponse response) {
                         return response.getAddress();
                     }
                 });
@@ -880,8 +879,8 @@ public final class Client {
                 .getAddresses(GetAddressesRequest
                         .newBuilder()
                         .build()))
-                .map(new Func1<GetAddressesResponse, List<AddressRecord>>() {
-                    public List<AddressRecord> call(GetAddressesResponse response) {
+                .map(new Function<GetAddressesResponse, List<AddressRecord>>() {
+                    public List<AddressRecord> apply(GetAddressesResponse response) {
                         return response.getAddressesList();
                     }
                 });
@@ -893,15 +892,15 @@ public final class Client {
      * @param addressId the id of the address
      * @return observable that completes when request
      */
-    public Observable<Void> deleteAddress(String addressId) {
+    public Observable<Unit> deleteAddress(String addressId) {
         return toObservable(gateway
                 .deleteAddress(DeleteAddressRequest
                         .newBuilder()
                         .setAddressId(addressId)
                         .build())
-        ).map(new Func1<DeleteAddressResponse, Void>() {
-            public Void call(DeleteAddressResponse response) {
-                return null;
+        ).map(new Function<DeleteAddressResponse, Unit>() {
+            public Unit apply(DeleteAddressResponse response) {
+                return Unit.INSTANCE;
             }
         });
     }
@@ -917,8 +916,8 @@ public final class Client {
                 .toObservable(gateway.setProfile(SetProfileRequest.newBuilder()
                         .setProfile(profile)
                         .build()))
-                .map(new Func1<SetProfileResponse, Profile>() {
-                    public Profile call(SetProfileResponse response) {
+                .map(new Function<SetProfileResponse, Profile>() {
+                    public Profile apply(SetProfileResponse response) {
                         return response.getProfile();
                     }
                 });
@@ -935,8 +934,8 @@ public final class Client {
                 .toObservable(gateway.getProfile(GetProfileRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
-                .map(new Func1<GetProfileResponse, Profile>() {
-                    public Profile call(GetProfileResponse response) {
+                .map(new Function<GetProfileResponse, Profile>() {
+                    public Profile apply(GetProfileResponse response) {
                         return response.getProfile();
                     }
                 });
@@ -948,14 +947,14 @@ public final class Client {
      * @param payload Picture data
      * @return observable that completes when request handled
      */
-    public Observable<Void> setProfilePicture(Payload payload) {
+    public Observable<Unit> setProfilePicture(Payload payload) {
         return Util
                 .toObservable(gateway.setProfilePicture(SetProfilePictureRequest.newBuilder()
                         .setPayload(payload)
                         .build()))
-                .map(new Func1<SetProfilePictureResponse, Void>() {
-                    public Void call(SetProfilePictureResponse response) {
-                        return null;
+                .map(new Function<SetProfilePictureResponse, Unit>() {
+                    public Unit apply(SetProfilePictureResponse response) {
+                        return Unit.INSTANCE;
                     }
                 });
     }
@@ -973,8 +972,8 @@ public final class Client {
                         .setMemberId(memberId)
                         .setSize(size)
                         .build()))
-                .map(new Func1<GetProfilePictureResponse, Blob>() {
-                    public Blob call(GetProfilePictureResponse response) {
+                .map(new Function<GetProfilePictureResponse, Blob>() {
+                    public Blob apply(GetProfilePictureResponse response) {
                         return response.getBlob();
                     }
                 });
@@ -990,8 +989,8 @@ public final class Client {
                 .getBanks(GetBanksRequest
                         .newBuilder()
                         .build()))
-                .map(new Func1<GetBanksResponse, List<Bank>>() {
-                    public List<Bank> call(GetBanksResponse response) {
+                .map(new Function<GetBanksResponse, List<Bank>>() {
+                    public List<Bank> apply(GetBanksResponse response) {
                         return response.getBanksList();
                     }
                 });
@@ -1009,8 +1008,8 @@ public final class Client {
                         .newBuilder()
                         .setBankId(bankId)
                         .build()))
-                .map(new Func1<GetBankInfoResponse, BankInfo>() {
-                    public BankInfo call(GetBankInfoResponse response) {
+                .map(new Function<GetBankInfoResponse, BankInfo>() {
+                    public BankInfo apply(GetBankInfoResponse response) {
                         return response.getInfo();
                     }
                 });
@@ -1028,8 +1027,8 @@ public final class Client {
                         .newBuilder()
                         .setBalance(balance)
                         .build()))
-                .map(new Func1<CreateTestBankAccountResponse, BankAuthorization>() {
-                    public BankAuthorization call(CreateTestBankAccountResponse response) {
+                .map(new Function<CreateTestBankAccountResponse, BankAuthorization>() {
+                    public BankAuthorization apply(CreateTestBankAccountResponse response) {
                         return response.getBankAuthorization();
                     }
                 });
@@ -1053,8 +1052,8 @@ public final class Client {
                                                 .sign(tokenAction(tokenToCancel, CANCELLED)))))
                         .setCreateToken(createToken)
                         .build()))
-                .map(new Func1<ReplaceTokenResponse, TokenOperationResult>() {
-                    public TokenOperationResult call(ReplaceTokenResponse response) {
+                .map(new Function<ReplaceTokenResponse, TokenOperationResult>() {
+                    public TokenOperationResult apply(ReplaceTokenResponse response) {
                         return response.getResult();
                     }
                 });

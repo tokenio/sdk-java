@@ -33,12 +33,13 @@ import static java.util.Arrays.asList;
 
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
@@ -51,13 +52,10 @@ import java.io.Closeable;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import rx.Observable;
-import rx.functions.Func1;
-
 /**
  * Create a new member using the {@link #createMember}  method or log in an
  * existing member using {@link #login}.
- *
+ * <p>
  * <p>The class provides async API with {@link TokenIO} providing a synchronous
  * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
  * method.</p>
@@ -131,8 +129,8 @@ public final class TokenIOAsync implements Closeable {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId()
-                .flatMap(new Func1<String, Observable<MemberProtos.Member>>() {
-                    public Observable<MemberProtos.Member> call(String memberId) {
+                .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
+                    public Observable<MemberProtos.Member> apply(String memberId) {
                         CryptoEngine crypto = cryptoFactory.create(memberId);
                         List<MemberOperation> operations = asList(
                                 toAddKeyOperation(crypto.generateKey(PRIVILEGED)),
@@ -144,8 +142,8 @@ public final class TokenIOAsync implements Closeable {
                         return unauthenticated.createMember(memberId, operations, signer);
                     }
                 })
-                .flatMap(new Func1<MemberProtos.Member, Observable<MemberAsync>>() {
-                    public Observable<MemberAsync> call(MemberProtos.Member member) {
+                .flatMap(new Function<MemberProtos.Member, Observable<MemberAsync>>() {
+                    public Observable<MemberAsync> apply(MemberProtos.Member member) {
                         CryptoEngine crypto = cryptoFactory.create(member.getId());
                         Client client = ClientFactory.authenticated(
                                 channel,
@@ -168,8 +166,8 @@ public final class TokenIOAsync implements Closeable {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .getMemberId(username)
-                .map(new Func1<String, DeviceInfo>() {
-                    public DeviceInfo call(String memberId) {
+                .map(new Function<String, DeviceInfo>() {
+                    public DeviceInfo apply(String memberId) {
                         if (memberId == null) {
                             throw new StatusRuntimeException(NOT_FOUND);
                         }
@@ -195,8 +193,8 @@ public final class TokenIOAsync implements Closeable {
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client
                 .getMember(memberId)
-                .map(new Func1<MemberProtos.Member, MemberAsync>() {
-                    public MemberAsync call(MemberProtos.Member member) {
+                .map(new Function<MemberProtos.Member, MemberAsync>() {
+                    public MemberAsync apply(MemberProtos.Member member) {
                         return new MemberAsync(member, client);
                     }
                 });

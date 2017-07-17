@@ -27,6 +27,8 @@ import static io.token.util.Util.generateNonce;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.protobuf.ByteString;
+import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos;
@@ -57,6 +59,7 @@ import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
+import io.token.rpc.util.Unit;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
@@ -68,8 +71,6 @@ import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import rx.Observable;
-import rx.functions.Func1;
 
 /**
  * Represents a Member in the Token system. Each member has an active secret
@@ -161,7 +162,7 @@ public final class MemberAsync {
      * @param username username, e.g. 'john', must be unique
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> addUsername(String username) {
+    public Observable<Unit> addUsername(String username) {
         return addUsernames(Collections.singletonList(username));
     }
 
@@ -171,17 +172,17 @@ public final class MemberAsync {
      * @param usernames usernames, e.g. 'john', must be unique
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> addUsernames(List<String> usernames) {
+    public Observable<Unit> addUsernames(List<String> usernames) {
         List<MemberOperation> operations = new LinkedList<>();
         for (String username : usernames) {
             operations.add(Util.toAddUsernameOperation(username));
         }
         return client
                 .updateMember(member.build(), operations)
-                .map(new Func1<MemberProtos.Member, Void>() {
-                    public Void call(MemberProtos.Member proto) {
+                .map(new Function<MemberProtos.Member, Unit>() {
+                    public Unit apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        return null;
+                        return Unit.INSTANCE;
                     }
                 });
     }
@@ -192,7 +193,7 @@ public final class MemberAsync {
      * @param username username, e.g. 'john'
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> removeUsername(String username) {
+    public Observable<Unit> removeUsername(String username) {
         return removeUsernames(Collections.singletonList(username));
     }
 
@@ -202,7 +203,7 @@ public final class MemberAsync {
      * @param usernames usernames, e.g. 'john'
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> removeUsernames(List<String> usernames) {
+    public Observable<Unit> removeUsernames(List<String> usernames) {
         List<MemberOperation> operations = new LinkedList<>();
         for (String username : usernames) {
             operations.add(MemberOperation
@@ -214,10 +215,10 @@ public final class MemberAsync {
         }
         return client
                 .updateMember(member.build(), operations)
-                .map(new Func1<MemberProtos.Member, Void>() {
-                    public Void call(MemberProtos.Member proto) {
+                .map(new Function<MemberProtos.Member, Unit>() {
+                    public Unit apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        return null;
+                        return Unit.INSTANCE;
                     }
                 });
     }
@@ -230,7 +231,7 @@ public final class MemberAsync {
      * @param level key privilege level
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> approveKey(SecretKeyPair key, Key.Level level) {
+    public Observable<Unit> approveKey(SecretKeyPair key, Key.Level level) {
         return approveKey(Key.newBuilder()
                 .setId(key.id())
                 .setAlgorithm(key.cryptoType().getKeyAlgorithm())
@@ -246,7 +247,7 @@ public final class MemberAsync {
      * @param key key to add to the approved list
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> approveKey(Key key) {
+    public Observable<Unit> approveKey(Key key) {
         return approveKeys(Collections.singletonList(key));
     }
 
@@ -257,17 +258,17 @@ public final class MemberAsync {
      * @param keys keys to add to the approved list
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> approveKeys(List<Key> keys) {
+    public Observable<Unit> approveKeys(List<Key> keys) {
         List<MemberOperation> operations = new LinkedList<>();
         for (Key key : keys) {
             operations.add(Util.toAddKeyOperation(key));
         }
         return client
                 .updateMember(member.build(), operations)
-                .map(new Func1<MemberProtos.Member, Void>() {
-                    public Void call(MemberProtos.Member proto) {
+                .map(new Function<MemberProtos.Member, Unit>() {
+                    public Unit apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        return null;
+                        return Unit.INSTANCE;
                     }
                 });
     }
@@ -278,7 +279,7 @@ public final class MemberAsync {
      * @param keyId key ID of the key to remove
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> removeKey(String keyId) {
+    public Observable<Unit> removeKey(String keyId) {
         return removeKeys(Collections.singletonList(keyId));
     }
 
@@ -288,7 +289,7 @@ public final class MemberAsync {
      * @param keyIds key IDs of the keys to remove
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> removeKeys(List<String> keyIds) {
+    public Observable<Unit> removeKeys(List<String> keyIds) {
         List<MemberOperation> operations = new LinkedList<>();
         for (String keyId : keyIds) {
             operations.add(MemberOperation
@@ -300,10 +301,10 @@ public final class MemberAsync {
         }
         return client
                 .updateMember(member.build(), operations)
-                .map(new Func1<MemberProtos.Member, Void>() {
-                    public Void call(MemberProtos.Member proto) {
+                .map(new Function<MemberProtos.Member, Unit>() {
+                    public Unit apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        return null;
+                        return Unit.INSTANCE;
                     }
                 });
     }
@@ -346,12 +347,12 @@ public final class MemberAsync {
      * @param subscriberId subscriberId
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> unsubscribeFromNotifications(String subscriberId) {
+    public Observable<Unit> unsubscribeFromNotifications(String subscriberId) {
         return client
                 .unsubscribeFromNotifications(subscriberId)
-                .map(new Func1<Void, Void>() {
-                    public Void call(Void ignore) {
-                        return null;
+                .map(new Function<Unit, Unit>() {
+                    public Unit apply(Unit ignore) {
+                        return Unit.INSTANCE;
                     }
                 });
     }
@@ -389,9 +390,9 @@ public final class MemberAsync {
             BankAuthorization authorization) {
         return client
                 .linkAccounts(authorization)
-                .map(new Func1<List<AccountProtos.Account>, List<AccountAsync>>() {
+                .map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
                     @Override
-                    public List<AccountAsync> call(List<AccountProtos.Account> accounts) {
+                    public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
                         List<AccountAsync> result = new LinkedList<>();
                         for (AccountProtos.Account account : accounts) {
                             result.add(new AccountAsync(MemberAsync.this, account, client));
@@ -407,7 +408,7 @@ public final class MemberAsync {
      * @param accountIds account ids to unlink
      * @return nothing
      */
-    public Observable<Void> unlinkAccounts(List<String> accountIds) {
+    public Observable<Unit> unlinkAccounts(List<String> accountIds) {
         return client.unlinkAccounts(accountIds);
     }
 
@@ -419,9 +420,9 @@ public final class MemberAsync {
     public Observable<List<AccountAsync>> getAccounts() {
         return client
                 .getAccounts()
-                .map(new Func1<List<AccountProtos.Account>, List<AccountAsync>>() {
+                .map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
                     @Override
-                    public List<AccountAsync> call(List<AccountProtos.Account> accounts) {
+                    public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
                         List<AccountAsync> result = new LinkedList<>();
                         for (AccountProtos.Account account : accounts) {
                             result.add(new AccountAsync(MemberAsync.this, account, client));
@@ -440,8 +441,8 @@ public final class MemberAsync {
     public Observable<AccountAsync> getAccount(String accountId) {
         return client
                 .getAccount(accountId)
-                .map(new Func1<AccountProtos.Account, AccountAsync>() {
-                    public AccountAsync call(AccountProtos.Account account) {
+                .map(new Function<AccountProtos.Account, AccountAsync>() {
+                    public AccountAsync apply(AccountProtos.Account account) {
                         return new AccountAsync(MemberAsync.this, account, client);
                     }
                 });
@@ -514,8 +515,8 @@ public final class MemberAsync {
                 .setAccessMode(accessMode)
                 .build();
         return client.createBlob(payload)
-                .map(new Func1<String, Attachment>() {
-                    public Attachment call(String id) {
+                .map(new Function<String, Attachment>() {
+                    public Attachment apply(String id) {
                         return Attachment.newBuilder()
                                 .setBlobId(id)
                                 .setName(name)
@@ -582,7 +583,7 @@ public final class MemberAsync {
      * @param addressId the id of the address
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> deleteAddress(String addressId) {
+    public Observable<Unit> deleteAddress(String addressId) {
         return client.deleteAddress(addressId);
     }
 
@@ -613,7 +614,7 @@ public final class MemberAsync {
      * @param data image data
      * @return observable that completes when the operation has finished
      */
-    public Observable<Void> setProfilePicture(final String type, byte[] data) {
+    public Observable<Unit> setProfilePicture(final String type, byte[] data) {
         Payload payload = Payload.newBuilder()
                 .setOwnerId(memberId())
                 .setType(type)
