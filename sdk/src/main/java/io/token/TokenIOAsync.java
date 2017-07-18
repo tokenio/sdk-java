@@ -55,7 +55,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * Create a new member using the {@link #createMember}  method or log in an
  * existing member using {@link #login}.
- * <p>
+ *
  * <p>The class provides async API with {@link TokenIO} providing a synchronous
  * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
  * method.</p>

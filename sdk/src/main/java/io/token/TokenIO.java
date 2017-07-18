@@ -42,7 +42,7 @@ import java.io.Closeable;
 /**
  * Main entry point to the Token SDK. Use {@link TokenIO.Builder}
  * class to create an instance of the {@link TokenIOAsync} or {@link TokenIO}.
- * <p>
+ *
  * <p>The class provides synchronous API with {@link TokenIOAsync} providing an
  * asynchronous version. {@link TokenIOAsync} instance can be obtained by
  * calling {@link #async} method.</p>
