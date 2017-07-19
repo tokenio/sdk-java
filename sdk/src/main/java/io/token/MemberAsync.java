@@ -24,6 +24,7 @@ package io.token;
 
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.security.Hasher.hashAndSerialize;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.protobuf.ByteString;
@@ -63,6 +64,7 @@ import io.token.rpc.util.Unit;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -82,15 +84,19 @@ public final class MemberAsync {
     private final Client client;
     private final MemberProtos.Member.Builder member;
 
+    private List<String> usernames;
+
     /**
      * Creates an instance of {@link MemberAsync}.
      *
      * @param member internal member representation, fetched from server
      * @param client RPC client used to perform operations against the server
+     * @param usernames Usernames of the member in plaintext
      */
-    MemberAsync(MemberProtos.Member member, Client client) {
+    MemberAsync(MemberProtos.Member member, Client client, List<String> usernames) {
         this.client = client;
         this.member = member.toBuilder();
+        this.usernames = new ArrayList<>(usernames);
     }
 
     /**
@@ -117,7 +123,7 @@ public final class MemberAsync {
      * @return first username owned by the user
      */
     public String firstUsername() {
-        return member.getUsernamesCount() == 0 ? null : member.getUsernames(0);
+        return usernames.isEmpty() ? null : usernames.get(0);
     }
 
     /**
@@ -126,7 +132,7 @@ public final class MemberAsync {
      * @return list of usernames owned by the member
      */
     public List<String> usernames() {
-        return member.getUsernamesList();
+        return usernames;
     }
 
     /**
@@ -172,7 +178,7 @@ public final class MemberAsync {
      * @param usernames usernames, e.g. 'john', must be unique
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> addUsernames(List<String> usernames) {
+    public Observable<Unit> addUsernames(final List<String> usernames) {
         List<MemberOperation> operations = new LinkedList<>();
         for (String username : usernames) {
             operations.add(Util.toAddUsernameOperation(username));
@@ -182,6 +188,7 @@ public final class MemberAsync {
                 .map(new Function<MemberProtos.Member, Unit>() {
                     public Unit apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
+                        MemberAsync.this.usernames.addAll(usernames);
                         return Unit.INSTANCE;
                     }
                 });
@@ -203,20 +210,21 @@ public final class MemberAsync {
      * @param usernames usernames, e.g. 'john'
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> removeUsernames(List<String> usernames) {
+    public Observable<Unit> removeUsernames(final List<String> usernames) {
         List<MemberOperation> operations = new LinkedList<>();
         for (String username : usernames) {
             operations.add(MemberOperation
                     .newBuilder()
                     .setRemoveUsername(MemberUsernameOperation
                             .newBuilder()
-                            .setUsername(username))
+                            .setUsername(hashAndSerialize(username)))
                     .build());
         }
         return client
                 .updateMember(member.build(), operations)
                 .map(new Function<MemberProtos.Member, Unit>() {
                     public Unit apply(MemberProtos.Member proto) {
+                        MemberAsync.this.usernames.removeAll(usernames);
                         member.clear().mergeFrom(proto);
                         return Unit.INSTANCE;
                     }

@@ -22,6 +22,7 @@
 
 package io.token.util;
 
+import static io.token.util.security.Hasher.hashAndSerialize;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -30,10 +31,7 @@ import com.google.common.util.concurrent.Uninterruptibles;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
-import io.reactivex.SingleObserver;
 import io.reactivex.SingleOnSubscribe;
-import io.reactivex.functions.Function;
-import io.reactivex.internal.functions.ObjectHelper;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
@@ -65,8 +63,10 @@ public abstract class Util {
      * @return member operation
      */
     public static MemberOperation toAddKeyOperation(Key key) {
-        return MemberOperation.newBuilder()
-                .setAddKey(MemberAddKeyOperation.newBuilder()
+        return MemberOperation
+                .newBuilder()
+                .setAddKey(MemberAddKeyOperation
+                        .newBuilder()
                         .setKey(key))
                 .build();
     }
@@ -78,9 +78,11 @@ public abstract class Util {
      * @return member operation
      */
     public static MemberOperation toAddUsernameOperation(String username) {
-        return MemberOperation.newBuilder()
-                .setAddUsername(MemberUsernameOperation.newBuilder()
-                        .setUsername(username))
+        return MemberOperation
+                .newBuilder()
+                .setAddUsername(MemberUsernameOperation
+                        .newBuilder()
+                        .setUsername(hashAndSerialize(username)))
                 .build();
     }
 

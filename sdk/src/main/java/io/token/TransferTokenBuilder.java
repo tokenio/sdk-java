@@ -78,12 +78,15 @@ public final class TransferTokenBuilder {
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setFrom(TokenProtos.TokenMember.newBuilder()
-                        .setId(member.memberId())
-                        .build())
+                        .setId(member.memberId()))
                 .setTransfer(TransferBody.newBuilder()
                         .setCurrency(currency)
-                        .setLifetimeAmount(Double.toString(amount))
-                        .build());
+                        .setLifetimeAmount(Double.toString(amount)));
+
+        if (member.firstUsername() != null) {
+            payload.getFromBuilder().setUsername(member.firstUsername());
+        }
+
         blobPayloads = new ArrayList<>();
     }
 
