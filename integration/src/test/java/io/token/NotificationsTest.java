@@ -42,7 +42,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 public class NotificationsTest {
-    private static final int NOTIFICATION_TIMEOUT_MS = 5000;
+    private static final int NOTIFICATION_TIMEOUT_MS = 15000;
     private static final String NOTIFICATION_TARGET =
             "0F7BF07748A12DE0C2393FD3731BFEB1484693DFA47A5C9614428BDF724548CD";
     private static final String TEST = "TEST"; // Test platform
