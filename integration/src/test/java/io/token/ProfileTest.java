@@ -12,7 +12,6 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 
 import java.util.Base64;
-import java.util.logging.Logger;
 
 import org.junit.Rule;
 import org.junit.Test;
