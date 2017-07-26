@@ -110,4 +110,32 @@ public class ProfileTest {
         Blob blob = member.getProfilePicture(member.memberId(), ORIGINAL);
         assertThat(blob).isEqualTo(Blob.getDefaultInstance());
     }
+
+    @Test
+    public void getPictureProfile() {
+        // "The tiniest gif ever" , a 1x1 gif
+        // http://probablyprogramming.com/2009/03/15/the-tiniest-gif-ever
+        byte[] tinyGif = Base64.getDecoder()
+                .decode("R0lGODlhAQABAIABAP///wAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==");
+
+        Profile inProfile = Profile.newBuilder()
+                .setDisplayNameFirst("Tomás")
+                .setDisplayNameLast("de Aquino")
+                .build();
+
+        Member member = rule.member();
+        Member otherMember = rule.member();
+
+        member.setProfile(inProfile);
+        member.setProfilePicture("image/gif", tinyGif);
+        Profile outProfile = otherMember.getProfile(member.memberId());
+        assertThat(outProfile.getOriginalPictureId()).isNotEmpty();
+        assertThat(inProfile.getDisplayNameFirst()).isEqualTo(outProfile.getDisplayNameFirst());
+        assertThat(inProfile.getDisplayNameLast()).isEqualTo(outProfile.getDisplayNameLast());
+
+        ByteString tinyGifString = ByteString.copyFrom(tinyGif);
+        Blob blob = otherMember.getBlob(outProfile.getOriginalPictureId());
+        assertThat(blob.getPayload().getData()).isEqualTo(tinyGifString);
+
+    }
 }
