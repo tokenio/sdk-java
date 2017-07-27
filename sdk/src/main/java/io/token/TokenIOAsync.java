@@ -150,8 +150,7 @@ public final class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 crypto);
-                        return Observable.just(new MemberAsync(member, client,
-                                Collections.singletonList(username)));
+                        return Observable.just(new MemberAsync(member, client));
                     }
                 });
     }
@@ -188,17 +187,16 @@ public final class TokenIOAsync implements Closeable {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
-     * @param username username
      * @return logged in member
      */
-    public Observable<MemberAsync> login(String memberId, final String username) {
+    public Observable<MemberAsync> login(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client, Collections.singletonList(username));
+                        return new MemberAsync(member, client);
                     }
                 });
     }

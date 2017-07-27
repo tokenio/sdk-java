@@ -24,7 +24,6 @@ package io.token.rpc;
 
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toObservable;
-import static io.token.util.security.Hasher.hashAndSerialize;
 
 import com.google.common.base.Strings;
 import io.reactivex.Observable;

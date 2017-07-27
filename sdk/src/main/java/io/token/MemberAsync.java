@@ -91,12 +91,13 @@ public final class MemberAsync {
      *
      * @param member internal member representation, fetched from server
      * @param client RPC client used to perform operations against the server
-     * @param usernames Usernames of the member in plaintext
      */
-    MemberAsync(MemberProtos.Member member, Client client, List<String> usernames) {
+    MemberAsync(MemberProtos.Member member, Client client) {
         this.client = client;
         this.member = member.toBuilder();
-        this.usernames = new ArrayList<>(usernames);
+
+        // TODO(PR-998): Revert this change
+        this.usernames = new ArrayList<>(member.getUsernamesList());
     }
 
     /**
@@ -921,17 +922,15 @@ public final class MemberAsync {
      *
      * @param balance account balance to set
      * @param currency currency code, i.e. "EUR"
-     * @param username username
      * @return bank authorization
      */
     public Observable<BankAuthorization> createTestBankAccount(
             double balance,
-            String currency,
-            String username) {
+            String currency) {
         return client.createTestBankAccount(Money.newBuilder()
                 .setCurrency(currency)
                 .setValue(Double.toString(balance))
-                .build(), username);
+                .build());
     }
 
     @Override
