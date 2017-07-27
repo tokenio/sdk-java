@@ -188,6 +188,7 @@ public final class TokenIOAsync implements Closeable {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
+     * @param username username
      * @return logged in member
      */
     public Observable<MemberAsync> login(String memberId, final String username) {

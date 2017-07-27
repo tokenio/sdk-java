@@ -159,6 +159,7 @@ public final class TokenIO implements Closeable {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
+     * @param username username
      * @return logged in member
      */
     public Member login(String memberId, String username) {
