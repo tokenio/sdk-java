@@ -7,7 +7,7 @@ buildscript {
     }
     dependencies {
         classpath 'io.token.gradle:token-gradle:1.0.66'
-        classpath 'net.ltgt.gradle:gradle-apt-plugin:0.8'
+        classpath 'net.ltgt.gradle:gradle-apt-plugin:0.9'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.13.0'
         classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1'
     }
@@ -18,17 +18,17 @@ allprojects {
         ver = [
             tokenProto           : '1.0.356',
             tokenRpc             : '1.0.84',
-            tokenSecurity        : '1.0.37',
-            tokenUtil            : '1.0.13',
+            tokenSecurity        : '1.0.38',
+            tokenUtil            : '1.0.15',
             retrofit             : '2.2.0',
             tokenIntegrationSdk  : '1.0.82',
-            tokenFank            : '1.0.3',
+            tokenFank            : '1.0.6',
             rxjava               : '2.1.1',
         ]
     }
 
     group = 'io.token.sdk'
-    version = '1.0.47'
+    version = '1.0.48'
 
     apply plugin: 'io.token.gradle.lib'
     apply plugin: 'io.token.gradle.publish'

@@ -138,8 +138,7 @@ public class TokenRule implements MethodRule {
     }
 
     private LinkedAccount linkAccount(TestAccount testAccount, Member member) {
-        BankAuthorization auth = testBank.authorizeAccount(
-                member.firstUsername(),
+        BankAuthorization auth = testBank.authorizeAccount(member.firstUsername(),
                 new NamedAccount(testAccount.getBankAccount(), testAccount.getAccountName()));
         Account account = member
                 .linkAccounts(auth)

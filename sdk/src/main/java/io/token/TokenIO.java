@@ -161,8 +161,8 @@ public final class TokenIO implements Closeable {
      * @param memberId member id
      * @return logged in member
      */
-    public Member login(String memberId) {
-        return async.login(memberId)
+    public Member login(String memberId, String username) {
+        return async.login(memberId, username)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
