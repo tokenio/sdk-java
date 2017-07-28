@@ -25,9 +25,7 @@ public class MemberRegistrationTest {
     public void loginMember() {
         String username = Util.generateNonce();
         Member member = rule.token().createMember(username);
-        // TODO (Yuhan): change login to fetch usernames when the server actually stores
-        // usernames in plain text
-        Member loggedIn = rule.token().login(member.memberId(), username);
+        Member loggedIn = rule.token().login(member.memberId());
         assertThat(loggedIn)
                 .hasUsernames(member.usernames())
                 .hasNKeys(3);
@@ -43,7 +41,7 @@ public class MemberRegistrationTest {
             DeviceInfo deviceInfo = secondDevice.provisionDevice(member.firstUsername());
             member.approveKeys(deviceInfo.getKeys());
 
-            Member loggedIn = secondDevice.login(deviceInfo.getMemberId(), username);
+            Member loggedIn = secondDevice.login(deviceInfo.getMemberId());
             assertThat(loggedIn)
                     .hasUsernames(member.usernames())
                     .hasNKeys(6);

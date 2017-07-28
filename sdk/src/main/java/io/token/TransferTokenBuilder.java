@@ -75,17 +75,18 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder(MemberAsync member, double amount, String currency) {
         this.member = member;
+        String nullableUsername = member.firstUsername();
+        String usernameOrEmpty = nullableUsername == null ? "" : nullableUsername;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setFrom(TokenProtos.TokenMember.newBuilder()
-                        .setId(member.memberId()))
+                        .setId(member.memberId())
+                        .setUsername(usernameOrEmpty)
+                        .build())
                 .setTransfer(TransferBody.newBuilder()
                         .setCurrency(currency)
-                        .setLifetimeAmount(Double.toString(amount)));
-
-        if (member.firstUsername() != null) {
-            payload.getFromBuilder().setUsername(member.firstUsername());
-        }
+                        .setLifetimeAmount(Double.toString(amount))
+                        .build());
 
         blobPayloads = new ArrayList<>();
     }

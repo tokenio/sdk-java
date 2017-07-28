@@ -18,8 +18,8 @@ allprojects {
         ver = [
             tokenProto           : '1.0.358',
             tokenRpc             : '1.0.84',
-            tokenSecurity        : '1.0.38',
-            tokenUtil            : '1.0.15',
+            tokenSecurity        : '1.0.39',
+            tokenUtil            : '1.0.16',
             retrofit             : '2.2.0',
             tokenIntegrationSdk  : '1.0.82',
             tokenFank            : '1.0.6',
