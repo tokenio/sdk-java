@@ -22,7 +22,6 @@
 
 package io.token.util;
 
-import static io.token.util.security.Hasher.hashAndSerialize;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -32,9 +31,11 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
+import io.token.proto.ProtoHasher;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
-import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
+import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.util.concurrent.ExecutionException;
@@ -72,18 +73,28 @@ public abstract class Util {
     }
 
     /**
-     * Converts username to AddUsername operation.
+     * Converts alias to AddAlias operation.
      *
-     * @param username username to add
+     * @param alias alias to add
      * @return member operation
      */
-    public static MemberOperation toAddUsernameOperation(String username) {
+    public static MemberOperation toAddAliasOperation(Alias alias) {
         return MemberOperation
                 .newBuilder()
-                .setAddUsername(MemberUsernameOperation
+                .setAddAlias(MemberAliasOperation
                         .newBuilder()
-                        .setUsername(hashAndSerialize(username)))
+                        .setAliasHash(hashAlias(alias)))
                 .build();
+    }
+
+    /**
+     * Hashes an alias to a String
+     *
+     * @param alias alias to hash
+     * @return hashed alias
+     */
+    public static String hashAlias(Alias alias) {
+        return ProtoHasher.hashAndSerialize(alias);
     }
 
     /**

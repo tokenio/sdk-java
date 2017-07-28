@@ -76,7 +76,7 @@ public final class FankTestBank extends TestBank {
     }
 
     @Override
-    public BankAuthorization authorizeAccount(String username, NamedAccount account) {
+    public BankAuthorization authorizeAccount(String alias, NamedAccount account) {
         Client client = fank.addClient(bic, "Test " + string(), "Testoff");
         fank.addAccount(
                 client,
@@ -86,7 +86,7 @@ public final class FankTestBank extends TestBank {
                 1000000.00,
                 CURRENCY);
         return fank.startAccountsLinking(
-                username,
+                alias,
                 client.getId(),
                 account.getBankAccount().getSwift().getBic(),
                 singletonList(account.getBankAccount().getSwift().getAccount()));

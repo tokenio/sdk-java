@@ -10,13 +10,13 @@ public class AccessTokenBuilderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void throwsOnMissingFrom() {
-        AccessTokenBuilder.create("username").build();
+        AccessTokenBuilder.create("alias").build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void throwsOnMissingResource() {
         AccessTokenBuilder
-                .create("username")
+                .create("alias")
                 .from("member")
                 .build();
     }
@@ -24,7 +24,7 @@ public class AccessTokenBuilderTest {
     @Test
     public void allValidationsPass() {
         TokenProtos.TokenPayload payload = AccessTokenBuilder
-                .create("username")
+                .create("alias")
                 .from("member")
                 .forAllAccounts()
                 .build();

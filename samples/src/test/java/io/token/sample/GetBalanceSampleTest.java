@@ -1,7 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.sample.TestUtil.newUserName;
+import static io.token.sample.TestUtil.newAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -16,7 +16,7 @@ public class GetBalanceSampleTest {
     @Test
     public void memberGetBalanceSampleTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member member = tokenIO.createMember(newUserName());
+            Member member = tokenIO.createMember(newAlias());
             Banklink.BankAuthorization encryptedBankAuthorization =
                     member.createTestBankAccount(1000.0, "EUR");
             member.linkAccounts(encryptedBankAuthorization);
@@ -29,7 +29,7 @@ public class GetBalanceSampleTest {
     @Test
     public void accountGetBalanceSampleTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member member = tokenIO.createMember(newUserName());
+            Member member = tokenIO.createMember(newAlias());
             Banklink.BankAuthorization encryptedBankAuthorization =
                     member.createTestBankAccount(1000.0, "EUR");
             member.linkAccounts(encryptedBankAuthorization);

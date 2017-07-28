@@ -1,9 +1,9 @@
 package io.token.sample;
 
+import static io.token.proto.common.testing.Sample.alias;
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 import static io.token.sample.CancelTransferTokenSample.cancelTransferToken;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
-import static io.token.sample.TestUtil.newUserName;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -17,12 +17,12 @@ public class CancelTransferTokenSampleTest {
     @Test
     public void cancelTransferTokenByGrantorTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member grantor = tokenIO.createMember(newUserName());
-            Member grantee = tokenIO.createMember(newUserName());
+            Member grantor = tokenIO.createMember(alias());
+            Member grantee = tokenIO.createMember(alias());
 
             LinkMemberAndBankSample.linkBankAccounts(grantor);
 
-            Token token = createTransferToken(grantor, grantee.firstUsername());
+            Token token = createTransferToken(grantor, grantee.firstAlias());
             TokenOperationResult result = cancelTransferToken(grantor, token.getId());
             assertThat(result.getStatus()).isEqualTo(TokenOperationResult.Status.SUCCESS);
         }

@@ -7,6 +7,7 @@
 
 package io.token.common;
 
+import static io.token.proto.common.testing.Sample.alias;
 import static org.assertj.core.util.Strings.isNullOrEmpty;
 import static org.junit.Assume.assumeFalse;
 
@@ -19,7 +20,6 @@ import io.token.bank.TestAccount;
 import io.token.bank.TestBank;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.NamedAccount;
-import io.token.util.Util;
 
 import java.util.Optional;
 import java.util.regex.Pattern;
@@ -82,8 +82,7 @@ public class TokenRule implements MethodRule {
     }
 
     public Member member() {
-        String username = "username-" + Util.generateNonce();
-        return tokenIO.createMember(username);
+        return tokenIO.createMember(alias());
     }
 
     public LinkedAccount linkedAccount() {
@@ -138,8 +137,7 @@ public class TokenRule implements MethodRule {
     }
 
     private LinkedAccount linkAccount(TestAccount testAccount, Member member) {
-        BankAuthorization auth = testBank.authorizeAccount(
-                member.firstUsername(),
+        BankAuthorization auth = testBank.authorizeAccount(member.memberId(),
                 new NamedAccount(testAccount.getBankAccount(), testAccount.getAccountName()));
         Account account = member
                 .linkAccounts(auth)

@@ -24,7 +24,7 @@ package io.token;
 
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.security.Hasher.hashAndSerialize;
+import static io.token.util.Util.hashAlias;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.protobuf.ByteString;
@@ -34,6 +34,7 @@ import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -44,7 +45,7 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
-import io.token.proto.common.member.MemberProtos.MemberUsernameOperation;
+import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -84,7 +85,7 @@ public final class MemberAsync {
     private final Client client;
     private final MemberProtos.Member.Builder member;
 
-    private List<String> usernames;
+    private List<Alias> aliases;
 
     /**
      * Creates an instance of {@link MemberAsync}.
@@ -95,9 +96,7 @@ public final class MemberAsync {
     MemberAsync(MemberProtos.Member member, Client client) {
         this.client = client;
         this.member = member.toBuilder();
-
-        // TODO(PR-998): Revert this change
-        this.usernames = new ArrayList<>(member.getUsernamesList());
+        this.aliases = new ArrayList<>(); //TODO(PR1005): Sync aliases with server
     }
 
     /**
@@ -119,21 +118,21 @@ public final class MemberAsync {
     }
 
     /**
-     * Gets the first username owner by the user.
+     * Gets the first alias owner by the user.
      *
-     * @return first username owned by the user
+     * @return first alias owned by the user
      */
-    public String firstUsername() {
-        return usernames.isEmpty() ? null : usernames.get(0);
+    public Alias firstAlias() {
+        return aliases.isEmpty() ? null : aliases.get(0);
     }
 
     /**
-     * Gets all usernames owned by the member.
+     * Gets all aliases owned by the member.
      *
-     * @return list of usernames owned by the member
+     * @return list of aliases owned by the member
      */
-    public List<String> usernames() {
-        return usernames;
+    public List<Alias> aliases() {
+        return aliases;
     }
 
     /**
@@ -164,68 +163,68 @@ public final class MemberAsync {
     }
 
     /**
-     * Adds a new username for the member.
+     * Adds a new alias for the member.
      *
-     * @param username username, e.g. 'john', must be unique
+     * @param alias alias, e.g. 'john', must be unique
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> addUsername(String username) {
-        return addUsernames(Collections.singletonList(username));
+    public Observable<Unit> addAlias(Alias alias) {
+        return addAliases(Collections.singletonList(alias));
     }
 
     /**
-     * Adds new usernames for the member.
+     * Adds new aliases for the member.
      *
-     * @param usernames usernames, e.g. 'john', must be unique
+     * @param aliases aliases, e.g. 'john', must be unique
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> addUsernames(final List<String> usernames) {
+    public Observable<Unit> addAliases(final List<Alias> aliases) {
         List<MemberOperation> operations = new LinkedList<>();
-        for (String username : usernames) {
-            operations.add(Util.toAddUsernameOperation(username));
+        for (Alias alias : aliases) {
+            operations.add(Util.toAddAliasOperation(alias));
         }
         return client
                 .updateMember(member.build(), operations)
                 .map(new Function<MemberProtos.Member, Unit>() {
                     public Unit apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        MemberAsync.this.usernames.addAll(usernames);
+                        MemberAsync.this.aliases.addAll(aliases);
                         return Unit.INSTANCE;
                     }
                 });
     }
 
     /**
-     * Removes an username for the member.
+     * Removes an alias for the member.
      *
-     * @param username username, e.g. 'john'
+     * @param alias alias, e.g. 'john'
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> removeUsername(String username) {
-        return removeUsernames(Collections.singletonList(username));
+    public Observable<Unit> removeAlias(Alias alias) {
+        return removeAliases(Collections.singletonList(alias));
     }
 
     /**
-     * Removes usernames for the member.
+     * Removes aliases for the member.
      *
-     * @param usernames usernames, e.g. 'john'
+     * @param aliases aliases, e.g. 'john'
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> removeUsernames(final List<String> usernames) {
+    public Observable<Unit> removeAliases(final List<Alias> aliases) {
         List<MemberOperation> operations = new LinkedList<>();
-        for (String username : usernames) {
+        for (Alias alias : aliases) {
             operations.add(MemberOperation
                     .newBuilder()
-                    .setRemoveUsername(MemberUsernameOperation
+                    .setRemoveAlias(MemberAliasOperation
                             .newBuilder()
-                            .setUsername(hashAndSerialize(username)))
+                            .setAliasHash(hashAlias(alias)))
                     .build());
         }
         return client
                 .updateMember(member.build(), operations)
                 .map(new Function<MemberProtos.Member, Unit>() {
                     public Unit apply(MemberProtos.Member proto) {
-                        MemberAsync.this.usernames.removeAll(usernames);
+                        MemberAsync.this.aliases.removeAll(aliases);
                         member.clear().mergeFrom(proto);
                         return Unit.INSTANCE;
                     }

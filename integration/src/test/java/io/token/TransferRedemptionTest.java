@@ -70,7 +70,7 @@ public class TransferRedemptionTest {
     @Test
     public void redeemToken_defaultDestinationAccount() {
         Token token = payerAccount.createInstantToken(100, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .addDestination(Destinations.token(payee.memberId()))
                 .execute();
         token = payer.endorseToken(token, Key.Level.STANDARD).getToken();

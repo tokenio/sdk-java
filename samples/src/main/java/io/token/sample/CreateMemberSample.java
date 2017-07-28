@@ -1,5 +1,6 @@
 package io.token.sample;
 
+import static io.token.proto.common.testing.Sample.alias;
 import static io.token.TokenIO.TokenCluster.SANDBOX;
 
 import io.token.Member;
@@ -16,7 +17,7 @@ public final class CreateMemberSample {
      */
     public static Member createMember() {
         try (TokenIO tokenIO = TokenIO.create(SANDBOX)) {
-            return tokenIO.createMember(TestUtil.newUserName());
+            return tokenIO.createMember(alias());
         }
     }
 }

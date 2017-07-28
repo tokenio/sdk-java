@@ -58,12 +58,12 @@ public class BankAuthorizationPayTest {
                 .build();
 
         BankAuthorization authorization = authorizer.createAuthorization(
-                payer.firstUsername(),
+                payer.memberId(),
                 singletonList(payerAccount.testAccount().toNamedAccount()));
 
         return payer.createTransferToken(amount, payeeAccount.getCurrency())
                 .setBankAuthorization(authorization)
-                .setRedeemerUsername(payer.firstUsername())
+                .setRedeemerAlias(payer.firstAlias())
                 .addDestination(Destinations.token(payee.memberId(), payeeAccount.getId()))
                 .execute();
     }
