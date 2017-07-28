@@ -259,7 +259,7 @@ public class TransactionsTest {
 
     private Token token() {
         return payerAccount.createInstantToken(1500.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription("Multi charge token")
                 .execute();
     }

@@ -72,7 +72,7 @@ final class FankClient {
     }
 
     public BankAuthorization startAccountsLinking(
-            String username,
+            String alias,
             String clientId,
             String bic,
             List<String> accountNumbers) {
@@ -81,7 +81,7 @@ final class FankClient {
                         bic,
                         clientId,
                         protoToJson(AuthorizeLinkAccountsRequest.newBuilder()
-                                .setUsername(username)
+                                .setMemberId(alias)
                                 .setClientId(clientId)
                                 .addAllAccounts(accountNumbers))),
                 BankAuthorization.newBuilder());

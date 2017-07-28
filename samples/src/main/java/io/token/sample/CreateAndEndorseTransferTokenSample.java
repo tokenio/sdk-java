@@ -4,6 +4,7 @@ import static io.token.proto.common.transferinstructions.TransferInstructionsPro
 
 import io.token.Destinations;
 import io.token.Member;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.pricing.PricingProtos.TransferQuote;
@@ -18,12 +19,12 @@ public final class CreateAndEndorseTransferTokenSample {
      * Creates a transfer token and authorizes a money transfer from a payer to a payee.
      *
      * @param payer payer Token member
-     * @param payeeUsername payee Token member username
+     * @param payeeAlias payee Token member alias
      * @return a transfer Token
      */
     public static Token createTransferToken(
             Member payer,
-            String payeeUsername) {
+            Alias payeeAlias) {
 
         // Create a transfer token.
         Token transferToken =
@@ -31,7 +32,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         100.0, // amount
                         "EUR")  // currency
                         .setAccountId(payer.getAccounts().get(0).id()) // source account
-                        .setRedeemerUsername(payeeUsername) // payee token username
+                        .setRedeemerAlias(payeeAlias) // payee token alias
                         .setDescription("Book purchase") // optional description
                         .execute();
 
@@ -96,15 +97,14 @@ public final class CreateAndEndorseTransferTokenSample {
     }
 
     /**
-     * Create a transfer token specifying a destination.
      *
      * @param payer Payer who has no linked bank accounts
-     * @param payeeUsername Username of payee member
+     * @param payeeAlias Alias of payee member
      * @return a transfer Token
      */
     public static Token createTransferTokenToDestination(
             Member payer,
-            String payeeUsername) {
+            Alias payeeAlias) {
 
         // Create a transfer token.
         Token transferToken =
@@ -112,7 +112,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         100.0, // amount
                         "EUR")  // currency
                         .setAccountId(payer.getAccounts().get(0).id()) // source account
-                        .setRedeemerUsername(payeeUsername)
+                        .setRedeemerAlias(payeeAlias)
                         .addDestination(Destinations.sepa("DE89 3704 0044 0532 0130 00"))
                         .execute();
 

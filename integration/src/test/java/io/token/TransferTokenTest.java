@@ -52,7 +52,7 @@ public class TransferTokenTest {
 
         assertThat(token)
                 .hasFrom(payer)
-                .hasRedeemerUsername(payee.firstUsername())
+                .hasRedeemerAlias(payee.firstAlias())
                 .hasAmount(100.0)
                 .hasCurrency(payeeAccount.getCurrency())
                 .hasNoSignatures();
@@ -61,13 +61,13 @@ public class TransferTokenTest {
     @Test
     public void createTransferToken_noDestination() {
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription("book purchase")
                 .execute();
 
         assertThat(token)
                 .hasFrom(payer)
-                .hasRedeemerUsername(payee.firstUsername())
+                .hasRedeemerAlias(payee.firstAlias())
                 .hasAmount(100.0)
                 .hasCurrency(payeeAccount.getCurrency())
                 .hasNoSignatures();
@@ -80,19 +80,19 @@ public class TransferTokenTest {
 
         Token token1 = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRefId(refId)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription("book purchase 1")
                 .execute();
 
         Token token2 = payerAccount.createInstantToken(200.0, payeeAccount)
                 .setRefId(refId)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription("book purchase 2")
                 .execute();
 
         assertThat(token1)
                 .hasFrom(payer)
-                .hasRedeemerUsername(payee.firstUsername())
+                .hasRedeemerAlias(payee.firstAlias())
                 .hasAmount(100.0)
                 .hasCurrency(payeeAccount.getCurrency())
                 .hasNoSignatures();
@@ -106,26 +106,26 @@ public class TransferTokenTest {
 
         Token token1 = payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRefId(refId)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription("book purchase 1")
                 .execute();
 
         Token token2 = payeeAccount.createInstantToken(200.0, payerAccount)
                 .setRefId(refId)
-                .setRedeemerUsername(payer.firstUsername())
+                .setRedeemerAlias(payer.firstAlias())
                 .setDescription("book purchase 2")
                 .execute();
 
         assertThat(token1)
                 .hasFrom(payer)
-                .hasRedeemerUsername(payee.firstUsername())
+                .hasRedeemerAlias(payee.firstAlias())
                 .hasAmount(100.0)
                 .hasCurrency(payeeAccount.getCurrency())
                 .hasNoSignatures();
 
         assertThat(token2)
                 .hasFrom(payee)
-                .hasRedeemerUsername(payer.firstUsername())
+                .hasRedeemerAlias(payer.firstAlias())
                 .hasAmount(200.0)
                 .hasCurrency(payerAccount.getCurrency())
                 .hasNoSignatures();
@@ -136,7 +136,7 @@ public class TransferTokenTest {
         payer.unlinkAccounts(singletonList(payerAccount.getId()));
         assertThatExceptionOfType(StatusRuntimeException.class)
                 .isThrownBy(() -> payerAccount.createInstantToken(100.0, payeeAccount)
-                        .setRedeemerUsername(payee.firstUsername())
+                        .setRedeemerAlias(payee.firstAlias())
                         .execute())
                 .matches(e -> e.getStatus().getCode() == FAILED_PRECONDITION);
     }
@@ -146,7 +146,7 @@ public class TransferTokenTest {
         assertThatExceptionOfType(TransferTokenException.class)
                 .isThrownBy(() -> payerAccount.createInstantToken(100.0, payeeAccount)
                         .setAccountId(payeeAccount.getId()) // Wrong account
-                        .setRedeemerUsername(payee.firstUsername())
+                        .setRedeemerAlias(payee.firstAlias())
                         .setDescription("book purchase")
                         .execute())
                 .matches(e -> e.getStatus() == FAILURE_SOURCE_ACCOUNT_NOT_FOUND);
@@ -158,7 +158,7 @@ public class TransferTokenTest {
                 .isThrownBy(() -> payerAccount.getMember()
                         .createTransferToken(100.0, payeeAccount.getCurrency())
                         .setAccountId(payerAccount.getId())
-                        .setRedeemerUsername(payee.firstUsername())
+                        .setRedeemerAlias(payee.firstAlias())
                         .setDescription("book purchase")
                         .addDestination(TransferEndpoint.newBuilder()
                                 // Invalid account.
@@ -174,7 +174,7 @@ public class TransferTokenTest {
         assertThatExceptionOfType(TransferTokenException.class)
                 .isThrownBy(() -> payerAccount.getMember().createTransferToken(100.0, "XXX")
                         .setAccountId(payerAccount.getId())
-                        .setRedeemerUsername(payee.firstUsername())
+                        .setRedeemerAlias(payee.firstAlias())
                         .setDescription("book purchase")
                         .execute())
                 .matches(e -> e.getStatus() == FAILURE_INVALID_CURRENCY);
@@ -185,7 +185,7 @@ public class TransferTokenTest {
         assertThatExceptionOfType(TransferTokenException.class)
                 .isThrownBy(() -> payerAccount.getMember().createTransferToken(100.0, "XXX")
                         .setAccountId(payerAccount.getId())
-                        .setRedeemerUsername(payee.firstUsername())
+                        .setRedeemerAlias(payee.firstAlias())
                         .setDescription("book purchase")
                         .addDestination(Destinations.token(
                                 payeeAccount.getMember().memberId(),
@@ -197,7 +197,7 @@ public class TransferTokenTest {
     @Test
     public void getTransferToken() {
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
         assertThat(payer.getToken(token.getId()))
                 .hasFrom(payer)
@@ -209,13 +209,13 @@ public class TransferTokenTest {
     @Test
     public void getTransferTokens() {
         Token token1 = payerAccount.createInstantToken(123.45, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
         Token token2 = payerAccount.createInstantToken(678.90, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
         Token token3 = payerAccount.createInstantToken(100.99, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
 
         PagedList<Token, String> res = payer.getTransferTokens(null, 3);
@@ -228,7 +228,7 @@ public class TransferTokenTest {
         int num = 10;
         for (int i = 0; i < num; i++) {
             payerAccount.createInstantToken(100 + i, payeeAccount)
-                    .setRedeemerUsername(payee.firstUsername())
+                    .setRedeemerAlias(payee.firstAlias())
                     .execute();
         }
 
@@ -246,7 +246,7 @@ public class TransferTokenTest {
     @Test
     public void endorseTransferToken() {
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
         TokenOperationResult result = payer.endorseToken(token, STANDARD);
         assertThat(result.getStatus())
@@ -262,7 +262,7 @@ public class TransferTokenTest {
     @Test
     public void endorseTransferTokenWithUnlinkedAccount() {
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
         payer.unlinkAccounts(singletonList(payerAccount.getId()));
         assertThatExceptionOfType(StatusRuntimeException.class)
@@ -273,7 +273,7 @@ public class TransferTokenTest {
     @Test
     public void cancelTransferToken() {
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
         TokenOperationResult result = payer.cancelToken(token);
         assertThat(result.getStatus()).isEqualTo(SUCCESS);
@@ -289,7 +289,7 @@ public class TransferTokenTest {
     @Test
     public void endorseTransferTokenMoreSignaturesNeeded() {
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
         TokenOperationResult result = payer.endorseToken(token, LOW);
 
@@ -311,7 +311,7 @@ public class TransferTokenTest {
                 + "\\uDC8B\\u200D\\uD83D\\uDC69\\uD83D\\uDC70\\uD83C\\uDFFF\\uD83C\\uDDE6"
                 + "\\uD83C\\uDDFC\\uD83C\\uDDE7\\uD83C\\uDDED";
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription(description)
                 .execute();
         TokenOperationResult result = payer.endorseToken(token, STANDARD);

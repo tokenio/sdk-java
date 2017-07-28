@@ -55,7 +55,7 @@ public class LinkedAccount {
     public TransferTokenBuilder createInstantToken(double amount, LinkedAccount destination) {
         return getMember()
                 .createTransferToken(amount, destination.getCurrency())
-                .setRedeemerUsername(destination.getMember().firstUsername())
+                .setRedeemerAlias(destination.getMember().firstAlias())
                 .setRedeemerMemberId(destination.getMember().memberId())
                 .setAccountId(getId())
                 .addDestination(TransferEndpoint.newBuilder()

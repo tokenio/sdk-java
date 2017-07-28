@@ -23,12 +23,14 @@
 package io.token.rpc;
 
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.toObservable;
 
 import com.google.common.base.Strings;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
@@ -73,16 +75,16 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Checks if a given username already exists.
+     * Checks if a given alias already exists.
      *
-     * @param username username to check
-     * @return {@code true} if username already exists, {@code false} otherwise
+     * @param alias alias to check
+     * @return {@code true} if alias already exists, {@code false} otherwise
      */
-    public Observable<Boolean> usernameExists(String username) {
+    public Observable<Boolean> aliasExists(Alias alias) {
         return toObservable(gateway
                 .getMemberId(GetMemberIdRequest
                         .newBuilder()
-                        .setUsername(username)
+                        .setAliasHash(hashAlias(alias))
                         .build()))
                 .map(new Function<GetMemberIdResponse, Boolean>() {
                     public Boolean apply(GetMemberIdResponse response) {
@@ -92,15 +94,15 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Looks up member id for a given username.
+     * Looks up member id for a given alias.
      *
-     * @param username username to check
-     * @return member id if username already exists, null otherwise
+     * @param alias alias to check
+     * @return member id if alias already exists, null otherwise
      */
-    public Observable<String> getMemberId(String username) {
+    public Observable<String> getMemberId(Alias alias) {
         return toObservable(
                 gateway.getMemberId(GetMemberIdRequest.newBuilder()
-                        .setUsername(username)
+                        .setAliasHash(hashAlias(alias))
                         .build()))
                 .map(new Function<GetMemberIdResponse, String>() {
                     public String apply(GetMemberIdResponse response) {
@@ -130,7 +132,7 @@ public final class UnauthenticatedClient {
      * Creates a new token member.
      *
      * @param memberId member ID
-     * @param operations operations to set up member keys and usernames
+     * @param operations operations to set up member keys and aliases
      * @param signer the signer used to sign the requests
      * @return member information
      */
@@ -158,16 +160,16 @@ public final class UnauthenticatedClient {
     /**
      * Notifies subscribed devices that accounts should be linked.
      *
-     * @param username username of the member
+     * @param alias alias of the member
      * @param authorization the bank authorization for the funding account
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccounts(
-            String username,
+            Alias alias,
             BankAuthorization authorization) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
-                        .setUsername(username)
+                        .setAliasHash(hashAlias(alias))
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccounts(LinkAccounts.newBuilder()
                                         .setBankAuthorization(authorization)
@@ -185,18 +187,18 @@ public final class UnauthenticatedClient {
     /**
      * Notifies subscribed devices that a key should be added.
      *
-     * @param username username of the member
+     * @param alias alias of the member
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyAddKey(
-            String username,
+            Alias alias,
             String name,
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
-                        .setUsername(username)
+                        .setAliasHash(hashAlias(alias))
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(AddKey.newBuilder()
                                         .setName(name)
@@ -214,20 +216,20 @@ public final class UnauthenticatedClient {
     /**
      * Notifies subscribed devices that a key should be added.
      *
-     * @param username username of the member
+     * @param alias alias of the member
      * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
-            String username,
+            Alias alias,
             BankAuthorization authorization,
             String name,
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
-                        .setUsername(username)
+                        .setAliasHash(hashAlias(alias))
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccountsAndAddKey(LinkAccountsAndAddKey.newBuilder()
                                         .setLinkAccounts(LinkAccounts.newBuilder()
@@ -250,16 +252,16 @@ public final class UnauthenticatedClient {
     /**
      * Notifies subscribed devices that on payment requests.
      *
-     * @param username the username of the member to notify
+     * @param alias the alias of the member to notify
      * @param tokenPayload the pyload of a token to be sent
      * @return status of the notification request
      */
     public Observable<NotifyStatus> notifyPaymentRequest(
-            String username,
+            Alias alias,
             TokenPayload tokenPayload) {
         return toObservable(gateway.requestTransfer(
                 RequestTransferRequest.newBuilder()
-                        .setUsername(username)
+                        .setAliasHash(hashAlias(alias))
                         .setTokenPayload(tokenPayload)
                         .build()))
                 .map(new Function<RequestTransferResponse, NotifyStatus>() {

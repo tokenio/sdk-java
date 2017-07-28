@@ -1,5 +1,8 @@
 package io.token.sample;
 
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
+
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.util.Util;
 
 /**
@@ -13,7 +16,10 @@ public abstract class TestUtil {
      *
      * @return random user name
      */
-    public static String newUserName() {
-        return "username-" + Util.generateNonce();
+    public static Alias newAlias() {
+        return Alias.newBuilder()
+                .setType(EMAIL)
+                .setValue("alias-" + Util.generateNonce() + "@token.io")
+                .build();
     }
 }

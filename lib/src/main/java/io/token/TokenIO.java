@@ -28,6 +28,8 @@ import io.grpc.Metadata;
 import io.reactivex.functions.Function;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.alias.AliasProtos;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -110,34 +112,34 @@ public final class TokenIO implements Closeable {
     }
 
     /**
-     * Checks if a given username already exists.
+     * Checks if a given alias already exists.
      *
-     * @param username username to check
-     * @return {@code true} if username exists, {@code false} otherwise
+     * @param alias alias to check
+     * @return {@code true} if alias exists, {@code false} otherwise
      */
-    public boolean usernameExists(String username) {
-        return async.usernameExists(username).blockingSingle();
+    public boolean aliasExists(Alias alias) {
+        return async.aliasExists(alias).blockingSingle();
     }
 
     /**
-     * Looks up member id for a given username.
+     * Looks up member id for a given alias.
      *
-     * @param username username to check
-     * @return member id if username already exists, null otherwise
+     * @param alias alias to check
+     * @return member id if alias already exists, null otherwise
      */
-    public String getMemberId(String username) {
-        return async.getMemberId(username).blockingSingle();
+    public String getMemberId(Alias alias) {
+        return async.getMemberId(alias).blockingSingle();
     }
 
     /**
      * Creates a new Token member with a pair of auto generated keys and the
-     * given username.
+     * given alias.
      *
-     * @param username member username to use, must be unique
+     * @param alias member alias to use, must be unique
      * @return newly created member
      */
-    public Member createMember(String username) {
-        return async.createMember(username)
+    public Member createMember(Alias alias) {
+        return async.createMember(alias)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
@@ -147,11 +149,11 @@ public final class TokenIO implements Closeable {
      * of keys that are returned back. The keys need to be approved by an
      * existing device/keys.
      *
-     * @param username member id to provision the device for
+     * @param alias member id to provision the device for
      * @return device information
      */
-    public DeviceInfo provisionDevice(String username) {
-        return async.provisionDevice(username)
+    public DeviceInfo provisionDevice(Alias alias) {
+        return async.provisionDevice(alias)
                 .blockingSingle();
     }
 
@@ -170,31 +172,31 @@ public final class TokenIO implements Closeable {
     /**
      * Notifies to link accounts.
      *
-     * @param username username to notify
+     * @param alias alias to notify
      * @param authorization the bank authorization for the funding account
      * @return status of the notification request
      */
     public NotifyStatus notifyLinkAccounts(
-            String username,
+            Alias alias,
             BankAuthorization authorization) {
-        return async.notifyLinkAccounts(username, authorization)
+        return async.notifyLinkAccounts(alias, authorization)
                 .blockingSingle();
     }
 
     /**
      * Notifies to add a key.
      *
-     * @param username username to notify
+     * @param alias alias to notify
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
      * @return status of the notification request
      */
     public NotifyStatus notifyAddKey(
-            String username,
+            Alias alias,
             String name,
             Key key) {
         return async.notifyAddKey(
-                username,
+                alias,
                 name,
                 key).blockingSingle();
     }
@@ -202,19 +204,19 @@ public final class TokenIO implements Closeable {
     /**
      * Notifies to link accounts and add a key.
      *
-     * @param username username to notify
+     * @param alias alias to notify
      * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
      * @return status of the notification request
      */
     public NotifyStatus notifyLinkAccountsAndAddKey(
-            String username,
+            Alias alias,
             BankAuthorization authorization,
             String name,
             Key key) {
         return async.notifyLinkAccountsAndAddKey(
-                username,
+                alias,
                 authorization,
                 name,
                 key).blockingSingle();
@@ -223,15 +225,15 @@ public final class TokenIO implements Closeable {
     /**
      * Sends a notification to request a payment.
      *
-     * @param username the username of the member to notify
+     * @param alias the alias of the member to notify
      * @param tokenPayload the payload of a token to be sent
      * @return status of the notification request
      */
     public NotifyStatus notifyPaymentRequest(
-            String username,
+            Alias alias,
             TokenPayload tokenPayload) {
         return async
-                .notifyPaymentRequest(username, tokenPayload)
+                .notifyPaymentRequest(alias, tokenPayload)
                 .blockingSingle();
     }
 
