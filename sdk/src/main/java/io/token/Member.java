@@ -28,6 +28,8 @@ import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToStrin
 import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.alias.AliasProtos;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -89,21 +91,21 @@ public final class Member {
     }
 
     /**
-     * Gets user first username.
+     * Gets user first alias.
      *
-     * @return first username owned by the user
+     * @return first alias owned by the user
      */
-    public String firstUsername() {
-        return async.firstUsername();
+    public Alias firstAlias() {
+        return async.firstAlias();
     }
 
     /**
-     * Gets a list of all usernames owned by the member.
+     * Gets a list of all aliases owned by the member.
      *
-     * @return list of usernames owned by the member
+     * @return list of aliases owned by the member
      */
-    public List<String> usernames() {
-        return async.usernames();
+    public List<Alias> aliases() {
+        return async.aliases();
     }
 
     /**
@@ -134,39 +136,39 @@ public final class Member {
     }
 
     /**
-     * Adds a new username for the member.
+     * Adds a new alias for the member.
      *
-     * @param username username, e.g. 'john', must be unique
+     * @param alias alias, e.g. 'john', must be unique
      */
-    public void addUsername(String username) {
-        async.addUsername(username).blockingSingle();
+    public void addAlias(Alias alias) {
+        async.addAlias(alias).blockingSingle();
     }
 
     /**
-     * Adds new usernames for the member.
+     * Adds new aliases for the member.
      *
-     * @param usernames usernames, e.g. 'john', must be unique
+     * @param aliases aliases, e.g. 'john', must be unique
      */
-    public void addUsernames(List<String> usernames) {
-        async.addUsernames(usernames).blockingSingle();
+    public void addAliases(List<Alias> aliases) {
+        async.addAliases(aliases).blockingSingle();
     }
 
     /**
-     * Removes an username for the member.
+     * Removes an alias for the member.
      *
-     * @param username username, e.g. 'john'
+     * @param alias alias, e.g. 'john'
      */
-    public void removeUsername(String username) {
-        async.removeUsername(username).blockingSingle();
+    public void removeAlias(Alias alias) {
+        async.removeAlias(alias).blockingSingle();
     }
 
     /**
-     * Removes usernames for the member.
+     * Removes aliases for the member.
      *
-     * @param usernames usernames, e.g. 'john'
+     * @param aliases aliases, e.g. 'john'
      */
-    public void removeUsernames(List<String> usernames) {
-        async.removeUsernames(usernames).blockingSingle();
+    public void removeAliases(List<Alias> aliases) {
+        async.removeAliases(aliases).blockingSingle();
     }
 
     /**
@@ -816,13 +818,13 @@ public final class Member {
      *
      * @param balance account balance to set
      * @param currency currency code, i.e. "EUR"
-     * @param username username
+     * @param alias alias
      * @return bank authorization
      */
     public BankAuthorization createTestBankAccount(double balance,
                                                    String currency,
-                                                   String username) {
-        return async.createTestBankAccount(balance, currency, username).blockingSingle();
+                                                   String alias) {
+        return async.createTestBankAccount(balance, currency, alias).blockingSingle();
     }
 
     @Override

@@ -55,9 +55,9 @@ public abstract class TestBank {
     /**
      * Produces bank authorization for the given account.
      *
-     * @param username username to authorize
+     * @param alias alias to authorize
      * @param account account to authorize access to
      * @return bank authorization
      */
-    public abstract BankAuthorization authorizeAccount(String username, NamedAccount account);
+    public abstract BankAuthorization authorizeAccount(String alias, NamedAccount account);
 }

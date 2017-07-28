@@ -47,7 +47,7 @@ public class AccessTokenTest {
     public void getAccessToken() {
         AddressRecord address = member1.addAddress(string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
-                .create(member2.firstUsername())
+                .create(member2.firstAlias())
                 .forAddress(address.getId()));
         Token result = member1.getToken(accessToken.getId());
         assertThat(result).isEqualTo(accessToken);
@@ -58,7 +58,7 @@ public class AccessTokenTest {
         AddressRecord address = member1.addAddress(string(), address());
 
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAddress(address.getId()));
 
         PagedList<Token, String> result = member1.getAccessTokens(null, 2);
@@ -70,10 +70,10 @@ public class AccessTokenTest {
         AddressRecord address = member1.addAddress(string(), address());
 
         member1.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAddress(address.getId()));
         member1.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAddress(address.getId()));
     }
 
@@ -82,7 +82,7 @@ public class AccessTokenTest {
         AddressRecord address = member1.addAddress(string(), address());
 
         AccessTokenBuilder builder = AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAddress(address.getId());
 
         member1.createAccessToken(builder);
@@ -94,7 +94,7 @@ public class AccessTokenTest {
     public void addressAccessToken_failNonEndorsed() {
         final AddressRecord address = member1.addAddress(Sample.string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
-                .create(member2.firstUsername())
+                .create(member2.firstAlias())
                 .forAddress(address.getId()));
         member2.useAccessToken(accessToken.getId());
 
@@ -105,7 +105,7 @@ public class AccessTokenTest {
     public void addressAccessToken() {
         final AddressRecord address = member1.addAddress(string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
-                .create(member2.firstUsername())
+                .create(member2.firstAlias())
                 .forAddress(address.getId()));
         TokenOperationResult res = member1.endorseToken(accessToken, STANDARD);
         assertThat(res.getStatus()).isEqualTo(Status.SUCCESS);
@@ -124,7 +124,7 @@ public class AccessTokenTest {
     public void addressAccessToken_canceled() {
         final AddressRecord address = member1.addAddress(string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
-                .create(member2.firstUsername())
+                .create(member2.firstAlias())
                 .forAddress(address.getId()));
         member1.endorseToken(accessToken, STANDARD);
 
@@ -143,7 +143,7 @@ public class AccessTokenTest {
         final AddressRecord address1 = member1.addAddress(string(), address());
         final AddressRecord address2 = member1.addAddress(string(), address());
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
-                .create(member2.firstUsername())
+                .create(member2.firstAlias())
                 .forAddress(address1.getId()));
         member1.endorseToken(accessToken, STANDARD);
         member2.useAccessToken(accessToken.getId());
@@ -154,7 +154,7 @@ public class AccessTokenTest {
     @Test
     public void createAddressesAccessToken() {
         Token accessToken = member1.createAccessToken(AccessTokenBuilder
-                .create(member2.firstUsername())
+                .create(member2.firstAlias())
                 .forAllAddresses());
         member1.endorseToken(accessToken, STANDARD);
         member2.useAccessToken(accessToken.getId());
@@ -170,7 +170,7 @@ public class AccessTokenTest {
         LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
@@ -186,7 +186,7 @@ public class AccessTokenTest {
     public void createAccountAccessToken() {
         Member payer = payerAccount.getMember();
         Token accessToken = payer.createAccessToken(AccessTokenBuilder
-                .create(member2.firstUsername())
+                .create(member2.firstAlias())
                 .forAccount(payerAccount.getId()));
         payer.endorseToken(accessToken, STANDARD);
         member2.useAccessToken(accessToken.getId());
@@ -199,7 +199,7 @@ public class AccessTokenTest {
     public void createAccountsAccessToken() {
         Member payer = payerAccount.getMember();
         Token accessToken = payer.createAccessToken(AccessTokenBuilder
-                .create(member2.firstUsername())
+                .create(member2.firstAlias())
                 .forAllAccounts());
         payer.endorseToken(accessToken, STANDARD);
         member2.useAccessToken(accessToken.getId());
@@ -213,7 +213,7 @@ public class AccessTokenTest {
         LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAccountBalances(account.getId()));
         accountMember.endorseToken(accessToken, STANDARD);
 
@@ -233,7 +233,7 @@ public class AccessTokenTest {
 
         Member payer = payerAccount.getMember();
         Token accessToken = payer.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAccountTransactions(payerAccount.getId()));
         payer.endorseToken(accessToken, STANDARD);
         member1.useAccessToken(accessToken.getId());
@@ -248,7 +248,7 @@ public class AccessTokenTest {
         Member payer = payerAccount.getMember();
 
         Token accessToken = payer.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAllTransactions());
 
         payer.endorseToken(accessToken, STANDARD);
@@ -264,7 +264,7 @@ public class AccessTokenTest {
 
         Member payer = payerAccount.getMember();
         Token accessToken = payer.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAllTransactions());
         payer.endorseToken(accessToken, STANDARD);
         member1.useAccessToken(accessToken.getId());
@@ -281,7 +281,7 @@ public class AccessTokenTest {
     public void accountAccess_getTransactionsPaged() {
         Member payer = payerAccount.getMember();
         Token accessToken = payer.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAllTransactions());
         payer.endorseToken(accessToken, STANDARD);
 
@@ -310,7 +310,7 @@ public class AccessTokenTest {
         LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
@@ -344,7 +344,7 @@ public class AccessTokenTest {
         LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
@@ -366,7 +366,7 @@ public class AccessTokenTest {
         LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
@@ -389,7 +389,7 @@ public class AccessTokenTest {
         LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token originalToken = accountMember.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAllBalances());
         accountMember.endorseToken(originalToken, STANDARD);
 
@@ -420,7 +420,7 @@ public class AccessTokenTest {
         LinkedAccount account = rule.linkedAccount(payerAccount);
         Member accountMember = account.getMember();
         Token accessToken = accountMember.createAccessToken(AccessTokenBuilder
-                .create(member1.firstUsername())
+                .create(member1.firstAlias())
                 .forAllBalances());
         accountMember.endorseToken(accessToken, STANDARD);
 
@@ -441,7 +441,7 @@ public class AccessTokenTest {
         Member payer = payerAccount.getMember();
         Member payee = payeeAccount.getMember();
         Token token = payerAccount.createInstantToken(10, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
         token = payer.endorseToken(token, STANDARD).getToken();
         Transfer transfer = payee.redeemToken(token,

@@ -16,12 +16,12 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
     /**
      * Create a new transfer token, including an attached image file.
      * @param payer Payer member token
-     * @param payeeUsername Token member username of payee
+     * @param payeeAlias Token member alias of payee
      * @return Token
      */
     public static Token createTransferTokenWithNewAttachment(
             Member payer,
-            String payeeUsername) {
+            String payeeAlias) {
 
         // Create a transfer token.
         Token transferToken =
@@ -29,7 +29,7 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
                         100.0, // amount
                         "EUR")  // currency
                         .setAccountId(payer.getAccounts().get(0).id()) // source account
-                        .setRedeemerUsername(payeeUsername) // payee token username
+                        .setRedeemerAlias(payeeAlias) // payee token alias
                         .setDescription("Invoice payment") // optional description
                         .addAttachment(
                                 payer.memberId(),

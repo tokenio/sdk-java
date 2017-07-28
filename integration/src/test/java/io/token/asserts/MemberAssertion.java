@@ -8,6 +8,8 @@
 package io.token.asserts;
 
 import io.token.Member;
+import io.token.proto.common.alias.AliasProtos;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.util.Arrays;
@@ -27,26 +29,26 @@ public final class MemberAssertion extends AbstractAssert<MemberAssertion, Membe
         return new MemberAssertion(member);
     }
 
-    public MemberAssertion hasUsername(String username) {
-        Assertions.assertThat(actual.usernames()).contains(username);
+    public MemberAssertion hasAlias(Alias alias) {
+        Assertions.assertThat(actual.aliases()).contains(alias);
         return this;
     }
 
-    public MemberAssertion hasUsernames(String... usernames) {
-        return hasUsernames(Arrays.asList(usernames));
+    public MemberAssertion hasAliases(Alias... aliases) {
+        return hasAliases(Arrays.asList(aliases));
     }
 
-    public MemberAssertion hasUsernames(Collection<String> usernames) {
-        Assertions.assertThat(actual.usernames()).containsOnlyElementsOf(usernames);
+    public MemberAssertion hasAliases(Collection<Alias> aliases) {
+        Assertions.assertThat(actual.aliases()).containsOnlyElementsOf(aliases);
         return this;
     }
 
-    public MemberAssertion hasOneUsername() {
-        return hasNUsernames(1);
+    public MemberAssertion hasOneAlias() {
+        return hasNAliases(1);
     }
 
-    public MemberAssertion hasNUsernames(int count) {
-        Assertions.assertThat(actual.usernames()).hasSize(count);
+    public MemberAssertion hasNAliases(int count) {
+        Assertions.assertThat(actual.aliases()).hasSize(count);
         return this;
     }
 

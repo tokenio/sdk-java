@@ -2,6 +2,7 @@ package io.token.sample;
 
 import io.token.AccessTokenBuilder;
 import io.token.Member;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 
@@ -13,13 +14,13 @@ public final class CreateAndEndorseAccessTokenSample {
      * Creates an information access token to allow a grantee to see all bank accounts of a grantor.
      *
      * @param grantor Token member granting access to her accounts
-     * @param granteeUsername Token member username acquiring information access
+     * @param granteeAlias Token member alias acquiring information access
      * @return an access Token
      */
-    public static Token createAccessToken(Member grantor, String granteeUsername) {
+    public static Token createAccessToken(Member grantor, Alias granteeAlias) {
         // Create an access token for the grantee to access bank account names of the grantor.
         Token accessToken = grantor.createAccessToken(AccessTokenBuilder
-                .create(granteeUsername)
+                .create(granteeAlias)
                 .forAllAccounts());
 
         // Grantor endorses a token to a grantee by signing it with her secure private key.
