@@ -240,6 +240,7 @@ public final class TokenIO implements Closeable {
      */
     public enum TokenCluster {
         PRODUCTION("api-grpc.token.io"),
+        INTEGRATION("api-grpc.int.token.io"),
         SANDBOX("api-grpc.sandbox.token.io"),
         STAGING("api-grpc.stg.token.io"),
         DEVELOPMENT("api-grpc.dev.token.io");
