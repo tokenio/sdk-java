@@ -3,4 +3,4 @@
 ./gradlew \
   -DTOKEN_GATEWAY=localhost \
   -DTOKEN_BANK=localhost \
-  cleanTest :sdk:javadoc check $@
+  cleanTest :java:javadoc check $@
