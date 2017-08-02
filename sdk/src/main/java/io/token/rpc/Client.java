@@ -1019,10 +1019,9 @@ public final class Client {
      * Creates a test bank account and generates bank authorization.
      *
      * @param balance account balance to set
-     * @param alias alias
      * @return bank authorization
      */
-    public Observable<BankAuthorization> createTestBankAccount(Money balance, String alias) {
+    public Observable<BankAuthorization> createTestBankAccount(Money balance) {
         return toObservable(gateway
                 .createTestBankAccount(CreateTestBankAccountRequest
                         .newBuilder()

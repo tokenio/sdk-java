@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import io.token.Member;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 
@@ -21,7 +22,7 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
      */
     public static Token createTransferTokenWithNewAttachment(
             Member payer,
-            String payeeAlias) {
+            Alias payeeAlias) {
 
         // Create a transfer token.
         Token transferToken =

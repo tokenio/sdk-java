@@ -1,5 +1,6 @@
 package io.token.sample;
 
+import static io.token.proto.common.testing.Sample.alias;
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 
 import io.token.Member;
@@ -18,7 +19,7 @@ public final class CreateMemberSample {
      */
     public static Member createMember(TokenCluster tokenCluster) {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            return tokenIO.createMember(TestUtil.newAlias());
+            return tokenIO.createMember(alias());
         }
     }
 }

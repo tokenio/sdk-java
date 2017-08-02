@@ -36,7 +36,7 @@ public final class LinkMemberAndBankSample {
         // For the purpose of this sample, we simulate the entire linking flow described above
         // by generating it with a fake bank below.
         BankAuthorization encryptedBankAuthorization =
-                member.createTestBankAccount(1000.0, "EUR", member.firstAlias());
+                member.createTestBankAccount(1000.0, "EUR");
 
         // Finish account linking flow initiated by the user.
         return member.linkAccounts(encryptedBankAuthorization);

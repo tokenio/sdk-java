@@ -818,13 +818,11 @@ public final class Member {
      *
      * @param balance account balance to set
      * @param currency currency code, i.e. "EUR"
-     * @param alias alias
      * @return bank authorization
      */
     public BankAuthorization createTestBankAccount(double balance,
-                                                   String currency,
-                                                   String alias) {
-        return async.createTestBankAccount(balance, currency, alias).blockingSingle();
+                                                   String currency) {
+        return async.createTestBankAccount(balance, currency).blockingSingle();
     }
 
     @Override

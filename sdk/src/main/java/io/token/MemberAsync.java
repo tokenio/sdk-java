@@ -923,17 +923,15 @@ public final class MemberAsync {
      *
      * @param balance account balance to set
      * @param currency currency code, i.e. "EUR"
-     * @param alias alias
      * @return bank authorization
      */
     public Observable<BankAuthorization> createTestBankAccount(
             double balance,
-            String currency,
-            String alias) {
+            String currency) {
         return client.createTestBankAccount(Money.newBuilder()
                 .setCurrency(currency)
                 .setValue(Double.toString(balance))
-                .build(), alias);
+                .build());
     }
 
     @Override
