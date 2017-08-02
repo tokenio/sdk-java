@@ -152,7 +152,7 @@ public class TransferRedemptionTest {
 
     @Test
     public void redeemToken_legacy_failure() {
-        double amount = payerAccount.getBalance() -1;
+        double amount = payerAccount.getBalance() - 1;
 
         Token firstToken = payerAccount
                 .createLegacyToken(amount, payeeAccount)
