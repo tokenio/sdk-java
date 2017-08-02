@@ -22,15 +22,14 @@
 
 package io.token.rpc;
 
+import static io.token.proto.ProtoHasher.hashAndSerialize;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toObservable;
-import static io.token.util.security.Hasher.hashAndSerialize;
 
 import com.google.common.base.Strings;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.common.alias.AliasProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -85,7 +84,7 @@ public final class UnauthenticatedClient {
         return toObservable(gateway
                 .getMemberId(GetMemberIdRequest
                         .newBuilder()
-                        .setAlias(alias)
+                        .setAliasHash(hashAndSerialize(alias))
                         .build()))
                 .map(new Function<GetMemberIdResponse, Boolean>() {
                     public Boolean apply(GetMemberIdResponse response) {
@@ -103,7 +102,7 @@ public final class UnauthenticatedClient {
     public Observable<String> getMemberId(Alias alias) {
         return toObservable(
                 gateway.getMemberId(GetMemberIdRequest.newBuilder()
-                        .setAlias(alias)
+                        .setAliasHash(hashAndSerialize(alias))
                         .build()))
                 .map(new Function<GetMemberIdResponse, String>() {
                     public String apply(GetMemberIdResponse response) {
@@ -170,7 +169,7 @@ public final class UnauthenticatedClient {
             BankAuthorization authorization) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
-                        .setAlias(alias)
+                        .setAliasHash(hashAndSerialize(alias))
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccounts(LinkAccounts.newBuilder()
                                         .setBankAuthorization(authorization)
@@ -199,7 +198,7 @@ public final class UnauthenticatedClient {
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
-                        .setAlias(alias)
+                        .setAliasHash(hashAndSerialize(alias))
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(AddKey.newBuilder()
                                         .setName(name)
@@ -230,7 +229,7 @@ public final class UnauthenticatedClient {
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
-                        .setAlias(alias)
+                        .setAliasHash(hashAndSerialize(alias))
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccountsAndAddKey(LinkAccountsAndAddKey.newBuilder()
                                         .setLinkAccounts(LinkAccounts.newBuilder()
@@ -262,7 +261,7 @@ public final class UnauthenticatedClient {
             TokenPayload tokenPayload) {
         return toObservable(gateway.requestTransfer(
                 RequestTransferRequest.newBuilder()
-                        .setAlias(alias)
+                        .setAliasHash(hashAndSerialize(alias))
                         .setTokenPayload(tokenPayload)
                         .build()))
                 .map(new Function<RequestTransferResponse, NotifyStatus>() {
