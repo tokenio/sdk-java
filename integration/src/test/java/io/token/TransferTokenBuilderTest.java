@@ -1,6 +1,5 @@
 package io.token;
 
-
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment.SAVINGS;
 import static io.token.testing.sample.Sample.string;
@@ -42,7 +41,7 @@ public class TransferTokenBuilderTest {
     @Test
     public void basicToken() {
         payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription("book purchase")
                 .execute();
     }
@@ -50,7 +49,7 @@ public class TransferTokenBuilderTest {
     @Test
     public void noSource() {
         assertThatThrownBy(() -> payer.createTransferToken(100.0, payerAccount.getCurrency())
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription("book purchase")
                 .execute());
     }
@@ -59,7 +58,7 @@ public class TransferTokenBuilderTest {
     public void noRedeemer() {
         assertThatThrownBy(() -> payerAccount.createInstantToken(100.0, payeeAccount)
                 .setRedeemerMemberId("")
-                .setRedeemerUsername("")
+                .setRedeemerAlias(null)
                 .setDescription("book purchase")
                 .execute());
     }
@@ -72,7 +71,7 @@ public class TransferTokenBuilderTest {
         Attachment attachment = payer.createBlob(payer.memberId(), string(), string(), randomData1);
 
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription("book purchase")
                 .addAttachment(attachment)
                 .execute();
@@ -97,7 +96,7 @@ public class TransferTokenBuilderTest {
         new Random().nextBytes(randomData4);
 
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setDescription("book purchase")
                 .addAttachment(payer.memberId(), string(), string(), randomData1)
                 .addAttachment(payer.memberId(), string(), string(), randomData2)
@@ -120,7 +119,7 @@ public class TransferTokenBuilderTest {
     @Test
     public void full() {
         Token token = payerAccount.createInstantToken(100.0, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setEffectiveAtMs(System.currentTimeMillis() + 10000)
                 .setExpiresAtMs(System.currentTimeMillis() + 1000000)
                 .setChargeAmount(40)

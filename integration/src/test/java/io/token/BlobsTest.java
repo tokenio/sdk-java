@@ -148,7 +148,7 @@ public class BlobsTest {
                 .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Token token = payerAccount.createInstantToken(100, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .addAttachment(attachment)
                 .addAttachment(attachment2)
                 .execute();
@@ -176,7 +176,7 @@ public class BlobsTest {
                 .createBlob(payer.memberId(), FILETYPE, FILENAME, randomData);
 
         Token token = payerAccount.createInstantToken(100, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .addAttachment(attachment)
                 .execute();
         payer.endorseToken(token, PRIVILEGED);

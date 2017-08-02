@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import io.token.Member;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 
@@ -12,12 +13,12 @@ public final class CreateAndEndorseTransferTokenSample {
      * Creates a transfer token and authorizes a money transfer from a payer to a payee.
      *
      * @param payer payer Token member
-     * @param payeeUsername payee Token member username
+     * @param payeeAlias payee Token member alias
      * @return a transfer Token
      */
     public static Token createTransferToken(
             Member payer,
-            String payeeUsername) {
+            Alias payeeAlias) {
 
         // Create a transfer token.
         Token transferToken =
@@ -25,7 +26,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         100.0, // amount
                         "EUR")  // currency
                         .setAccountId(payer.getAccounts().get(0).id()) // source account
-                        .setRedeemerUsername(payeeUsername) // payee token username
+                        .setRedeemerAlias(payeeAlias) // payee token alias
                         .setDescription("Book purchase") // optional description
                         .execute();
 

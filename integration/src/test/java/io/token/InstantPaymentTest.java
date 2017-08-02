@@ -84,7 +84,7 @@ public class InstantPaymentTest {
         double amount = payerAccount.getBalance() + 1;
         assertThatExceptionOfType(TransferTokenException.class)
                 .isThrownBy(() -> payerAccount.createInstantToken(amount, payeeAccount)
-                        .setRedeemerUsername(payee.firstUsername())
+                        .setRedeemerAlias(payee.firstAlias())
                         .execute())
                 .matches(e -> e.getStatus() == TransferTokenStatus.FAILURE_INSUFFICIENT_FUNDS);
     }
@@ -246,7 +246,7 @@ public class InstantPaymentTest {
             String currency) {
         Token token = payer.createTransferToken(amount, currency)
                 .setAccountId(payerAccount.getId())
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .addDestination(destination)
                 .execute();
         token = payer.endorseToken(token, STANDARD).getToken();

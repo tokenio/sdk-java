@@ -35,6 +35,8 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
+import io.token.proto.common.alias.AliasProtos;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
@@ -54,7 +56,7 @@ import org.slf4j.LoggerFactory;
 /**
  * This class is used to build a transfer token. The required parameters are member, amount (which
  * is the lifetime amount of the token), and currency. One source of funds must be set: either
- * accountId or BankAuthorization. Finally, a redeemer must be set, specified by either username
+ * accountId or BankAuthorization. Finally, a redeemer must be set, specified by either alias
  * or memberId.
  */
 public final class TransferTokenBuilder {
@@ -83,8 +85,9 @@ public final class TransferTokenBuilder {
                         .setCurrency(currency)
                         .setLifetimeAmount(Double.toString(amount)));
 
-        if (member.firstUsername() != null) {
-            payload.getFromBuilder().setUsername(member.firstUsername());
+        if (member.firstAlias() != null) {
+            payload.getFromBuilder()
+                    .setAlias(member.firstAlias());
         }
 
         blobPayloads = new ArrayList<>();
@@ -184,15 +187,15 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the username of the redeemer.
+     * Sets the alias of the redeemer.
      *
-     * @param redeemerUsername username
+     * @param redeemerAlias alias
      * @return builder
      */
-    public TransferTokenBuilder setRedeemerUsername(String redeemerUsername) {
+    public TransferTokenBuilder setRedeemerAlias(Alias redeemerAlias) {
         payload.getTransferBuilder()
                 .getRedeemerBuilder()
-                .setUsername(redeemerUsername);
+                .setAlias(redeemerAlias);
         return this;
     }
 
@@ -246,13 +249,14 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the username of the payee.
+     * Sets the alias of the payee.
      *
-     * @param toUsername username
+     * @param toAlias alias
      * @return builder
      */
-    public TransferTokenBuilder setToUsername(String toUsername) {
-        payload.getToBuilder().setUsername(toUsername);
+    public TransferTokenBuilder setToAlias(Alias toAlias) {
+        payload.getToBuilder()
+                .setAlias(toAlias);
         return this;
     }
 
@@ -321,7 +325,7 @@ public final class TransferTokenBuilder {
             throw new TokenArgumentsException("No source on token");
         }
         if (Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getId())
-                && Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getUsername())) {
+                && !payload.getTransfer().getRedeemer().hasAlias()) {
             throw new TokenArgumentsException("No redeemer on token");
         }
 

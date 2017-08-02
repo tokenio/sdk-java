@@ -13,7 +13,7 @@ public abstract class TestUtil {
      *
      * @return random user name
      */
-    public static String newUserName() {
-        return "username-" + Util.generateNonce();
+    public static String newAlias() {
+        return "alias-" + Util.generateNonce();
     }
 }

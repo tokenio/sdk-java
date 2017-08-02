@@ -11,6 +11,7 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANC
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 
 import io.token.Member;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -39,10 +40,10 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
         return this;
     }
 
-    public TokenAssertion hasRedeemerUsername(String username) {
+    public TokenAssertion hasRedeemerAlias(Alias alias) {
         Assertions
-                .assertThat(actual.getPayload().getTransfer().getRedeemer().getUsername())
-                .isEqualTo(username);
+                .assertThat(actual.getPayload().getTransfer().getRedeemer().getAlias())
+                .isEqualTo(alias);
         return this;
     }
 

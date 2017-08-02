@@ -16,6 +16,7 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.Swift;
 import io.token.proto.common.account.AccountProtos.PlaintextBankAuthorization;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
@@ -95,19 +96,21 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
         NotifyStatus res = rule.token().notifyLinkAccounts(
-                payer.firstUsername(),
+                payer.firstAlias(),
                 authorization);
         assertThat(res).isEqualTo(NotifyStatus.ACCEPTED);
         List<Subscriber> subscriberList = payer.getSubscribers();
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(NOTIFICATION_TIMEOUT_MS,
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
                 () -> assertThat(payer.getNotifications(null, 100).getList().size())
                         .isGreaterThan(0));
         payer.unsubscribeFromNotifications(subscriber.getId());
 
         List<Subscriber> subscriberList2 = payer.getSubscribers();
         assertThat(subscriberList2.size()).isEqualTo(0);
-        waitUntil(NOTIFICATION_TIMEOUT_MS,
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
                 () -> assertThat(payer.getNotifications(null, 100).getList().size())
                         .isEqualTo(0));
     }
@@ -117,10 +120,11 @@ public class NotificationsTest {
         payer.subscribeToNotifications("iron", new HashMap<>());
         List<Subscriber> subscriberList = payer.getSubscribers();
         rule.token().notifyLinkAccounts(
-                payer.firstUsername(),
+                payer.firstAlias(),
                 authorization);
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(NOTIFICATION_TIMEOUT_MS,
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
                 () -> assertThat(payer.getNotifications(null, 100).getList().size())
                         .isGreaterThan(0));
     }
@@ -132,10 +136,11 @@ public class NotificationsTest {
         payer.subscribeToNotifications("iron", instructionsBank);
         List<Subscriber> subscriberList = payer.getSubscribers();
         rule.token().notifyLinkAccounts(
-                payer.firstUsername(),
+                payer.firstAlias(),
                 authorization);
         assertThat(subscriberList.size()).isEqualTo(1);
-        waitUntil(NOTIFICATION_TIMEOUT_MS,
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
                 () -> assertThat(payer.getNotifications(null, 100).getList().size())
                         .isGreaterThan(0));
     }
@@ -156,7 +161,7 @@ public class NotificationsTest {
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         Token token = payerAccount.createInstantToken(56, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
@@ -177,10 +182,10 @@ public class NotificationsTest {
                 .handlerInstructions(NOTIFICATION_TARGET + "1", TEST));
 
         Token token = payerAccount.createInstantToken(56, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
         Token token2 = payerAccount.createInstantToken(56, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
@@ -201,7 +206,7 @@ public class NotificationsTest {
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
         Token token = payer.createAccessToken(AccessTokenBuilder
-                .create(payee.firstUsername())
+                .create(payee.firstAlias())
                 .forAllAccounts());
 
         TokenOperationResult res = payer.endorseToken(token, Key.Level.LOW);
@@ -226,12 +231,12 @@ public class NotificationsTest {
 
         Token token = payerAccount.createInstantToken(20, payeeAccount)
                 .setAccountId(payerAccount.getId())
-                .setRedeemerUsername(payee.firstUsername())
-                .setToUsername(payee.firstUsername()) // to Username.
+                .setRedeemerAlias(payee.firstAlias())
+                .setToAlias(payee.firstAlias()) // to Alias.
                 .execute();
 
         Token token2 = payerAccount.createInstantToken(20, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .setToMemberId(payee.memberId()) // to Member id.
                 .execute();
 
@@ -259,7 +264,7 @@ public class NotificationsTest {
     }
 
     @Test
-    public void transferProcessed_containsOtherPartyUsername() {
+    public void transferProcessed_containsOtherPartyAlias() {
         payer.subscribeToNotifications(
                 "token",
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
@@ -270,8 +275,8 @@ public class NotificationsTest {
 
         Token token = payerAccount.createInstantToken(20, payeeAccount)
                 .setAccountId(payerAccount.getId())
-                .setRedeemerUsername(payee.firstUsername())
-                .setToUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
+                .setToAlias(payee.firstAlias())
                 .execute();
 
         Token endorsed = payer.endorseToken(token, STANDARD).getToken();
@@ -284,7 +289,7 @@ public class NotificationsTest {
                     List<Notification> notifications = payer.getNotifications(null, 100).getList();
                     assertThat(notifications).hasSize(1);
                     assertThat(notifications.get(0).getContent().getBody())
-                            .contains(payee.firstUsername());
+                            .contains(payee.firstAlias().getValue());
                 });
 
         waitUntil(
@@ -293,7 +298,7 @@ public class NotificationsTest {
                     List<Notification> notifications = payee.getNotifications(null, 100).getList();
                     assertThat(notifications).hasSize(1);
                     assertThat(notifications.get(0).getContent().getBody())
-                            .contains(payer.firstUsername());
+                            .contains(payer.firstAlias().getValue());
                 });
     }
 
@@ -318,8 +323,8 @@ public class NotificationsTest {
 
         Token token = payerAccount.createInstantToken(20, payeeAccount)
                 .setAccountId(payerAccount.getId())
-                .setRedeemerUsername(payee.firstUsername())
-                .setToUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
+                .setToAlias(payee.firstAlias())
                 .execute();
 
         Token endorsed = payer.endorseToken(token, STANDARD).getToken();
@@ -356,7 +361,7 @@ public class NotificationsTest {
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         Token token = payerAccount.createInstantToken(20, payeeAccount)
-                .setRedeemerUsername(payee.firstUsername())
+                .setRedeemerAlias(payee.firstAlias())
                 .execute();
 
         Token endorsed = payer.endorseToken(token, STANDARD).getToken();
@@ -375,23 +380,23 @@ public class NotificationsTest {
 
     @Test
     public void sendNotifications() {
-        String username = payer.firstUsername();
+        Alias alias = payer.firstAlias();
 
         try (TokenIO newSdk = rule.newSdkInstance()) {
-            DeviceInfo deviceInfo = newSdk.provisionDevice(username);
+            DeviceInfo deviceInfo = newSdk.provisionDevice(alias);
 
             payer.subscribeToNotifications(
                     "token",
                     Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
             NotifyStatus res1 = newSdk.notifyLinkAccounts(
-                    username,
+                    alias,
                     authorization);
             NotifyStatus res2 = newSdk.notifyAddKey(
-                    username,
+                    alias,
                     "Chrome 52.0",
                     deviceInfo.getKeys().get(0));
             NotifyStatus res3 = newSdk.notifyLinkAccountsAndAddKey(
-                    username,
+                    alias,
                     authorization,
                     "Chrome 52.0",
                     deviceInfo.getKeys().get(0));
@@ -400,7 +405,7 @@ public class NotificationsTest {
             assertThat(res2).isEqualTo(NotifyStatus.ACCEPTED);
             assertThat(res3).isEqualTo(NotifyStatus.ACCEPTED);
             newSdk.notifyAddKey(
-                    username,
+                    alias,
                     "Chrome 52.0",
                     deviceInfo.getKeys().get(0));
 
@@ -414,16 +419,16 @@ public class NotificationsTest {
 
     @Test
     public void testUnicode() {
-        String username = payer.firstUsername();
+        Alias alias = payer.firstAlias();
 
         try (TokenIO newSdk = rule.newSdkInstance()) {
-            DeviceInfo deviceInfo = newSdk.provisionDevice(username);
+            DeviceInfo deviceInfo = newSdk.provisionDevice(alias);
 
             payer.subscribeToNotifications(
                     "token",
                     Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
             NotifyStatus res1 = newSdk.notifyAddKey(
-                    username,
+                    alias,
                     "Chrome 52.0 ₫",
                     deviceInfo.getKeys().get(0));
 
@@ -444,7 +449,7 @@ public class NotificationsTest {
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         rule.token().notifyLinkAccounts(
-                payer.firstUsername(),
+                payer.firstAlias(),
                 authorization);
 
         waitUntil(
@@ -467,12 +472,13 @@ public class NotificationsTest {
         rule
                 .token()
                 .notifyPaymentRequest(
-                        payer.firstUsername(),
+                        payer.firstAlias(),
                         TokenPayload.newBuilder()
                                 .setDescription("Payment request")
                                 .setFrom(TokenMember.newBuilder()
-                                        .setUsername(payer.firstUsername()))
-                                .setTo(TokenMember.newBuilder().setUsername(payee.firstUsername()))
+                                        .setAlias(payer.firstAlias()))
+                                .setTo(TokenMember.newBuilder()
+                                        .setAlias(payee.firstAlias()))
                                 .setTransfer(TransferBody.newBuilder()
                                         .setAmount("100")
                                         .setCurrency("USD"))
@@ -497,11 +503,11 @@ public class NotificationsTest {
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         try (TokenIO newSdk = rule.newSdkInstance()) {
-            DeviceInfo deviceInfo = newSdk.provisionDevice(payer.firstUsername());
+            DeviceInfo deviceInfo = newSdk.provisionDevice(payer.firstAlias());
             rule
                     .token()
                     .notifyLinkAccountsAndAddKey(
-                            payer.firstUsername(),
+                            payer.firstAlias(),
                             authorization,
                             "Chrome",
                             deviceInfo.getKeys().get(0));
@@ -531,7 +537,7 @@ public class NotificationsTest {
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         rule.token().notifyLinkAccounts(
-                payer.firstUsername(),
+                payer.firstAlias(),
                 authorization);
 
         waitUntil(
@@ -551,16 +557,16 @@ public class NotificationsTest {
                 Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
 
         rule.token().notifyLinkAccounts(
-                payer.firstUsername(),
+                payer.firstAlias(),
                 authorization);
         rule.token().notifyLinkAccounts(
-                payer.firstUsername(),
+                payer.firstAlias(),
                 authorization);
         rule.token().notifyLinkAccounts(
-                payer.firstUsername(),
+                payer.firstAlias(),
                 authorization);
         rule.token().notifyLinkAccounts(
-                payer.firstUsername(),
+                payer.firstAlias(),
                 authorization);
 
         waitUntil(

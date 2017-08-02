@@ -25,6 +25,7 @@ package io.token;
 import static io.token.util.Util.generateNonce;
 
 import com.google.common.base.Strings;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.AccessBody;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountBalance;
@@ -57,11 +58,11 @@ public final class AccessTokenBuilder {
     /**
      * Creates an instance of {@link AccessTokenBuilder}.
      *
-     * @param redeemerUsername redeemer username
+     * @param redeemerAlias redeemer alias
      * @return instance of {@link AccessTokenBuilder}
      */
-    public static AccessTokenBuilder create(String redeemerUsername) {
-        return new AccessTokenBuilder().to(redeemerUsername);
+    public static AccessTokenBuilder create(Alias redeemerAlias) {
+        return new AccessTokenBuilder().to(redeemerAlias);
     }
 
     /**
@@ -208,11 +209,12 @@ public final class AccessTokenBuilder {
     /**
      * Sets "to" field on the payload.
      *
-     * @param redeemerUsername redeemer username
+     * @param redeemerAlias redeemer alias
      * @return {@link AccessTokenBuilder}
      */
-    AccessTokenBuilder to(String redeemerUsername) {
-        payload.setTo(TokenMember.newBuilder().setUsername(redeemerUsername));
+    AccessTokenBuilder to(Alias redeemerAlias) {
+        payload.setTo(TokenMember.newBuilder()
+                .setAlias(redeemerAlias));
         return this;
     }
 

@@ -2,11 +2,13 @@ package io.token;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.token.common.TokenRule.getEnvProperty;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
 
 import com.typesafe.config.ConfigFactory;
 import io.grpc.Metadata;
 import io.token.common.EnvConfig;
 import io.token.exceptions.VersionMismatchException;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.TokenCryptoEngineFactory;
@@ -38,7 +40,10 @@ public class ErrorHandlerTest {
                         .build(),
                 cryptoFactory)
                 .sync()) {
-            tokenIO.usernameExists("");
+            tokenIO.aliasExists(Alias.newBuilder()
+                    .setValue("")
+                    .setType(EMAIL)
+                    .build());
         }
     }
 }

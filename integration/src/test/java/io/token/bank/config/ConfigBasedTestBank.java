@@ -73,12 +73,12 @@ public final class ConfigBasedTestBank extends TestBank {
     }
 
     @Override
-    public BankAuthorization authorizeAccount(String username, NamedAccount account) {
+    public BankAuthorization authorizeAccount(String alias, NamedAccount account) {
         return BankAccountAuthorizer.builder(bankId)
                 .useMethod(SecurityProtos.SealedMessage.MethodCase.NOOP)
                 .withExpiration(Duration.ofMinutes(1))
                 .build()
-                        .createAuthorization(username, singletonList(account));
+                        .createAuthorization(alias, singletonList(account));
     }
 
     private TestAccount findNextAccount(Optional<TestAccount> counterParty) {

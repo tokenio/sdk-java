@@ -1,9 +1,11 @@
 package io.token;
 
 import static io.token.asserts.MemberAssertion.assertThat;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
+import static io.token.proto.common.testing.Sample.alias;
 
 import io.token.common.TokenRule;
-import io.token.util.Util;
+import io.token.proto.common.alias.AliasProtos.Alias;
 
 import org.assertj.core.api.Assertions;
 import org.junit.Rule;
@@ -14,84 +16,88 @@ public class MemberRegistrationTest {
 
     @Test
     public void createMember() {
-        String username = Util.generateNonce();
-        Member member = rule.token().createMember(username);
+        Alias alias = alias();
+        Member member = rule.token().createMember(alias);
         assertThat(member)
-                .hasUsername(username)
+                .hasAlias(alias)
                 .hasNKeys(3);
     }
 
     @Test
     public void loginMember() {
-        String username = Util.generateNonce();
-        Member member = rule.token().createMember(username);
-        // TODO (Yuhan): change login to fetch usernames when the server actually stores
-        // usernames in plain text
-        Member loggedIn = rule.token().login(member.memberId(), username);
+        Alias alias = alias();
+        Member member = rule.token().createMember(alias);
+        // TODO (Yuhan): change login to fetch aliases when the server actually stores
+        // aliases in plain text
+        Member loggedIn = rule.token().login(member.memberId(), alias);
         assertThat(loggedIn)
-                .hasUsernames(member.usernames())
+                .hasAliases(member.aliases())
                 .hasNKeys(3);
     }
 
     @Test
     public void provisionDevice() {
-        String username = Util.generateNonce();
+        Alias alias = alias();
 
-        Member member = rule.token().createMember(username);
+        Member member = rule.token().createMember(alias);
 
         try (TokenIO secondDevice = rule.newSdkInstance()) {
-            DeviceInfo deviceInfo = secondDevice.provisionDevice(member.firstUsername());
+            DeviceInfo deviceInfo = secondDevice.provisionDevice(member.firstAlias());
             member.approveKeys(deviceInfo.getKeys());
 
-            Member loggedIn = secondDevice.login(deviceInfo.getMemberId(), username);
+            Member loggedIn = secondDevice.login(deviceInfo.getMemberId(), alias);
             assertThat(loggedIn)
-                    .hasUsernames(member.usernames())
+                    .hasAliases(member.aliases())
                     .hasNKeys(6);
         }
     }
 
     @Test
-    public void addUsername() {
-        String username1 = Util.generateNonce();
-        String username2 = Util.generateNonce();
-        String username3 = Util.generateNonce();
+    public void addAlias() {
+        Alias alias1 = alias();
+        Alias alias2 = alias();
+        Alias alias3 = alias();
 
-        Member member = rule.token().createMember(username1);
-        member.addUsername(username2);
-        member.addUsername(username3);
+        Member member = rule.token().createMember(alias1);
+        member.addAlias(alias2);
+        member.addAlias(alias3);
 
         assertThat(member)
-                .hasUsernames(username1, username2, username3)
+                .hasAliases(alias1, alias2, alias3)
                 .hasNKeys(3);
     }
 
     @Test
-    public void removeUsername() {
-        String username1 = Util.generateNonce();
-        String username2 = Util.generateNonce();
+    public void removeAlias() {
+        Alias alias1 = alias();
+        Alias alias2 = alias();
 
-        Member member = rule.token().createMember(username1);
+        Member member = rule.token().createMember(alias1);
 
-        member.addUsername(username2);
-        assertThat(member).hasUsernames(username1, username2);
+        member.addAlias(alias2);
+        assertThat(member).hasAliases(alias1, alias2);
 
-        member.removeUsername(username2);
+        member.removeAlias(alias2);
         assertThat(member)
-                .hasUsernames(username1)
+                .hasAliases(alias1)
                 .hasNKeys(3);
     }
 
     @Test
-    public void usernameDoesNotExist() {
+    public void aliasDoesNotExist() {
+        Alias alias1 = Alias.newBuilder()
+                .setValue("john@google.com")
+                .setType(EMAIL)
+                .build();
         Assertions
-                .assertThat(rule.token().usernameExists("john" + Util.generateNonce()))
+                .assertThat(rule.token().aliasExists(alias1))
                 .isFalse();
     }
 
     @Test
-    public void usernameExists() {
-        String username = "john-" + Util.generateNonce();
-        rule.token().createMember(username);
-        Assertions.assertThat(rule.token().usernameExists(username)).isTrue();
+    public void aliasExists() {
+        Alias alias = alias();
+        rule.token().createMember(alias);
+        Assertions.assertThat(rule.token().aliasExists(alias)).isTrue();
     }
 }
