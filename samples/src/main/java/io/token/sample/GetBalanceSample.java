@@ -9,9 +9,14 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Two ways to get balances of a logged-in member's bank accounts
+ * Two ways to get balances of a logged-in member's bank accounts.
  */
 public final class GetBalanceSample {
+    /**
+     * Get a member's balances.
+     * @param member Member.
+     * @return map currency -> total
+     */
     public static Map<String, Double> memberGetBalanceSample(Member member) {
         Map<String, Double> sums = new HashMap();
 
@@ -20,13 +25,18 @@ public final class GetBalanceSample {
             Money balance = member.getBalance(account.id());
             sums.put(
                     balance.getCurrency(),
-                    Double.parseDouble(balance.getValue()) +
-                            sums.getOrDefault(balance.getCurrency(), 0.0));
+                    Double.parseDouble(balance.getValue())
+                            + sums.getOrDefault(balance.getCurrency(), 0.0));
         }
 
         return sums;
     }
 
+    /**
+     * Get a member's balances.
+     * @param member Member.
+     * @return map currency -> total
+     */
     public static Map<String, Double> accountGetBalanceSample(Member member) {
         Map<String, Double> sums = new HashMap();
 
@@ -35,8 +45,8 @@ public final class GetBalanceSample {
             Money balance = account.getBalance();
             sums.put(
                     balance.getCurrency(),
-                    Double.parseDouble(balance.getValue()) +
-                            sums.getOrDefault(balance.getCurrency(), 0.0));
+                    Double.parseDouble(balance.getValue())
+                            + sums.getOrDefault(balance.getCurrency(), 0.0));
         }
 
         return sums;
