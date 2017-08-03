@@ -18,8 +18,7 @@ public final class GetTransactionsSample {
      *
      * @param payer payer Token member
      */
-    public static void getTransactionsSample(
-            Member payer) {
+    public static void getTransactionsSample(Member payer) {
         List<Account> accounts = payer.getAccounts();
         String accountId = accounts.get(0).id();
 
