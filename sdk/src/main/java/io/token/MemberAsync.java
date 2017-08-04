@@ -22,9 +22,9 @@
 
 package io.token;
 
-import static io.token.proto.ProtoHasher.hashAndSerialize;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.hashAlias;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.protobuf.ByteString;
@@ -34,7 +34,6 @@ import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
-import io.token.proto.common.alias.AliasProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
@@ -219,7 +218,7 @@ public final class MemberAsync {
                     .newBuilder()
                     .setRemoveAlias(MemberAliasOperation
                             .newBuilder()
-                            .setAliasHash(hashAndSerialize(alias)))
+                            .setAliasHash(hashAlias(alias)))
                     .build());
         }
         return client

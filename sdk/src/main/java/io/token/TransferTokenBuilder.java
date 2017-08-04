@@ -22,11 +22,12 @@
 
 package io.token;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN_AUTHORIZATION;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.hashAlias;
 
-import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
@@ -35,7 +36,6 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
-import io.token.proto.common.alias.AliasProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
@@ -87,7 +87,7 @@ public final class TransferTokenBuilder {
 
         if (member.firstAlias() != null) {
             payload.getFromBuilder()
-                    .setAlias(member.firstAlias());
+                    .setAliasHash(hashAlias(member.firstAlias()));
         }
 
         blobPayloads = new ArrayList<>();
@@ -195,7 +195,7 @@ public final class TransferTokenBuilder {
     public TransferTokenBuilder setRedeemerAlias(Alias redeemerAlias) {
         payload.getTransferBuilder()
                 .getRedeemerBuilder()
-                .setAlias(redeemerAlias);
+                .setAliasHash(hashAlias(redeemerAlias));
         return this;
     }
 
@@ -256,7 +256,7 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder setToAlias(Alias toAlias) {
         payload.getToBuilder()
-                .setAlias(toAlias);
+                .setAliasHash(hashAlias(toAlias));
         return this;
     }
 
@@ -324,8 +324,8 @@ public final class TransferTokenBuilder {
         if (sourceCase != TOKEN_AUTHORIZATION && sourceCase != TOKEN) {
             throw new TokenArgumentsException("No source on token");
         }
-        if (Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getId())
-                && !payload.getTransfer().getRedeemer().hasAlias()) {
+        if (isNullOrEmpty(payload.getTransfer().getRedeemer().getId())
+                && isNullOrEmpty(payload.getTransfer().getRedeemer().getAliasHash())) {
             throw new TokenArgumentsException("No redeemer on token");
         }
 

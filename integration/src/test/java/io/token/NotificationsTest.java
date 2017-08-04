@@ -5,6 +5,7 @@ import static io.token.proto.common.notification.NotificationProtos.Notification
 import static io.token.proto.common.notification.NotificationProtos.NotifyBody.BodyCase.PAYEE_TRANSFER_PROCESSED;
 import static io.token.proto.common.notification.NotificationProtos.NotifyBody.BodyCase.PAYER_TRANSFER_PROCESSED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.util.Util.hashAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -289,7 +290,7 @@ public class NotificationsTest {
                     List<Notification> notifications = payer.getNotifications(null, 100).getList();
                     assertThat(notifications).hasSize(1);
                     assertThat(notifications.get(0).getContent().getBody())
-                            .contains(payee.firstAlias().getValue());
+                            .contains(hashAlias(payee.firstAlias()));
                 });
 
         waitUntil(
@@ -298,7 +299,7 @@ public class NotificationsTest {
                     List<Notification> notifications = payee.getNotifications(null, 100).getList();
                     assertThat(notifications).hasSize(1);
                     assertThat(notifications.get(0).getContent().getBody())
-                            .contains(payer.firstAlias().getValue());
+                            .contains(hashAlias(payer.firstAlias()));
                 });
     }
 
@@ -476,9 +477,9 @@ public class NotificationsTest {
                         TokenPayload.newBuilder()
                                 .setDescription("Payment request")
                                 .setFrom(TokenMember.newBuilder()
-                                        .setAlias(payer.firstAlias()))
+                                        .setAliasHash(hashAlias(payer.firstAlias())))
                                 .setTo(TokenMember.newBuilder()
-                                        .setAlias(payee.firstAlias()))
+                                        .setAliasHash(hashAlias(payee.firstAlias())))
                                 .setTransfer(TransferBody.newBuilder()
                                         .setAmount("100")
                                         .setCurrency("USD"))
