@@ -9,6 +9,7 @@ package io.token.asserts;
 
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
+import static io.token.util.Util.hashAlias;
 
 import io.token.Member;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -42,8 +43,8 @@ public final class TokenAssertion extends AbstractAssert<TokenAssertion, Token> 
 
     public TokenAssertion hasRedeemerAlias(Alias alias) {
         Assertions
-                .assertThat(actual.getPayload().getTransfer().getRedeemer().getAlias())
-                .isEqualTo(alias);
+                .assertThat(actual.getPayload().getTransfer().getRedeemer().getAliasHash())
+                .isEqualTo(hashAlias(alias));
         return this;
     }
 

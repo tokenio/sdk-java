@@ -22,9 +22,10 @@
 
 package io.token;
 
+import static com.google.common.base.Strings.isNullOrEmpty;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.hashAlias;
 
-import com.google.common.base.Strings;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.AccessBody;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
@@ -58,7 +59,7 @@ public final class AccessTokenBuilder {
     /**
      * Creates an instance of {@link AccessTokenBuilder}.
      *
-     * @param redeemerAlias redeemer alias
+     * @param redeemerAlias redeemer alias hash
      * @return instance of {@link AccessTokenBuilder}
      */
     public static AccessTokenBuilder create(Alias redeemerAlias) {
@@ -214,7 +215,7 @@ public final class AccessTokenBuilder {
      */
     AccessTokenBuilder to(Alias redeemerAlias) {
         payload.setTo(TokenMember.newBuilder()
-                .setAlias(redeemerAlias));
+                .setAliasHash(hashAlias(redeemerAlias)));
         return this;
     }
 
@@ -224,7 +225,7 @@ public final class AccessTokenBuilder {
      * @return {@link AccessTokenBuilder}
      */
     TokenPayload build() {
-        if (payload.getFrom() == null || Strings.isNullOrEmpty(payload.getFrom().getId())) {
+        if (payload.getFrom() == null || isNullOrEmpty(payload.getFrom().getId())) {
             throw new IllegalArgumentException("Missing 'payload.from' value");
         }
 
