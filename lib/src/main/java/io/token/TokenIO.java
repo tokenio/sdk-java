@@ -40,6 +40,7 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
+import java.util.Collections;
 
 /**
  * Main entry point to the Token SDK. Use {@link TokenIO.Builder}
@@ -164,7 +165,7 @@ public final class TokenIO implements Closeable {
      * @return logged in member
      */
     public Member login(String memberId) {
-        return async.login(memberId)
+        return async.login(memberId, Collections.<Alias>emptyList())
                 .map(new MemberFunction())
                 .blockingSingle();
     }

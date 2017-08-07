@@ -92,11 +92,14 @@ public final class MemberAsync {
      *
      * @param member internal member representation, fetched from server
      * @param client RPC client used to perform operations against the server
+     * @param aliases Aliases that belong to the member
      */
-    MemberAsync(MemberProtos.Member member, Client client) {
+    MemberAsync(MemberProtos.Member member, Client client, List<Alias> aliases) {
         this.client = client;
         this.member = member.toBuilder();
-        this.aliases = new ArrayList<>(); //TODO(PR1005): Sync aliases with server
+
+        //TODO(PR1005): Sync aliases with server and remove need to pass in aliases
+        this.aliases = new ArrayList<>(aliases);
     }
 
     /**
