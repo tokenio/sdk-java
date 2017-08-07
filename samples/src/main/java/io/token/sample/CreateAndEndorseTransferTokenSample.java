@@ -50,7 +50,7 @@ public final class CreateAndEndorseTransferTokenSample {
      * @param payeeId payee Token member Id
      * @return a transfer Token
      */
-    public static Token createTransferTokenWithUnusualOptions(
+    public static Token createTransferTokenWithOtherOptions(
             Member payer,
             String payeeId) {
 

@@ -4,7 +4,7 @@ import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferTokenFromAuth;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferTokenToDestination;
-import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferTokenWithUnusualOptions;
+import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferTokenWithOtherOptions;
 import static io.token.sample.TestUtil.newUserName;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -29,14 +29,14 @@ public class CreateAndEndorseTransferTokenSampleTest {
     }
 
     @Test
-    public void createPaymentTokenWithUnusualOptionsTest() {
+    public void createPaymentTokenWithOtherOptionsTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             Member payer = tokenIO.createMember(newUserName());
             Member payee = tokenIO.createMember(newUserName());
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
 
-            Token token = createTransferTokenWithUnusualOptions(payer, payee.memberId());
+            Token token = createTransferTokenWithOtherOptions(payer, payee.memberId());
             assertThat(token).isNotNull();
         }
     }

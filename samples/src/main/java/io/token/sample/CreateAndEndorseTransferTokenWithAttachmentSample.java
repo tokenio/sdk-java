@@ -19,6 +19,7 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
 
     /**
      * Create a new transfer token, including an attached image file.
+     *
      * @param payer Payer member token
      * @param payeeUsername Token member username of payee
      * @return Token
@@ -52,6 +53,7 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
 
     /**
      * Create a new transfer token, including an attached image file.
+     *
      * @param payer Payer member token
      * @param payeeId Token member username of payee
      * @return Token
