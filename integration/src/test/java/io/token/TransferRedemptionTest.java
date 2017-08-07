@@ -140,19 +140,42 @@ public class TransferRedemptionTest {
     }
 
     @Test
-    public void redeemToken_legacy_failure() {
-        double amount = payerAccount.getBalance() + 1; // 1 over the limit.
+    public void prepareFailure_createLegacyToken_largeAmount() {
+        double amount = payerAccount.getBalance() + 1; //1 over the limit
 
-        Token token = payerAccount
+        assertThatExceptionOfType(TransferTokenException.class)
+                .isThrownBy(() -> payerAccount
+                        .createLegacyToken(amount, payeeAccount)
+                        .execute())
+                .matches(e -> e.getStatus() == FAILURE_INSUFFICIENT_FUNDS);
+    }
+
+    @Test
+    public void redeemToken_legacy_failure() {
+        double amount = payerAccount.getBalance() - 1;
+
+        Token firstToken = payerAccount
                 .createLegacyToken(amount, payeeAccount)
                 .execute();
-        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+        firstToken = payer.endorseToken(firstToken, Key.Level.STANDARD).getToken();
+
+        Token secondToken = payerAccount
+                .createLegacyToken(amount, payeeAccount)
+                .execute();
+        secondToken = payer.endorseToken(secondToken, Key.Level.STANDARD).getToken();
 
         Transfer transfer = payee.redeemToken(
-                token,
+                firstToken,
                 amount,
                 payeeAccount.getCurrency(),
                 "transfer description");
+
+        transfer = payee.redeemToken(
+                secondToken,
+                amount,
+                payeeAccount.getCurrency(),
+                "transfer description");
+
         assertThat(transfer)
                 .hasStatus(TransactionStatus.FAILURE_INSUFFICIENT_FUNDS)
                 .hasAmount(amount)
