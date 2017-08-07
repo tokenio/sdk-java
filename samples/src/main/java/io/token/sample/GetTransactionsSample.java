@@ -50,6 +50,41 @@ public final class GetTransactionsSample {
         return transaction;
     }
 
+    /**
+     * Illustrate Account.getTransactions
+     *
+     * @param payer payer Token member
+     */
+    public static void accountGetTransactionsSample(Member payer) {
+        Account account = payer.getAccounts().get(0);
+
+        for (Transaction transaction :
+                account.getTransactions("0", 10).getList()) {
+            displayTransaction(
+                    transaction.getAmount().getCurrency(),
+                    transaction.getAmount().getValue(),
+                    transaction.getType(), // debit or credit
+                    transaction.getStatus());
+        }
+    }
+
+    /**
+     * Illustrate Account.getTransaction
+     *
+     * @param payer payer Token member
+     * @param transfer recently-completed transfer
+     * @return a Transaction
+     */
+    public static Transaction accountGetTransactionSample(
+            Member payer,
+            Transfer transfer) {
+        Account account = payer.getAccounts().get(0);
+
+        String transactionId = transfer.getTransactionId();
+        Transaction transaction = account.getTransaction(transactionId);
+        return transaction;
+    }
+
     private static void displayTransaction(
             String currency,
             String value,
