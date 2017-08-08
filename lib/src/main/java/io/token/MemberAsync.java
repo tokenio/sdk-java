@@ -848,10 +848,6 @@ public final class MemberAsync {
         if (description != null) {
             payload.setDescription(description);
         }
-        if (destination != null) {
-            payload.addDestinations(destination);
-        }
-
         if (refId != null) {
             payload.setRefId(refId);
         } else {
