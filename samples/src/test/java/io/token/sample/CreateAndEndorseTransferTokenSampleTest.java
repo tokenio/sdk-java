@@ -11,6 +11,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.transfer.TransferProtos;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 
 import org.junit.Test;
 
@@ -49,6 +51,9 @@ public class CreateAndEndorseTransferTokenSampleTest {
 
             Token token = createTransferTokenFromAuth(payer, payee.firstUsername());
             assertThat(token).isNotNull();
+
+            Transfer transfer = payer.redeemToken(token);
+            assertThat(transfer).isNotNull();
         }
     }
 
