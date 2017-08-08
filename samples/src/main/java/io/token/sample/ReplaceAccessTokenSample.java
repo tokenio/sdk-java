@@ -10,11 +10,11 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import java.util.Optional;
 
 /**
- * Creates an information access token and endorses it to a grantee.
+ * Working with existing access tokens: finding and replacing.
  */
 public final class ReplaceAccessTokenSample {
     /**
-     * Creates an information access token to allow a grantee to see all bank accounts of a grantor.
+     * Finds a previously-created access token from grantor to grantee.
      *
      * @param grantor Token member granting access to her accounts
      * @param granteeUsername Token member username acquiring information access
