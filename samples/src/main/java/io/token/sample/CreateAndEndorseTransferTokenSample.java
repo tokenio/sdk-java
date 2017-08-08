@@ -112,7 +112,7 @@ public final class CreateAndEndorseTransferTokenSample {
                 100.0, // amount
                 "EUR")  // currency
                 .setBankAuthorization(bankAuthorization)
-                .setRedeemerUsername(payeeUsername) // payee token username
+                .setRedeemerUsername(payer.firstUsername())
                 .setToUsername(payeeUsername)
                 .execute();
 
