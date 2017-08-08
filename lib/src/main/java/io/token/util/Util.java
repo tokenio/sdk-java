@@ -94,7 +94,9 @@ public abstract class Util {
      * @return hashed alias
      */
     public static String hashAlias(Alias alias) {
-        return ProtoHasher.hashAndSerialize(alias);
+        // TODO(PR-998): Revert this change
+        return alias.getValue();
+        //return ProtoHasher.hashAndSerialize(alias);
     }
 
     /**
