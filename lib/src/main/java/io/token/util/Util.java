@@ -31,11 +31,10 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
-import io.token.proto.ProtoHasher;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
-import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.util.concurrent.ExecutionException;
@@ -88,7 +87,7 @@ public abstract class Util {
     }
 
     /**
-     * Hashes an alias to a String
+     * Hashes an alias to a String.
      *
      * @param alias alias to hash
      * @return hashed alias
