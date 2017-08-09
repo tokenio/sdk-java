@@ -43,9 +43,9 @@ import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
-import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -98,7 +98,7 @@ public final class MemberAsync {
         this.client = client;
         this.member = member.toBuilder();
 
-        //TODO(PR1005): Sync aliases with server and remove need to pass in aliases
+        // TODO(PR1005): Sync aliases with server and remove need to pass in aliases
         this.aliases = new ArrayList<>(aliases);
     }
 

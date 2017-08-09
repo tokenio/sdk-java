@@ -27,8 +27,8 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.toAddKeyOperation;
 import static io.token.util.Util.toAddAliasOperation;
+import static io.token.util.Util.toAddKeyOperation;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 

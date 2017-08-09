@@ -44,12 +44,12 @@ import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
-import io.token.proto.gateway.Gateway.GetMemberIdRequest;
-import io.token.proto.gateway.Gateway.GetMemberIdResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
 import io.token.proto.gateway.Gateway.RequestTransferResponse;
+import io.token.proto.gateway.Gateway.ResolveAliasRequest;
+import io.token.proto.gateway.Gateway.ResolveAliasResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -82,13 +82,13 @@ public final class UnauthenticatedClient {
      */
     public Observable<Boolean> aliasExists(Alias alias) {
         return toObservable(gateway
-                .getMemberId(GetMemberIdRequest
+                .resolveAlias(ResolveAliasRequest
                         .newBuilder()
-                        .setAliasHash(hashAlias(alias))
+                        .setAlias(alias)
                         .build()))
-                .map(new Function<GetMemberIdResponse, Boolean>() {
-                    public Boolean apply(GetMemberIdResponse response) {
-                        return !response.getMemberId().isEmpty();
+                .map(new Function<ResolveAliasResponse, Boolean>() {
+                    public Boolean apply(ResolveAliasResponse response) {
+                        return response.hasMember();
                     }
                 });
     }
@@ -101,12 +101,12 @@ public final class UnauthenticatedClient {
      */
     public Observable<String> getMemberId(Alias alias) {
         return toObservable(
-                gateway.getMemberId(GetMemberIdRequest.newBuilder()
-                        .setAliasHash(hashAlias(alias))
+                gateway.resolveAlias(ResolveAliasRequest.newBuilder()
+                        .setAlias(alias)
                         .build()))
-                .map(new Function<GetMemberIdResponse, String>() {
-                    public String apply(GetMemberIdResponse response) {
-                        return Strings.emptyToNull(response.getMemberId());
+                .map(new Function<ResolveAliasResponse, String>() {
+                    public String apply(ResolveAliasResponse response) {
+                        return response.hasMember() ? response.getMember().getId() : null;
                     }
                 });
     }
@@ -169,7 +169,7 @@ public final class UnauthenticatedClient {
             BankAuthorization authorization) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
-                        .setAliasHash(hashAlias(alias))
+                        .setAlias(alias)
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccounts(LinkAccounts.newBuilder()
                                         .setBankAuthorization(authorization)
@@ -198,7 +198,7 @@ public final class UnauthenticatedClient {
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
-                        .setAliasHash(hashAlias(alias))
+                        .setAlias(alias)
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(AddKey.newBuilder()
                                         .setName(name)
@@ -229,7 +229,7 @@ public final class UnauthenticatedClient {
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
-                        .setAliasHash(hashAlias(alias))
+                        .setAlias(alias)
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccountsAndAddKey(LinkAccountsAndAddKey.newBuilder()
                                         .setLinkAccounts(LinkAccounts.newBuilder()
@@ -261,7 +261,7 @@ public final class UnauthenticatedClient {
             TokenPayload tokenPayload) {
         return toObservable(gateway.requestTransfer(
                 RequestTransferRequest.newBuilder()
-                        .setAliasHash(hashAlias(alias))
+                        .setAlias(alias)
                         .setTokenPayload(tokenPayload)
                         .build()))
                 .map(new Function<RequestTransferResponse, NotifyStatus>() {
