@@ -10,7 +10,7 @@ import org.junit.Test;
 public class CreateMemberSampleTest {
     @Test
     public void createMemberTest() {
-        Member member = CreateMemberSample.createMember(DEVELOPMENT);
+        Member member = CreateMemberSample.createMember();
         assertThat(member).isNotNull();
     }
 }
