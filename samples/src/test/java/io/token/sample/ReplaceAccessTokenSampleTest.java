@@ -4,7 +4,7 @@ import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.findAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.replaceAccessToken;
-import static io.token.sample.TestUtil.newUserName;
+import static io.token.sample.TestUtil.newAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -19,13 +19,13 @@ public class ReplaceAccessTokenSampleTest {
     @Test
     public void getAccessTokensTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member grantor = tokenIO.createMember(newUserName());
-            Member grantee = tokenIO.createMember(newUserName());
+            Member grantor = tokenIO.createMember(newAlias());
+            Member grantee = tokenIO.createMember(newAlias());
 
-            Token createdToken = createAccessToken(grantor, grantee.firstUsername());
+            Token createdToken = createAccessToken(grantor, grantee.firstAlias());
             Optional<Token> foundToken = findAccessToken(
                     grantor,
-                    grantee.firstUsername());
+                    grantee.firstAlias());
             assertThat(foundToken.get()).isEqualTo(createdToken);
         }
     }
@@ -33,15 +33,15 @@ public class ReplaceAccessTokenSampleTest {
     @Test
     public void replaceAccessTokenTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member grantor = tokenIO.createMember(newUserName());
-            Member grantee = tokenIO.createMember(newUserName());
+            Member grantor = tokenIO.createMember(newAlias());
+            Member grantee = tokenIO.createMember(newAlias());
 
-            Token createdToken = createAccessToken(grantor, grantee.firstUsername());
-            replaceAccessToken(grantor, grantee.firstUsername());
+            Token createdToken = createAccessToken(grantor, grantee.firstAlias());
+            replaceAccessToken(grantor, grantee.firstAlias());
 
             Optional<Token> foundToken = findAccessToken(
                     grantor,
-                    grantee.firstUsername());
+                    grantee.firstAlias());
 
             assertThat(foundToken.get().getPayload().getAccess().getResourcesCount()).isEqualTo(2);
         }
@@ -50,15 +50,15 @@ public class ReplaceAccessTokenSampleTest {
     @Test
     public void replaceAndEndorseAccessTokenTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member grantor = tokenIO.createMember(newUserName());
-            Member grantee = tokenIO.createMember(newUserName());
+            Member grantor = tokenIO.createMember(newAlias());
+            Member grantee = tokenIO.createMember(newAlias());
 
-            Token createdToken = createAccessToken(grantor, grantee.firstUsername());
-            ReplaceAccessTokenSample.replaceAndEndorseAccessToken(grantor, grantee.firstUsername());
+            Token createdToken = createAccessToken(grantor, grantee.firstAlias());
+            ReplaceAccessTokenSample.replaceAndEndorseAccessToken(grantor, grantee.firstAlias());
 
             Optional<Token> foundToken = findAccessToken(
                     grantor,
-                    grantee.firstUsername());
+                    grantee.firstAlias());
 
             assertThat(foundToken.get().getPayload().getAccess().getResourcesCount()).isEqualTo(2);
         }
