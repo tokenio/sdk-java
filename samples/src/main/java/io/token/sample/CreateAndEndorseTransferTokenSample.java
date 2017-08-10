@@ -102,35 +102,6 @@ public final class CreateAndEndorseTransferTokenSample {
      * @param payeeUsername Username of payee member
      * @return a transfer Token
      */
-    public static Token createTransferTokenFromAuth(
-            Member payer,
-            String payeeUsername) {
-        BankAuthorization bankAuthorization = payer.createTestBankAccount(120.0, "EUR");
-
-        // Create a transfer token from auth.
-        Token transferToken = payer.createTransferToken(
-                100.0, // amount
-                "EUR")  // currency
-                .setBankAuthorization(bankAuthorization)
-                .setRedeemerUsername(payer.firstUsername())
-                .setToUsername(payeeUsername)
-                .execute();
-
-        // Payer endorses a token to a payee by signing it with her secure private key.
-        transferToken = payer.endorseToken(
-                transferToken,
-                Key.Level.STANDARD).getToken();
-
-        return transferToken;
-    }
-
-    /**
-     * Create a transfer token based on a bank authorization instead of a linked account.
-     *
-     * @param payer Payer who has no linked bank accounts
-     * @param payeeUsername Username of payee member
-     * @return a transfer Token
-     */
     public static Token createTransferTokenToDestination(
             Member payer,
             String payeeUsername) {
