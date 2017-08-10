@@ -96,7 +96,7 @@ public final class CreateAndEndorseTransferTokenSample {
     }
 
     /**
-     * Create a transfer token based on a bank authorization instead of a linked account.
+     * Create a transfer token specifying a destination.
      *
      * @param payer Payer who has no linked bank accounts
      * @param payeeUsername Username of payee member
