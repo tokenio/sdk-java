@@ -45,8 +45,8 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
-import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -85,22 +85,21 @@ public final class MemberAsync {
 
     private final Client client;
     private final MemberProtos.Member.Builder member;
-
     private List<Alias> aliases;
+
 
     /**
      * Creates an instance of {@link MemberAsync}.
      *
      * @param member internal member representation, fetched from server
      * @param client RPC client used to perform operations against the server
-     * @param aliases Aliases that belong to the member
      */
-    MemberAsync(MemberProtos.Member member, Client client, List<Alias> aliases) {
+    MemberAsync(MemberProtos.Member member, Client client) {
         this.client = client;
         this.member = member.toBuilder();
 
-        // TODO(PR1005): Sync aliases with server and remove need to pass in aliases
-        this.aliases = new ArrayList<>(aliases);
+        // TODO(PR-1167): reevaluate whether we need to cache aliases
+        this.aliases = new ArrayList<>(client.getAliases().blockingSingle());
     }
 
     /**
@@ -126,6 +125,7 @@ public final class MemberAsync {
      *
      * @return first alias owned by the user
      */
+    @Nullable
     public Alias firstAlias() {
         return aliases.isEmpty() ? null : aliases.get(0);
     }
@@ -136,7 +136,7 @@ public final class MemberAsync {
      * @return list of aliases owned by the member
      */
     public List<Alias> aliases() {
-        return aliases;
+        return this.aliases;
     }
 
     /**
@@ -184,11 +184,13 @@ public final class MemberAsync {
      */
     public Observable<Unit> addAliases(final List<Alias> aliases) {
         List<MemberOperation> operations = new LinkedList<>();
+        List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliases) {
             operations.add(Util.toAddAliasOperation(alias));
+            metadata.add(Util.toMemberOperationMetadata(alias));
         }
         return client
-                .updateMember(member.build(), operations)
+                .updateMember(member.build(), operations, metadata)
                 .map(new Function<MemberProtos.Member, Unit>() {
                     public Unit apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);

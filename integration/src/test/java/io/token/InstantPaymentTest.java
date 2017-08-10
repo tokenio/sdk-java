@@ -126,7 +126,7 @@ public class InstantPaymentTest {
 
     @Test
     public void instantPayment_nonTokenTipsDestination() {
-        Transfer transfer = initiateInstantTransfer(rule.unlinkedAccount(payerAccount),100);
+        Transfer transfer = initiateInstantTransfer(rule.unlinkedAccount(payerAccount), 100);
 
         assertThat(transfer).hasStatus(PROCESSING);
 

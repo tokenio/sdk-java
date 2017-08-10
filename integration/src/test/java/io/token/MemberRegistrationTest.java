@@ -35,13 +35,10 @@ public class MemberRegistrationTest {
     public void loginMember() {
         Alias alias = alias();
         Member member = rule.token().createMember(alias);
-        // TODO(PR-1005): change login to fetch aliases when the server stores aliases in plain text
         Member loggedIn = rule.token().login(member.memberId());
-
-        // TODO(PR-1005): re-enable this when server sync is complete
-        //        assertThat(loggedIn)
-        //                .hasAliases(member.aliases())
-        //                .hasNKeys(3);
+        assertThat(loggedIn)
+                .hasAliases(member.aliases())
+                .hasNKeys(3);
     }
 
     @Test
@@ -56,11 +53,11 @@ public class MemberRegistrationTest {
 
             Member loggedIn = secondDevice.login(deviceInfo.getMemberId());
 
-            // TODO(PR-1005): re-enable this when server sync is complete
-            //            assertThat(loggedIn)
-            //                    .hasAliases(member.aliases())
-            //                    .hasNKeys(6);
+            assertThat(loggedIn)
+                    .hasAliases(member.aliases())
+                    .hasNKeys(6);
         }
+
     }
 
     @Test

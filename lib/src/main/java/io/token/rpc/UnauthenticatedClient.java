@@ -31,8 +31,10 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
@@ -133,12 +135,14 @@ public final class UnauthenticatedClient {
      *
      * @param memberId member ID
      * @param operations operations to set up member keys and aliases
+     * @param metadata metadata of operations
      * @param signer the signer used to sign the requests
      * @return member information
      */
     public Observable<Member> createMember(
             String memberId,
             List<MemberOperation> operations,
+            List<MemberOperationMetadata> metadata,
             Signer signer) {
         MemberUpdate.Builder update = MemberUpdate.newBuilder()
                 .setMemberId(memberId)
@@ -149,6 +153,7 @@ public final class UnauthenticatedClient {
                         .setMemberId(memberId)
                         .setKeyId(signer.getKeyId())
                         .setSignature(signer.sign(update.build())))
+                .addAllMetadata(metadata)
                 .build()))
                 .map(new Function<UpdateMemberResponse, Member>() {
                     public Member apply(UpdateMemberResponse response) {
