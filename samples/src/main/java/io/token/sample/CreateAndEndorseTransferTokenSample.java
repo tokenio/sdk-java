@@ -5,7 +5,6 @@ import static io.token.proto.common.transferinstructions.TransferInstructionsPro
 import io.token.Destinations;
 import io.token.Member;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.pricing.PricingProtos.TransferQuote;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -97,6 +96,7 @@ public final class CreateAndEndorseTransferTokenSample {
     }
 
     /**
+     * Creates transfer token to a destination.
      *
      * @param payer Payer who has no linked bank accounts
      * @param payeeAlias Alias of payee member
