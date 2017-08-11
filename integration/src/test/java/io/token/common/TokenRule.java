@@ -81,6 +81,10 @@ public class TokenRule implements MethodRule {
                 .build();
     }
 
+    public Member noAliasMember() {
+        return tokenIO.createMember();
+    }
+
     public Member member() {
         return tokenIO.createMember(alias());
     }

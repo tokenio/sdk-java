@@ -146,6 +146,17 @@ public final class TokenIO implements Closeable {
     }
 
     /**
+     * Creates a new Token member with a pair of auto generated keys and no alias.
+     *
+     * @return newly created member
+     */
+    public Member createMember() {
+        return async.createMember()
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
      * Provisions a new device for an existing user. The call generates a set
      * of keys that are returned back. The keys need to be approved by an
      * existing device/keys.
