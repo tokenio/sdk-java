@@ -2,6 +2,7 @@ package io.token;
 
 import static io.grpc.Status.Code.FAILED_PRECONDITION;
 import static io.token.asserts.TransferAssertion.assertThat;
+import static io.token.proto.common.testing.Sample.alias;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_INSUFFICIENT_FUNDS;
 import static io.token.testing.sample.Sample.string;
 import static java.util.Collections.singletonList;
@@ -12,10 +13,12 @@ import io.grpc.StatusRuntimeException;
 import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.PagedList;
+import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 
 import org.junit.Before;
 import org.junit.Rule;
@@ -65,6 +68,30 @@ public class TransferRedemptionTest {
                 .hasNoAmount()
                 .hasNSignatures(2)
                 .isSignedBy(payee, Key.Level.LOW);
+    }
+
+    @Test
+    public void redeemToken_noAlias() {
+        LinkedAccount noAliasAccount = rule.linkedAccount(rule.noAliasMember());
+        Token token = payerAccount.getMember()
+                .createTransferToken(100, noAliasAccount.getCurrency())
+                .setRedeemerMemberId(noAliasAccount.getMember().memberId())
+                .setAccountId(payerAccount.getId())
+                .addDestination(TransferInstructionsProtos.TransferEndpoint.newBuilder()
+                        .setAccount(AccountProtos.BankAccount.newBuilder()
+                                .setToken(AccountProtos.BankAccount.Token.newBuilder()
+                                        .setMemberId(noAliasAccount.getMember().memberId())
+                                        .setAccountId(noAliasAccount.getId())))
+                        .build())
+                .execute();
+        token = payer.endorseToken(token, Key.Level.STANDARD).getToken();
+
+        Transfer transfer = noAliasAccount.getMember().redeemToken(token);
+        assertThat(transfer)
+                .isProcessing()
+                .hasNoAmount()
+                .hasNSignatures(2)
+                .isSignedBy(noAliasAccount.getMember(), Key.Level.LOW);
     }
 
     @Test

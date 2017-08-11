@@ -51,6 +51,8 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.Signer;
 
 import java.io.Closeable;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
@@ -122,9 +124,10 @@ public final class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a set of auto-generated keys and a given alias.
+     * Creates a new Token member with a set of auto-generated keys and a alias.
      *
-     * @param alias member alias to use, must be unique
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(final Alias alias) {
@@ -134,11 +137,13 @@ public final class TokenIOAsync implements Closeable {
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
                     public Observable<MemberProtos.Member> apply(String memberId) {
                         CryptoEngine crypto = cryptoFactory.create(memberId);
-                        List<MemberOperation> operations = asList(
-                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)),
-                                toAddKeyOperation(crypto.generateKey(STANDARD)),
-                                toAddKeyOperation(crypto.generateKey(LOW)),
-                                toAddAliasOperation(alias));
+                        List<MemberOperation> operations = new ArrayList<>();
+                        operations.add(toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
+                        operations.add(toAddKeyOperation(crypto.generateKey(STANDARD)));
+                        operations.add(toAddKeyOperation(crypto.generateKey(LOW)));
+                        if (alias != null) {
+                            operations.add(toAddAliasOperation(alias));
+                        }
 
                         Signer signer = crypto.createSigner(PRIVILEGED);
                         return unauthenticated.createMember(memberId, operations, signer);
@@ -151,10 +156,21 @@ public final class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 crypto);
-                        return Observable.just(new MemberAsync(member, client,
-                                singletonList(alias)));
+                        List<Alias> aliasList = alias == null
+                                ? Collections.<Alias>emptyList()
+                                : singletonList(alias);
+                        return Observable.just(new MemberAsync(member, client, aliasList));
                     }
                 });
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys and no alias.
+     *
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createMember() {
+        return createMember(null);
     }
 
     /**

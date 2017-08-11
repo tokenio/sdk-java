@@ -24,6 +24,14 @@ public class MemberRegistrationTest {
     }
 
     @Test
+    public void createMember_noAlias() {
+        Member member = rule.token().createMember();
+        assertThat(member)
+                .hasNAliases(0)
+                .hasNKeys(3);
+    }
+
+    @Test
     public void loginMember() {
         Alias alias = alias();
         Member member = rule.token().createMember(alias);
