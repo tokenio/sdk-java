@@ -1,7 +1,7 @@
 package io.token.sample;
 
-import static io.token.proto.common.testing.Sample.alias;
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
+import static io.token.proto.common.testing.Sample.alias;
 import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
 import static org.assertj.core.api.Assertions.assertThat;
 
