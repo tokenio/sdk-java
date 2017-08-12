@@ -20,8 +20,10 @@ public final class ReplaceAccessTokenSample {
      * @return an access Token
      */
     public static Optional<Token> findAccessToken(Member grantor, Alias granteeAlias) {
-        for (Token token : grantor.getAccessTokens("0", 100).getList()) {
-            if (token.getPayload().getTo().getAlias().equals(granteeAlias)) {
+        for (Token token : grantor.getAccessTokens("0", 100)
+                .getList()) {
+            Alias toAlias = token.getPayload().getTo().getAlias();
+            if (toAlias.equals(granteeAlias)) {
                 return Optional.of(token);
             }
         }
@@ -37,10 +39,12 @@ public final class ReplaceAccessTokenSample {
      */
     public static TokenOperationResult replaceAccessToken(Member grantor, Alias granteeAlias) {
         Token oldToken = findAccessToken(grantor, granteeAlias).get();
-        TokenOperationResult status = grantor.replaceAccessToken(oldToken, AccessTokenBuilder
-                .fromPayload(oldToken.getPayload())
-                .forAllAddresses()
-                .forAllTransactions());
+        TokenOperationResult status = grantor.replaceAccessToken(
+                oldToken,
+                AccessTokenBuilder
+                        .fromPayload(oldToken.getPayload())
+                        .forAllAddresses()
+                        .forAllTransactions());
         return status;
     }
 
@@ -55,10 +59,12 @@ public final class ReplaceAccessTokenSample {
             Member grantor,
             Alias granteeAlias) {
         Token oldToken = findAccessToken(grantor, granteeAlias).get();
-        TokenOperationResult status = grantor.replaceAccessToken(oldToken, AccessTokenBuilder
-                .fromPayload(oldToken.getPayload())
-                .forAllBalances()
-                .forAllTransactions());
+        TokenOperationResult status = grantor.replaceAccessToken(
+                oldToken,
+                AccessTokenBuilder
+                        .fromPayload(oldToken.getPayload())
+                        .forAllBalances()
+                        .forAllTransactions());
         return status;
     }
 }

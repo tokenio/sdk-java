@@ -46,7 +46,9 @@ public final class GetTransactionsSample {
         String accountId = accounts.get(0).id();
 
         String transactionId = transfer.getTransactionId();
-        Transaction transaction = payer.getTransaction(accountId, transactionId);
+        Transaction transaction = payer.getTransaction(
+                accountId,
+                transactionId);
         return transaction;
     }
 
@@ -80,8 +82,8 @@ public final class GetTransactionsSample {
             Transfer transfer) {
         Account account = payer.getAccounts().get(0);
 
-        String transactionId = transfer.getTransactionId();
-        Transaction transaction = account.getTransaction(transactionId);
+        String txnId = transfer.getTransactionId();
+        Transaction transaction = account.getTransaction(txnId);
         return transaction;
     }
 

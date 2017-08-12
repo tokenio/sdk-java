@@ -31,12 +31,10 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
 
         // Create a transfer token.
         Token transferToken =
-                payer.createTransferToken(
-                        100.0, // amount
-                        "EUR")  // currency
-                        .setAccountId(payer.getAccounts().get(0).id()) // source account
-                        .setRedeemerAlias(payeeAlias) // payee token alias
-                        .setDescription("Invoice payment") // optional description
+                payer.createTransferToken(100.0, "EUR")
+                        .setAccountId(payer.getAccounts().get(0).id())
+                        .setRedeemerAlias(payeeAlias)
+                        .setDescription("Invoice payment")
                         .addAttachment(
                                 payer.memberId(),
                                 "image/jpeg",
@@ -44,7 +42,6 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
                                 loadImageByteArray("invoice.jpg"))
                         .execute();
 
-        // Payer endorses a token to a payee by signing it with her secure private key.
         transferToken = payer.endorseToken(
                 transferToken,
                 Key.Level.STANDARD).getToken();
@@ -72,12 +69,10 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
 
         // Create a transfer token.
         Token transferToken =
-                payer.createTransferToken(
-                        100.0, // amount
-                        "EUR")  // currency
-                        .setAccountId(payer.getAccounts().get(0).id()) // source account
+                payer.createTransferToken(100.0, "EUR")
+                        .setAccountId(payer.getAccounts().get(0).id())
                         .setRedeemerMemberId(payeeId)
-                        .setDescription("Invoice payment") // optional description
+                        .setDescription("Invoice payment")
                         .addAttachment(attachment)
                         .execute();
 

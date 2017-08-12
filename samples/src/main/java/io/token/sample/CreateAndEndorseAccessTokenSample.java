@@ -18,13 +18,18 @@ public final class CreateAndEndorseAccessTokenSample {
      * @return an access Token
      */
     public static Token createAccessToken(Member grantor, Alias granteeAlias) {
-        // Create an access token for the grantee to access bank account names of the grantor.
-        Token accessToken = grantor.createAccessToken(AccessTokenBuilder
-                .create(granteeAlias)
-                .forAllAccounts());
+        // Create an access token for the grantee to access bank
+        // account names of the grantor.
+        Token accessToken = grantor.createAccessToken(
+                AccessTokenBuilder
+                        .create(granteeAlias)
+                        .forAllAccounts());
 
-        // Grantor endorses a token to a grantee by signing it with her secure private key.
-        accessToken = grantor.endorseToken(accessToken, Key.Level.STANDARD).getToken();
+        // Grantor endorses a token to a grantee by signing it
+        // with her secure private key.
+        accessToken = grantor.endorseToken(
+                accessToken,
+                Key.Level.STANDARD).getToken();
 
         return accessToken;
     }

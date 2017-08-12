@@ -14,6 +14,7 @@ import java.util.Map;
 public final class GetBalanceSample {
     /**
      * Get a member's balances.
+     *
      * @param member Member.
      * @return map currency: total
      */
@@ -26,7 +27,8 @@ public final class GetBalanceSample {
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())
-                            + sums.getOrDefault(balance.getCurrency(), 0.0));
+                            + sums.getOrDefault(
+                            balance.getCurrency(), 0.0));
         }
 
         return sums;
@@ -34,6 +36,7 @@ public final class GetBalanceSample {
 
     /**
      * Get a member's balances.
+     *
      * @param member Member.
      * @return map currency: total
      */
@@ -46,7 +49,8 @@ public final class GetBalanceSample {
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())
-                            + sums.getOrDefault(balance.getCurrency(), 0.0));
+                            + sums.getOrDefault(
+                            balance.getCurrency(), 0.0));
         }
 
         return sums;

@@ -2,14 +2,10 @@ package io.token.sample;
 
 import io.token.Account;
 import io.token.Member;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.transaction.TransactionProtos.Transaction;
+import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
-import io.token.proto.common.transaction.TransactionProtos.TransactionType;
-import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 
 import java.util.List;
 
@@ -41,10 +37,12 @@ public final class GetTransfersSample {
      */
     public static void getTransferTokensSample(
             Member payer) {
-        for (Token token : payer.getTransferTokens(null, 10).getList()) {
+        for (Token token : payer.getTransferTokens(null, 10)
+                .getList()) {
+            TransferBody transferBody = token.getPayload().getTransfer();
             displayTransferToken(
-                    token.getPayload().getTransfer().getCurrency(),
-                    token.getPayload().getTransfer().getLifetimeAmount());
+                    transferBody.getCurrency(),
+                    transferBody.getLifetimeAmount());
         }
     }
 
