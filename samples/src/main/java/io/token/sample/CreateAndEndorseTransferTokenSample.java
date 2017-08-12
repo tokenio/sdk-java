@@ -30,12 +30,16 @@ public final class CreateAndEndorseTransferTokenSample {
                 payer.createTransferToken(
                         100.0, // amount
                         "EUR")  // currency
-                        .setAccountId(payer.getAccounts().get(0).id()) // source account
-                        .setRedeemerAlias(payeeAlias) // payee token alias
-                        .setDescription("Book purchase") // optional description
+                        // source account:
+                        .setAccountId(payer.getAccounts().get(0).id())
+                        // payee token alias:
+                        .setRedeemerAlias(payeeAlias)
+                        // optional description:
+                        .setDescription("Book purchase")
                         .execute();
 
-        // Payer endorses a token to a payee by signing it with her secure private key.
+        // Payer endorses a token to a payee by signing it
+        // with her secure private key.
         transferToken = payer.endorseToken(
                 transferToken,
                 Key.Level.STANDARD).getToken();
@@ -75,19 +79,23 @@ public final class CreateAndEndorseTransferTokenSample {
                 payer.createTransferToken(
                         120.0, // amount
                         "EUR")  // currency
-                        .setAccountId(payer.getAccounts().get(0).id()) // source account
+                        // source account:
+                        .setAccountId(payer.getAccounts().get(0).id())
                         .setToMemberId(payeeId)
                         .setRedeemerMemberId(payeeId)
-                        .setEffectiveAtMs(now + 1000)       // effective in one second
-                        .setExpiresAtMs(now + (300 * 1000)) // expires in 300 seconds
+                        // effective in one second:
+                        .setEffectiveAtMs(now + 1000)
+                        // expires in 300 seconds:
+                        .setExpiresAtMs(now + (300 * 1000))
                         .setRefId("a713c8a61994a749")
                         .setPricing(pricing)
                         .setChargeAmount(10.0)
-                        .setDescription("Book purchase") // optional description
+                        .setDescription("Book purchase")
                         .setPurposeOfPayment(PERSONAL_EXPENSES)
                         .execute();
 
-        // Payer endorses a token to a payee by signing it with her secure private key.
+        // Payer endorses a token to a payee by signing it
+        // with her secure private key.
         transferToken = payer.endorseToken(
                 transferToken,
                 Key.Level.STANDARD).getToken();
@@ -111,9 +119,10 @@ public final class CreateAndEndorseTransferTokenSample {
                 payer.createTransferToken(
                         100.0, // amount
                         "EUR")  // currency
-                        .setAccountId(payer.getAccounts().get(0).id()) // source account
+                        .setAccountId(payer.getAccounts().get(0).id())
                         .setRedeemerAlias(payeeAlias)
-                        .addDestination(Destinations.sepa("DE89 3704 0044 0532 0130 00"))
+                        .addDestination(Destinations.sepa(
+                                "DE89 3704 0044 0532 0130 00"))
                         .execute();
 
         // Payer endorses a token to a payee by signing it with her secure private key.

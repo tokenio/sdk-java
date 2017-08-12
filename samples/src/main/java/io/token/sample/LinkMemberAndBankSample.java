@@ -33,7 +33,8 @@ public final class LinkMemberAndBankSample {
         // 4. The bank linking flow completes and the app extracts encrypted bank authorization
         //    from the internal service redirected to by the linking flow.
 
-        // For the purpose of this sample, we simulate the entire linking flow described above
+        // For the purpose of this sample, we simulate
+        // the entire linking flow described above
         // by generating it with a fake bank below.
         BankAuthorization encryptedBankAuthorization =
                 member.createTestBankAccount(1000.0, "EUR");

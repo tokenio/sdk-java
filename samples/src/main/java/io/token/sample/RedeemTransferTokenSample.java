@@ -24,7 +24,8 @@ public final class RedeemTransferTokenSample {
         // Retrieve a transfer token to redeem.
         Token transferToken = payee.getToken(tokenId);
 
-        // Payee redeems a transfer token. Money is transferred to a payee bank account.
+        // Payee redeems a transfer token.
+        // Money is transferred to a payee bank account.
         Transfer transfer = payee.redeemToken(
                 transferToken,
                 Destinations.token(payee.memberId(), accountId));
