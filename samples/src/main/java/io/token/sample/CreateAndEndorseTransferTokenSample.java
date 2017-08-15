@@ -26,17 +26,16 @@ public final class CreateAndEndorseTransferTokenSample {
             Alias payeeAlias) {
 
         // Create a transfer token.
-        Token transferToken =
-                payer.createTransferToken(
-                        100.0, // amount
-                        "EUR")  // currency
-                        // source account:
-                        .setAccountId(payer.getAccounts().get(0).id())
-                        // payee token alias:
-                        .setRedeemerAlias(payeeAlias)
-                        // optional description:
-                        .setDescription("Book purchase")
-                        .execute();
+        Token transferToken = payer.createTransferToken(
+                100.0, // amount
+                "EUR")  // currency
+                // source account:
+                .setAccountId(payer.getAccounts().get(0).id())
+                // payee token alias:
+                .setRedeemerAlias(payeeAlias)
+                // optional description:
+                .setDescription("Book purchase")
+                .execute();
 
         // Payer endorses a token to a payee by signing it
         // with her secure private key.
