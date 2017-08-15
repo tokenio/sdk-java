@@ -34,6 +34,7 @@ import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Blob;
@@ -41,6 +42,7 @@ import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
@@ -83,6 +85,8 @@ import io.token.proto.gateway.Gateway.GetAddressRequest;
 import io.token.proto.gateway.Gateway.GetAddressResponse;
 import io.token.proto.gateway.Gateway.GetAddressesRequest;
 import io.token.proto.gateway.Gateway.GetAddressesResponse;
+import io.token.proto.gateway.Gateway.GetAliasesRequest;
+import io.token.proto.gateway.Gateway.GetAliasesResponse;
 import io.token.proto.gateway.Gateway.GetBalanceRequest;
 import io.token.proto.gateway.Gateway.GetBalanceResponse;
 import io.token.proto.gateway.Gateway.GetBankInfoRequest;
@@ -144,6 +148,7 @@ import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 import io.token.util.Util;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -196,7 +201,7 @@ public final class Client {
      * the key used for authentication.
      *
      * @param memberId member id
-     * @return member information
+     * @return an observable of member
      */
     public Observable<Member> getMember(String memberId) {
         return Converters
@@ -215,9 +220,13 @@ public final class Client {
      *
      * @param member member to update
      * @param operations operations to apply
-     * @return member information
+     * @param metadata metadata of operations
+     * @return an observable of updated member
      */
-    public Observable<Member> updateMember(Member member, List<MemberOperation> operations) {
+    public Observable<Member> updateMember(
+            Member member,
+            List<MemberOperation> operations,
+            List<MemberOperationMetadata> metadata) {
         Signer signer = crypto.createSigner(Key.Level.PRIVILEGED);
 
         MemberUpdate update = MemberUpdate
@@ -236,12 +245,24 @@ public final class Client {
                                 .setMemberId(memberId)
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(update)))
+                        .addAllMetadata(metadata)
                         .build()))
                 .map(new Function<UpdateMemberResponse, Member>() {
                     public Member apply(UpdateMemberResponse response) {
                         return response.getMember();
                     }
                 });
+    }
+
+    /**
+     * Updates member by applying the specified operations that don't contain addAliasOperation.
+     *
+     * @param member member to update
+     * @param operations operations to apply
+     * @return an observable of updated member
+     */
+    public Observable<Member> updateMember(Member member, List<MemberOperation> operations) {
+        return updateMember(member, operations, Collections.<MemberOperationMetadata>emptyList());
     }
 
     /**
@@ -1030,6 +1051,23 @@ public final class Client {
                 .map(new Function<CreateTestBankAccountResponse, BankAuthorization>() {
                     public BankAuthorization apply(CreateTestBankAccountResponse response) {
                         return response.getBankAuthorization();
+                    }
+                });
+    }
+
+    /**
+     * Returns a list of aliases of the member.
+     *
+     * @return a list of aliases
+     */
+    public Observable<List<Alias>> getAliases() {
+        return toObservable(gateway
+                .getAliases(GetAliasesRequest
+                        .newBuilder()
+                        .build()))
+                .map(new Function<GetAliasesResponse, List<Alias>>() {
+                    public List<Alias> apply(GetAliasesResponse response) {
+                        return response.getAliasesList();
                     }
                 });
     }

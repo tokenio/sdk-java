@@ -35,7 +35,6 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
-import io.token.proto.common.alias.AliasProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;

@@ -28,7 +28,6 @@ import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToStrin
 import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.common.alias.AliasProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
@@ -95,6 +94,7 @@ public final class Member {
      *
      * @return first alias owned by the user
      */
+    @Nullable
     public Alias firstAlias() {
         return async.firstAlias();
     }

@@ -32,9 +32,12 @@ import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
+import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAliasMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.util.concurrent.ExecutionException;
@@ -83,6 +86,36 @@ public abstract class Util {
                 .setAddAlias(MemberAliasOperation
                         .newBuilder()
                         .setAliasHash(hashAlias(alias)))
+                .build();
+    }
+
+    /**
+     * Converts alias to MemberOperationMetadata.
+     *
+     * @param alias alias to add
+     * @return member operation metadata
+     */
+    public static MemberOperationMetadata toAddAliasOperationMetadata(Alias alias) {
+        return MemberOperationMetadata.newBuilder()
+                .setAddAliasMetadata(AddAliasMetadata.newBuilder()
+                        .setAlias(alias)
+                        .setAliasHash(hashAlias(alias)))
+                .build();
+    }
+
+    /**
+     * Converts alias to MemberOperationMetadata.
+     *
+     * @param alias alias to add
+     * @return MemberOperation metadata
+     */
+    public static MemberOperationMetadata toMemberOperationMetadata(Alias alias) {
+        return MemberOperationMetadata
+                .newBuilder()
+                .setAddAliasMetadata(AddAliasMetadata
+                        .newBuilder()
+                        .setAliasHash(hashAlias(alias))
+                        .setAlias(alias))
                 .build();
     }
 

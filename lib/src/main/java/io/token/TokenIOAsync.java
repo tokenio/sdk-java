@@ -28,6 +28,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toAddAliasOperation;
+import static io.token.util.Util.toAddAliasOperationMetadata;
 import static io.token.util.Util.toAddKeyOperation;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -40,6 +41,7 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -144,9 +146,11 @@ public final class TokenIOAsync implements Closeable {
                         if (alias != null) {
                             operations.add(toAddAliasOperation(alias));
                         }
-
+                        List<MemberOperationMetadata> metadata = alias == null
+                                ? Collections.<MemberOperationMetadata>emptyList()
+                                : singletonList(toAddAliasOperationMetadata(alias));
                         Signer signer = crypto.createSigner(PRIVILEGED);
-                        return unauthenticated.createMember(memberId, operations, signer);
+                        return unauthenticated.createMember(memberId, operations, metadata, signer);
                     }
                 })
                 .flatMap(new Function<MemberProtos.Member, Observable<MemberAsync>>() {
@@ -156,10 +160,7 @@ public final class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 crypto);
-                        List<Alias> aliasList = alias == null
-                                ? Collections.<Alias>emptyList()
-                                : singletonList(alias);
-                        return Observable.just(new MemberAsync(member, client, aliasList));
+                        return Observable.just(new MemberAsync(member, client));
                     }
                 });
     }
@@ -205,17 +206,16 @@ public final class TokenIOAsync implements Closeable {
      * Logs in an existing member to the system.
      *
      * @param memberId member id
-     * @param aliases Aliases that belong to the member
      * @return logged in member
      */
-    public Observable<MemberAsync> login(String memberId, final List<Alias> aliases) {
+    public Observable<MemberAsync> login(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client, aliases);
+                        return new MemberAsync(member, client);
                     }
                 });
     }
