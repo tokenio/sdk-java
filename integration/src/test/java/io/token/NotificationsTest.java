@@ -351,6 +351,49 @@ public class NotificationsTest {
     }
 
     @Test
+    public void transferProcessed_noDisplayName() {
+        payer.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+        payee.subscribeToNotifications(
+                "token",
+                Sample.handlerInstructions(NOTIFICATION_TARGET, TEST));
+
+        Token token = payerAccount.createInstantToken(20, payeeAccount)
+                .setAccountId(payerAccount.getId())
+                .setRedeemerAlias(payee.firstAlias())
+                .setToAlias(payee.firstAlias())
+                .execute();
+        Token endorsed = payer.endorseToken(token, STANDARD).getToken();
+
+        payee.redeemToken(endorsed);
+
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> {
+                    List<Notification> notifications = payer.getNotifications(
+                            null, 100).getList();
+                    assertThat(notifications).hasSize(1);
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .contains(payee.firstAlias().getValue());
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .doesNotContain(payee.memberId());
+                });
+
+        waitUntil(
+                NOTIFICATION_TIMEOUT_MS,
+                () -> {
+                    List<Notification> notifications = payee.getNotifications(
+                            null, 100).getList();
+                    assertThat(notifications).hasSize(1);
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .contains(payer.firstAlias().getValue());
+                    assertThat(notifications.get(0).getContent().getBody())
+                            .doesNotContain(payer.memberId());
+                });
+    }
+
+    @Test
     public void triggerPayerTransferProcessedNotification() {
         payer.subscribeToNotifications(
                 "token",
