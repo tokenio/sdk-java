@@ -14,10 +14,12 @@ import io.token.proto.bankapi.Fank.Client;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.sdk.NamedAccount;
 
+import java.time.Clock;
 import java.util.Optional;
 
 public final class FankTestBank extends TestBank {
     private static final String CURRENCY = "USD";
+    private final Clock clock = Clock.systemUTC();
     private final FankClient fank;
     private String bic;
 
@@ -40,8 +42,8 @@ public final class FankTestBank extends TestBank {
     @Override
     public TestAccount nextAccount(Optional<TestAccount> counterParty) {
         String accountName = "Test Account";
-        String bankAccountNumber = "iban:" + randomNumeric(7);
-        Fank.Client client = fank.addClient(bic,"Test " + string(), "Testoff");
+        String bankAccountNumber = "iban:" + clock.instant().toEpochMilli() + randomNumeric(7);
+        Fank.Client client = fank.addClient(bic, "Test " + string(), "Testoff");
         fank.addAccount(
                 client,
                 accountName,
@@ -58,7 +60,7 @@ public final class FankTestBank extends TestBank {
     @Override
     public TestAccount invalidAccount() {
         String accountName = "Invalid Account";
-        String bankAccountNumber = "invalid:" + randomNumeric(7);
+        String bankAccountNumber = "invalid:" + clock.instant().toEpochMilli() + randomNumeric(7);
         return new TestAccount(
                 accountName,
                 CURRENCY,
@@ -68,7 +70,7 @@ public final class FankTestBank extends TestBank {
     @Override
     public TestAccount rejectAccount() {
         String accountName = "Reject Account";
-        String bankAccountNumber = "reject:" + randomNumeric(7);
+        String bankAccountNumber = "reject:" + clock.instant().toEpochMilli() + randomNumeric(7);
         return new TestAccount(
                 accountName,
                 CURRENCY,
