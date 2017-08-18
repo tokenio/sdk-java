@@ -22,6 +22,8 @@
 
 package io.token.util;
 
+import static io.token.proto.ProtoHasher.hashAndSerialize;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import com.google.common.util.concurrent.ListenableFuture;
@@ -32,7 +34,6 @@ import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -126,9 +127,10 @@ public abstract class Util {
      * @return hashed alias
      */
     public static String hashAlias(Alias alias) {
-        // TODO(PR-998): Revert this change
-        return alias.getValue();
-        //return ProtoHasher.hashAndSerialize(alias);
+        if (alias.getType() == USERNAME) {
+            return alias.getValue();
+        }
+        return hashAndSerialize(alias);
     }
 
     /**
