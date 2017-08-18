@@ -22,7 +22,7 @@
 
 package io.token.util;
 
-import static io.token.proto.ProtoHasher.hashAndSerialize;
+import static io.token.proto.ProtoHasher.hashJson;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
@@ -130,7 +130,7 @@ public abstract class Util {
         if (alias.getType() == USERNAME) {
             return alias.getValue();
         }
-        return hashAndSerialize(alias);
+        return hashJson(alias);
     }
 
     /**
