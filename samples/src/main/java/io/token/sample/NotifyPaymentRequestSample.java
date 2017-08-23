@@ -10,12 +10,10 @@ import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 
-/**
- * Creates a payment request (a transfer token payload) and sends it to a potential payer.
- */
 public final class NotifyPaymentRequestSample {
     /**
-     * Creates a payment request (a transfer token payload) and sends it to a potential payer.
+     * Creates a payment request (a transfer token payload)
+     * and sends it to a potential payer.
      *
      * @param payee payer Token member
      * @param payerAlias payee Token member alias
