@@ -94,6 +94,7 @@ import io.token.proto.gateway.Gateway.GetBankInfoResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
+import io.token.proto.gateway.Gateway.GetDefaultBankRequest;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
@@ -129,6 +130,7 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.SetDefaultBankResponse;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
@@ -599,6 +601,41 @@ public final class Client {
                 .map(new Function<CancelTokenResponse, TokenOperationResult>() {
                     public TokenOperationResult apply(CancelTokenResponse response) {
                         return response.getResult();
+                    }
+                });
+    }
+
+    /**
+     * Makes RPC to get default bank for this member
+     *
+     * @return bankId the bank id string
+     */
+    public Observable<String> getDefaultBank(){
+        return Util
+                .toObservable(gateway.getDefaultBank(GetDefaultBankRequest
+                        .newBuilder()
+                        .build()))
+                .map(new Function<Gateway.GetDefaultBankResponse, String>() {
+                    public String apply(Gateway.GetDefaultBankResponse response) {
+                        return response.getBankId();
+                    }
+                });
+    }
+
+    /**
+     * Makes RPC to set default bank for this member
+     *
+     * @return nothing
+     */
+    public Observable<Unit> setDefaultBank(String bankId){
+        return Util
+                .toObservable(gateway.setDefaultBank(Gateway.SetDefaultBankRequest
+                        .newBuilder()
+                        .setBankId(bankId)
+                        .build()))
+                .map(new Function<SetDefaultBankResponse, Unit>() {
+                    public Unit apply(SetDefaultBankResponse response) {
+                        return Unit.INSTANCE;
                     }
                 });
     }

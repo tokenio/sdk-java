@@ -345,6 +345,18 @@ public final class Member {
                 .blockingSingle();
     }
 
+    public String getDefaultBank(){
+        return async
+                .getDefaultBank()
+                .blockingSingle();
+    }
+
+    public void setDefaultBank(String bankId){
+        async
+                .setDefaultBank(bankId)
+                .blockingSingle();
+    }
+
     /**
      * Looks up a funding bank accounts linked to Token.
      *

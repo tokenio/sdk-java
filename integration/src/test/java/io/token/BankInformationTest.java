@@ -1,5 +1,6 @@
 package io.token;
 
+import static io.token.testing.sample.Sample.string;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.common.TokenRule;
@@ -26,5 +27,17 @@ public class BankInformationTest {
     @Test
     public void getBankInfo() {
         assertThat(member.getBankInfo(rule.getBankId())).isNotNull();
+    }
+
+    @Test
+    public void testSetDefaultBank_noCrash() {
+        String newDefaultBankId = string();
+
+        rule.linkedAccount().getMember().setDefaultBank(newDefaultBankId);
+    }
+
+    @Test
+    public void testGetDefaultBank_noCrash() {
+        rule.linkedAccount().getMember().getDefaultBank();
     }
 }
