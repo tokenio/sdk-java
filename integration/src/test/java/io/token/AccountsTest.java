@@ -69,13 +69,13 @@ public class AccountsTest {
 
 
     @Test
-    public void testSetDefaultBank_noCrash() {
-        String newDefaultBankId = string();
-        rule.linkedAccount().getMember().setDefaultBank(newDefaultBankId);
+    public void setDefaultBank() {
+        String bankId = rule.linkedAccount().getMember().getBanks().get(0).getId();
+        rule.linkedAccount().getMember().setDefaultBank(bankId);
     }
 
     @Test
-    public void testGetDefaultBank_noCrash() {
-        rule.linkedAccount().getMember().getDefaultBank();
+    public void getDefaultBank() {
+        assertThat(rule.linkedAccount().getMember().getDefaultBank()).isNotEmpty();
     }
 }

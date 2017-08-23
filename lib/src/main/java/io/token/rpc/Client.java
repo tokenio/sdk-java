@@ -130,6 +130,7 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.SetDefaultBankRequest;
 import io.token.proto.gateway.Gateway.SetDefaultBankResponse;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureResponse;
@@ -611,10 +612,9 @@ public final class Client {
      * @return bankId the bank id string
      */
     public Observable<String> getDefaultBank(){
-        return Util
-                .toObservable(gateway.getDefaultBank(GetDefaultBankRequest
-                        .newBuilder()
-                        .build()))
+        return toObservable(gateway
+                .getDefaultBank(GetDefaultBankRequest
+                        .getDefaultInstance()))
                 .map(new Function<Gateway.GetDefaultBankResponse, String>() {
                     public String apply(Gateway.GetDefaultBankResponse response) {
                         return response.getBankId();
@@ -628,8 +628,8 @@ public final class Client {
      * @return nothing
      */
     public Observable<Unit> setDefaultBank(String bankId){
-        return Util
-                .toObservable(gateway.setDefaultBank(Gateway.SetDefaultBankRequest
+        return toObservable(gateway
+                .setDefaultBank(SetDefaultBankRequest
                         .newBuilder()
                         .setBankId(bankId)
                         .build()))
