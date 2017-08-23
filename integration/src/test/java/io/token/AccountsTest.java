@@ -20,9 +20,7 @@ public class AccountsTest {
     @Test
     public void linkAccounts() {
         LinkedAccount account = rule.linkedAccount();
-        assertThat(account
-                .getMember()
-                .getAccounts()).containsExactly(account.getAccount());
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
 
         account.getMember().unlinkAccounts(singletonList(account.getId()));
         assertThat(account.getMember().getAccounts()).isEmpty();
@@ -31,23 +29,17 @@ public class AccountsTest {
     @Test
     public void linkAccounts_relinking() {
         LinkedAccount account = rule.linkedAccount();
-        assertThat(account
-                .getMember()
-                .getAccounts()).containsExactly(account.getAccount());
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
 
         rule.relinkAccount(account);
         rule.relinkAccount(account);
-        assertThat(account
-                .getMember()
-                .getAccounts()).containsExactly(account.getAccount());
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
     }
 
     @Test
     public void getAccounts() {
         LinkedAccount account = rule.linkedAccount();
-        assertThat(account
-                .getMember()
-                .getAccounts()).containsExactly(account.getAccount());
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
 
         List<Account> accounts = account.getMember().getAccounts();
         assertThat(accounts).containsExactly(account.getAccount());
@@ -66,11 +58,8 @@ public class AccountsTest {
     @Test
     public void getAccount() {
         LinkedAccount account = rule.linkedAccount();
-        assertThat(account
-                .getMember()
-                .getAccounts()).containsExactly(account.getAccount());
-        assertThat(account.getMember().getAccount(account.getId())).isEqualTo(
-                account.getAccount());
+        assertThat(account.getMember().getAccounts()).containsExactly(account.getAccount());
+        assertThat(account.getMember().getAccount(account.getId())).isEqualTo(account.getAccount());
     }
 
     @Test
@@ -82,12 +71,7 @@ public class AccountsTest {
 
     @Test
     public void setDefaultBank() {
-        String bankId = rule
-                .linkedAccount()
-                .getMember()
-                .getBanks()
-                .get(0)
-                .getId();
+        String bankId = rule.linkedAccount().getMember().getBanks().get(0).getId();
         rule.linkedAccount().getMember().setDefaultBank(bankId);
     }
 
@@ -100,7 +84,6 @@ public class AccountsTest {
                 .stream()
                 .map(Bank::getId)
                 .collect(Collectors.toList());
-        assertThat(rule.linkedAccount().getMember().getDefaultBank()).isIn(
-                bankIds);
+        assertThat(rule.linkedAccount().getMember().getDefaultBank()).isIn(bankIds);
     }
 }

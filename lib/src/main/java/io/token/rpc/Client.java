@@ -607,11 +607,11 @@ public final class Client {
     }
 
     /**
-     * Makes RPC to get default bank for this member
+     * Makes RPC to get default bank for this member.
      *
-     * @return bankId the bank id string
+     * @return the bank id string
      */
-    public Observable<String> getDefaultBank(){
+    public Observable<String> getDefaultBank() {
         return toObservable(gateway
                 .getDefaultBank(GetDefaultBankRequest
                         .getDefaultInstance()))
@@ -623,11 +623,12 @@ public final class Client {
     }
 
     /**
-     * Makes RPC to set default bank for this member
+     * Makes RPC to set default bank.
      *
+     * @param bankId the bank id
      * @return nothing
      */
-    public Observable<Unit> setDefaultBank(String bankId){
+    public Observable<Unit> setDefaultBank(String bankId) {
         return toObservable(gateway
                 .setDefaultBank(SetDefaultBankRequest
                         .newBuilder()

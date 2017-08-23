@@ -890,17 +890,18 @@ public final class MemberAsync {
     }
 
     /**
-     * Gets the default bank for this member
+     * Looks up the default bank.
      *
      * @return the bank string
      */
-    public Observable<String> getDefaultBank(){
+    public Observable<String> getDefaultBank() {
         return client.getDefaultBank();
     }
 
     /**
-     * Sets the default bank for this member
+     * Sets the default bank.
      *
+     * @param bankId bank id
      * @return nothing
      */
     public Observable<Unit> setDefaultBank(String bankId) {
