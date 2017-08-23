@@ -28,16 +28,4 @@ public class BankInformationTest {
     public void getBankInfo() {
         assertThat(member.getBankInfo(rule.getBankId())).isNotNull();
     }
-
-    @Test
-    public void testSetDefaultBank_noCrash() {
-        String newDefaultBankId = string();
-
-        rule.linkedAccount().getMember().setDefaultBank(newDefaultBankId);
-    }
-
-    @Test
-    public void testGetDefaultBank_noCrash() {
-        rule.linkedAccount().getMember().getDefaultBank();
-    }
 }
