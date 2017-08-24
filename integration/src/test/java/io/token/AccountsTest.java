@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.token.common.LinkedAccount;
 import io.token.common.TokenRule;
 import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.testing.sample.Sample;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -72,7 +73,14 @@ public class AccountsTest {
     @Test
     public void setDefaultBank() {
         String bankId = rule.linkedAccount().getMember().getBanks().get(0).getId();
-        rule.linkedAccount().getMember().setDefaultBank(bankId);
+        assertThat(rule.linkedAccount().getMember().setDefaultBank(bankId)).isEqualTo(bankId);
+    }
+
+
+    @Test(expected = Exception.class)
+    public void setDefaultBank_unknownBank() {
+        String unknownBankId = Sample.string();
+        rule.linkedAccount().getMember().setDefaultBank(unknownBankId);
     }
 
     @Test

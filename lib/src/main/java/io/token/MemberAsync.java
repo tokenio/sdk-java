@@ -904,7 +904,7 @@ public final class MemberAsync {
      * @param bankId bank id
      * @return nothing
      */
-    public Observable<Unit> setDefaultBank(String bankId) {
+    public Observable<String> setDefaultBank(String bankId) {
         return client.setDefaultBank(bankId);
     }
 

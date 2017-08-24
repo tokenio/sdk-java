@@ -628,7 +628,7 @@ public final class Client {
      * @param bankId the bank id
      * @return nothing
      */
-    public Observable<Unit> setDefaultBank(String bankId) {
+    public Observable<String> setDefaultBank(String bankId) {
         return toObservable(gateway
                 .setDefaultBank(SetDefaultBankRequest
                         .newBuilder()
@@ -636,7 +636,7 @@ public final class Client {
                         .build()))
                 .map(new Function<SetDefaultBankResponse, Unit>() {
                     public Unit apply(SetDefaultBankResponse response) {
-                        return Unit.INSTANCE;
+                        return bankId;
                     }
                 });
     }

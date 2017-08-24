@@ -361,8 +361,8 @@ public final class Member {
      *
      * @param bankId the requested new default bank id
      */
-    public void setDefaultBank(String bankId) {
-        async
+    public String setDefaultBank(String bankId) {
+        return async
                 .setDefaultBank(bankId)
                 .blockingSingle();
     }
