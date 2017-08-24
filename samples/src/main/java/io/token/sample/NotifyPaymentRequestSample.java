@@ -1,7 +1,5 @@
 package io.token.sample;
 
-import static io.token.TokenIO.TokenCluster.SANDBOX;
-
 import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -15,11 +13,13 @@ public final class NotifyPaymentRequestSample {
      * Creates a payment request (a transfer token payload)
      * and sends it to a potential payer.
      *
+     * @param tokenIO initialized SDK
      * @param payee payer Token member
      * @param payerAlias payee Token member alias
      * @return a transfer Token
      */
     public static NotifyStatus notifyPaymentRequest(
+            TokenIO tokenIO,
             Member payee,
             Alias payerAlias) {
 
@@ -34,11 +34,10 @@ public final class NotifyPaymentRequestSample {
                         .setCurrency("EUR"))
                 .build();
 
-        try (TokenIO tokenIO = TokenIO.create(SANDBOX)) {
-            NotifyStatus status = tokenIO.notifyPaymentRequest(
-                    payerAlias,
-                    paymentRequest);
-            return status;
-        }
+
+        NotifyStatus status = tokenIO.notifyPaymentRequest(
+                payerAlias,
+                paymentRequest);
+        return status;
     }
 }
