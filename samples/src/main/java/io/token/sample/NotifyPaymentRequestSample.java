@@ -34,7 +34,6 @@ public final class NotifyPaymentRequestSample {
                         .setCurrency("EUR"))
                 .build();
 
-
         NotifyStatus status = tokenIO.notifyPaymentRequest(
                 payerAlias,
                 paymentRequest);
