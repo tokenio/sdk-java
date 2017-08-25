@@ -20,15 +20,12 @@ allprojects {
             tokenRpc             : '1.0.96',
             tokenSecurity        : '1.0.40',
             tokenUtil            : '1.0.16',
-            retrofit             : '2.2.0',
-            tokenIntegrationSdk  : '1.0.83',
-            tokenFank            : '1.0.8',
             rxjava               : '2.1.1',
         ]
     }
 
     group = 'io.token.sdk'
-    version = '1.0.56'
+    version = '1.0.57'
 
     apply plugin: 'io.token.gradle.lib'
     apply plugin: 'io.token.gradle.publish'
