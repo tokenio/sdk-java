@@ -902,7 +902,7 @@ public final class MemberAsync {
      * Sets the default bank.
      *
      * @param bankId bank id
-     * @return nothing
+     * @return bankId if successfully set to default, empty otherwise
      */
     public Observable<String> setDefaultBank(String bankId) {
         return client.setDefaultBank(bankId);
