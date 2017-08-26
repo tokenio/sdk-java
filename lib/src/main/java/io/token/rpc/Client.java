@@ -95,6 +95,7 @@ import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetDefaultBankRequest;
+import io.token.proto.gateway.Gateway.GetDefaultBankResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
@@ -615,8 +616,8 @@ public final class Client {
         return toObservable(gateway
                 .getDefaultBank(GetDefaultBankRequest
                         .getDefaultInstance()))
-                .map(new Function<Gateway.GetDefaultBankResponse, String>() {
-                    public String apply(Gateway.GetDefaultBankResponse response) {
+                .map(new Function<GetDefaultBankResponse, String>() {
+                    public String apply(GetDefaultBankResponse response) {
                         return response.getBankId();
                     }
                 });
@@ -634,9 +635,9 @@ public final class Client {
                         .newBuilder()
                         .setBankId(bankId)
                         .build()))
-                .map(new Function<SetDefaultBankResponse, Unit>() {
-                    public Unit apply(SetDefaultBankResponse response) {
-                        return bankId;
+                .map(new Function<SetDefaultBankResponse, Observable<String>>() {
+                    public Observable<String> apply(SetDefaultBankResponse response) {
+                        return response;
                     }
                 });
     }
