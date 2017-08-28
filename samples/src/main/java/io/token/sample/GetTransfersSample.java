@@ -9,9 +9,6 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 
 import java.util.List;
 
-/**
- * Redeems a transfer token.
- */
 public final class GetTransfersSample {
     /**
      * Illustrate Member.getTransfers
