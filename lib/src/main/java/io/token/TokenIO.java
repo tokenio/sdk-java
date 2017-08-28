@@ -131,7 +131,7 @@ public final class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a pair of auto generated keys and the
+     * Creates a new Token member with a set of auto generated keys and the
      * given alias.
      *
      * @param alias member alias to use, must be unique
@@ -144,7 +144,7 @@ public final class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a pair of auto generated keys and no alias.
+     * Creates a new Token member with a set of auto generated keys and no alias.
      *
      * @return newly created member
      */
