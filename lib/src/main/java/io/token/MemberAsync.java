@@ -28,6 +28,7 @@ import static io.token.util.Util.hashAlias;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.protobuf.ByteString;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
@@ -904,7 +905,7 @@ public final class MemberAsync {
      * @param bankId bank id
      * @return bankId if successfully set to default, empty otherwise
      */
-    public Observable<String> setDefaultBank(String bankId) {
+    public Completable setDefaultBank(String bankId) {
         return client.setDefaultBank(bankId);
     }
 

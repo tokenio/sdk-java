@@ -27,6 +27,7 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANC
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.util.Util.toObservable;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TransferTokenException;
@@ -629,17 +630,12 @@ public final class Client {
      * @param bankId the bank id
      * @return nothing
      */
-    public Observable<String> setDefaultBank(String bankId) {
-        return toObservable(gateway
+    public Completable setDefaultBank(String bankId) {
+        return Converters.toCompletable(gateway
                 .setDefaultBank(SetDefaultBankRequest
                         .newBuilder()
                         .setBankId(bankId)
-                        .build()))
-                .map(new Function<SetDefaultBankResponse, Observable<String>>() {
-                    public Observable<String> apply(SetDefaultBankResponse response) {
-                        return response;
-                    }
-                });
+                        .build()));
     }
 
     /**
