@@ -346,6 +346,26 @@ public final class Member {
     }
 
     /**
+     * Gets the default bank.
+     *
+     * @return default bank id
+     */
+    public String getDefaultBank() {
+        return async
+                .getDefaultBank()
+                .blockingSingle();
+    }
+
+    /**
+     * Sets the default bank.
+     *
+     * @param bankId the requested new default bank id
+     */
+    public void setDefaultBank(String bankId) {
+        async.setDefaultBank(bankId);
+    }
+
+    /**
      * Looks up a funding bank account linked to Token.
      *
      * @param accountId account id

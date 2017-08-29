@@ -27,6 +27,7 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANC
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.util.Util.toObservable;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TransferTokenException;
@@ -94,6 +95,8 @@ import io.token.proto.gateway.Gateway.GetBankInfoResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
+import io.token.proto.gateway.Gateway.GetDefaultBankRequest;
+import io.token.proto.gateway.Gateway.GetDefaultBankResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
@@ -129,6 +132,8 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.SetDefaultBankRequest;
+import io.token.proto.gateway.Gateway.SetDefaultBankResponse;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
@@ -601,6 +606,36 @@ public final class Client {
                         return response.getResult();
                     }
                 });
+    }
+
+    /**
+     * Makes RPC to get default bank for this member.
+     *
+     * @return the bank id string
+     */
+    public Observable<String> getDefaultBank() {
+        return toObservable(gateway
+                .getDefaultBank(GetDefaultBankRequest
+                        .getDefaultInstance()))
+                .map(new Function<GetDefaultBankResponse, String>() {
+                    public String apply(GetDefaultBankResponse response) {
+                        return response.getBankId();
+                    }
+                });
+    }
+
+    /**
+     * Makes RPC to set default bank.
+     *
+     * @param bankId the bank id
+     * @return nothing
+     */
+    public Completable setDefaultBank(String bankId) {
+        return Converters.toCompletable(gateway
+                .setDefaultBank(SetDefaultBankRequest
+                        .newBuilder()
+                        .setBankId(bankId)
+                        .build()));
     }
 
     /**
