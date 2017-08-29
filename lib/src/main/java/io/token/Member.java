@@ -366,7 +366,7 @@ public final class Member {
     }
 
     /**
-     * Looks up a funding bank accounts linked to Token.
+     * Looks up a funding bank account linked to Token.
      *
      * @param accountId account id
      * @return looked up account

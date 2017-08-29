@@ -29,7 +29,7 @@ import io.token.security.Signer;
 
 /**
  * Responsible for creation of {@link ClientAuthenticator} instances which
- * are created per RCP method call.
+ * are created per RPC method call.
  */
 final class ClientAuthenticatorFactory implements InterceptorFactory {
     private final String memberId;

@@ -255,10 +255,10 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Notifies subscribed devices that on payment requests.
+     * Notifies subscribed devices of payment requests.
      *
      * @param alias the alias of the member to notify
-     * @param tokenPayload the pyload of a token to be sent
+     * @param tokenPayload the payload of a token to be sent
      * @return status of the notification request
      */
     public Observable<NotifyStatus> notifyPaymentRequest(

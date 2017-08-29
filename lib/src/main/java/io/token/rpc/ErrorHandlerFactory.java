@@ -27,7 +27,7 @@ import io.token.rpc.interceptor.InterceptorFactory;
 import io.token.rpc.interceptor.SimpleInterceptor;
 
 /**
- * Responsible for creation of {@link ErrorHandler} instances which are created per RCP method call.
+ * Responsible for creation of {@link ErrorHandler} instances which are created per RPC method call.
  */
 final class ErrorHandlerFactory implements InterceptorFactory {
     @Override

@@ -5,10 +5,8 @@ import static io.token.proto.common.testing.Sample.alias;
 
 import io.token.Member;
 import io.token.TokenIO;
+import io.token.proto.common.alias.AliasProtos.Alias;
 
-/**
- * Create a new Token member record.
- */
 public final class CreateMemberSample {
     /**
      * Creates and returns a new token member.
@@ -16,8 +14,18 @@ public final class CreateMemberSample {
      * @return a new Member instance
      */
     public static Member createMember() {
-        try (TokenIO tokenIO = TokenIO.create(SANDBOX)) {
-            return tokenIO.createMember(alias());
-        }
+        // Create the client, which communicates with
+        // the Token cloud.
+        TokenIO tokenIO = TokenIO.builder()
+                .connectTo(SANDBOX)
+                .build();
+
+        // The alias() method generates a random-nonsense-string alias.
+        // "name@token.io" would be more typical than a random string.
+        // But if we run this code with the same alias twice,
+        // the 2nd time it will fail because the name is taken.
+        Alias alias = alias();
+
+        return tokenIO.createMember(alias);
     }
 }
