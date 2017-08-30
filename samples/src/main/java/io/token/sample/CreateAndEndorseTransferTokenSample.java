@@ -35,6 +35,8 @@ public final class CreateAndEndorseTransferTokenSample {
                 .setRedeemerAlias(payeeAlias)
                 // optional description:
                 .setDescription("Book purchase")
+                // ref id (if not set, will get random ID)
+                .setRefId("BOOKS-af5c-47c1ca4b8021")
                 .execute();
 
         // Payer endorses a token to a payee by signing it

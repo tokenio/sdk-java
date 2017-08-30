@@ -32,6 +32,9 @@ public final class NotifyPaymentRequestSample {
                 .setTransfer(TransferBody.newBuilder()
                         .setAmount("100.00")
                         .setCurrency("EUR"))
+                // if refID not set, the eventually-created
+                // transfer token will have random refId:
+                .setRefId("BOOKS-80fb-8c292607cae7")
                 .build();
 
         NotifyStatus status = tokenIO.notifyPaymentRequest(

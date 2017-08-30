@@ -28,7 +28,9 @@ public final class RedeemTransferTokenSample {
         // Money is transferred to a payee bank account.
         Transfer transfer = payee.redeemToken(
                 transferToken,
-                Destinations.token(payee.memberId(), accountId));
+                Destinations.token(payee.memberId(), accountId),
+                // if refId not set, transfer will have random refID
+                "{SHOP-F65D1336-642D}");
 
         return transfer;
     }
