@@ -7,6 +7,7 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
+import io.token.util.Util;
 
 public final class NotifyPaymentRequestSample {
     /**
@@ -22,7 +23,11 @@ public final class NotifyPaymentRequestSample {
             TokenIO tokenIO,
             Member payee,
             Alias payerAlias) {
-
+        // We'll use this as a reference ID. Normally, a payee who
+        // explicitly sets a reference ID would use an ID from a db.
+        // E.g., an online merchant might use the ID of a "shopping cart".
+        // We don't have a db, so we fake it with a random string:
+        String cartId = Util.generateNonce();
         TokenPayload paymentRequest = TokenPayload.newBuilder()
                 .setDescription("Sample payment request")
                 .setFrom(TokenMember.newBuilder()
@@ -34,7 +39,7 @@ public final class NotifyPaymentRequestSample {
                         .setCurrency("EUR"))
                 // if refID not set, the eventually-created
                 // transfer token will have random refId:
-                .setRefId("BOOKS-80fb-8c292607cae7")
+                .setRefId(cartId)
                 .build();
 
         NotifyStatus status = tokenIO.notifyPaymentRequest(

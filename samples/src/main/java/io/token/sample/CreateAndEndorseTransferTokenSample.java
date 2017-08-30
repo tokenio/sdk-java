@@ -9,6 +9,7 @@ import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.pricing.PricingProtos.TransferQuote;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.util.Util;
 
 /**
  * Creates a transfer token and endorses it to a payee.
@@ -24,6 +25,11 @@ public final class CreateAndEndorseTransferTokenSample {
     public static Token createTransferToken(
             Member payer,
             Alias payeeAlias) {
+        // We'll use this as a reference ID. Normally, a payer who
+        // explicitly sets a reference ID would use an ID from a db.
+        // E.g., a bill-paying service might use ID of a "purchase".
+        // We don't have a db, so we fake it with a random string:
+        String purchaseId = Util.generateNonce();
 
         // Create a transfer token.
         Token transferToken = payer.createTransferToken(
@@ -36,7 +42,7 @@ public final class CreateAndEndorseTransferTokenSample {
                 // optional description:
                 .setDescription("Book purchase")
                 // ref id (if not set, will get random ID)
-                .setRefId("BOOKS-af5c-47c1ca4b8021")
+                .setRefId(purchaseId)
                 .execute();
 
         // Payer endorses a token to a payee by signing it
