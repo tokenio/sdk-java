@@ -1,0 +1,12 @@
+base.useJava7 = true
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+publish {
+    isPublic = true
+}
+
+dependencies {
+    compile project(':lib')
+    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-netty', version: ver.tokenRpc
+}

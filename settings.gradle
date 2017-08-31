@@ -1,0 +1,6 @@
+rootProject.name='sdk'
+
+include 'lib'
+include 'java'
+include 'android'
+include 'samples'

@@ -1,0 +1,33 @@
+buildscript {
+    repositories {
+        mavenLocal()
+        jcenter()
+        maven { url 'https://token.jfrog.io/token/public-gradle-plugins-local/' }
+        maven { url 'https://plugins.gradle.org/m2/' }
+    }
+    dependencies {
+        classpath 'io.token.gradle:token-gradle:1.0.71'
+        classpath 'net.ltgt.gradle:gradle-apt-plugin:0.9'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.13.0'
+        classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1'
+    }
+}
+
+allprojects {
+    ext {
+        ver = [
+            tokenProto           : '1.0.369',
+            tokenRpc             : '1.0.98',
+            tokenSecurity        : '1.0.40',
+            tokenUtil            : '1.0.16',
+            rxjava               : '2.1.1',
+        ]
+    }
+
+    group = 'io.token.sdk'
+    version = '1.0.59'
+
+    apply plugin: 'io.token.gradle.lib'
+    apply plugin: 'io.token.gradle.publish'
+    apply plugin: 'io.token.gradle.version'
+}

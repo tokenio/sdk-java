@@ -1,0 +1,36 @@
+apply plugin: 'com.github.hierynomus.license'
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+base.useJava7 = true
+
+publish {
+    isPublic = true
+}
+
+dependencies {
+    compile group: 'io.token.proto', name: 'tokenio-proto-external', version: ver.tokenProto
+    compile group: 'io.token.rpc', name: 'tokenio-rpc-client', version: ver.tokenRpc
+    compile group: 'io.token.security', name: 'tokenio-security-lib', version: ver.tokenSecurity
+    compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: ver.rxjava
+}
+
+license {
+    ext.year = Calendar.getInstance().get(Calendar.YEAR)
+    ext.name = 'Token, Inc.'
+    ext.author = 'Token, Inc.'
+    ext.email = 'info@token.io'
+
+    include "**/*.java"
+    exclude "**/*Test.java"
+    exclude "**/gradle/**/*.java"
+    exclude "**/testing/**/*.java"
+    exclude "**/asserts/**/*.java"
+
+    skipExistingHeaders = true
+}
+
+downloadLicenses {
+    includeProjectDependencies = true
+    dependencyConfiguration = 'compile'
+}
