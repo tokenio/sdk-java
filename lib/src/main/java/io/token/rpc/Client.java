@@ -337,7 +337,7 @@ public final class Client {
      * @param subscriberId id of the subscriber
      * @return nothing
      */
-    public Observable<Unit> unsubscribeFromNotifications(
+    public Completable unsubscribeFromNotifications(
             String subscriberId) {
         return toObservable(gateway
                 .unsubscribeFromNotifications(UnsubscribeFromNotificationsRequest
@@ -348,7 +348,8 @@ public final class Client {
                     public Unit apply(UnsubscribeFromNotificationsResponse response) {
                         return Unit.INSTANCE;
                     }
-                });
+                })
+                .ignoreElements();
     }
 
     /**

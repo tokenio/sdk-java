@@ -173,7 +173,7 @@ public final class MemberAsync {
      * @param alias alias, e.g. 'john', must be unique
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> addAlias(Alias alias) {
+    public Completable addAlias(Alias alias) {
         return addAliases(Collections.singletonList(alias));
     }
 
@@ -183,7 +183,7 @@ public final class MemberAsync {
      * @param aliases aliases, e.g. 'john', must be unique
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> addAliases(final List<Alias> aliases) {
+    public Completable addAliases(final List<Alias> aliases) {
         List<MemberOperation> operations = new LinkedList<>();
         List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliases) {
@@ -198,7 +198,7 @@ public final class MemberAsync {
                         MemberAsync.this.aliases.addAll(aliases);
                         return Unit.INSTANCE;
                     }
-                });
+                }).ignoreElements();
     }
 
     /**
@@ -207,7 +207,7 @@ public final class MemberAsync {
      * @param alias alias, e.g. 'john'
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> removeAlias(Alias alias) {
+    public Completable removeAlias(Alias alias) {
         return removeAliases(Collections.singletonList(alias));
     }
 
@@ -217,7 +217,7 @@ public final class MemberAsync {
      * @param aliases aliases, e.g. 'john'
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> removeAliases(final List<Alias> aliases) {
+    public Completable removeAliases(final List<Alias> aliases) {
         List<MemberOperation> operations = new LinkedList<>();
         for (Alias alias : aliases) {
             operations.add(MemberOperation
@@ -235,7 +235,8 @@ public final class MemberAsync {
                         member.clear().mergeFrom(proto);
                         return Unit.INSTANCE;
                     }
-                });
+                })
+                .ignoreElements();
     }
 
     /**
@@ -246,7 +247,7 @@ public final class MemberAsync {
      * @param level key privilege level
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> approveKey(SecretKeyPair key, Key.Level level) {
+    public Completable approveKey(SecretKeyPair key, Key.Level level) {
         return approveKey(Key.newBuilder()
                 .setId(key.id())
                 .setAlgorithm(key.cryptoType().getKeyAlgorithm())
@@ -262,7 +263,7 @@ public final class MemberAsync {
      * @param key key to add to the approved list
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> approveKey(Key key) {
+    public Completable approveKey(Key key) {
         return approveKeys(Collections.singletonList(key));
     }
 
@@ -273,7 +274,7 @@ public final class MemberAsync {
      * @param keys keys to add to the approved list
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> approveKeys(List<Key> keys) {
+    public Completable approveKeys(List<Key> keys) {
         List<MemberOperation> operations = new LinkedList<>();
         for (Key key : keys) {
             operations.add(Util.toAddKeyOperation(key));
@@ -285,7 +286,8 @@ public final class MemberAsync {
                         member.clear().mergeFrom(proto);
                         return Unit.INSTANCE;
                     }
-                });
+                })
+                .ignoreElements();
     }
 
     /**
@@ -294,7 +296,7 @@ public final class MemberAsync {
      * @param keyId key ID of the key to remove
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> removeKey(String keyId) {
+    public Completable removeKey(String keyId) {
         return removeKeys(Collections.singletonList(keyId));
     }
 
@@ -304,7 +306,7 @@ public final class MemberAsync {
      * @param keyIds key IDs of the keys to remove
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> removeKeys(List<String> keyIds) {
+    public Completable removeKeys(List<String> keyIds) {
         List<MemberOperation> operations = new LinkedList<>();
         for (String keyId : keyIds) {
             operations.add(MemberOperation
@@ -321,7 +323,8 @@ public final class MemberAsync {
                         member.clear().mergeFrom(proto);
                         return Unit.INSTANCE;
                     }
-                });
+                })
+                .ignoreElements();
     }
 
     /**
@@ -362,14 +365,9 @@ public final class MemberAsync {
      * @param subscriberId subscriberId
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> unsubscribeFromNotifications(String subscriberId) {
+    public Completable unsubscribeFromNotifications(String subscriberId) {
         return client
-                .unsubscribeFromNotifications(subscriberId)
-                .map(new Function<Unit, Unit>() {
-                    public Unit apply(Unit ignore) {
-                        return Unit.INSTANCE;
-                    }
-                });
+                .unsubscribeFromNotifications(subscriberId);
     }
 
     /**
@@ -423,8 +421,9 @@ public final class MemberAsync {
      * @param accountIds account ids to unlink
      * @return nothing
      */
-    public Observable<Unit> unlinkAccounts(List<String> accountIds) {
-        return client.unlinkAccounts(accountIds);
+    public Completable unlinkAccounts(List<String> accountIds) {
+        return client.unlinkAccounts(accountIds)
+                .ignoreElements();
     }
 
     /**
@@ -598,8 +597,9 @@ public final class MemberAsync {
      * @param addressId the id of the address
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> deleteAddress(String addressId) {
-        return client.deleteAddress(addressId);
+    public Completable deleteAddress(String addressId) {
+        return client.deleteAddress(addressId)
+                .ignoreElements();
     }
 
     /**
@@ -629,7 +629,7 @@ public final class MemberAsync {
      * @param data image data
      * @return observable that completes when the operation has finished
      */
-    public Observable<Unit> setProfilePicture(final String type, byte[] data) {
+    public Completable setProfilePicture(final String type, byte[] data) {
         Payload payload = Payload.newBuilder()
                 .setOwnerId(memberId())
                 .setType(type)
@@ -637,7 +637,8 @@ public final class MemberAsync {
                 .setData(ByteString.copyFrom(data))
                 .setAccessMode(PUBLIC)
                 .build();
-        return client.setProfilePicture(payload);
+        return client.setProfilePicture(payload)
+                .ignoreElements();
     }
 
     /**
