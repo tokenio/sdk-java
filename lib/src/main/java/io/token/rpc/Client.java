@@ -25,6 +25,7 @@ package io.token.rpc;
 import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
+import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Completable;
@@ -422,16 +423,11 @@ public final class Client {
      * @param accountIds account ids to unlink
      * @return nothing
      */
-    public Observable<Unit> unlinkAccounts(List<String> accountIds) {
-        return toObservable(gateway.unlinkAccounts(
+    public Completable unlinkAccounts(List<String> accountIds) {
+        return toCompletable(gateway.unlinkAccounts(
                 UnlinkAccountsRequest.newBuilder()
                         .addAllAccountIds(accountIds)
-                        .build()))
-                .map(new Function<UnlinkAccountsResponse, Unit>() {
-                    public Unit apply(UnlinkAccountsResponse response) {
-                        return Unit.INSTANCE;
-                    }
-                });
+                        .build()));
     }
 
     /**
@@ -632,7 +628,7 @@ public final class Client {
      * @return nothing
      */
     public Completable setDefaultBank(String bankId) {
-        return Converters.toCompletable(gateway
+        return toCompletable(gateway
                 .setDefaultBank(SetDefaultBankRequest
                         .newBuilder()
                         .setBankId(bankId)
@@ -949,17 +945,12 @@ public final class Client {
      * @param addressId the id of the address
      * @return observable that completes when request
      */
-    public Observable<Unit> deleteAddress(String addressId) {
-        return toObservable(gateway
+    public Completable deleteAddress(String addressId) {
+        return toCompletable(gateway
                 .deleteAddress(DeleteAddressRequest
                         .newBuilder()
                         .setAddressId(addressId)
-                        .build())
-        ).map(new Function<DeleteAddressResponse, Unit>() {
-            public Unit apply(DeleteAddressResponse response) {
-                return Unit.INSTANCE;
-            }
-        });
+                        .build()));
     }
 
     /**
@@ -1004,16 +995,11 @@ public final class Client {
      * @param payload Picture data
      * @return observable that completes when request handled
      */
-    public Observable<Unit> setProfilePicture(Payload payload) {
-        return Util
-                .toObservable(gateway.setProfilePicture(SetProfilePictureRequest.newBuilder()
+    public Completable setProfilePicture(Payload payload) {
+        return toCompletable(gateway
+                .setProfilePicture(SetProfilePictureRequest.newBuilder()
                         .setPayload(payload)
-                        .build()))
-                .map(new Function<SetProfilePictureResponse, Unit>() {
-                    public Unit apply(SetProfilePictureResponse response) {
-                        return Unit.INSTANCE;
-                    }
-                });
+                        .build()));
     }
 
     /**
