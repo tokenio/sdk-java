@@ -1,4 +1,4 @@
-rootProject.name='sdk'
+rootProject.name='sdk-java'
 
 include 'lib'
 include 'java'
