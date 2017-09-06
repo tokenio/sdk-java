@@ -141,7 +141,7 @@ public final class Member {
      * @param alias alias, e.g. 'john', must be unique
      */
     public void addAlias(Alias alias) {
-        async.addAlias(alias);
+        async.addAlias(alias).blockingAwait();
     }
 
     /**
@@ -150,7 +150,7 @@ public final class Member {
      * @param aliases aliases, e.g. 'john', must be unique
      */
     public void addAliases(List<Alias> aliases) {
-        async.addAliases(aliases);
+        async.addAliases(aliases).blockingAwait();
     }
 
     /**
@@ -159,7 +159,7 @@ public final class Member {
      * @param alias alias, e.g. 'john'
      */
     public void removeAlias(Alias alias) {
-        async.removeAlias(alias);
+        async.removeAlias(alias).blockingAwait();
     }
 
     /**
@@ -168,7 +168,7 @@ public final class Member {
      * @param aliases aliases, e.g. 'john'
      */
     public void removeAliases(List<Alias> aliases) {
-        async.removeAliases(aliases);
+        async.removeAliases(aliases).blockingAwait();
     }
 
     /**
@@ -179,7 +179,7 @@ public final class Member {
      * @param level key privilege level
      */
     public void approveKey(SecretKeyPair key, Level level) {
-        async.approveKey(key, level);
+        async.approveKey(key, level).blockingAwait();
     }
 
     /**
@@ -189,7 +189,7 @@ public final class Member {
      * @param key key to add to the approved list
      */
     public void approveKey(Key key) {
-        async.approveKey(key);
+        async.approveKey(key).blockingAwait();
     }
 
     /**
@@ -199,7 +199,7 @@ public final class Member {
      * @param keys keys to add to the approved list
      */
     public void approveKeys(List<Key> keys) {
-        async.approveKeys(keys);
+        async.approveKeys(keys).blockingAwait();
     }
 
     /**
@@ -208,7 +208,7 @@ public final class Member {
      * @param keyId key ID of the key to remove
      */
     public void removeKey(String keyId) {
-        async.removeKey(keyId);
+        async.removeKey(keyId).blockingAwait();
     }
 
     /**
@@ -217,7 +217,7 @@ public final class Member {
      * @param keyIds key IDs of the keys to remove
      */
     public void removeKeys(List<String> keyIds) {
-        async.removeKeys(keyIds);
+        async.removeKeys(keyIds).blockingAwait();
     }
 
     /**
@@ -270,7 +270,7 @@ public final class Member {
      * @param subscriberId subscriberId
      */
     public void unsubscribeFromNotifications(String subscriberId) {
-        async.unsubscribeFromNotifications(subscriberId);
+        async.unsubscribeFromNotifications(subscriberId).blockingAwait();
     }
 
 
@@ -323,7 +323,7 @@ public final class Member {
      * @param accountIds list of account ids to unlink
      */
     public void unlinkAccounts(List<String> accountIds) {
-        async.unlinkAccounts(accountIds);
+        async.unlinkAccounts(accountIds).blockingAwait();
     }
 
     /**
@@ -445,7 +445,7 @@ public final class Member {
      * @param addressId the id of the address
      */
     public void deleteAddress(String addressId) {
-        async.deleteAddress(addressId);
+        async.deleteAddress(addressId).blockingAwait();
     }
 
     /**
@@ -475,7 +475,7 @@ public final class Member {
      * @param data image data
      */
     public void setProfilePicture(final String type, byte[] data) {
-        async.setProfilePicture(type, data);
+        async.setProfilePicture(type, data).blockingAwait();
     }
 
     /**
