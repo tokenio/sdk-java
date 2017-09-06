@@ -422,8 +422,7 @@ public final class MemberAsync {
      * @return nothing
      */
     public Completable unlinkAccounts(List<String> accountIds) {
-        return client.unlinkAccounts(accountIds)
-                .ignoreElements();
+        return client.unlinkAccounts(accountIds);
     }
 
     /**
@@ -598,8 +597,7 @@ public final class MemberAsync {
      * @return observable that completes when the operation has finished
      */
     public Completable deleteAddress(String addressId) {
-        return client.deleteAddress(addressId)
-                .ignoreElements();
+        return client.deleteAddress(addressId);
     }
 
     /**
@@ -637,8 +635,7 @@ public final class MemberAsync {
                 .setData(ByteString.copyFrom(data))
                 .setAccessMode(PUBLIC)
                 .build();
-        return client.setProfilePicture(payload)
-                .ignoreElements();
+        return client.setProfilePicture(payload);
     }
 
     /**
