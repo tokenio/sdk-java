@@ -276,17 +276,14 @@ public final class TokenIOAsync implements Closeable {
     /**
      * Sends a notification to request a payment.
      *
-     * @param alias the alias of the member to notify
      * @param tokenPayload the payload of a token to be sent
      * @return status of the notification request
      */
-    public Observable<NotifyStatus> notifyPaymentRequest(
-            Alias alias,
-            TokenPayload tokenPayload) {
+    public Observable<NotifyStatus> notifyPaymentRequest(TokenPayload tokenPayload) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         if (tokenPayload.getRefId().isEmpty()) {
             tokenPayload = tokenPayload.toBuilder().setRefId(generateNonce()).build();
         }
-        return unauthenticated.notifyPaymentRequest(alias, tokenPayload);
+        return unauthenticated.notifyPaymentRequest(tokenPayload);
     }
 }

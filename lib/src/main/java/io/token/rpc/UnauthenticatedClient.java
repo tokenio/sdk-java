@@ -257,16 +257,12 @@ public final class UnauthenticatedClient {
     /**
      * Notifies subscribed devices of payment requests.
      *
-     * @param alias the alias of the member to notify
      * @param tokenPayload the payload of a token to be sent
      * @return status of the notification request
      */
-    public Observable<NotifyStatus> notifyPaymentRequest(
-            Alias alias,
-            TokenPayload tokenPayload) {
+    public Observable<NotifyStatus> notifyPaymentRequest(TokenPayload tokenPayload) {
         return toObservable(gateway.requestTransfer(
                 RequestTransferRequest.newBuilder()
-                        .setAlias(alias)
                         .setTokenPayload(tokenPayload)
                         .build()))
                 .map(new Function<RequestTransferResponse, NotifyStatus>() {
