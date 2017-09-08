@@ -63,7 +63,6 @@ import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
-import io.token.rpc.util.Unit;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
@@ -192,13 +191,14 @@ public final class MemberAsync {
         }
         return client
                 .updateMember(member.build(), operations, metadata)
-                .map(new Function<MemberProtos.Member, Unit>() {
-                    public Unit apply(MemberProtos.Member proto) {
+                .map(new Function<MemberProtos.Member, Completable>() {
+                    public Completable apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
                         MemberAsync.this.aliases.addAll(aliases);
-                        return Unit.INSTANCE;
+                        return Completable.complete();
                     }
-                }).ignoreElements();
+                })
+                .ignoreElements();
     }
 
     /**
@@ -229,11 +229,11 @@ public final class MemberAsync {
         }
         return client
                 .updateMember(member.build(), operations)
-                .map(new Function<MemberProtos.Member, Unit>() {
-                    public Unit apply(MemberProtos.Member proto) {
+                .map(new Function<MemberProtos.Member, Completable>() {
+                    public Completable apply(MemberProtos.Member proto) {
                         MemberAsync.this.aliases.removeAll(aliases);
                         member.clear().mergeFrom(proto);
-                        return Unit.INSTANCE;
+                        return Completable.complete();
                     }
                 })
                 .ignoreElements();
@@ -281,10 +281,10 @@ public final class MemberAsync {
         }
         return client
                 .updateMember(member.build(), operations)
-                .map(new Function<MemberProtos.Member, Unit>() {
-                    public Unit apply(MemberProtos.Member proto) {
+                .map(new Function<MemberProtos.Member, Completable>() {
+                    public Completable apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        return Unit.INSTANCE;
+                        return Completable.complete();
                     }
                 })
                 .ignoreElements();
@@ -318,10 +318,10 @@ public final class MemberAsync {
         }
         return client
                 .updateMember(member.build(), operations)
-                .map(new Function<MemberProtos.Member, Unit>() {
-                    public Unit apply(MemberProtos.Member proto) {
+                .map(new Function<MemberProtos.Member, Completable>() {
+                    public Completable apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        return Unit.INSTANCE;
+                        return Completable.complete();
                     }
                 })
                 .ignoreElements();

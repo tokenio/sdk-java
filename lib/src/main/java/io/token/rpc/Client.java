@@ -149,7 +149,6 @@ import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
-import io.token.rpc.util.Unit;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 import io.token.util.Util;
@@ -340,17 +339,11 @@ public final class Client {
      */
     public Completable unsubscribeFromNotifications(
             String subscriberId) {
-        return toObservable(gateway
+        return toCompletable(gateway
                 .unsubscribeFromNotifications(UnsubscribeFromNotificationsRequest
                         .newBuilder()
                         .setSubscriberId(subscriberId)
-                        .build()))
-                .map(new Function<UnsubscribeFromNotificationsResponse, Unit>() {
-                    public Unit apply(UnsubscribeFromNotificationsResponse response) {
-                        return Unit.INSTANCE;
-                    }
-                })
-                .ignoreElements();
+                        .build()));
     }
 
     /**
