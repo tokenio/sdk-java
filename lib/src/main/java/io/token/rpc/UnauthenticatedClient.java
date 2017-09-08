@@ -278,6 +278,7 @@ public final class UnauthenticatedClient {
      * @param alias the alias of the member to notify
      * @param tokenPayload the payload of a token to be sent
      * @return status of the notification request
+     * @deprecated use version without alias parameter
      */
     @Deprecated
     public Observable<NotifyStatus> notifyPaymentRequest(Alias alias, TokenPayload tokenPayload) {
