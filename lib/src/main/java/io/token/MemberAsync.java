@@ -212,12 +212,12 @@ public final class MemberAsync {
     /**
      * Removes aliases for the member.
      *
-     * @param aliases aliases, e.g. 'john'
+     * @param aliasList aliases, e.g. 'john'
      * @return completable that indicates whether the operation finished or had an error
      */
-    public Completable removeAliases(final List<Alias> aliases) {
+    public Completable removeAliases(final List<Alias> aliasList) {
         List<MemberOperation> operations = new LinkedList<>();
-        for (Alias alias : aliases) {
+        for (Alias alias : aliasList) {
             operations.add(MemberOperation
                     .newBuilder()
                     .setRemoveAlias(MemberAliasOperation
@@ -230,7 +230,7 @@ public final class MemberAsync {
                 .map(new Function<MemberProtos.Member, Boolean>() {
                     public Boolean apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        return MemberAsync.this.aliases.removeAll(aliases);
+                        return aliases.removeAll(aliasList);
                     }
                 }));
     }
