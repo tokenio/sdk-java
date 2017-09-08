@@ -271,4 +271,16 @@ public final class UnauthenticatedClient {
                     }
                 });
     }
+
+    /**
+     * Notifies subscribed devices of payment requests.
+     *
+     * @param alias the alias of the member to notify
+     * @param tokenPayload the payload of a token to be sent
+     * @return status of the notification request
+     */
+    @Deprecated
+    public Observable<NotifyStatus> notifyPaymentRequest(Alias alias, TokenPayload tokenPayload) {
+        return notifyPaymentRequest(tokenPayload);
+    }
 }
