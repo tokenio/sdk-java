@@ -63,7 +63,6 @@ import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
-import io.token.rpc.util.Unit;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
@@ -171,55 +170,54 @@ public final class MemberAsync {
      * Adds a new alias for the member.
      *
      * @param alias alias, e.g. 'john', must be unique
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> addAlias(Alias alias) {
+    public Completable addAlias(Alias alias) {
         return addAliases(Collections.singletonList(alias));
     }
 
     /**
      * Adds new aliases for the member.
      *
-     * @param aliases aliases, e.g. 'john', must be unique
-     * @return observable that completes when the operation has finished
+     * @param aliasList aliases, e.g. 'john', must be unique
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> addAliases(final List<Alias> aliases) {
+    public Completable addAliases(final List<Alias> aliasList) {
         List<MemberOperation> operations = new LinkedList<>();
         List<MemberOperationMetadata> metadata = new LinkedList<>();
-        for (Alias alias : aliases) {
+        for (Alias alias : aliasList) {
             operations.add(Util.toAddAliasOperation(alias));
             metadata.add(Util.toMemberOperationMetadata(alias));
         }
-        return client
+        return Completable.fromObservable(client
                 .updateMember(member.build(), operations, metadata)
-                .map(new Function<MemberProtos.Member, Unit>() {
-                    public Unit apply(MemberProtos.Member proto) {
+                .map(new Function<MemberProtos.Member, Boolean>() {
+                    public Boolean apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        MemberAsync.this.aliases.addAll(aliases);
-                        return Unit.INSTANCE;
+                        return aliases.addAll(aliasList);
                     }
-                });
+                }));
     }
 
     /**
      * Removes an alias for the member.
      *
      * @param alias alias, e.g. 'john'
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> removeAlias(Alias alias) {
+    public Completable removeAlias(Alias alias) {
         return removeAliases(Collections.singletonList(alias));
     }
 
     /**
      * Removes aliases for the member.
      *
-     * @param aliases aliases, e.g. 'john'
-     * @return observable that completes when the operation has finished
+     * @param aliasList aliases, e.g. 'john'
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> removeAliases(final List<Alias> aliases) {
+    public Completable removeAliases(final List<Alias> aliasList) {
         List<MemberOperation> operations = new LinkedList<>();
-        for (Alias alias : aliases) {
+        for (Alias alias : aliasList) {
             operations.add(MemberOperation
                     .newBuilder()
                     .setRemoveAlias(MemberAliasOperation
@@ -227,15 +225,14 @@ public final class MemberAsync {
                             .setAliasHash(hashAlias(alias)))
                     .build());
         }
-        return client
+        return Completable.fromObservable(client
                 .updateMember(member.build(), operations)
-                .map(new Function<MemberProtos.Member, Unit>() {
-                    public Unit apply(MemberProtos.Member proto) {
-                        MemberAsync.this.aliases.removeAll(aliases);
+                .map(new Function<MemberProtos.Member, Boolean>() {
+                    public Boolean apply(MemberProtos.Member proto) {
                         member.clear().mergeFrom(proto);
-                        return Unit.INSTANCE;
+                        return aliases.removeAll(aliasList);
                     }
-                });
+                }));
     }
 
     /**
@@ -244,9 +241,9 @@ public final class MemberAsync {
      *
      * @param key key to add to the approved list
      * @param level key privilege level
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> approveKey(SecretKeyPair key, Key.Level level) {
+    public Completable approveKey(SecretKeyPair key, Key.Level level) {
         return approveKey(Key.newBuilder()
                 .setId(key.id())
                 .setAlgorithm(key.cryptoType().getKeyAlgorithm())
@@ -260,9 +257,9 @@ public final class MemberAsync {
      * of valid keys for the member.
      *
      * @param key key to add to the approved list
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> approveKey(Key key) {
+    public Completable approveKey(Key key) {
         return approveKeys(Collections.singletonList(key));
     }
 
@@ -271,30 +268,29 @@ public final class MemberAsync {
      * of valid keys for the member.
      *
      * @param keys keys to add to the approved list
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> approveKeys(List<Key> keys) {
+    public Completable approveKeys(List<Key> keys) {
         List<MemberOperation> operations = new LinkedList<>();
         for (Key key : keys) {
             operations.add(Util.toAddKeyOperation(key));
         }
-        return client
+        return Completable.fromObservable(client
                 .updateMember(member.build(), operations)
-                .map(new Function<MemberProtos.Member, Unit>() {
-                    public Unit apply(MemberProtos.Member proto) {
-                        member.clear().mergeFrom(proto);
-                        return Unit.INSTANCE;
+                .map(new Function<MemberProtos.Member, MemberProtos.Member.Builder>() {
+                    public MemberProtos.Member.Builder apply(MemberProtos.Member proto) {
+                        return member.clear().mergeFrom(proto);
                     }
-                });
+                }));
     }
 
     /**
      * Removes a public key owned by this member.
      *
      * @param keyId key ID of the key to remove
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> removeKey(String keyId) {
+    public Completable removeKey(String keyId) {
         return removeKeys(Collections.singletonList(keyId));
     }
 
@@ -302,9 +298,9 @@ public final class MemberAsync {
      * Removes public keys owned by this member.
      *
      * @param keyIds key IDs of the keys to remove
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> removeKeys(List<String> keyIds) {
+    public Completable removeKeys(List<String> keyIds) {
         List<MemberOperation> operations = new LinkedList<>();
         for (String keyId : keyIds) {
             operations.add(MemberOperation
@@ -314,14 +310,13 @@ public final class MemberAsync {
                             .setKeyId(keyId))
                     .build());
         }
-        return client
+        return Completable.fromObservable(client
                 .updateMember(member.build(), operations)
-                .map(new Function<MemberProtos.Member, Unit>() {
-                    public Unit apply(MemberProtos.Member proto) {
-                        member.clear().mergeFrom(proto);
-                        return Unit.INSTANCE;
+                .map(new Function<MemberProtos.Member, MemberProtos.Member.Builder>() {
+                    public MemberProtos.Member.Builder apply(MemberProtos.Member proto) {
+                        return member.clear().mergeFrom(proto);
                     }
-                });
+                }));
     }
 
     /**
@@ -360,16 +355,11 @@ public final class MemberAsync {
      * Removes a subscriber.
      *
      * @param subscriberId subscriberId
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> unsubscribeFromNotifications(String subscriberId) {
+    public Completable unsubscribeFromNotifications(String subscriberId) {
         return client
-                .unsubscribeFromNotifications(subscriberId)
-                .map(new Function<Unit, Unit>() {
-                    public Unit apply(Unit ignore) {
-                        return Unit.INSTANCE;
-                    }
-                });
+                .unsubscribeFromNotifications(subscriberId);
     }
 
     /**
@@ -423,7 +413,7 @@ public final class MemberAsync {
      * @param accountIds account ids to unlink
      * @return nothing
      */
-    public Observable<Unit> unlinkAccounts(List<String> accountIds) {
+    public Completable unlinkAccounts(List<String> accountIds) {
         return client.unlinkAccounts(accountIds);
     }
 
@@ -596,9 +586,9 @@ public final class MemberAsync {
      * Deletes a member address by its id.
      *
      * @param addressId the id of the address
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> deleteAddress(String addressId) {
+    public Completable deleteAddress(String addressId) {
         return client.deleteAddress(addressId);
     }
 
@@ -627,9 +617,9 @@ public final class MemberAsync {
      *
      * @param type MIME type of picture
      * @param data image data
-     * @return observable that completes when the operation has finished
+     * @return completable that indicates whether the operation finished or had an error
      */
-    public Observable<Unit> setProfilePicture(final String type, byte[] data) {
+    public Completable setProfilePicture(final String type, byte[] data) {
         Payload payload = Payload.newBuilder()
                 .setOwnerId(memberId())
                 .setType(type)
