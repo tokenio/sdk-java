@@ -235,15 +235,12 @@ public final class TokenIO implements Closeable {
     /**
      * Sends a notification to request a payment.
      *
-     * @param alias the alias of the member to notify
      * @param tokenPayload the payload of a token to be sent
      * @return status of the notification request
      */
-    public NotifyStatus notifyPaymentRequest(
-            Alias alias,
-            TokenPayload tokenPayload) {
+    public NotifyStatus notifyPaymentRequest(TokenPayload tokenPayload) {
         return async
-                .notifyPaymentRequest(alias, tokenPayload)
+                .notifyPaymentRequest(tokenPayload)
                 .blockingSingle();
     }
 
