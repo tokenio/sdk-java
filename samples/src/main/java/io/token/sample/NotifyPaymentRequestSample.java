@@ -42,9 +42,7 @@ public final class NotifyPaymentRequestSample {
                 .setRefId(cartId)
                 .build();
 
-        NotifyStatus status = tokenIO.notifyPaymentRequest(
-                payerAlias,
-                paymentRequest);
+        NotifyStatus status = tokenIO.notifyPaymentRequest(paymentRequest);
         return status;
     }
 }
