@@ -1,3 +1,5 @@
+apply plugin: 'io.token.gradle.lib'
+
 dependencies {
     compile project(':java')
     compile 'junit:junit:4.12'
