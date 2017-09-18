@@ -190,7 +190,23 @@ public final class MemberAsync {
             operations.add(Util.toAddAliasOperation(alias));
             metadata.add(Util.toMemberOperationMetadata(alias));
         }
-        return Completable.fromObservable(updateAliases(operations, aliasList, metadata));
+        return Completable.fromObservable(client
+                .getMember(memberId())
+                .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
+                    public Observable<Boolean> apply(MemberProtos.Member latest) {
+                        return client
+                                .updateMember(
+                                        member.setLastHash(latest.getLastHash()).build(),
+                                        operations,
+                                        metadata)
+                                .map(new Function<MemberProtos.Member, Boolean>() {
+                                    public Boolean apply(MemberProtos.Member proto) {
+                                        member.clear().mergeFrom(proto);
+                                        return aliases.addAll(aliasList);
+                                    }
+                                });
+                    }
+                }));
     }
 
     /**
@@ -219,7 +235,22 @@ public final class MemberAsync {
                             .setAliasHash(hashAlias(alias)))
                     .build());
         }
-        return Completable.fromObservable(updateAliases(operations, aliasList, null));
+        return Completable.fromObservable(client
+                .getMember(memberId())
+                .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
+                    public Observable<Boolean> apply(MemberProtos.Member latest) {
+                        return client
+                                .updateMember(
+                                        member.setLastHash(latest.getLastHash()).build(),
+                                        operations)
+                                .map(new Function<MemberProtos.Member, Boolean>() {
+                                    public Boolean apply(MemberProtos.Member proto) {
+                                        member.clear().mergeFrom(proto);
+                                        return aliases.removeAll(aliasList);
+                                    }
+                                });
+                    }
+                }));
     }
 
     /**
@@ -951,33 +982,6 @@ public final class MemberAsync {
                                 .map(new Function<MemberProtos.Member, Builder>() {
                                     public Builder apply(MemberProtos.Member proto) {
                                         return member.clear().mergeFrom(proto);
-                                    }
-                                });
-                    }
-                });
-    }
-
-    private Observable<Boolean> updateAliases(
-            final List<MemberOperation> operations,
-            final List<Alias> aliasList,
-            final List<MemberOperationMetadata> metadata) {
-        return client
-                .getMember(memberId())
-                .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
-                    public Observable<Boolean> apply(MemberProtos.Member latest) {
-                        return client
-                                .updateMember(
-                                        member.setLastHash(latest.getLastHash()).build(),
-                                        operations,
-                                        metadata == null
-                                                ? Collections.<MemberOperationMetadata>emptyList()
-                                                : metadata)
-                                .map(new Function<MemberProtos.Member, Boolean>() {
-                                    public Boolean apply(MemberProtos.Member proto) {
-                                        member.clear().mergeFrom(proto);
-                                        return metadata == null
-                                                ? aliases.removeAll(aliasList)
-                                                : aliases.addAll(aliasList);
                                     }
                                 });
                     }
