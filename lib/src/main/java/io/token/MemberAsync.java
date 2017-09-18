@@ -44,6 +44,7 @@ import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Member.Builder;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
@@ -84,7 +85,7 @@ public final class MemberAsync {
     private static final Logger logger = LoggerFactory.getLogger(MemberAsync.class);
 
     private final Client client;
-    private final MemberProtos.Member.Builder member;
+    private final Builder member;
     private List<Alias> aliases;
 
 
@@ -183,18 +184,27 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable addAliases(final List<Alias> aliasList) {
-        List<MemberOperation> operations = new LinkedList<>();
-        List<MemberOperationMetadata> metadata = new LinkedList<>();
+        final List<MemberOperation> operations = new LinkedList<>();
+        final List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliasList) {
             operations.add(Util.toAddAliasOperation(alias));
             metadata.add(Util.toMemberOperationMetadata(alias));
         }
         return Completable.fromObservable(client
-                .updateMember(member.build(), operations, metadata)
-                .map(new Function<MemberProtos.Member, Boolean>() {
-                    public Boolean apply(MemberProtos.Member proto) {
-                        member.clear().mergeFrom(proto);
-                        return aliases.addAll(aliasList);
+                .getMember(memberId())
+                .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
+                    public Observable<Boolean> apply(MemberProtos.Member latest) {
+                        return client
+                                .updateMember(
+                                        member.setLastHash(latest.getLastHash()).build(),
+                                        operations,
+                                        metadata)
+                                .map(new Function<MemberProtos.Member, Boolean>() {
+                                    public Boolean apply(MemberProtos.Member proto) {
+                                        member.clear().mergeFrom(proto);
+                                        return aliases.addAll(aliasList);
+                                    }
+                                });
                     }
                 }));
     }
@@ -216,7 +226,7 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable removeAliases(final List<Alias> aliasList) {
-        List<MemberOperation> operations = new LinkedList<>();
+        final List<MemberOperation> operations = new LinkedList<>();
         for (Alias alias : aliasList) {
             operations.add(MemberOperation
                     .newBuilder()
@@ -226,11 +236,19 @@ public final class MemberAsync {
                     .build());
         }
         return Completable.fromObservable(client
-                .updateMember(member.build(), operations)
-                .map(new Function<MemberProtos.Member, Boolean>() {
-                    public Boolean apply(MemberProtos.Member proto) {
-                        member.clear().mergeFrom(proto);
-                        return aliases.removeAll(aliasList);
+                .getMember(memberId())
+                .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
+                    public Observable<Boolean> apply(MemberProtos.Member latest) {
+                        return client
+                                .updateMember(
+                                        member.setLastHash(latest.getLastHash()).build(),
+                                        operations)
+                                .map(new Function<MemberProtos.Member, Boolean>() {
+                                    public Boolean apply(MemberProtos.Member proto) {
+                                        member.clear().mergeFrom(proto);
+                                        return aliases.removeAll(aliasList);
+                                    }
+                                });
                     }
                 }));
     }
@@ -271,17 +289,11 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable approveKeys(List<Key> keys) {
-        List<MemberOperation> operations = new LinkedList<>();
+        final List<MemberOperation> operations = new LinkedList<>();
         for (Key key : keys) {
             operations.add(Util.toAddKeyOperation(key));
         }
-        return Completable.fromObservable(client
-                .updateMember(member.build(), operations)
-                .map(new Function<MemberProtos.Member, MemberProtos.Member.Builder>() {
-                    public MemberProtos.Member.Builder apply(MemberProtos.Member proto) {
-                        return member.clear().mergeFrom(proto);
-                    }
-                }));
+        return Completable.fromObservable(updateKeys(operations));
     }
 
     /**
@@ -301,7 +313,7 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable removeKeys(List<String> keyIds) {
-        List<MemberOperation> operations = new LinkedList<>();
+        final List<MemberOperation> operations = new LinkedList<>();
         for (String keyId : keyIds) {
             operations.add(MemberOperation
                     .newBuilder()
@@ -310,13 +322,7 @@ public final class MemberAsync {
                             .setKeyId(keyId))
                     .build());
         }
-        return Completable.fromObservable(client
-                .updateMember(member.build(), operations)
-                .map(new Function<MemberProtos.Member, MemberProtos.Member.Builder>() {
-                    public MemberProtos.Member.Builder apply(MemberProtos.Member proto) {
-                        return member.clear().mergeFrom(proto);
-                    }
-                }));
+        return Completable.fromObservable(updateKeys(operations));
     }
 
     /**
@@ -962,5 +968,23 @@ public final class MemberAsync {
     @Override
     public String toString() {
         return reflectionToString(this);
+    }
+
+    private Observable<Builder> updateKeys(final List<MemberOperation> operations) {
+        return client
+                .getMember(memberId())
+                .flatMap(new Function<MemberProtos.Member, Observable<Builder>>() {
+                    public Observable<Builder> apply(MemberProtos.Member latest) {
+                        return client
+                                .updateMember(
+                                        member.setLastHash(latest.getLastHash()).build(),
+                                        operations)
+                                .map(new Function<MemberProtos.Member, Builder>() {
+                                    public Builder apply(MemberProtos.Member proto) {
+                                        return member.clear().mergeFrom(proto);
+                                    }
+                                });
+                    }
+                });
     }
 }
