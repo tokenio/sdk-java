@@ -184,27 +184,18 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable addAliases(final List<Alias> aliasList) {
-        final List<MemberOperation> operations = new LinkedList<>();
-        final List<MemberOperationMetadata> metadata = new LinkedList<>();
+        List<MemberOperation> operations = new LinkedList<>();
+        List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliasList) {
             operations.add(Util.toAddAliasOperation(alias));
             metadata.add(Util.toMemberOperationMetadata(alias));
         }
         return Completable.fromObservable(client
-                .getMember(memberId())
-                .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
-                    public Observable<Boolean> apply(MemberProtos.Member latest) {
-                        return client
-                                .updateMember(
-                                        member.setLastHash(latest.getLastHash()).build(),
-                                        operations,
-                                        metadata)
-                                .map(new Function<MemberProtos.Member, Boolean>() {
-                                    public Boolean apply(MemberProtos.Member proto) {
-                                        member.clear().mergeFrom(proto);
-                                        return aliases.addAll(aliasList);
-                                    }
-                                });
+                .updateMember(member.build(), operations, metadata)
+                .map(new Function<MemberProtos.Member, Boolean>() {
+                    public Boolean apply(MemberProtos.Member proto) {
+                        member.clear().mergeFrom(proto);
+                        return aliases.addAll(aliasList);
                     }
                 }));
     }
@@ -226,7 +217,7 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable removeAliases(final List<Alias> aliasList) {
-        final List<MemberOperation> operations = new LinkedList<>();
+        List<MemberOperation> operations = new LinkedList<>();
         for (Alias alias : aliasList) {
             operations.add(MemberOperation
                     .newBuilder()
@@ -236,19 +227,11 @@ public final class MemberAsync {
                     .build());
         }
         return Completable.fromObservable(client
-                .getMember(memberId())
-                .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
-                    public Observable<Boolean> apply(MemberProtos.Member latest) {
-                        return client
-                                .updateMember(
-                                        member.setLastHash(latest.getLastHash()).build(),
-                                        operations)
-                                .map(new Function<MemberProtos.Member, Boolean>() {
-                                    public Boolean apply(MemberProtos.Member proto) {
-                                        member.clear().mergeFrom(proto);
-                                        return aliases.removeAll(aliasList);
-                                    }
-                                });
+                .updateMember(member.build(), operations)
+                .map(new Function<MemberProtos.Member, Boolean>() {
+                    public Boolean apply(MemberProtos.Member proto) {
+                        member.clear().mergeFrom(proto);
+                        return aliases.removeAll(aliasList);
                     }
                 }));
     }
@@ -289,11 +272,17 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable approveKeys(List<Key> keys) {
-        final List<MemberOperation> operations = new LinkedList<>();
+        List<MemberOperation> operations = new LinkedList<>();
         for (Key key : keys) {
             operations.add(Util.toAddKeyOperation(key));
         }
-        return Completable.fromObservable(updateKeys(operations));
+        return Completable.fromObservable(client
+                .updateMember(member.build(), operations)
+                .map(new Function<MemberProtos.Member, MemberProtos.Member.Builder>() {
+                    public MemberProtos.Member.Builder apply(MemberProtos.Member proto) {
+                        return member.clear().mergeFrom(proto);
+                    }
+                }));
     }
 
     /**
@@ -313,7 +302,7 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable removeKeys(List<String> keyIds) {
-        final List<MemberOperation> operations = new LinkedList<>();
+        List<MemberOperation> operations = new LinkedList<>();
         for (String keyId : keyIds) {
             operations.add(MemberOperation
                     .newBuilder()
@@ -322,7 +311,13 @@ public final class MemberAsync {
                             .setKeyId(keyId))
                     .build());
         }
-        return Completable.fromObservable(updateKeys(operations));
+        return Completable.fromObservable(client
+                .updateMember(member.build(), operations)
+                .map(new Function<MemberProtos.Member, MemberProtos.Member.Builder>() {
+                    public MemberProtos.Member.Builder apply(MemberProtos.Member proto) {
+                        return member.clear().mergeFrom(proto);
+                    }
+                }));
     }
 
     /**
@@ -896,13 +891,19 @@ public final class MemberAsync {
     }
 
     /**
-     * Sets the default bank.
+     * Get the default bank account for this member.
      *
-     * @param bankId bank id
-     * @return bankId if successfully set to default, empty otherwise
+     * @param memberId the member's id
+     * @return observable string
      */
-    public Completable setDefaultBank(String bankId) {
-        return client.setDefaultBank(bankId);
+    public Observable<AccountAsync> getDefaultAccount(String memberId) {
+        return client
+                .getDefaultAccount(memberId)
+                .map(new Function<AccountProtos.Account, AccountAsync>() {
+                    public AccountAsync apply(AccountProtos.Account account) {
+                        return new AccountAsync(MemberAsync.this, account, client);
+                    }
+                });
     }
 
     /**
@@ -968,23 +969,5 @@ public final class MemberAsync {
     @Override
     public String toString() {
         return reflectionToString(this);
-    }
-
-    private Observable<Builder> updateKeys(final List<MemberOperation> operations) {
-        return client
-                .getMember(memberId())
-                .flatMap(new Function<MemberProtos.Member, Observable<Builder>>() {
-                    public Observable<Builder> apply(MemberProtos.Member latest) {
-                        return client
-                                .updateMember(
-                                        member.setLastHash(latest.getLastHash()).build(),
-                                        operations)
-                                .map(new Function<MemberProtos.Member, Builder>() {
-                                    public Builder apply(MemberProtos.Member proto) {
-                                        return member.clear().mergeFrom(proto);
-                                    }
-                                });
-                    }
-                });
     }
 }

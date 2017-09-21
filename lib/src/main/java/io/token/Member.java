@@ -346,25 +346,19 @@ public final class Member {
     }
 
     /**
-     * Gets the default bank.
+     * Gets the default bank account.
      *
-     * @return default bank id
+     * @return the default bank account id
      */
-    public String getDefaultBank() {
+    public Account getDefaultAccount() {
         return async
-                .getDefaultBank()
+                .getDefaultAccount(this.memberId())
+                .map(new Function<AccountAsync, Account>() {
+                    public Account apply(AccountAsync async) {
+                        return async.sync();
+                    }
+                })
                 .blockingSingle();
-    }
-
-    /**
-     * Sets the default bank.
-     *
-     * @param bankId the requested new default bank id
-     */
-    public void setDefaultBank(String bankId) {
-        async
-                .setDefaultBank(bankId)
-                .blockingAwait();
     }
 
     /**
