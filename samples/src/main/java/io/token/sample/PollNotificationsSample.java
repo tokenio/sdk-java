@@ -46,6 +46,7 @@ public final class PollNotificationsSample {
      */
     public static Optional<Notification> poll(Member member) {
         for (int retries = 0; retries < 5; retries++) {
+            // getNotifications doc extract start:
             PagedList<Notification, String> pagedList =
                     member.getNotifications(null, 10);
             List<Notification> notifications = pagedList.getList();
@@ -61,6 +62,7 @@ public final class PollNotificationsSample {
                 }
                 return Optional.of(notification);
             }
+            // getNotifications doc extract end
             try {
                 System.out.printf("Don't see notifications yet. Sleeping...");
                 TimeUnit.SECONDS.sleep(1);
