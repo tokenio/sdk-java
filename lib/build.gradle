@@ -1,5 +1,3 @@
-apply plugin: 'io.token.gradle.lib'
-apply plugin: 'io.token.gradle.version'
 apply plugin: 'com.github.hierynomus.license'
 
 sourceCompatibility = 1.7
