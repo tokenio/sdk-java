@@ -71,6 +71,23 @@ public final class Account {
     }
 
     /**
+     * Sets to be a default account for its member.
+     * Only 1 account can be default for each member.
+     */
+    public void setAsDefault() {
+        async.setAsDefault().blockingAwait();
+    }
+
+    /**
+     * Checks if this account is default.
+     *
+     * @return true is the account is default; otherwise false
+     */
+    public boolean isDefault() {
+        return async.isDefault().blockingSingle();
+    }
+
+    /**
      * Gets an account name.
      *
      * @return account name

@@ -76,7 +76,6 @@ import io.token.proto.gateway.Gateway.CreateTransferResponse;
 import io.token.proto.gateway.Gateway.CreateTransferTokenRequest;
 import io.token.proto.gateway.Gateway.CreateTransferTokenResponse;
 import io.token.proto.gateway.Gateway.DeleteAddressRequest;
-import io.token.proto.gateway.Gateway.DeleteAddressResponse;
 import io.token.proto.gateway.Gateway.EndorseTokenRequest;
 import io.token.proto.gateway.Gateway.EndorseTokenResponse;
 import io.token.proto.gateway.Gateway.GetAccountRequest;
@@ -96,6 +95,8 @@ import io.token.proto.gateway.Gateway.GetBankInfoResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
+import io.token.proto.gateway.Gateway.GetDefaultAccountRequest;
+import io.token.proto.gateway.Gateway.GetDefaultAccountResponse;
 import io.token.proto.gateway.Gateway.GetDefaultBankRequest;
 import io.token.proto.gateway.Gateway.GetDefaultBankResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
@@ -133,8 +134,7 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
-import io.token.proto.gateway.Gateway.SetDefaultBankRequest;
-import io.token.proto.gateway.Gateway.SetDefaultBankResponse;
+import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
@@ -599,6 +599,24 @@ public final class Client {
     }
 
     /**
+     * Makes RPC to get default bank account for this member.
+     *
+     * @param memberId the member id
+     * @return the bank account
+     */
+    public Observable<Account> getDefaultAccount(String memberId) {
+        return toObservable(gateway
+                .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetDefaultAccountResponse, Account>() {
+                    public Account apply(GetDefaultAccountResponse response) {
+                        return response.getAccount();
+                    }
+                });
+    }
+
+    /**
      * Makes RPC to get default bank for this member.
      *
      * @return the bank id string
@@ -615,17 +633,37 @@ public final class Client {
     }
 
     /**
-     * Makes RPC to set default bank.
+     * Makes RPC to set default bank account.
      *
-     * @param bankId the bank id
-     * @return nothing
+     * @param memberId the member id
+     * @param accountId the bank account id
+     * @return completable indicating if the default bank account was successfully set
      */
-    public Completable setDefaultBank(String bankId) {
+    public Completable setDefaultAccount(String memberId, String accountId) {
         return toCompletable(gateway
-                .setDefaultBank(SetDefaultBankRequest
+                .setDefaultAccount(SetDefaultAccountRequest
                         .newBuilder()
-                        .setBankId(bankId)
+                        .setMemberId(memberId)
+                        .setAccountId(accountId)
                         .build()));
+    }
+
+    /**
+     * Looks up if this account is default.
+     *
+     * @param accountId the bank account id
+     * @return true if the account is default; false otherwise
+     */
+    public Observable<Boolean> isDefault(final String accountId) {
+        return toObservable(gateway
+                .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetDefaultAccountResponse, Boolean>() {
+                    public Boolean apply(GetDefaultAccountResponse response) {
+                        return response.getAccount().getId().contentEquals(accountId);
+                    }
+                });
     }
 
     /**
