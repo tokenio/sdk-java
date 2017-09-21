@@ -896,13 +896,19 @@ public final class MemberAsync {
     }
 
     /**
-     * Sets the default bank.
+     * Get the default bank account for this member.
      *
-     * @param bankId bank id
-     * @return bankId if successfully set to default, empty otherwise
+     * @param memberId the member's id
+     * @return observable string
      */
-    public Completable setDefaultBank(String bankId) {
-        return client.setDefaultBank(bankId);
+    public Observable<AccountAsync> getDefaultAccount(String memberId) {
+        return client
+                .getDefaultAccount(memberId)
+                .map(new Function<AccountProtos.Account, AccountAsync>() {
+                    public AccountAsync apply(AccountProtos.Account account) {
+                        return new AccountAsync(MemberAsync.this, account, client);
+                    }
+                });
     }
 
     /**

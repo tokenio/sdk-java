@@ -22,6 +22,7 @@
 
 package io.token;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
@@ -77,6 +78,24 @@ public final class AccountAsync {
      */
     public String id() {
         return account.getId();
+    }
+
+    /**
+     * Sets this account as a member's default account.
+     *
+     * @return completable
+     */
+    public Completable setAsDefault() {
+        return client.setDefaultAccount(member.memberId(), this.id());
+    }
+
+    /**
+     * Looks up if this account is default.
+     *
+     * @return true if this account is default; false otherwise.
+     */
+    public Observable<Boolean> isDefault() {
+        return client.isDefault(this.id());
     }
 
     /**

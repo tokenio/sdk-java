@@ -16,8 +16,8 @@ buildscript {
 allprojects {
     ext {
         ver = [
-            tokenProto           : '1.0.369',
-            tokenRpc             : '1.0.98',
+            tokenProto           : '1.0.381',
+            tokenRpc             : '1.0.99',
             tokenSecurity        : '1.0.40',
             tokenUtil            : '1.0.16',
             rxjava               : '2.1.1',
@@ -25,7 +25,7 @@ allprojects {
     }
 
     group = 'io.token.sdk'
-    version = '1.0.62'
-    
+    version = '1.0.63'
+
     apply plugin: 'io.token.gradle.publish'
 }
