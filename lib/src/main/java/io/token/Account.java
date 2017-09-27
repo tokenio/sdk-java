@@ -106,12 +106,21 @@ public final class Account {
     }
 
     /**
-     * Looks up an account balance.
+     * Looks up an account available balance.
      *
-     * @return account balance
+     * @return account available balance
      */
-    public Money getBalance() {
-        return async.getBalance().blockingSingle();
+    public Money getAvailableBalance() {
+        return async.getAvailableBalance().blockingSingle();
+    }
+
+    /**
+     * Looks up an account current balance.
+     *
+     * @return account current balance
+     */
+    public Money getCurrentBalance() {
+        return async.getCurrentBalance().blockingSingle();
     }
 
     /**

@@ -117,12 +117,21 @@ public final class AccountAsync {
     }
 
     /**
-     * Looks up an account balance.
+     * Looks up an account available balance.
      *
-     * @return account balance
+     * @return account available balance
      */
-    public Observable<Money> getBalance() {
-        return client.getBalance(account.getId());
+    public Observable<Money> getAvailableBalance() {
+        return client.getAvailableBalance(account.getId());
+    }
+
+    /**
+     * Looks up an account current balance.
+     *
+     * @return account current balance
+     */
+    public Observable<Money> getCurrentBalance() {
+        return client.getCurrentBalance(account.getId());
     }
 
     /**

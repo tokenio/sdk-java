@@ -19,11 +19,11 @@ public final class GetBalanceSample {
      * @return map currency: total
      */
     public static Map<String, Double> memberGetBalanceSample(Member member) {
-        Map<String, Double> sums = new HashMap();
+        Map<String, Double> sums = new HashMap<>();
 
         List<Account> accounts = member.getAccounts();
         for (Account account : accounts) {
-            Money balance = member.getBalance(account.id());
+            Money balance = member.getCurrentBalance(account.id());
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())
@@ -41,11 +41,11 @@ public final class GetBalanceSample {
      * @return map currency: total
      */
     public static Map<String, Double> accountGetBalanceSample(Member member) {
-        Map<String, Double> sums = new HashMap();
+        Map<String, Double> sums = new HashMap<>();
 
         List<Account> accounts = member.getAccounts();
         for (Account account : accounts) {
-            Money balance = account.getBalance();
+            Money balance = account.getCurrentBalance();
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())

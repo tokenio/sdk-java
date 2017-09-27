@@ -742,13 +742,23 @@ public final class Member {
     }
 
     /**
-     * Looks up account balance.
+     * Looks up account available balance.
      *
      * @param accountId the account id
-     * @return balance
+     * @return available balance
      */
-    public Money getBalance(String accountId) {
-        return async.getBalance(accountId).blockingSingle();
+    public Money getAvailableBalance(String accountId) {
+        return async.getAvailableBalance(accountId).blockingSingle();
+    }
+
+    /**
+     * Looks up account current balance.
+     *
+     * @param accountId the account id
+     * @return current balance
+     */
+    public Money getCurrentBalance(String accountId) {
+        return async.getCurrentBalance(accountId).blockingSingle();
     }
 
     /**
