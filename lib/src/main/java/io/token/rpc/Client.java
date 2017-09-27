@@ -136,15 +136,12 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
 import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
-import io.token.proto.gateway.Gateway.SetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
-import io.token.proto.gateway.Gateway.UnlinkAccountsResponse;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
-import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -701,12 +698,32 @@ public final class Client {
     }
 
     /**
-     * Looks up account balance.
+     * Looks up account available balance.
      *
      * @param accountId account id
-     * @return account balance
+     * @return account available balance
      */
-    public Observable<Money> getBalance(String accountId) {
+    public Observable<Money> getAvailableBalance(String accountId) {
+        setAuthenticationContext();
+        return toObservable(gateway
+                .getBalance(GetBalanceRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .build()))
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
+                        return response.getAvailable();
+                    }
+                });
+    }
+
+    /**
+     * Looks up account current balance.
+     *
+     * @param accountId account id
+     * @return account current balance
+     */
+    public Observable<Money> getCurrentBalance(String accountId) {
         setAuthenticationContext();
         return toObservable(gateway
                 .getBalance(GetBalanceRequest

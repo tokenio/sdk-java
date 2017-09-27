@@ -912,13 +912,23 @@ public final class MemberAsync {
     }
 
     /**
-     * Looks up account balance.
+     * Looks up account available balance.
      *
      * @param accountId the account id
-     * @return balance
+     * @return available balance
      */
-    public Observable<Money> getBalance(String accountId) {
-        return client.getBalance(accountId);
+    public Observable<Money> getAvailableBalance(String accountId) {
+        return client.getAvailableBalance(accountId);
+    }
+
+    /**
+     * Looks up account current balance.
+     *
+     * @param accountId the account id
+     * @return current balance
+     */
+    public Observable<Money> getCurrentBalance(String accountId) {
+        return client.getCurrentBalance(accountId);
     }
 
     /**
