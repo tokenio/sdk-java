@@ -4,7 +4,7 @@ see this list for Java APIs that have changed:
 ## Release 1.0.64
 
 getBalance methods for Member and Account have been
-replaced by separate methods for getAvaiableBalance
+replaced by separate methods for getAvailableBalance
 and getCurrentBalance.
 
 ## Release 1.0.60
