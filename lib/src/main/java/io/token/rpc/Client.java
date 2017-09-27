@@ -97,8 +97,6 @@ import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAccountResponse;
-import io.token.proto.gateway.Gateway.GetDefaultBankRequest;
-import io.token.proto.gateway.Gateway.GetDefaultBankResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
@@ -604,7 +602,6 @@ public final class Client {
     public Observable<Account> getDefaultAccount(String memberId) {
         return toObservable(gateway
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
-                        .setMemberId(memberId)
                         .build()))
                 .map(new Function<GetDefaultAccountResponse, Account>() {
                     public Account apply(GetDefaultAccountResponse response) {
@@ -614,33 +611,15 @@ public final class Client {
     }
 
     /**
-     * Makes RPC to get default bank for this member.
-     *
-     * @return the bank id string
-     */
-    public Observable<String> getDefaultBank() {
-        return toObservable(gateway
-                .getDefaultBank(GetDefaultBankRequest
-                        .getDefaultInstance()))
-                .map(new Function<GetDefaultBankResponse, String>() {
-                    public String apply(GetDefaultBankResponse response) {
-                        return response.getBankId();
-                    }
-                });
-    }
-
-    /**
      * Makes RPC to set default bank account.
      *
-     * @param memberId the member id
      * @param accountId the bank account id
      * @return completable indicating if the default bank account was successfully set
      */
-    public Completable setDefaultAccount(String memberId, String accountId) {
+    public Completable setDefaultAccount(String accountId) {
         return toCompletable(gateway
                 .setDefaultAccount(SetDefaultAccountRequest
                         .newBuilder()
-                        .setMemberId(memberId)
                         .setAccountId(accountId)
                         .build()));
     }
@@ -654,7 +633,6 @@ public final class Client {
     public Observable<Boolean> isDefault(final String accountId) {
         return toObservable(gateway
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
-                        .setMemberId(memberId)
                         .build()))
                 .map(new Function<GetDefaultAccountResponse, Boolean>() {
                     public Boolean apply(GetDefaultAccountResponse response) {
