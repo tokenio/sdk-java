@@ -86,7 +86,7 @@ public final class AccountAsync {
      * @return completable
      */
     public Completable setAsDefault() {
-        return client.setDefaultAccount(member.memberId(), this.id());
+        return client.setDefaultAccount(this.id());
     }
 
     /**
