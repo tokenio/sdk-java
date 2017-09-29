@@ -18,7 +18,6 @@ public final class GetTransactionsSample {
     public static void getTransactionsSample(Member payer) {
         List<Account> accounts = payer.getAccounts();
         String accountId = accounts.get(0).id();
-
         for (Transaction transaction :
                 payer.getTransactions(accountId, "0", 10).getList()) {
             displayTransaction(
