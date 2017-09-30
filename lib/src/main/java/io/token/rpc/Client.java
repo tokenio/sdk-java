@@ -132,6 +132,8 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.RetryVerificationRequest;
+import io.token.proto.gateway.Gateway.RetryVerificationResponse;
 import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
@@ -1116,6 +1118,25 @@ public final class Client {
                 .map(new Function<GetAliasesResponse, List<Alias>>() {
                     public List<Alias> apply(GetAliasesResponse response) {
                         return response.getAliasesList();
+                    }
+                });
+    }
+
+    /**
+     * Retry alias verification.
+     *
+     * @param alias the alias to be verified
+     * @return the verification id
+     */
+    public Observable<String> retryVerification(Alias alias) {
+        return toObservable(gateway
+                .retryVerification(RetryVerificationRequest.newBuilder()
+                        .setAlias(alias)
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<RetryVerificationResponse, String>() {
+                    public String apply(RetryVerificationResponse response) {
+                        return response.getVerificationId();
                     }
                 });
     }
