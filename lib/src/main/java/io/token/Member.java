@@ -154,6 +154,16 @@ public final class Member {
     }
 
     /**
+     * Retry alias verification.
+     *
+     * @param alias the alias to be verified
+     * @return the verification id
+     */
+    public String retryVerification(Alias alias) {
+        return async.retryVerification(alias).blockingSingle();
+    }
+
+    /**
      * Removes an alias for the member.
      *
      * @param alias alias, e.g. 'john'
