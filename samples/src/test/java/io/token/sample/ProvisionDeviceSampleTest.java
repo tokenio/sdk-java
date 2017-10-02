@@ -31,6 +31,4 @@ public class ProvisionDeviceSampleTest {
             assertThat(local.memberId()).isEqualTo(remoteMember.memberId());
         }
     }
-
-
 }
