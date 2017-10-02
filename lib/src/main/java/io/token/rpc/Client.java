@@ -602,6 +602,7 @@ public final class Client {
     public Observable<Account> getDefaultAccount(String memberId) {
         return toObservable(gateway
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
+                        .setMemberId(memberId)
                         .build()))
                 .map(new Function<GetDefaultAccountResponse, Account>() {
                     public Account apply(GetDefaultAccountResponse response) {
@@ -620,6 +621,7 @@ public final class Client {
         return toCompletable(gateway
                 .setDefaultAccount(SetDefaultAccountRequest
                         .newBuilder()
+                        .setMemberId(memberId)
                         .setAccountId(accountId)
                         .build()));
     }
@@ -633,6 +635,7 @@ public final class Client {
     public Observable<Boolean> isDefault(final String accountId) {
         return toObservable(gateway
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
+                        .setMemberId(memberId)
                         .build()))
                 .map(new Function<GetDefaultAccountResponse, Boolean>() {
                     public Boolean apply(GetDefaultAccountResponse response) {
