@@ -602,6 +602,7 @@ public final class Client {
     public Observable<Account> getDefaultAccount(String memberId) {
         return toObservable(gateway
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
+                        .setMemberId(memberId)
                         .build()))
                 .map(new Function<GetDefaultAccountResponse, Account>() {
                     public Account apply(GetDefaultAccountResponse response) {
