@@ -209,6 +209,17 @@ public final class MemberAsync {
                 }));
     }
 
+
+    /**
+     * Retry alias verification.
+     *
+     * @param alias the alias to be verified
+     * @return the verification id
+     */
+    public Observable<String> retryVerification(Alias alias) {
+        return client.retryVerification(alias);
+    }
+
     /**
      * Removes an alias for the member.
      *
