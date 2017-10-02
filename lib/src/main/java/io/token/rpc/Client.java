@@ -622,6 +622,7 @@ public final class Client {
                 .setDefaultAccount(SetDefaultAccountRequest
                         .newBuilder()
                         .setAccountId(accountId)
+                        .setMemberId(memberId)
                         .build()));
     }
 
