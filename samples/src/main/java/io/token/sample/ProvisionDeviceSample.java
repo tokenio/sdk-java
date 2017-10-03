@@ -19,12 +19,12 @@ public class ProvisionDeviceSample {
     public static Key provisionDevice(TokenIO tokenIO, Alias alias) {
         // generate keys, storing (private and public) locally
         DeviceInfo deviceInfo = tokenIO.provisionDevice(alias);
-        Key key = deviceInfo.getKeys().stream().filter(k -> {
+        Key lowKey = deviceInfo.getKeys().stream().filter(k -> {
             return k.getLevel() == Key.Level.LOW;
         }).findFirst().orElse(null);
         // ask user (on "regular" device) to approve one of our keys
-        NotifyStatus status = tokenIO.notifyAddKey(alias, "SDK Sample", key);
-        return key;
+        NotifyStatus status = tokenIO.notifyAddKey(alias, "SDK Sample", lowKey);
+        return lowKey;
     }
 
     /**
