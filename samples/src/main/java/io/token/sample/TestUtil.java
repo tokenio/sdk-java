@@ -19,7 +19,7 @@ public abstract class TestUtil {
     public static Alias newAlias() {
         return Alias.newBuilder()
                 .setType(EMAIL)
-                .setValue("alias-" + Util.generateNonce() + "@token.io")
+                .setValue("alias-" + Util.generateNonce().toLowerCase() + "@example.com")
                 .build();
     }
 }
