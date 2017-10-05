@@ -1,7 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.SANDBOX;
-import static io.token.proto.common.testing.Sample.alias;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import io.token.Member;
 import io.token.TokenIO;
@@ -29,11 +29,17 @@ public final class CreateMemberSample {
                     .connectTo(SANDBOX)
                     .build();
 
-            // The alias() method generates a random-nonsense-string alias.
-            // "name@token.io" would be more typical than a random string.
-            // But if we run this code with the same alias twice,
-            // the 2nd time it will fail because the name is taken.
-            Alias alias = alias();
+            // An alias is a "human-readable" reference to a member.
+            // Here, we use a random email. This works in test environments.
+            // but in production, TokenOS would try to verify we own the address,
+            // so a random address wouldn't be useful for much.
+            // We use a random address because otherwise, if we ran a second
+            // time, Token would say the alias was already taken.
+            Alias alias = Alias.newBuilder()
+                    .setType(Alias.Type.EMAIL)
+                    .setValue(randomAlphabetic(10).toLowerCase()
+                            + "@example.com")
+                    .build();
 
             return tokenIO.createMember(alias);
         } catch (IOException ioe) {
