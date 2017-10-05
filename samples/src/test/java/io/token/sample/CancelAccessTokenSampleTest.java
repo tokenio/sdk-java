@@ -1,9 +1,9 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.proto.common.testing.Sample.alias;
 import static io.token.sample.CancelAccessTokenSample.cancelAccessToken;
 import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
+import static io.token.sample.TestUtil.newAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -17,8 +17,8 @@ public class CancelAccessTokenSampleTest {
     @Test
     public void cancelAccessTokenByGrantorTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member grantor = tokenIO.createMember(alias());
-            Member grantee = tokenIO.createMember(alias());
+            Member grantor = tokenIO.createMember(newAlias());
+            Member grantee = tokenIO.createMember(newAlias());
 
             Token token = createAccessToken(grantor, grantee.firstAlias());
             TokenOperationResult result = cancelAccessToken(grantor, token.getId());
