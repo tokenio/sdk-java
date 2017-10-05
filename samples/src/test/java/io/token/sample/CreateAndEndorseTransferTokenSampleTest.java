@@ -1,7 +1,6 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.proto.common.testing.Sample.alias;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferTokenToDestination;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferTokenWithOtherOptions;
@@ -18,8 +17,8 @@ public class CreateAndEndorseTransferTokenSampleTest {
     @Test
     public void createPaymentTokenTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member payer = tokenIO.createMember(alias());
-            Member payee = tokenIO.createMember(alias());
+            Member payer = tokenIO.createMember(newAlias());
+            Member payee = tokenIO.createMember(newAlias());
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
 
