@@ -18,7 +18,7 @@ import org.junit.Test;
 public class RedeemAccessTokenSampleTest {
     @Test
     public void redeemAccessTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member grantor = tokenIO.createMember(newAlias());
             Member grantee = tokenIO.createMember(newAlias());
 

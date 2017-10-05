@@ -19,7 +19,7 @@ import org.junit.Test;
 public class RedeemTransferTokenSampleTest {
     @Test
     public void redeemPaymentTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 

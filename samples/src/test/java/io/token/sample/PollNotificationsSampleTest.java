@@ -17,7 +17,7 @@ public class PollNotificationsSampleTest {
 
     @Test
     public void notifyPaymentRequestSampleTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member payer = PollNotificationsSample.createMember(tokenIO);
             Member payee = tokenIO.createMember(newAlias());
 

@@ -18,7 +18,7 @@ import org.junit.Test;
 public class ReplaceAccessTokenSampleTest {
     @Test
     public void getAccessTokensTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member grantor = tokenIO.createMember(newAlias());
             Member grantee = tokenIO.createMember(newAlias());
 
@@ -32,7 +32,7 @@ public class ReplaceAccessTokenSampleTest {
 
     @Test
     public void replaceAccessTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member grantor = tokenIO.createMember(newAlias());
             Member grantee = tokenIO.createMember(newAlias());
 
@@ -49,7 +49,7 @@ public class ReplaceAccessTokenSampleTest {
 
     @Test
     public void replaceAndEndorseAccessTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member grantor = tokenIO.createMember(newAlias());
             Member grantee = tokenIO.createMember(newAlias());
 

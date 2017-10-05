@@ -23,7 +23,7 @@ import org.junit.Test;
 public class GetTransfersSampleTest {
     @Test
     public void getTransfersTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 
@@ -43,7 +43,7 @@ public class GetTransfersSampleTest {
 
     @Test
     public void getTransferTokensTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 
@@ -63,7 +63,7 @@ public class GetTransfersSampleTest {
 
     @Test
     public void getTransferTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 

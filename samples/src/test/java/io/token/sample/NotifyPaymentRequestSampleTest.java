@@ -15,7 +15,7 @@ public class NotifyPaymentRequestSampleTest {
 
     @Test
     public void notifyPaymentRequestSampleTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 

@@ -16,7 +16,7 @@ import org.junit.Test;
 public class CancelTransferTokenSampleTest {
     @Test
     public void cancelTransferTokenByGrantorTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
             Member grantor = tokenIO.createMember(newAlias());
             Member grantee = tokenIO.createMember(newAlias());
 

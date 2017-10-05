@@ -71,6 +71,7 @@ public final class TokenIOAsync implements Closeable {
 
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
+    private final String devKey;
 
     /**
      * Creates an instance of a Token SDK.
@@ -78,9 +79,10 @@ public final class TokenIOAsync implements Closeable {
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
      */
-    TokenIOAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory) {
+    TokenIOAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory, String devKey) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
+        this.devKey = devKey;
     }
 
     @Override
@@ -100,7 +102,7 @@ public final class TokenIOAsync implements Closeable {
      * @return synchronous version of the account API
      */
     public TokenIO sync() {
-        return new TokenIO(this);
+        return new TokenIO(this, devKey);
     }
 
     /**
@@ -110,7 +112,7 @@ public final class TokenIOAsync implements Closeable {
      * @return {@code true} if alias exists, {@code false} otherwise
      */
     public Observable<Boolean> aliasExists(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, devKey);
         return unauthenticated.aliasExists(alias);
     }
 
@@ -121,7 +123,7 @@ public final class TokenIOAsync implements Closeable {
      * @return member id if alias already exists, null otherwise
      */
     public Observable<String> getMemberId(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, devKey);
         return unauthenticated.getMemberId(alias);
     }
 
@@ -133,7 +135,9 @@ public final class TokenIOAsync implements Closeable {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(final Alias alias) {
-        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(
+                channel,
+                devKey);
         return unauthenticated
                 .createMemberId()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
@@ -159,7 +163,8 @@ public final class TokenIOAsync implements Closeable {
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
-                                crypto);
+                                crypto,
+                                devKey);
                         return Observable.just(new MemberAsync(member, client));
                     }
                 });
@@ -183,7 +188,7 @@ public final class TokenIOAsync implements Closeable {
      * @return device information
      */
     public Observable<DeviceInfo> provisionDevice(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, devKey);
         return unauthenticated
                 .getMemberId(alias)
                 .map(new Function<String, DeviceInfo>() {
@@ -210,7 +215,7 @@ public final class TokenIOAsync implements Closeable {
      */
     public Observable<MemberAsync> login(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
-        final Client client = ClientFactory.authenticated(channel, memberId, crypto);
+        final Client client = ClientFactory.authenticated(channel, memberId, crypto, devKey);
         return client
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
@@ -230,7 +235,7 @@ public final class TokenIOAsync implements Closeable {
     public Observable<NotifyStatus> notifyLinkAccounts(
             Alias alias,
             BankAuthorization authorization) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, devKey);
         return unauthenticated
                 .notifyLinkAccounts(alias, authorization);
     }
@@ -247,7 +252,7 @@ public final class TokenIOAsync implements Closeable {
             Alias alias,
             String name,
             Key key) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, devKey);
         return unauthenticated.notifyAddKey(alias, name, key);
     }
 
@@ -265,7 +270,7 @@ public final class TokenIOAsync implements Closeable {
             BankAuthorization authorization,
             String name,
             Key key) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, devKey);
         return unauthenticated.notifyLinkAccountsAndAddKey(
                 alias,
                 authorization,
@@ -280,7 +285,7 @@ public final class TokenIOAsync implements Closeable {
      * @return status of the notification request
      */
     public Observable<NotifyStatus> notifyPaymentRequest(TokenPayload tokenPayload) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, devKey);
         if (tokenPayload.getRefId().isEmpty()) {
             tokenPayload = tokenPayload.toBuilder().setRefId(generateNonce()).build();
         }
