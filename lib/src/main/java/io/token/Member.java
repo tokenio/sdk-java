@@ -772,7 +772,7 @@ public final class Member {
     }
 
     /**
-     * Returns a list of all token enabled banks.
+     * Returns a list of all available banks for linking.
      *
      * @return a list of banks
      */
