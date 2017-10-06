@@ -56,6 +56,7 @@ public final class TokenIO implements Closeable {
      * Creates an instance of Token SDK.
      *
      * @param async real implementation that the calls are delegated to
+     * @param devKey developer key
      */
     TokenIO(TokenIOAsync async, String devKey) {
         this.async = async;

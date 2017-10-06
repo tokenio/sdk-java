@@ -78,6 +78,7 @@ public final class TokenIOAsync implements Closeable {
      *
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
+     * @param devKey developer key
      */
     TokenIOAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory, String devKey) {
         this.channel = channel;
