@@ -166,7 +166,6 @@ public final class Client {
     private final CryptoEngine crypto;
     private final GatewayServiceFutureStub gateway;
     private String onBehalfOf;
-    private final String devKey;
 
     /**
      * This is generally the same key that is used for authentication.
@@ -174,17 +173,14 @@ public final class Client {
      * @param memberId member id
      * @param crypto the crypto engine used to sign for authentication, request payloads, etc
      * @param gateway gateway gRPC stub
-     * @param devKey developer key
      */
     public Client(
             String memberId,
             CryptoEngine crypto,
-            GatewayServiceFutureStub gateway,
-            String devKey) {
+            GatewayServiceFutureStub gateway) {
         this.memberId = memberId;
         this.crypto = crypto;
         this.gateway = gateway;
-        this.devKey = devKey;
     }
 
     /**

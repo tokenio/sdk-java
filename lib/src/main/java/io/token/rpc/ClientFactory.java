@@ -48,8 +48,8 @@ public abstract class ClientFactory {
                 GatewayServiceGrpc.newFutureStub(
                         RpcChannelFactory.intercept(
                                 channel,
-                                new ErrorHandlerFactory())),
-                devKey);
+                                new ErrorHandlerFactory(),
+                                new DevAuthenticatorFactory(devKey))));
     }
 
     /**
@@ -72,11 +72,9 @@ public abstract class ClientFactory {
                         channel,
                         new ClientAuthenticatorFactory(
                                 memberId,
-                                crypto.createSigner(Level.LOW),
-                                devKey),
-                        new ErrorHandlerFactory()
-                )
-        );
-        return new Client(memberId, crypto, stub, devKey);
+                                crypto.createSigner(Level.LOW)),
+                        new ErrorHandlerFactory(),
+                        new DevAuthenticatorFactory(devKey)));
+        return new Client(memberId, crypto, stub);
     }
 }

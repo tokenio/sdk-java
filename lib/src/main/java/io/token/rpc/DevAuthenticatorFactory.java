@@ -25,23 +25,20 @@ package io.token.rpc;
 import io.grpc.MethodDescriptor;
 import io.token.rpc.interceptor.InterceptorFactory;
 import io.token.rpc.interceptor.SimpleInterceptor;
-import io.token.security.Signer;
 
 /**
- * Responsible for creation of {@link ClientAuthenticator} instances which
+ * Responsible for creation of {@link DevAuthenticator} instances which
  * are created per RPC method call.
  */
-final class ClientAuthenticatorFactory implements InterceptorFactory {
-    private final String memberId;
-    private final Signer signer;
+final class DevAuthenticatorFactory implements InterceptorFactory {
+    private final String devKey;
 
-    public ClientAuthenticatorFactory(String memberId, Signer signer) {
-        this.memberId = memberId;
-        this.signer = signer;
+    public DevAuthenticatorFactory(String devKey) {
+        this.devKey = devKey;
     }
 
     @Override
     public <ReqT, ResT> SimpleInterceptor<ReqT, ResT> create(MethodDescriptor<ReqT, ResT> ignore) {
-        return new ClientAuthenticator<>(memberId, signer);
+        return new DevAuthenticator<>(devKey);
     }
 }

@@ -22,26 +22,28 @@
 
 package io.token.rpc;
 
-import io.grpc.MethodDescriptor;
-import io.token.rpc.interceptor.InterceptorFactory;
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+
+import io.grpc.Metadata;
 import io.token.rpc.interceptor.SimpleInterceptor;
-import io.token.security.Signer;
 
 /**
- * Responsible for creation of {@link ClientAuthenticator} instances which
- * are created per RPC method call.
+ * gRPC interceptor that performs Token api key authentication.
  */
-final class ClientAuthenticatorFactory implements InterceptorFactory {
-    private final String memberId;
-    private final Signer signer;
+final class DevAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
+    private final String devKey;
 
-    public ClientAuthenticatorFactory(String memberId, Signer signer) {
-        this.memberId = memberId;
-        this.signer = signer;
+    DevAuthenticator(String devKey) {
+        this.devKey = devKey;
     }
 
     @Override
-    public <ReqT, ResT> SimpleInterceptor<ReqT, ResT> create(MethodDescriptor<ReqT, ResT> ignore) {
-        return new ClientAuthenticator<>(memberId, signer);
+    public void onStart(ReqT reqT, Metadata metadata) {
+        metadata.put(Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER), devKey);
+    }
+
+    @Override
+    public void onHalfClose(ReqT req, Metadata headers) {
+        // Ignore
     }
 }

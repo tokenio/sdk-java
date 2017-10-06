@@ -66,17 +66,14 @@ import java.util.List;
  */
 public final class UnauthenticatedClient {
     private final GatewayServiceFutureStub gateway;
-    private final String devKey;
 
     /**
      * Creates an instance.
      *
      * @param gateway gateway gRPC stub
-     * @param devKey developer key
      */
-    public UnauthenticatedClient(GatewayServiceFutureStub gateway, String devKey) {
+    public UnauthenticatedClient(GatewayServiceFutureStub gateway) {
         this.gateway = gateway;
-        this.devKey = devKey;
     }
 
     /**
