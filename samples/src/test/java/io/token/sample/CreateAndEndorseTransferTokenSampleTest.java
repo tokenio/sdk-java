@@ -16,7 +16,9 @@ import org.junit.Test;
 public class CreateAndEndorseTransferTokenSampleTest {
     @Test
     public void createPaymentTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
+        try (TokenIO tokenIO = TokenIO.create(
+                DEVELOPMENT,
+                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 
@@ -29,7 +31,9 @@ public class CreateAndEndorseTransferTokenSampleTest {
 
     @Test
     public void createPaymentTokenWithOtherOptionsTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT,"devKey")) {
+        try (TokenIO tokenIO = TokenIO.create(
+                DEVELOPMENT,
+                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 
@@ -42,7 +46,9 @@ public class CreateAndEndorseTransferTokenSampleTest {
 
     @Test
     public void createPaymentTokenToDestinationTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
+        try (TokenIO tokenIO = TokenIO.create(
+                DEVELOPMENT,
+                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 

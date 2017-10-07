@@ -24,7 +24,9 @@ import org.junit.Test;
 public class GetTransactionsSampleTest {
     @Test
     public void getTransactionsTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
+        try (TokenIO tokenIO = TokenIO.create(
+                DEVELOPMENT,
+                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 
@@ -47,7 +49,9 @@ public class GetTransactionsSampleTest {
 
     @Test
     public void accountGetTransactionsTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
+        try (TokenIO tokenIO = TokenIO.create(
+                DEVELOPMENT,
+                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 

@@ -15,7 +15,9 @@ import org.junit.Test;
 public class GetBalanceSampleTest {
     @Test
     public void memberGetBalanceSampleTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
+        try (TokenIO tokenIO = TokenIO.create(
+                DEVELOPMENT,
+                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
             Member member = tokenIO.createMember(newAlias());
             Banklink.BankAuthorization encryptedBankAuthorization =
                     member.createTestBankAccount(1000.0, "EUR");
@@ -28,7 +30,9 @@ public class GetBalanceSampleTest {
 
     @Test
     public void accountGetBalanceSampleTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "devKey")) {
+        try (TokenIO tokenIO = TokenIO.create(
+                DEVELOPMENT,
+                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
             Member member = tokenIO.createMember(newAlias());
             Banklink.BankAuthorization encryptedBankAuthorization =
                     member.createTestBankAccount(1000.0, "EUR");

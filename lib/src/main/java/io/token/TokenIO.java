@@ -23,8 +23,10 @@
 package io.token;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+import static io.grpc.Status.INVALID_ARGUMENT;
 
 import io.grpc.Metadata;
+import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -56,11 +58,11 @@ public final class TokenIO implements Closeable {
      * Creates an instance of Token SDK.
      *
      * @param async real implementation that the calls are delegated to
-     * @param devKey developer key
+     * @param developerKey developer key
      */
-    TokenIO(TokenIOAsync async, String devKey) {
+    TokenIO(TokenIOAsync async, String developerKey) {
         this.async = async;
-        this.devKey = devKey;
+        this.devKey = developerKey;
     }
 
     /**
@@ -78,13 +80,13 @@ public final class TokenIO implements Closeable {
      * the specified environment.
      *
      * @param cluster token cluster to connect to
-     * @param devKey developer key
+     * @param developerKey developer key
      * @return {@link TokenIO} instance
      */
-    public static TokenIO create(TokenCluster cluster, String devKey) {
+    public static TokenIO create(TokenCluster cluster, String developerKey) {
         return TokenIO.builder()
                 .connectTo(cluster)
-                .devKey(devKey)
+                .devKey(developerKey)
                 .build();
     }
 
@@ -93,13 +95,13 @@ public final class TokenIO implements Closeable {
      * the specified environment.
      *
      * @param cluster token cluster to connect to
-     * @param devKey developer key
+     * @param developerKey developer key
      * @return {@link TokenIOAsync} instance
      */
-    public static TokenIOAsync createAsync(TokenCluster cluster, String devKey) {
+    public static TokenIOAsync createAsync(TokenCluster cluster, String developerKey) {
         return TokenIO.builder()
                 .connectTo(cluster)
-                .devKey(devKey)
+                .devKey(developerKey)
                 .buildAsync();
     }
 
@@ -388,18 +390,28 @@ public final class TokenIO implements Closeable {
          * @return {@link TokenIO} instance
          */
         public TokenIOAsync buildAsync() {
+            if (devKey == null || devKey.isEmpty()) {
+                throw new StatusRuntimeException(INVALID_ARGUMENT
+                        .withDescription("No developer key provided."));
+            }
+
             Metadata versionHeaders = new Metadata();
+            Metadata devKeyHeader = new Metadata();
             versionHeaders.put(
                     Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
                     "java");
             versionHeaders.put(
                     Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
                     TokenVersion.getVersion());
+            devKeyHeader.put(
+                    Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
+                    devKey);
             return new TokenIOAsync(
                     RpcChannelFactory
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
                             .withMetadata(versionHeaders)
+                            .withMetadata(devKeyHeader)
                             .build(),
                     cryptoEngine != null
                             ? cryptoEngine

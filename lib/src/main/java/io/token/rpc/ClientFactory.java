@@ -40,16 +40,14 @@ public abstract class ClientFactory {
      * Creates new unauthenticated client backed by the specified channel.
      *
      * @param channel RPC channel to use
-     * @param devKey developer key
      * @return newly created client
      */
-    public static UnauthenticatedClient unauthenticated(ManagedChannel channel, String devKey) {
+    public static UnauthenticatedClient unauthenticated(ManagedChannel channel) {
         return new UnauthenticatedClient(
                 GatewayServiceGrpc.newFutureStub(
                         RpcChannelFactory.intercept(
                                 channel,
-                                new ErrorHandlerFactory(),
-                                new DevAuthenticatorFactory(devKey))));
+                                new ErrorHandlerFactory())));
     }
 
     /**
@@ -59,22 +57,19 @@ public abstract class ClientFactory {
      * @param channel RPC channel to use
      * @param memberId member id
      * @param crypto crypto engine to use for signing requests, tokens, etc
-     * @param devKey developer key
      * @return newly created client
      */
     public static Client authenticated(
             ManagedChannel channel,
             String memberId,
-            CryptoEngine crypto,
-            String devKey) {
+            CryptoEngine crypto) {
         GatewayServiceGrpc.GatewayServiceFutureStub stub = GatewayServiceGrpc.newFutureStub(
                 RpcChannelFactory.intercept(
                         channel,
                         new ClientAuthenticatorFactory(
                                 memberId,
                                 crypto.createSigner(Level.LOW)),
-                        new ErrorHandlerFactory(),
-                        new DevAuthenticatorFactory(devKey)));
+                        new ErrorHandlerFactory()));
         return new Client(memberId, crypto, stub);
     }
 }
