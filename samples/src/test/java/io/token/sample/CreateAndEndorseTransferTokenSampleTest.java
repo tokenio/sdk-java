@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
 import io.token.TokenIO;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.Token;
 
 import org.junit.Test;
@@ -18,11 +19,12 @@ public class CreateAndEndorseTransferTokenSampleTest {
     public void createPaymentTokenTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             Member payer = tokenIO.createMember(newAlias());
-            Member payee = tokenIO.createMember(newAlias());
+            Alias payeeAlias = newAlias();
+            Member payee = tokenIO.createMember(payeeAlias);
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
 
-            Token token = createTransferToken(payer, payee.firstAlias());
+            Token token = createTransferToken(payer, payeeAlias);
             assertThat(token).isNotNull();
         }
     }
@@ -44,11 +46,12 @@ public class CreateAndEndorseTransferTokenSampleTest {
     public void createPaymentTokenToDestinationTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             Member payer = tokenIO.createMember(newAlias());
-            Member payee = tokenIO.createMember(newAlias());
+            Alias payeeAlias = newAlias();
+            Member payee = tokenIO.createMember(payeeAlias);
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
 
-            Token token = createTransferTokenToDestination(payer, payee.firstAlias());
+            Token token = createTransferTokenToDestination(payer, payeeAlias);
             assertThat(token).isNotNull();
         }
     }

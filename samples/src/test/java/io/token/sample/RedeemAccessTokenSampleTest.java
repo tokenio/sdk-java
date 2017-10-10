@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import io.token.Account;
 import io.token.Member;
 import io.token.TokenIO;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.Token;
 
 import java.util.List;
@@ -20,11 +21,12 @@ public class RedeemAccessTokenSampleTest {
     public void redeemAccessTokenTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
             Member grantor = tokenIO.createMember(newAlias());
-            Member grantee = tokenIO.createMember(newAlias());
+            Alias granteeAlias = newAlias();
+            Member grantee = tokenIO.createMember(granteeAlias);
 
             LinkMemberAndBankSample.linkBankAccounts(grantor);
 
-            Token token = createAccessToken(grantor, grantee.firstAlias());
+            Token token = createAccessToken(grantor, granteeAlias);
 
             List<Account> grantorAccounts = redeemAccessToken(grantee, token.getId());
             assertThat(grantorAccounts.isEmpty()).isFalse();
