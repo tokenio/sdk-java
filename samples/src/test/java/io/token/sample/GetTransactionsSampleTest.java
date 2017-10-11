@@ -1,7 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.common.Constants.devKey;
+import static io.token.common.Constants.DEV_KEY;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static io.token.sample.GetTransactionsSample.accountGetTransactionSample;
 import static io.token.sample.GetTransactionsSample.accountGetTransactionsSample;
@@ -25,9 +25,7 @@ import org.junit.Test;
 public class GetTransactionsSampleTest {
     @Test
     public void getTransactionsTest() {
-        try (TokenIO tokenIO = TokenIO.create(
-                DEVELOPMENT,
-                devKey)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 
@@ -50,9 +48,7 @@ public class GetTransactionsSampleTest {
 
     @Test
     public void accountGetTransactionsTest() {
-        try (TokenIO tokenIO = TokenIO.create(
-                DEVELOPMENT,
-                devKey)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 

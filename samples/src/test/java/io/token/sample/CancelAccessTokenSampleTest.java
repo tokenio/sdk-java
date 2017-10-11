@@ -1,7 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.common.Constants.devKey;
+import static io.token.common.Constants.DEV_KEY;
 import static io.token.sample.CancelAccessTokenSample.cancelAccessToken;
 import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
 import static io.token.sample.TestUtil.newAlias;
@@ -17,9 +17,7 @@ import org.junit.Test;
 public class CancelAccessTokenSampleTest {
     @Test
     public void cancelAccessTokenByGrantorTest() {
-        try (TokenIO tokenIO = TokenIO.create(
-                DEVELOPMENT,
-                devKey)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member grantor = tokenIO.createMember(newAlias());
             Member grantee = tokenIO.createMember(newAlias());
 

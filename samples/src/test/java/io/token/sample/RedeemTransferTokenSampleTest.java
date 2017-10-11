@@ -1,7 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.common.Constants.devKey;
+import static io.token.common.Constants.DEV_KEY;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static io.token.sample.RedeemTransferTokenSample.redeemTransferToken;
 import static io.token.sample.TestUtil.newAlias;
@@ -20,9 +20,7 @@ import org.junit.Test;
 public class RedeemTransferTokenSampleTest {
     @Test
     public void redeemPaymentTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(
-                DEVELOPMENT,
-                devKey)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 
