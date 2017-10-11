@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
+import static io.token.common.Constants.devKey;
 import static io.token.sample.TestUtil.newAlias;
 
 import io.grpc.StatusRuntimeException;
@@ -14,7 +15,7 @@ public class ValidateDeveloperKey {
     public void validKey() {
         try (TokenIO tokenIO = TokenIO.create(
                 DEVELOPMENT,
-                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
+                devKey)) {
             Member member = tokenIO.createMember(newAlias());
         }
     }

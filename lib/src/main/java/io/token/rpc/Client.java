@@ -174,10 +174,7 @@ public final class Client {
      * @param crypto the crypto engine used to sign for authentication, request payloads, etc
      * @param gateway gateway gRPC stub
      */
-    public Client(
-            String memberId,
-            CryptoEngine crypto,
-            GatewayServiceFutureStub gateway) {
+    public Client(String memberId, CryptoEngine crypto, GatewayServiceFutureStub gateway) {
         this.memberId = memberId;
         this.crypto = crypto;
         this.gateway = gateway;

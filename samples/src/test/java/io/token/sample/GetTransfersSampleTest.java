@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
+import static io.token.common.Constants.devKey;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static io.token.sample.GetTransfersSample.getTransferSample;
 import static io.token.sample.GetTransfersSample.getTransferTokensSample;
@@ -25,7 +26,7 @@ public class GetTransfersSampleTest {
     public void getTransfersTest() {
         try (TokenIO tokenIO = TokenIO.create(
                 DEVELOPMENT,
-                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
+                devKey)) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 
@@ -47,7 +48,7 @@ public class GetTransfersSampleTest {
     public void getTransferTokensTest() {
         try (TokenIO tokenIO = TokenIO.create(
                 DEVELOPMENT,
-                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
+                devKey)) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 
@@ -69,7 +70,7 @@ public class GetTransfersSampleTest {
     public void getTransferTest() {
         try (TokenIO tokenIO = TokenIO.create(
                 DEVELOPMENT,
-                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
+                devKey)) {
             Member payer = tokenIO.createMember(newAlias());
             Member payee = tokenIO.createMember(newAlias());
 

@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
+import static io.token.common.Constants.devKey;
 import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.findAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.replaceAccessToken;
@@ -20,7 +21,7 @@ public class ReplaceAccessTokenSampleTest {
     public void getAccessTokensTest() {
         try (TokenIO tokenIO = TokenIO.create(
                 DEVELOPMENT,
-                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
+                devKey)) {
             Member grantor = tokenIO.createMember(newAlias());
             Member grantee = tokenIO.createMember(newAlias());
 
@@ -36,7 +37,7 @@ public class ReplaceAccessTokenSampleTest {
     public void replaceAccessTokenTest() {
         try (TokenIO tokenIO = TokenIO.create(
                 DEVELOPMENT,
-                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
+                devKey)) {
             Member grantor = tokenIO.createMember(newAlias());
             Member grantee = tokenIO.createMember(newAlias());
 
@@ -55,7 +56,7 @@ public class ReplaceAccessTokenSampleTest {
     public void replaceAndEndorseAccessTokenTest() {
         try (TokenIO tokenIO = TokenIO.create(
                 DEVELOPMENT,
-                "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI")) {
+                devKey)) {
             Member grantor = tokenIO.createMember(newAlias());
             Member grantee = tokenIO.createMember(newAlias());
 

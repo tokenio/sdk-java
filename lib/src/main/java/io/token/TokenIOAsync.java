@@ -136,8 +136,7 @@ public final class TokenIOAsync implements Closeable {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(final Alias alias) {
-        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(
-                channel);
+        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {

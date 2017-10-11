@@ -392,7 +392,8 @@ public final class TokenIO implements Closeable {
         public TokenIOAsync buildAsync() {
             if (devKey == null || devKey.isEmpty()) {
                 throw new StatusRuntimeException(INVALID_ARGUMENT
-                        .withDescription("No developer key provided."));
+                        .withDescription("Please provide a developer key."
+                                + " Contact Token for more details"));
             }
 
             Metadata versionHeaders = new Metadata();

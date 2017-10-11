@@ -43,11 +43,10 @@ public abstract class ClientFactory {
      * @return newly created client
      */
     public static UnauthenticatedClient unauthenticated(ManagedChannel channel) {
-        return new UnauthenticatedClient(
-                GatewayServiceGrpc.newFutureStub(
-                        RpcChannelFactory.intercept(
-                                channel,
-                                new ErrorHandlerFactory())));
+        return new UnauthenticatedClient(GatewayServiceGrpc.newFutureStub(
+                RpcChannelFactory.intercept(
+                        channel,
+                        new ErrorHandlerFactory())));
     }
 
     /**
@@ -66,10 +65,10 @@ public abstract class ClientFactory {
         GatewayServiceGrpc.GatewayServiceFutureStub stub = GatewayServiceGrpc.newFutureStub(
                 RpcChannelFactory.intercept(
                         channel,
-                        new ClientAuthenticatorFactory(
-                                memberId,
-                                crypto.createSigner(Level.LOW)),
-                        new ErrorHandlerFactory()));
+                        new ClientAuthenticatorFactory(memberId, crypto.createSigner(Level.LOW)),
+                        new ErrorHandlerFactory()
+                )
+        );
         return new Client(memberId, crypto, stub);
     }
 }
