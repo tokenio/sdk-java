@@ -393,7 +393,7 @@ public final class TokenIO implements Closeable {
             if (devKey == null || devKey.isEmpty()) {
                 throw new StatusRuntimeException(INVALID_ARGUMENT
                         .withDescription("Please provide a developer key."
-                                + " Contact Token for more details"));
+                                + " Contact Token for more details."));
             }
 
             Metadata versionHeaders = new Metadata();
