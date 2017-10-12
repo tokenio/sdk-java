@@ -397,7 +397,7 @@ public final class TokenIO implements Closeable {
             }
 
             Metadata versionHeaders = new Metadata();
-            Metadata devKeyHeader = new Metadata();
+            //Metadata devKeyHeader = new Metadata();
             versionHeaders.put(
                     Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
                     "java");
@@ -413,7 +413,7 @@ public final class TokenIO implements Closeable {
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
                             .withMetadata(versionHeaders)
-                            .withMetadata(devKeyHeader)
+                            //.withMetadata(devKeyHeader)
                             .build(),
                     cryptoEngine != null
                             ? cryptoEngine
