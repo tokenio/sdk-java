@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
 import io.token.TokenIO;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 
@@ -19,9 +20,10 @@ public class CancelAccessTokenSampleTest {
     public void cancelAccessTokenByGrantorTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member grantor = tokenIO.createMember(newAlias());
-            Member grantee = tokenIO.createMember(newAlias());
+            Alias granteeAlias = newAlias();
+            Member grantee = tokenIO.createMember(granteeAlias);
 
-            Token token = createAccessToken(grantor, grantee.firstAlias());
+            Token token = createAccessToken(grantor, granteeAlias);
             TokenOperationResult result = cancelAccessToken(grantor, token.getId());
             assertThat(result.getStatus()).isEqualTo(TokenOperationResult.Status.SUCCESS);
         }

@@ -8,12 +8,12 @@ import static io.token.sample.GetTransfersSample.getTransferTokensSample;
 import static io.token.sample.GetTransfersSample.getTransfersSample;
 import static io.token.sample.RedeemTransferTokenSample.redeemTransferToken;
 import static io.token.sample.TestUtil.newAlias;
-
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Account;
 import io.token.Member;
 import io.token.TokenIO;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 
@@ -26,12 +26,13 @@ public class GetTransfersSampleTest {
     public void getTransfersTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member payer = tokenIO.createMember(newAlias());
-            Member payee = tokenIO.createMember(newAlias());
+            Alias payeeAlias = newAlias();
+            Member payee = tokenIO.createMember(payeeAlias);
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
             List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
 
-            Token token = createTransferToken(payer, payee.firstAlias());
+            Token token = createTransferToken(payer, payeeAlias);
 
             Transfer transfer = redeemTransferToken(
                     payee,
@@ -46,12 +47,13 @@ public class GetTransfersSampleTest {
     public void getTransferTokensTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member payer = tokenIO.createMember(newAlias());
-            Member payee = tokenIO.createMember(newAlias());
+            Alias payeeAlias = newAlias();
+            Member payee = tokenIO.createMember(payeeAlias);
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
             List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
 
-            Token token = createTransferToken(payer, payee.firstAlias());
+            Token token = createTransferToken(payer, payeeAlias);
 
             Transfer transfer = redeemTransferToken(
                     payee,
@@ -66,12 +68,13 @@ public class GetTransfersSampleTest {
     public void getTransferTest() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member payer = tokenIO.createMember(newAlias());
-            Member payee = tokenIO.createMember(newAlias());
+            Alias payeeAlias = newAlias();
+            Member payee = tokenIO.createMember(payeeAlias);
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
             List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
 
-            Token token = createTransferToken(payer, payee.firstAlias());
+            Token token = createTransferToken(payer, payeeAlias);
 
             Transfer redeemedTransfer = redeemTransferToken(
                     payee,
