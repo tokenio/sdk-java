@@ -404,9 +404,10 @@ public final class TokenIO implements Closeable {
             versionHeaders.put(
                     Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
                     TokenVersion.getVersion());
-            devKeyHeader.put(
+            //TODO remove comment once developer service is deployed to staging and sandbox
+            /*devKeyHeader.put(
                     Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
-                    devKey);
+                    devKey);*/
             return new TokenIOAsync(
                     RpcChannelFactory
                             .builder(hostName, port, useSsl)
