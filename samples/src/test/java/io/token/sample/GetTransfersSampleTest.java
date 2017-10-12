@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
+import static io.token.common.Constants.DEV_KEY;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static io.token.sample.GetTransfersSample.getTransferSample;
 import static io.token.sample.GetTransfersSample.getTransferTokensSample;
@@ -23,7 +24,7 @@ import org.junit.Test;
 public class GetTransfersSampleTest {
     @Test
     public void getTransfersTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member payer = tokenIO.createMember(newAlias());
             Alias payeeAlias = newAlias();
             Member payee = tokenIO.createMember(payeeAlias);
@@ -44,7 +45,7 @@ public class GetTransfersSampleTest {
 
     @Test
     public void getTransferTokensTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member payer = tokenIO.createMember(newAlias());
             Alias payeeAlias = newAlias();
             Member payee = tokenIO.createMember(payeeAlias);
@@ -65,7 +66,7 @@ public class GetTransfersSampleTest {
 
     @Test
     public void getTransferTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member payer = tokenIO.createMember(newAlias());
             Alias payeeAlias = newAlias();
             Member payee = tokenIO.createMember(payeeAlias);

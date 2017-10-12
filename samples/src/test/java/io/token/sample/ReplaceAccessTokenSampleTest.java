@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
+import static io.token.common.Constants.DEV_KEY;
 import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.findAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.replaceAccessToken;
@@ -19,7 +20,7 @@ import org.junit.Test;
 public class ReplaceAccessTokenSampleTest {
     @Test
     public void getAccessTokensTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member grantor = tokenIO.createMember(newAlias());
             Alias granteeAlias = newAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
@@ -32,7 +33,7 @@ public class ReplaceAccessTokenSampleTest {
 
     @Test
     public void replaceAccessTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member grantor = tokenIO.createMember(newAlias());
             Alias granteeAlias = newAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
@@ -48,7 +49,7 @@ public class ReplaceAccessTokenSampleTest {
 
     @Test
     public void replaceAndEndorseAccessTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
+        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
             Member grantor = tokenIO.createMember(newAlias());
             Alias granteeAlias = newAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
