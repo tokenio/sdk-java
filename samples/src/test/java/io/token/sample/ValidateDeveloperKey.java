@@ -11,6 +11,8 @@ import io.token.TokenIO;
 import org.junit.Test;
 
 public class ValidateDeveloperKey {
+    //TODO Uncomment tests when developer is deployed to staging and sandbox.
+    /*
     @Test
     public void validKey() {
         try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
@@ -28,5 +30,5 @@ public class ValidateDeveloperKey {
     public void noKeyProvided() {
         TokenIO tokenIO = TokenIO.create(DEVELOPMENT, null
         );
-    }
+    }*/
 }
