@@ -1,10 +1,10 @@
 package io.token.sample;
 
-import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.common.Constants.DEV_KEY;
 import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
 import static io.token.sample.RedeemAccessTokenSample.redeemAccessToken;
-import static io.token.sample.TestUtil.newAlias;
+import static io.token.sample.TestUtil.createClient;
+import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
+import static io.token.sample.TestUtil.randomAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Account;
@@ -20,12 +20,10 @@ import org.junit.Test;
 public class RedeemAccessTokenSampleTest {
     @Test
     public void redeemAccessTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
-            Member grantor = tokenIO.createMember(newAlias());
-            Alias granteeAlias = newAlias();
+        try (TokenIO tokenIO = createClient()) {
+            Member grantor = createMemberAndLinkAccounts(tokenIO);
+            Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-
-            LinkMemberAndBankSample.linkBankAccounts(grantor);
 
             Token token = createAccessToken(grantor, granteeAlias);
 

@@ -1,8 +1,7 @@
 package io.token.sample;
 
-import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.common.Constants.DEV_KEY;
-import static io.token.sample.TestUtil.newAlias;
+import static io.token.sample.TestUtil.createClient;
+import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -18,12 +17,11 @@ public class PollNotificationsSampleTest {
 
     @Test
     public void notifyPaymentRequestSampleTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
+        try (TokenIO tokenIO = createClient()) {
             Member payer = PollNotificationsSample.createMember(tokenIO);
-            Member payee = tokenIO.createMember(newAlias());
+            Member payee = createMemberAndLinkAccounts(tokenIO);
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
-            LinkMemberAndBankSample.linkBankAccounts(payee);
 
             NotifyStatus status = NotifyPaymentRequestSample.notifyPaymentRequest(
                     tokenIO,

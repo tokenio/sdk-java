@@ -1,13 +1,13 @@
 package io.token.sample;
 
-import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.common.Constants.DEV_KEY;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static io.token.sample.GetTransfersSample.getTransferSample;
 import static io.token.sample.GetTransfersSample.getTransferTokensSample;
 import static io.token.sample.GetTransfersSample.getTransfersSample;
 import static io.token.sample.RedeemTransferTokenSample.redeemTransferToken;
-import static io.token.sample.TestUtil.newAlias;
+import static io.token.sample.TestUtil.createClient;
+import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
+import static io.token.sample.TestUtil.randomAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Account;
@@ -24,12 +24,11 @@ import org.junit.Test;
 public class GetTransfersSampleTest {
     @Test
     public void getTransfersTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
-            Member payer = tokenIO.createMember(newAlias());
-            Alias payeeAlias = newAlias();
+        try (TokenIO tokenIO = createClient()) {
+            Member payer = createMemberAndLinkAccounts(tokenIO);
+            Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
 
-            LinkMemberAndBankSample.linkBankAccounts(payer);
             List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
 
             Token token = createTransferToken(payer, payeeAlias);
@@ -45,12 +44,11 @@ public class GetTransfersSampleTest {
 
     @Test
     public void getTransferTokensTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
-            Member payer = tokenIO.createMember(newAlias());
-            Alias payeeAlias = newAlias();
+        try (TokenIO tokenIO = createClient()) {
+            Member payer = createMemberAndLinkAccounts(tokenIO);
+            Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
 
-            LinkMemberAndBankSample.linkBankAccounts(payer);
             List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
 
             Token token = createTransferToken(payer, payeeAlias);
@@ -66,12 +64,11 @@ public class GetTransfersSampleTest {
 
     @Test
     public void getTransferTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
-            Member payer = tokenIO.createMember(newAlias());
-            Alias payeeAlias = newAlias();
+        try (TokenIO tokenIO = createClient()) {
+            Member payer = createMemberAndLinkAccounts(tokenIO);
+            Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
 
-            LinkMemberAndBankSample.linkBankAccounts(payer);
             List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
 
             Token token = createTransferToken(payer, payeeAlias);

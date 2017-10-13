@@ -1,8 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
-import static io.token.common.Constants.DEV_KEY;
-import static io.token.sample.TestUtil.newAlias;
+import static io.token.sample.TestUtil.randomAlias;
 
 import io.grpc.StatusRuntimeException;
 import io.token.Member;
@@ -13,17 +12,10 @@ import org.junit.Test;
 public class ValidateDeveloperKey {
     //TODO Uncomment tests when developer is deployed to staging and sandbox.
     /*
-    @Test
-    public void validKey() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT, DEV_KEY)) {
-            Member member = tokenIO.createMember(newAlias());
-        }
-    }
-
     @Test(expected = StatusRuntimeException.class)
     public void invalidKey() {
         TokenIO tokenIO = TokenIO.create(DEVELOPMENT, "0");
-        Member member = tokenIO.createMember(newAlias());
+        Member member = tokenIO.createMember(randomAlias());
     }
 
     @Test(expected = StatusRuntimeException.class)
