@@ -1,6 +1,6 @@
 package io.token.sample;
 
-import static io.token.sample.TestUtil.newAlias;
+import static io.token.util.Util.generateNonce;
 
 import io.token.Member;
 import io.token.TokenIO;
@@ -32,7 +32,10 @@ public final class PollNotificationsSample {
         // to this member, we would get a NO_SUBSCRIBERS error.
         // We set up a fake bank subscription for testing
         // (but we wouldn't do this in production for "real-world" members).
-        Alias alias = newAlias();
+        Alias alias = Alias.newBuilder()
+                .setType(Alias.Type.EMAIL)
+                .setValue("test-" + generateNonce().toLowerCase() + "@example.com")
+                .build();
         Member member = tokenIO.createMember(alias);
         Subscriber sub = member.subscribeToNotifications("iron");
         return member;
