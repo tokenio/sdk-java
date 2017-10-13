@@ -1,7 +1,10 @@
 package io.token.sample;
 
+import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
+import static io.token.common.Constants.DEV_KEY;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
 
+import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.util.Util;
 
@@ -10,6 +13,10 @@ import io.token.util.Util;
  */
 public abstract class TestUtil {
     private TestUtil() {}
+
+    public static TokenIO createClient() {
+        return TokenIO.create(DEVELOPMENT, DEV_KEY);
+    }
 
     /**
      * Generates random user name to be used for testing.
