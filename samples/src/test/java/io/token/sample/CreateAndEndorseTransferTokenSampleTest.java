@@ -1,10 +1,11 @@
 package io.token.sample;
 
-import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferTokenToDestination;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferTokenWithOtherOptions;
-import static io.token.sample.TestUtil.newAlias;
+import static io.token.sample.TestUtil.createClient;
+import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
+import static io.token.sample.TestUtil.randomAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -17,12 +18,10 @@ import org.junit.Test;
 public class CreateAndEndorseTransferTokenSampleTest {
     @Test
     public void createPaymentTokenTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member payer = tokenIO.createMember(newAlias());
-            Alias payeeAlias = newAlias();
+        try (TokenIO tokenIO = createClient()) {
+            Member payer = createMemberAndLinkAccounts(tokenIO);
+            Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
-
-            LinkMemberAndBankSample.linkBankAccounts(payer);
 
             Token token = createTransferToken(payer, payeeAlias);
             assertThat(token).isNotNull();
@@ -31,11 +30,9 @@ public class CreateAndEndorseTransferTokenSampleTest {
 
     @Test
     public void createPaymentTokenWithOtherOptionsTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member payer = tokenIO.createMember(newAlias());
-            Member payee = tokenIO.createMember(newAlias());
-
-            LinkMemberAndBankSample.linkBankAccounts(payer);
+        try (TokenIO tokenIO = createClient()) {
+            Member payer = createMemberAndLinkAccounts(tokenIO);
+            Member payee = tokenIO.createMember(randomAlias());
 
             Token token = createTransferTokenWithOtherOptions(payer, payee.memberId());
             assertThat(token).isNotNull();
@@ -44,12 +41,10 @@ public class CreateAndEndorseTransferTokenSampleTest {
 
     @Test
     public void createPaymentTokenToDestinationTest() {
-        try (TokenIO tokenIO = TokenIO.create(DEVELOPMENT)) {
-            Member payer = tokenIO.createMember(newAlias());
-            Alias payeeAlias = newAlias();
+        try (TokenIO tokenIO = createClient()) {
+            Member payer = createMemberAndLinkAccounts(tokenIO);
+            Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
-
-            LinkMemberAndBankSample.linkBankAccounts(payer);
 
             Token token = createTransferTokenToDestination(payer, payeeAlias);
             assertThat(token).isNotNull();

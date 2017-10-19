@@ -71,16 +71,19 @@ public final class TokenIOAsync implements Closeable {
 
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
+    private final String devKey;
 
     /**
      * Creates an instance of a Token SDK.
      *
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
+     * @param developerKey developer key
      */
-    TokenIOAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory) {
+    TokenIOAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory, String developerKey) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
+        this.devKey = developerKey;
     }
 
     @Override
@@ -100,7 +103,7 @@ public final class TokenIOAsync implements Closeable {
      * @return synchronous version of the account API
      */
     public TokenIO sync() {
-        return new TokenIO(this);
+        return new TokenIO(this, devKey);
     }
 
     /**

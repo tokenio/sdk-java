@@ -23,8 +23,10 @@
 package io.token;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+import static io.grpc.Status.INVALID_ARGUMENT;
 
 import io.grpc.Metadata;
+import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -50,14 +52,17 @@ import java.io.Closeable;
  */
 public final class TokenIO implements Closeable {
     private final TokenIOAsync async;
+    private final String devKey;
 
     /**
      * Creates an instance of Token SDK.
      *
      * @param async real implementation that the calls are delegated to
+     * @param developerKey developer key
      */
-    TokenIO(TokenIOAsync async) {
+    TokenIO(TokenIOAsync async, String developerKey) {
         this.async = async;
+        this.devKey = developerKey;
     }
 
     /**
@@ -75,11 +80,13 @@ public final class TokenIO implements Closeable {
      * the specified environment.
      *
      * @param cluster token cluster to connect to
+     * @param developerKey developer key
      * @return {@link TokenIO} instance
      */
-    public static TokenIO create(TokenCluster cluster) {
+    public static TokenIO create(TokenCluster cluster, String developerKey) {
         return TokenIO.builder()
                 .connectTo(cluster)
+                .devKey(developerKey)
                 .build();
     }
 
@@ -88,11 +95,13 @@ public final class TokenIO implements Closeable {
      * the specified environment.
      *
      * @param cluster token cluster to connect to
+     * @param developerKey developer key
      * @return {@link TokenIOAsync} instance
      */
-    public static TokenIOAsync createAsync(TokenCluster cluster) {
+    public static TokenIOAsync createAsync(TokenCluster cluster, String developerKey) {
         return TokenIO.builder()
                 .connectTo(cluster)
+                .devKey(developerKey)
                 .buildAsync();
     }
 
@@ -277,6 +286,7 @@ public final class TokenIO implements Closeable {
         private String hostName;
         private long timeoutMs;
         private CryptoEngineFactory cryptoEngine;
+        private String devKey;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -355,6 +365,17 @@ public final class TokenIO implements Closeable {
         }
 
         /**
+         * Sets the developer key to be used with the SDK.
+         *
+         * @param devKey developer key
+         * @return this builder instance
+         */
+        public Builder devKey(String devKey) {
+            this.devKey = devKey;
+            return this;
+        }
+
+        /**
          * Builds and returns a new {@link TokenIO} instance.
          *
          * @return {@link TokenIO} instance
@@ -369,22 +390,35 @@ public final class TokenIO implements Closeable {
          * @return {@link TokenIO} instance
          */
         public TokenIOAsync buildAsync() {
+            if (devKey == null || devKey.isEmpty()) {
+                throw new StatusRuntimeException(INVALID_ARGUMENT
+                        .withDescription("Please provide a developer key."
+                                + " Contact Token for more details."));
+            }
+
             Metadata versionHeaders = new Metadata();
+            //Metadata devKeyHeader = new Metadata();
             versionHeaders.put(
                     Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
                     "java");
             versionHeaders.put(
                     Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
                     TokenVersion.getVersion());
+            //TODO remove comment once developer service is deployed to staging and sandbox
+            /*devKeyHeader.put(
+                    Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
+                    devKey);*/
             return new TokenIOAsync(
                     RpcChannelFactory
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
                             .withMetadata(versionHeaders)
+                            //.withMetadata(devKeyHeader)
                             .build(),
                     cryptoEngine != null
                             ? cryptoEngine
-                            : new TokenCryptoEngineFactory(new InMemoryKeyStore()));
+                            : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
+                    devKey);
         }
     }
 
