@@ -53,7 +53,7 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
      * Create a new transfer token, including an attached image file.
      *
      * @param payer Payer member token
-     * @param payeeId Token member username of payee
+     * @param payeeId Token member id of payee
      * @return Token
      */
     public static Token createTransferTokenWithExistingAttachment(
