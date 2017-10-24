@@ -300,7 +300,11 @@ public final class TransferTokenBuilder {
      * @return builder
      */
     public TransferTokenBuilder setPurposeOfPayment(PurposeOfPayment purposeOfPayment) {
-        payload.getTransferBuilder().getInstructionsBuilder().setTransferPurpose(purposeOfPayment);
+        payload
+                .getTransferBuilder()
+                .getInstructionsBuilder()
+                .getMetadataBuilder()
+                .setTransferPurpose(purposeOfPayment);
         return this;
     }
 
