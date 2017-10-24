@@ -34,7 +34,7 @@ public abstract class TestUtil {
     public static Alias randomAlias() {
         return Alias.newBuilder()
                 .setType(EMAIL)
-                .setValue("alias-" + Util.generateNonce().toLowerCase() + "@example.com")
+                .setValue("alias-" + Util.generateNonce().toLowerCase() + "+noverify@example.com")
                 .build();
     }
 
