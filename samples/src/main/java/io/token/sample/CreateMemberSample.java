@@ -38,7 +38,7 @@ public final class CreateMemberSample {
             Alias alias = Alias.newBuilder()
                     .setType(Alias.Type.EMAIL)
                     .setValue(randomAlphabetic(10).toLowerCase()
-                            + "@example.com")
+                            + "+noverify@example.com")
                     .build();
 
             return tokenIO.createMember(alias);
