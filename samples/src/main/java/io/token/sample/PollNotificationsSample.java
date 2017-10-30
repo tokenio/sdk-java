@@ -34,7 +34,7 @@ public final class PollNotificationsSample {
         // (but we wouldn't do this in production for "real-world" members).
         Alias alias = Alias.newBuilder()
                 .setType(Alias.Type.EMAIL)
-                .setValue("test-" + generateNonce().toLowerCase() + "@example.com")
+                .setValue("test-" + generateNonce().toLowerCase() + "+noverify@example.com")
                 .build();
         Member member = tokenIO.createMember(alias);
         Subscriber sub = member.subscribeToNotifications("iron");
