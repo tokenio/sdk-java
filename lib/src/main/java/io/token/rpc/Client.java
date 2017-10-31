@@ -23,6 +23,8 @@
 package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.rpc.util.Converters.toCompletable;
@@ -45,6 +47,7 @@ import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
@@ -144,6 +147,7 @@ import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
+import io.token.proto.gateway.Gateway.VerifyAliasRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
@@ -229,7 +233,7 @@ public final class Client {
             Member member,
             List<MemberOperation> operations,
             List<MemberOperationMetadata> metadata) {
-        Signer signer = crypto.createSigner(Key.Level.PRIVILEGED);
+        Signer signer = crypto.createSigner(PRIVILEGED);
 
         MemberUpdate update = MemberUpdate
                 .newBuilder()
@@ -671,7 +675,7 @@ public final class Client {
     public Observable<TokenOperationResult> replaceAndEndorseToken(
             Token tokenToCancel,
             TokenPayload tokenToCreate) {
-        Signer signer = crypto.createSigner(Key.Level.STANDARD);
+        Signer signer = crypto.createSigner(STANDARD);
         CreateToken.Builder createToken = CreateToken.newBuilder().setPayload(tokenToCreate);
         createToken.setPayloadSignature(Signature.newBuilder()
                 .setMemberId(memberId)
@@ -1146,6 +1150,37 @@ public final class Client {
                         return response.getVerificationId();
                     }
                 });
+    }
+
+    /**
+     * Authorizes recovery as a trusted agent.
+     *
+     * @param authorization the authorization
+     * @return the signature
+     */
+    public Signature authorizeRecovery(Authorization authorization) {
+        Signer signer = crypto.createSigner(PRIVILEGED);
+        return Signature.newBuilder()
+                .setMemberId(memberId)
+                .setKeyId(signer.getKeyId())
+                .setSignature(signer.sign(authorization))
+                .build();
+    }
+
+
+    /**
+     * Verifies a given alias.
+     *
+     * @param verificationId the verification id
+     * @param code the code
+     * @return a completable
+     */
+    public Completable verifyAlias(String verificationId, String code) {
+        return toCompletable(gateway
+                .verifyAlias(VerifyAliasRequest.newBuilder()
+                        .setVerificationId(verificationId)
+                        .setCode(code)
+                        .build()));
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(

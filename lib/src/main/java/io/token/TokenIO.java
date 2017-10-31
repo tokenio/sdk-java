@@ -31,16 +31,20 @@ import io.reactivex.functions.Function;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.member.MemberProtos;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.rpc.client.RpcChannelFactory;
+import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
+import java.util.List;
 
 /**
  * Main entry point to the Token SDK. Use {@link TokenIO.Builder}
@@ -250,6 +254,67 @@ public final class TokenIO implements Closeable {
     public NotifyStatus notifyPaymentRequest(TokenPayload tokenPayload) {
         return async
                 .notifyPaymentRequest(tokenPayload)
+                .blockingSingle();
+    }
+
+    /**
+     * Begins account recovery.
+     *
+     * @param alias the alias used to recover
+     * @return the verification id
+     */
+    public String beginRecovery(Alias alias) {
+        return async.beginRecovery(alias).blockingSingle();
+    }
+
+    /**
+     * Gets recovery authorization from Token.
+     *
+     * @param verificationId the verification id
+     * @param code the code
+     * @param key the privileged key
+     * @return the member recovery operation
+     */
+    public MemberRecoveryOperation getRecoveryAuthorization(
+            String verificationId,
+            String code,
+            Key key) {
+        return async.getRecoveryAuthorization(verificationId, code, key).blockingSingle();
+    }
+
+    /**
+     * Completes account recovery.
+     *
+     * @param memberId the member id
+     * @param verificationId the verification id
+     * @param code the code
+     * @return the new member
+     */
+    public Member completeRecovery(
+            String memberId,
+            String verificationId,
+            String code) {
+        return async.completeRecovery(memberId, verificationId, code)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Completes account recovery.
+     *
+     * @param memberId the member id
+     * @param recoveryOperations the member recovery operations
+     * @param privilegedKey the privileged public key in the member recovery operations
+     * @param cryptoEngine the new crypto engine
+     * @return the new member
+     */
+    public Member completeRecovery(
+            String memberId,
+            List<MemberRecoveryOperation> recoveryOperations,
+            Key privilegedKey,
+            CryptoEngine cryptoEngine) {
+        return async.completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
+                .map(new MemberFunction())
                 .blockingSingle();
     }
 

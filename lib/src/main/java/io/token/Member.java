@@ -34,19 +34,26 @@ import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
+import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.security.CryptoEngine;
 import io.token.security.keystore.SecretKeyPair;
 
 import java.util.HashMap;
@@ -87,6 +94,15 @@ public final class Member {
      */
     public String memberId() {
         return async.memberId();
+    }
+
+    /**
+     * Gets the last hash.
+     *
+     * @return an observable of the last hash
+     */
+    public String lastHash() {
+        return async.lastHash().blockingSingle();
     }
 
     /**
@@ -154,13 +170,43 @@ public final class Member {
     }
 
     /**
-     * Retry alias verification.
+     * Retries alias verification.
      *
      * @param alias the alias to be verified
      * @return the verification id
      */
     public String retryVerification(Alias alias) {
         return async.retryVerification(alias).blockingSingle();
+    }
+
+    /**
+     * Adds the recovery rule.
+     *
+     * @param recoveryRule the recovery rule
+     * @return an observable of updated member
+     */
+    public MemberProtos.Member addRecoveryRule(RecoveryRule recoveryRule) {
+        return async.addRecoveryRule(recoveryRule).blockingSingle();
+    }
+
+    /**
+     * Authorizes recovery as a trusted agent.
+     *
+     * @param authorization the authorization
+     * @return the signature
+     */
+    public Signature authorizeRecovery(Authorization authorization) {
+        return async.authorizeRecovery(authorization);
+    }
+
+    /**
+     * Verifies a given alias.
+     *
+     * @param verificationId the verification id
+     * @param code the code
+     */
+    public void verifyAlias(String verificationId, String code) {
+        async.verifyAlias(verificationId, code).blockingAwait();
     }
 
     /**

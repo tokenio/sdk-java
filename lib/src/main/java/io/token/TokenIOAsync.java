@@ -42,6 +42,7 @@ import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -50,7 +51,9 @@ import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
+import io.token.security.InMemoryKeyStore;
 import io.token.security.Signer;
+import io.token.security.TokenCryptoEngine;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -288,5 +291,87 @@ public final class TokenIOAsync implements Closeable {
             tokenPayload = tokenPayload.toBuilder().setRefId(generateNonce()).build();
         }
         return unauthenticated.notifyPaymentRequest(tokenPayload);
+    }
+
+    /**
+     * Begins account recovery.
+     *
+     * @param alias the alias used to recover
+     * @return the verification id
+     */
+    public Observable<String> beginRecovery(Alias alias) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.beginRecovery(alias);
+    }
+
+    /**
+     * Gets recovery authorization from Token.
+     *
+     * @param verificationId the verification id
+     * @param code the code
+     * @param key the privileged key
+     * @return the member recovery operation
+     */
+    public Observable<MemberRecoveryOperation> getRecoveryAuthorization(
+            String verificationId,
+            String code,
+            Key key) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getRecoveryAuthorization(verificationId, code, key);
+    }
+
+    /**
+     * Completes account recovery.
+     *
+     * @param memberId the member id
+     * @param verificationId the verification id
+     * @param code the code
+     * @return the new member
+     */
+    public Observable<MemberAsync> completeRecovery(
+            String memberId,
+            String verificationId,
+            String code) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
+        return unauthenticated
+                .completeRecovery(memberId, verificationId, code, cryptoEngine)
+                .map(new Function<MemberProtos.Member, MemberAsync>() {
+                    public MemberAsync apply(MemberProtos.Member member) throws Exception {
+                        Client client = ClientFactory.authenticated(
+                                channel,
+                                member.getId(),
+                                cryptoEngine);
+                        return new MemberAsync(member, client);
+                    }
+                });
+    }
+
+    /**
+     * Completes account recovery.
+     *
+     * @param memberId the member id
+     * @param recoveryOperations the member recovery operations
+     * @param privilegedKey the privileged public key in the member recovery operations
+     * @param cryptoEngine the new crypto engine
+     * @return an observable of the updated member
+     */
+    public Observable<MemberAsync> completeRecovery(
+            String memberId,
+            List<MemberRecoveryOperation> recoveryOperations,
+            Key privilegedKey,
+            final CryptoEngine cryptoEngine) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated
+                .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
+                .map(new Function<MemberProtos.Member, MemberAsync>() {
+                    public MemberAsync apply(MemberProtos.Member member) throws Exception {
+                        Client client = ClientFactory.authenticated(
+                                channel,
+                                member.getId(),
+                                cryptoEngine);
+                        return new MemberAsync(member, client);
+                    }
+                });
     }
 }

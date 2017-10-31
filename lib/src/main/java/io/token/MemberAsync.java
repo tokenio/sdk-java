@@ -25,6 +25,7 @@ package io.token;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
+import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.protobuf.ByteString;
@@ -48,12 +49,16 @@ import io.token.proto.common.member.MemberProtos.Member.Builder;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -68,7 +73,6 @@ import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -119,6 +123,21 @@ public final class MemberAsync {
      */
     public String memberId() {
         return member.getId();
+    }
+
+    /**
+     * Gets the last hash.
+     *
+     * @return an observable of the last hash
+     */
+    public Observable<String> lastHash() {
+        return client
+                .getMember(member.getId())
+                .map(new Function<MemberProtos.Member, String>() {
+                    public String apply(MemberProtos.Member member) throws Exception {
+                        return member.getLastHash();
+                    }
+                });
     }
 
     /**
@@ -174,7 +193,7 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable addAlias(Alias alias) {
-        return addAliases(Collections.singletonList(alias));
+        return addAliases(singletonList(alias));
     }
 
     /**
@@ -209,9 +228,8 @@ public final class MemberAsync {
                 }));
     }
 
-
     /**
-     * Retry alias verification.
+     * Retries alias verification.
      *
      * @param alias the alias to be verified
      * @return the verification id
@@ -221,13 +239,55 @@ public final class MemberAsync {
     }
 
     /**
+     * Adds the recovery rule.
+     *
+     * @param recoveryRule the recovery rule
+     * @return an observable of updated member
+     */
+    public Observable<MemberProtos.Member> addRecoveryRule(final RecoveryRule recoveryRule) {
+        return client
+                .getMember(memberId())
+                .flatMap(new Function<MemberProtos.Member, Observable<MemberProtos.Member>>() {
+                    @Override
+                    public Observable<MemberProtos.Member> apply(MemberProtos.Member member) {
+                        return client.updateMember(
+                                member,
+                                singletonList(MemberOperation.newBuilder()
+                                        .setRecoveryRules(MemberRecoveryRulesOperation.newBuilder()
+                                                .setRecoveryRule(recoveryRule)).build()));
+                    }
+                });
+    }
+
+    /**
+     * Authorizes recovery as a trusted agent.
+     *
+     * @param authorization the authorization
+     * @return the signature
+     */
+    public Signature authorizeRecovery(Authorization authorization) {
+        return client.authorizeRecovery(authorization);
+    }
+
+    /**
+     * Verifies a given alias.
+     *
+     * @param verificationId the verification id
+     * @param code the code
+     * @return a completable
+     */
+    public Completable verifyAlias(String verificationId, String code) {
+        return client.verifyAlias(verificationId, code);
+    }
+
+    /**
      * Removes an alias for the member.
      *
      * @param alias alias, e.g. 'john'
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable removeAlias(Alias alias) {
-        return removeAliases(Collections.singletonList(alias));
+        return removeAliases(singletonList(alias));
     }
 
     /**
@@ -289,7 +349,7 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable approveKey(Key key) {
-        return approveKeys(Collections.singletonList(key));
+        return approveKeys(singletonList(key));
     }
 
     /**
@@ -314,7 +374,7 @@ public final class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable removeKey(String keyId) {
-        return removeKeys(Collections.singletonList(keyId));
+        return removeKeys(singletonList(keyId));
     }
 
     /**
