@@ -781,7 +781,11 @@ public final class Client {
                 .setPage(pageBuilder(offset, limit));
 
         if (tokenId != null) {
-            request.setTokenId(tokenId);
+            request.setFilter(GetTransfersRequest
+                    .TransferFilter
+                    .newBuilder()
+                    .setTokenId(tokenId)
+                    .build());
         }
 
         return toObservable(gateway.getTransfers(request.build()))
