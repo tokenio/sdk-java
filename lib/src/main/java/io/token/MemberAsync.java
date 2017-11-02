@@ -274,8 +274,17 @@ public final class MemberAsync {
      * @param authorization the authorization
      * @return the signature
      */
-    public Signature authorizeRecovery(Authorization authorization) {
+    public Observable<Signature> authorizeRecovery(Authorization authorization) {
         return client.authorizeRecovery(authorization);
+    }
+
+    /**
+     * Gets the member id of the default recovery agent.
+     *
+     * @return the member id
+     */
+    public Observable<String> getDefaultAgent() {
+        return client.getDefaultAgent();
     }
 
     /**

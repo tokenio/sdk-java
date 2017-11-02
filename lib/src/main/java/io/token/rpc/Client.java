@@ -1210,13 +1210,27 @@ public final class Client {
      * @param authorization the authorization
      * @return the signature
      */
-    public Signature authorizeRecovery(Authorization authorization) {
+    public Observable<Signature> authorizeRecovery(Authorization authorization) {
         Signer signer = crypto.createSigner(PRIVILEGED);
-        return Signature.newBuilder()
+        return Observable.just(Signature.newBuilder()
                 .setMemberId(memberId)
                 .setKeyId(signer.getKeyId())
                 .setSignature(signer.sign(authorization))
-                .build();
+                .build());
+    }
+
+    /**
+     * Gets the member id of the default recovery agent.
+     *
+     * @return the member id
+     */
+    public Observable<String> getDefaultAgent() {
+        return toObservable(gateway.getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
+                .map(new Function<GetDefaultAgentResponse, String>() {
+                    public String apply(GetDefaultAgentResponse response) {
+                        return response.getMemberId();
+                    }
+                });
     }
 
     /**

@@ -203,7 +203,16 @@ public final class Member {
      * @return the signature
      */
     public Signature authorizeRecovery(Authorization authorization) {
-        return async.authorizeRecovery(authorization);
+        return async.authorizeRecovery(authorization).blockingSingle();
+    }
+
+    /**
+     * Gets the member id of the default recovery agent.
+     *
+     * @return the member id
+     */
+    public String getDefaultAgent() {
+        return async.getDefaultAgent().blockingSingle();
     }
 
     /**
