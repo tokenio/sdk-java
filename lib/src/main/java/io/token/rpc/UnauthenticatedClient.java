@@ -404,6 +404,8 @@ public final class UnauthenticatedClient {
                                         return MemberUpdate.newBuilder()
                                                 .setPrevHash(memberRes.getMember().getLastHash())
                                                 .setMemberId(memberId)
+                                                .addOperations(MemberOperation.newBuilder()
+                                                    .setRecover(res.getRecoveryEntry()))
                                                 .addAllOperations(toMemberOperations(
                                                         privilegedKey,
                                                         standardKey,
