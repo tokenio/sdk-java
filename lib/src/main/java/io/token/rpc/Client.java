@@ -23,6 +23,9 @@
 package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.rpc.util.Converters.toCompletable;
@@ -45,9 +48,12 @@ import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -97,6 +103,8 @@ import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAccountResponse;
+import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
+import io.token.proto.gateway.Gateway.GetDefaultAgentResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
@@ -144,6 +152,7 @@ import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
+import io.token.proto.gateway.Gateway.VerifyAliasRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
@@ -162,6 +171,10 @@ import javax.annotation.Nullable;
  * easier to use.
  */
 public final class Client {
+    private static final Alias TOKEN = Alias.newBuilder()
+            .setType(DOMAIN)
+            .setValue("token.io")
+            .build();
     private final String memberId;
     private final CryptoEngine crypto;
     private final GatewayServiceFutureStub gateway;
@@ -229,7 +242,7 @@ public final class Client {
             Member member,
             List<MemberOperation> operations,
             List<MemberOperationMetadata> metadata) {
-        Signer signer = crypto.createSigner(Key.Level.PRIVILEGED);
+        Signer signer = crypto.createSigner(PRIVILEGED);
 
         MemberUpdate update = MemberUpdate
                 .newBuilder()
@@ -287,6 +300,49 @@ public final class Client {
                 .map(new Function<SubscribeToNotificationsResponse, Subscriber>() {
                     public Subscriber apply(SubscribeToNotificationsResponse response) {
                         return response.getSubscriber();
+                    }
+                });
+    }
+
+    /**
+     * Set Token as the recovery agent.
+     *
+     * @return a completable
+     */
+    public Completable useDefaultRecoveryRule() {
+        final Signer signer = crypto.createSigner(PRIVILEGED);
+        return getMember(memberId)
+                .flatMap(new Function<Member, Observable<MemberUpdate>>() {
+                    public Observable<MemberUpdate> apply(final Member member) {
+                        return toObservable(gateway
+                                .getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
+                                .map(new Function<GetDefaultAgentResponse, MemberUpdate>() {
+                                    public MemberUpdate apply(GetDefaultAgentResponse response) {
+                                        RecoveryRule rule = RecoveryRule.newBuilder()
+                                                .setPrimaryAgent(response.getMemberId())
+                                                .build();
+                                        return MemberUpdate.newBuilder()
+                                                .setPrevHash(member.getLastHash())
+                                                .setMemberId(member.getId())
+                                                .addOperations(MemberOperation.newBuilder()
+                                                        .setRecoveryRules(
+                                                                MemberRecoveryRulesOperation
+                                                                        .newBuilder()
+                                                                        .setRecoveryRule(rule)))
+                                                .build();
+                                    }
+                                });
+                    }
+                })
+                .flatMapCompletable(new Function<MemberUpdate, Completable>() {
+                    public Completable apply(MemberUpdate update) {
+                        return toCompletable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                                .setUpdate(update)
+                                .setUpdateSignature(Signature.newBuilder()
+                                        .setKeyId(signer.getKeyId())
+                                        .setMemberId(memberId)
+                                        .setSignature(signer.sign(update)))
+                                .build()));
                     }
                 });
     }
@@ -671,7 +727,7 @@ public final class Client {
     public Observable<TokenOperationResult> replaceAndEndorseToken(
             Token tokenToCancel,
             TokenPayload tokenToCreate) {
-        Signer signer = crypto.createSigner(Key.Level.STANDARD);
+        Signer signer = crypto.createSigner(STANDARD);
         CreateToken.Builder createToken = CreateToken.newBuilder().setPayload(tokenToCreate);
         createToken.setPayloadSignature(Signature.newBuilder()
                 .setMemberId(memberId)
@@ -1146,6 +1202,50 @@ public final class Client {
                         return response.getVerificationId();
                     }
                 });
+    }
+
+    /**
+     * Authorizes recovery as a trusted agent.
+     *
+     * @param authorization the authorization
+     * @return the signature
+     */
+    public Observable<Signature> authorizeRecovery(Authorization authorization) {
+        Signer signer = crypto.createSigner(PRIVILEGED);
+        return Observable.just(Signature.newBuilder()
+                .setMemberId(memberId)
+                .setKeyId(signer.getKeyId())
+                .setSignature(signer.sign(authorization))
+                .build());
+    }
+
+    /**
+     * Gets the member id of the default recovery agent.
+     *
+     * @return the member id
+     */
+    public Observable<String> getDefaultAgent() {
+        return toObservable(gateway.getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
+                .map(new Function<GetDefaultAgentResponse, String>() {
+                    public String apply(GetDefaultAgentResponse response) {
+                        return response.getMemberId();
+                    }
+                });
+    }
+
+    /**
+     * Verifies a given alias.
+     *
+     * @param verificationId the verification id
+     * @param code the code
+     * @return a completable
+     */
+    public Completable verifyAlias(String verificationId, String code) {
+        return toCompletable(gateway
+                .verifyAlias(VerifyAliasRequest.newBuilder()
+                        .setVerificationId(verificationId)
+                        .setCode(code)
+                        .build()));
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(

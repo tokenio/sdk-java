@@ -22,19 +22,21 @@
 
 package io.token.rpc;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.toObservable;
 
-import com.google.common.base.Strings;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Member;
+import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
@@ -44,8 +46,14 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
+import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
+import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
+import io.token.proto.gateway.Gateway.CompleteRecoveryResponse;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
+import io.token.proto.gateway.Gateway.GetMemberRequest;
+import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
@@ -55,8 +63,11 @@ import io.token.proto.gateway.Gateway.ResolveAliasResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.List;
 
 /**
@@ -283,5 +294,177 @@ public final class UnauthenticatedClient {
     @Deprecated
     public Observable<NotifyStatus> notifyPaymentRequest(Alias alias, TokenPayload tokenPayload) {
         return notifyPaymentRequest(tokenPayload);
+    }
+
+    /**
+     * Begins account recovery.
+     *
+     * @param alias the alias used to recover
+     * @return the verification id
+     */
+    public Observable<String> beginRecovery(Alias alias) {
+        return toObservable(gateway
+                .beginRecovery(BeginRecoveryRequest.newBuilder()
+                        .setAlias(alias)
+                        .build()))
+                .map(new Function<BeginRecoveryResponse, String>() {
+                    public String apply(BeginRecoveryResponse response) {
+                        return response.getVerificationId();
+                    }
+                });
+    }
+
+    /**
+     * Completes account recovery.
+     *
+     * @param memberId the member id
+     * @param recoveryOperations the member recovery operations
+     * @param privilegedKey the privileged public key in the member recovery operations
+     * @param cryptoEngine the new crypto engine
+     * @return an observable of the updatedMember
+     */
+    public Observable<Member> completeRecovery(
+            final String memberId,
+            final List<MemberRecoveryOperation> recoveryOperations,
+            final Key privilegedKey,
+            final CryptoEngine cryptoEngine) {
+        final Key standardKey = cryptoEngine.generateKey(STANDARD);
+        final Key lowKey = cryptoEngine.generateKey(LOW);
+        final Signer signer = cryptoEngine.createSigner(PRIVILEGED);
+        final List<MemberOperation> operations = new LinkedList<>();
+        for (MemberRecoveryOperation op : recoveryOperations) {
+            operations.add(MemberOperation.newBuilder().setRecover(op).build());
+        }
+        return toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+                .setMemberId(memberId)
+                .build()))
+                .map(new Function<GetMemberResponse, MemberUpdate>() {
+                    public MemberUpdate apply(GetMemberResponse response) throws Exception {
+                        return MemberUpdate.newBuilder()
+                                .setMemberId(memberId)
+                                .setPrevHash(response.getMember().getLastHash())
+                                .addAllOperations(operations)
+                                .addAllOperations(toMemberOperations(
+                                        privilegedKey,
+                                        standardKey,
+                                        lowKey))
+                                .build();
+                    }
+                })
+                .flatMap(new Function<MemberUpdate, Observable<Member>>() {
+                    public Observable<Member> apply(MemberUpdate memberUpdate) throws Exception {
+                        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                                .setUpdate(memberUpdate)
+                                .setUpdateSignature(Signature.newBuilder()
+                                        .setKeyId(signer.getKeyId())
+                                        .setMemberId(memberId)
+                                        .setSignature(signer.sign(memberUpdate)))
+                                .build()))
+                                .map(new Function<UpdateMemberResponse, Member>() {
+                                    public Member apply(UpdateMemberResponse response) {
+                                        return response.getMember();
+                                    }
+                                });
+                    }
+                });
+    }
+
+    /**
+     * Completes account recovery if the default recovery rule was set.
+     *
+     * @param memberId the member id
+     * @param verificationId the verification id
+     * @param code the code
+     * @param cryptoEngine the new crypto engine
+     * @return the recovery entry
+     */
+    public Observable<Member> completeRecoveryWithDefaultRule(
+            final String memberId,
+            final String verificationId,
+            final String code,
+            CryptoEngine cryptoEngine) {
+        final Key privilegedKey = cryptoEngine.generateKey(PRIVILEGED);
+        final Key standardKey = cryptoEngine.generateKey(STANDARD);
+        final Key lowKey = cryptoEngine.generateKey(LOW);
+        final Signer signer = cryptoEngine.createSigner(PRIVILEGED);
+        return toObservable(gateway
+                .completeRecovery(CompleteRecoveryRequest.newBuilder()
+                        .setVerificationId(verificationId)
+                        .setCode(code)
+                        .setKey(privilegedKey)
+                        .build()))
+                .flatMap(new Function<CompleteRecoveryResponse, Observable<MemberUpdate>>() {
+                    public Observable<MemberUpdate> apply(final CompleteRecoveryResponse res) {
+                        return toObservable(gateway
+                                .getMember(GetMemberRequest.newBuilder()
+                                        .setMemberId(memberId)
+                                        .build()))
+                                .map(new Function<GetMemberResponse, MemberUpdate>() {
+                                    public MemberUpdate apply(GetMemberResponse memberRes) {
+                                        return MemberUpdate.newBuilder()
+                                                .setPrevHash(memberRes.getMember().getLastHash())
+                                                .setMemberId(memberId)
+                                                .addOperations(MemberOperation.newBuilder()
+                                                    .setRecover(res.getRecoveryEntry()))
+                                                .addAllOperations(toMemberOperations(
+                                                        privilegedKey,
+                                                        standardKey,
+                                                        lowKey))
+                                                .build();
+                                    }
+                                });
+                    }
+                })
+                .flatMap(new Function<MemberUpdate, Observable<Member>>() {
+                    public Observable<Member> apply(MemberUpdate memberUpdate) {
+                        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                                .setUpdate(memberUpdate)
+                                .setUpdateSignature(Signature.newBuilder()
+                                        .setKeyId(signer.getKeyId())
+                                        .setMemberId(memberId)
+                                        .setSignature(signer.sign(memberUpdate)))
+                                .build()))
+                                .map(new Function<UpdateMemberResponse, Member>() {
+                                    public Member apply(UpdateMemberResponse response) {
+                                        return response.getMember();
+                                    }
+                                });
+                    }
+                });
+    }
+
+    /**
+     * Gets recovery authorization from Token.
+     *
+     * @param verificationId the verification id
+     * @param code the code
+     * @param privilegedKey the privileged key
+     * @return the recovery entry
+     */
+    public Observable<MemberRecoveryOperation> getRecoveryAuthorization(
+            String verificationId,
+            String code,
+            Key privilegedKey) {
+        return toObservable(gateway.completeRecovery(CompleteRecoveryRequest.newBuilder()
+                .setVerificationId(verificationId)
+                .setCode(code)
+                .setKey(privilegedKey)
+                .build()))
+                .map(new Function<CompleteRecoveryResponse, MemberRecoveryOperation>() {
+                    public MemberRecoveryOperation apply(CompleteRecoveryResponse response) {
+                        return response.getRecoveryEntry();
+                    }
+                });
+    }
+
+    private List<MemberOperation> toMemberOperations(Key... keys) {
+        List<MemberOperation> operations = new LinkedList<>();
+        for (Key key : keys) {
+            operations.add(MemberOperation.newBuilder()
+                    .setAddKey(MemberAddKeyOperation.newBuilder()
+                            .setKey(key))
+                    .build());
+        }
+        return operations;
     }
 }
