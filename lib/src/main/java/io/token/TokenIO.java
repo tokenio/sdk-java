@@ -286,23 +286,6 @@ public final class TokenIO implements Closeable {
      * Completes account recovery.
      *
      * @param memberId the member id
-     * @param verificationId the verification id
-     * @param code the code
-     * @return the new member
-     */
-    public Member completeRecovery(
-            String memberId,
-            String verificationId,
-            String code) {
-        return async.completeRecovery(memberId, verificationId, code)
-                .map(new MemberFunction())
-                .blockingSingle();
-    }
-
-    /**
-     * Completes account recovery.
-     *
-     * @param memberId the member id
      * @param recoveryOperations the member recovery operations
      * @param privilegedKey the privileged public key in the member recovery operations
      * @param cryptoEngine the new crypto engine
@@ -314,6 +297,23 @@ public final class TokenIO implements Closeable {
             Key privilegedKey,
             CryptoEngine cryptoEngine) {
         return async.completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Completes account recovery if the default recovery rule was set.
+     *
+     * @param memberId the member id
+     * @param verificationId the verification id
+     * @param code the code
+     * @return the new member
+     */
+    public Member completeRecoveryWithDefaultRule(
+            String memberId,
+            String verificationId,
+            String code) {
+        return async.completeRecoveryWithDefaultRule(memberId, verificationId, code)
                 .map(new MemberFunction())
                 .blockingSingle();
     }

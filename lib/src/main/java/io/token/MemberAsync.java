@@ -260,6 +260,15 @@ public final class MemberAsync {
     }
 
     /**
+     * Set Token as the recovery agent.
+     *
+     * @return a completable
+     */
+    public Completable useDefaultRecoveryRule() {
+        return client.useDefaultRecoveryRule();
+    }
+
+    /**
      * Authorizes recovery as a trusted agent.
      *
      * @param authorization the authorization

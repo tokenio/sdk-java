@@ -23,6 +23,7 @@
 package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
@@ -48,9 +49,11 @@ import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -100,6 +103,8 @@ import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAccountResponse;
+import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
+import io.token.proto.gateway.Gateway.GetDefaultAgentResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
@@ -166,6 +171,10 @@ import javax.annotation.Nullable;
  * easier to use.
  */
 public final class Client {
+    private static final Alias TOKEN = Alias.newBuilder()
+            .setType(DOMAIN)
+            .setValue("token.io")
+            .build();
     private final String memberId;
     private final CryptoEngine crypto;
     private final GatewayServiceFutureStub gateway;
@@ -291,6 +300,49 @@ public final class Client {
                 .map(new Function<SubscribeToNotificationsResponse, Subscriber>() {
                     public Subscriber apply(SubscribeToNotificationsResponse response) {
                         return response.getSubscriber();
+                    }
+                });
+    }
+
+    /**
+     * Set Token as the recovery agent.
+     *
+     * @return a completable
+     */
+    public Completable useDefaultRecoveryRule() {
+        final Signer signer = crypto.createSigner(PRIVILEGED);
+        return getMember(memberId)
+                .flatMap(new Function<Member, Observable<MemberUpdate>>() {
+                    public Observable<MemberUpdate> apply(final Member member) {
+                        return toObservable(gateway
+                                .getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
+                                .map(new Function<GetDefaultAgentResponse, MemberUpdate>() {
+                                    public MemberUpdate apply(GetDefaultAgentResponse response) {
+                                        RecoveryRule rule = RecoveryRule.newBuilder()
+                                                .setPrimaryAgent(response.getMemberId())
+                                                .build();
+                                        return MemberUpdate.newBuilder()
+                                                .setPrevHash(member.getLastHash())
+                                                .setMemberId(member.getId())
+                                                .addOperations(MemberOperation.newBuilder()
+                                                        .setRecoveryRules(
+                                                                MemberRecoveryRulesOperation
+                                                                        .newBuilder()
+                                                                        .setRecoveryRule(rule)))
+                                                .build();
+                                    }
+                                });
+                    }
+                })
+                .flatMapCompletable(new Function<MemberUpdate, Completable>() {
+                    public Completable apply(MemberUpdate update) {
+                        return toCompletable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                                .setUpdate(update)
+                                .setUpdateSignature(Signature.newBuilder()
+                                        .setKeyId(signer.getKeyId())
+                                        .setMemberId(memberId)
+                                        .setSignature(signer.sign(update)))
+                                .build()));
                     }
                 });
     }

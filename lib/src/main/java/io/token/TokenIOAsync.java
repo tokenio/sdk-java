@@ -324,33 +324,6 @@ public final class TokenIOAsync implements Closeable {
      * Completes account recovery.
      *
      * @param memberId the member id
-     * @param verificationId the verification id
-     * @param code the code
-     * @return the new member
-     */
-    public Observable<MemberAsync> completeRecovery(
-            String memberId,
-            String verificationId,
-            String code) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
-        return unauthenticated
-                .completeRecovery(memberId, verificationId, code, cryptoEngine)
-                .map(new Function<MemberProtos.Member, MemberAsync>() {
-                    public MemberAsync apply(MemberProtos.Member member) throws Exception {
-                        Client client = ClientFactory.authenticated(
-                                channel,
-                                member.getId(),
-                                cryptoEngine);
-                        return new MemberAsync(member, client);
-                    }
-                });
-    }
-
-    /**
-     * Completes account recovery.
-     *
-     * @param memberId the member id
      * @param recoveryOperations the member recovery operations
      * @param privilegedKey the privileged public key in the member recovery operations
      * @param cryptoEngine the new crypto engine
@@ -364,6 +337,33 @@ public final class TokenIOAsync implements Closeable {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
+                .map(new Function<MemberProtos.Member, MemberAsync>() {
+                    public MemberAsync apply(MemberProtos.Member member) throws Exception {
+                        Client client = ClientFactory.authenticated(
+                                channel,
+                                member.getId(),
+                                cryptoEngine);
+                        return new MemberAsync(member, client);
+                    }
+                });
+    }
+
+    /**
+     * Completes account recovery if the default recovery rule was set.
+     *
+     * @param memberId the member id
+     * @param verificationId the verification id
+     * @param code the code
+     * @return the new member
+     */
+    public Observable<MemberAsync> completeRecoveryWithDefaultRule(
+            String memberId,
+            String verificationId,
+            String code) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
+        return unauthenticated
+                .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync apply(MemberProtos.Member member) throws Exception {
                         Client client = ClientFactory.authenticated(

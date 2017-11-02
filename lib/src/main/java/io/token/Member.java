@@ -190,6 +190,13 @@ public final class Member {
     }
 
     /**
+     * Set Token as the recovery agent.
+     */
+    public void useDefaultRecoveryRule() {
+        async.useDefaultRecoveryRule().blockingAwait();
+    }
+
+    /**
      * Authorizes recovery as a trusted agent.
      *
      * @param authorization the authorization
