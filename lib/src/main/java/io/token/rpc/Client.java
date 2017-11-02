@@ -1219,7 +1219,6 @@ public final class Client {
                 .build();
     }
 
-
     /**
      * Verifies a given alias.
      *
