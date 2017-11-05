@@ -22,6 +22,7 @@
 
 package io.token;
 
+import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.BANK;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN_AUTHORIZATION;
 import static io.token.util.Util.generateNonce;
@@ -47,6 +48,7 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Pur
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -170,6 +172,19 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder setDescription(String description) {
         payload.setDescription(description);
+        return this;
+    }
+
+    /**
+     * Adds a transfer source.
+     *
+     * @param source the source
+     * @return builder
+     */
+    public TransferTokenBuilder setSource(TransferEndpoint source) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .setSource(source);
         return this;
     }
 
@@ -325,7 +340,7 @@ public final class TransferTokenBuilder {
     public Observable<Token> executeAsync() {
         AccountCase sourceCase =
                 payload.getTransfer().getInstructions().getSource().getAccount().getAccountCase();
-        if (sourceCase != TOKEN_AUTHORIZATION && sourceCase != TOKEN) {
+        if (!Arrays.asList(TOKEN_AUTHORIZATION, TOKEN, BANK).contains(sourceCase)) {
             throw new TokenArgumentsException("No source on token");
         }
         if (Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getId())
