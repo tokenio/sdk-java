@@ -20,7 +20,7 @@ public final class ReplaceAccessTokenSample {
      * @return an access Token
      */
     public static Optional<Token> findAccessToken(Member grantor, Alias granteeAlias) {
-        for (Token token : grantor.getAccessTokens("0", 100)
+        for (Token token : grantor.getAccessTokens(null, 100)
                 .getList()) {
             Alias toAlias = token.getPayload().getTo().getAlias();
             if (toAlias.equals(granteeAlias)) {
