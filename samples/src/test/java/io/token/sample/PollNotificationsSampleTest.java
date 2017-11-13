@@ -4,11 +4,17 @@ import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import io.token.Account;
+import io.token.Destinations;
 import io.token.Member;
 import io.token.TokenIO;
+import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.notification.NotificationProtos.Notification;
-import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.transfer.TransferProtos.Transfer;
 
+import java.util.List;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -18,17 +24,25 @@ public class PollNotificationsSampleTest {
     @Test
     public void notifyPaymentRequestSampleTest() {
         try (TokenIO tokenIO = createClient()) {
-            Member payer = PollNotificationsSample.createMember(tokenIO);
-            Member payee = createMemberAndLinkAccounts(tokenIO);
+            Member payer = createMemberAndLinkAccounts(tokenIO);
 
-            LinkMemberAndBankSample.linkBankAccounts(payer);
+            Member payee = PollNotificationsSample.createMember(tokenIO);
 
-            NotifyStatus status = NotifyPaymentRequestSample.notifyPaymentRequest(
-                    tokenIO,
-                    payee,
-                    payer.firstAlias());
-            assertThat(status).isNotNull();
-            Optional<Notification> notification = PollNotificationsSample.poll(payer);
+            Alias payeeAlias = payee.firstAlias();
+            List<Account> accounts = LinkMemberAndBankSample.linkBankAccounts(payer);
+            LinkMemberAndBankSample.linkBankAccounts(payee);
+
+            TokenProtos.Token token = payer.createTransferToken(100.00, "EUR")
+                    .setAccountId(accounts.get(0).id())
+                    .setToAlias(payeeAlias)
+                    .addDestination(Destinations.token(payee.memberId()))
+                    .setRedeemerMemberId(payer.memberId())
+                    .execute();
+            payer.endorseToken(token, Key.Level.STANDARD);
+            Transfer transfer = payer.redeemToken(token);
+
+            Optional<Notification> notification = PollNotificationsSample.poll(payee);
+
             assertThat(notification.isPresent()).isTrue();
         }
     }
