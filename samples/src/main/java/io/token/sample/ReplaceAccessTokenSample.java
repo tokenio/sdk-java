@@ -3,7 +3,6 @@ package io.token.sample;
 import io.token.AccessTokenBuilder;
 import io.token.Member;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 
