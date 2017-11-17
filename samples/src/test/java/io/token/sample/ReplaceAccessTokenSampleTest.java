@@ -21,7 +21,7 @@ import org.junit.Test;
 
 public class ReplaceAccessTokenSampleTest {
     private static final int TOKEN_LOOKUP_TIMEOUT_MS = 60000;
-    private static final int TOKEN_LOOKUP_POLL_FREQUENCY_MS = 500;
+    private static final int TOKEN_LOOKUP_POLL_FREQUENCY_MS = 5000;
 
     @Test
     public void getAccessTokensTest() {
@@ -32,8 +32,7 @@ public class ReplaceAccessTokenSampleTest {
             Member grantee = tokenIO.createMember(granteeAlias);
             System.out.printf("  createAccessToken() \n");
             Token createdToken = createAccessToken(grantor, granteeAlias);
-            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                System.out.printf("  waitUntil iter \n");
+            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 1, () -> {
                 Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
                 assertThat(foundToken).isPresent();
                 assertThat(foundToken.get().getId()).isEqualTo(createdToken.getId());
