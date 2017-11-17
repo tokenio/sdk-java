@@ -5,6 +5,7 @@ import static io.token.sample.ReplaceAccessTokenSample.findAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.replaceAccessToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.randomAlias;
+import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -17,6 +18,9 @@ import java.util.Optional;
 import org.junit.Test;
 
 public class ReplaceAccessTokenSampleTest {
+    private static final int TOKEN_LOOKUP_TIMEOUT_MS = 60000;
+    private static final int TOKEN_LOOKUP_POLL_FREQUENCY_MS = 5000;
+
     @Test
     public void getAccessTokensTest() {
         try (TokenIO tokenIO = createClient()) {
@@ -25,8 +29,12 @@ public class ReplaceAccessTokenSampleTest {
             Member grantee = tokenIO.createMember(granteeAlias);
 
             Token createdToken = createAccessToken(grantor, granteeAlias);
-            Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
-            assertThat(foundToken.get()).isEqualTo(createdToken);
+
+            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 1, () -> {
+                Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
+                assertThat(foundToken).isPresent();
+                assertThat(foundToken.get().getId()).isEqualTo(createdToken.getId());
+            });
         }
     }
 

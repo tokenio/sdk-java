@@ -3,10 +3,13 @@ package io.token.sample;
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
 
+import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.util.Util;
+
+import java.util.concurrent.TimeUnit;
 
 /**
  * A set of helper methods used for testing.
@@ -49,4 +52,29 @@ public abstract class TestUtil {
         return member;
     }
 
+    /**
+     * Poll until function doesn't assert
+     * @param timeoutMs give up
+     * @param waitTimeMs base wait time
+     * @param backOffFactor exponential backoff
+     * @param function hope it doesn't assert every time
+     */
+    public static void waitUntil(
+            long timeoutMs,
+            long waitTimeMs,
+            int backOffFactor,
+            Runnable function) {
+        for (long start = System.currentTimeMillis(); ; waitTimeMs *= backOffFactor) {
+            try {
+                function.run();
+                return;
+            } catch (AssertionError caughtError) {
+                if (System.currentTimeMillis() - start < timeoutMs) {
+                    Uninterruptibles.sleepUninterruptibly(waitTimeMs, TimeUnit.MILLISECONDS);
+                } else {
+                    throw caughtError;
+                }
+            }
+        }
+    }
 }
