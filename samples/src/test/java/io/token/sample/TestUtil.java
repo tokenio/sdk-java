@@ -66,11 +66,9 @@ public abstract class TestUtil {
             Runnable function) {
         for (long start = System.currentTimeMillis(); ; waitTimeMs *= backOffFactor) {
             try {
-                System.out.printf("    try waitTimeMs= %d \n", waitTimeMs);
                 function.run();
                 return;
             } catch (AssertionError caughtError) {
-                System.out.printf("  XX waitUntil caught %s \n", caughtError);
                 if (System.currentTimeMillis() - start < timeoutMs) {
                     Uninterruptibles.sleepUninterruptibly(waitTimeMs, TimeUnit.MILLISECONDS);
                 } else {
