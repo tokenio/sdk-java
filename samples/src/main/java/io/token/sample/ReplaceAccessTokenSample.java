@@ -3,6 +3,7 @@ package io.token.sample;
 import io.token.AccessTokenBuilder;
 import io.token.Member;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 
@@ -35,6 +36,7 @@ public final class ReplaceAccessTokenSample {
      *
      * @param grantor Token member granting access to her accounts
      * @param granteeAlias Token member alias acquiring information access
+     * @param oldToken token to replace
      * @return success or failure
      */
     public static TokenOperationResult replaceAccessToken(
@@ -56,6 +58,7 @@ public final class ReplaceAccessTokenSample {
      *
      * @param grantor Token member granting access to her accounts
      * @param granteeAlias Token member alias acquiring information access
+     * @param oldToken token to replace
      * @return success or failure
      */
     public static TokenOperationResult replaceAndEndorseAccessToken(

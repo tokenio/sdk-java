@@ -25,12 +25,10 @@ public class ReplaceAccessTokenSampleTest {
 
     @Test
     public void getAccessTokensTest() {
-        System.out.printf("\nTEST getAccessTokensTest \n");
         try (TokenIO tokenIO = createClient()) {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            System.out.printf("  createAccessToken() \n");
             Token createdToken = createAccessToken(grantor, granteeAlias);
             waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 1, () -> {
                 Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
@@ -42,60 +40,37 @@ public class ReplaceAccessTokenSampleTest {
 
     @Test
     public void replaceAccessTokenTest() {
-        System.out.printf("\nTEST replaceAccessTokenTest \n");
         try (TokenIO tokenIO = createClient()) {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            System.out.printf("  createAccessToken() \n");
             Token createdToken = createAccessToken(grantor, granteeAlias);
-            System.out.printf("  first waitUntil loop \n");
             ArrayList<Token> foundList = new ArrayList();
             waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                System.out.printf("  + waitUntil iter \n");
                 Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
                 assertThat(foundToken).isPresent();
                 foundList.add(foundToken.get());
             });
-            System.out.printf("  inner waitUntil loop \n");
-            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                System.out.printf("  + waitUntil iter \n");
-                assertThatCode(() -> {
-                    replaceAccessToken(grantor, granteeAlias, foundList.get(0));
-                }).doesNotThrowAnyException();
-            });
-            System.out.printf("  3rd waitUntil loop \n");
-            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                System.out.printf("  + waitUntil iter \n");
-                Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
-                assertThat(foundToken).isPresent();
-                assertThat(foundToken.get().getPayload().getAccess().getResourcesCount())
-                        .isEqualTo(2);
-            });
+            assertThatCode(() -> {
+                replaceAccessToken(grantor, granteeAlias, foundList.get(0));
+            }).doesNotThrowAnyException();
         }
     }
 
     @Test
     public void replaceAndEndorseAccessTokenTest() {
-        System.out.printf("\nTEST replaceAndEndorseAccessTokenTest \n");
         try (TokenIO tokenIO = createClient()) {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            System.out.printf("  createAccessToken() \n");
             Token createdToken = createAccessToken(grantor, granteeAlias);
-            System.out.printf("  first waitUntil loop \n");
             ArrayList<Token> foundList = new ArrayList();
             waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                System.out.printf("  + waitUntil iter \n");
                 Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
                 assertThat(foundToken).isPresent();
                 foundList.add(foundToken.get());
             });
-            System.out.printf("  2nd waitUntil loop \n");
             waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                System.out.printf("  + waitUntil iter \n");
-                System.out.printf("  inner waitUntil loop \n");
                 assertThatCode(() -> {
                     ReplaceAccessTokenSample.replaceAndEndorseAccessToken(
                             grantor,
@@ -103,9 +78,7 @@ public class ReplaceAccessTokenSampleTest {
                             foundList.get(0));
                 }).doesNotThrowAnyException();
             });
-            System.out.printf("  2nd waitUntil loop \n");
             waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                System.out.printf("  + waitUntil iter \n");
                 Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
                 assertThat(foundToken).isPresent();
                 assertThat(foundToken.get().getPayload().getAccess().getResourcesCount())
