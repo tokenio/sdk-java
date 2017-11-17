@@ -5,7 +5,9 @@ import static io.token.sample.ReplaceAccessTokenSample.findAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.replaceAccessToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.randomAlias;
+import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatCode;
 
 import io.token.Member;
 import io.token.TokenIO;
@@ -17,6 +19,9 @@ import java.util.Optional;
 import org.junit.Test;
 
 public class ReplaceAccessTokenSampleTest {
+    private static final int TOKEN_LOOKUP_TIMEOUT_MS = 60000;
+    private static final int TOKEN_LOOKUP_POLL_FREQUENCY_MS = 5000;
+
     @Test
     public void getAccessTokensTest() {
         try (TokenIO tokenIO = createClient()) {
@@ -25,8 +30,11 @@ public class ReplaceAccessTokenSampleTest {
             Member grantee = tokenIO.createMember(granteeAlias);
 
             Token createdToken = createAccessToken(grantor, granteeAlias);
-            Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
-            assertThat(foundToken.get()).isEqualTo(createdToken);
+            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
+                Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
+                assertThat(foundToken).isPresent();
+                assertThat(foundToken.get()).isEqualTo(createdToken);
+            });
         }
     }
 
@@ -38,11 +46,17 @@ public class ReplaceAccessTokenSampleTest {
             Member grantee = tokenIO.createMember(granteeAlias);
 
             Token createdToken = createAccessToken(grantor, granteeAlias);
-            replaceAccessToken(grantor, granteeAlias);
-
-            Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
-
-            assertThat(foundToken.get().getPayload().getAccess().getResourcesCount()).isEqualTo(2);
+            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
+                assertThatCode( () -> {
+                    replaceAccessToken(grantor, granteeAlias);
+                }).doesNotThrowAnyException();
+            });
+            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
+                Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
+                assertThat(foundToken).isPresent();
+                assertThat(foundToken.get().getPayload().getAccess().getResourcesCount())
+                        .isEqualTo(2);
+            });
         }
     }
 
@@ -54,11 +68,17 @@ public class ReplaceAccessTokenSampleTest {
             Member grantee = tokenIO.createMember(granteeAlias);
 
             Token createdToken = createAccessToken(grantor, granteeAlias);
-            ReplaceAccessTokenSample.replaceAndEndorseAccessToken(grantor, granteeAlias);
-
-            Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
-
-            assertThat(foundToken.get().getPayload().getAccess().getResourcesCount()).isEqualTo(2);
+            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
+                assertThatCode( () -> {
+                    ReplaceAccessTokenSample.replaceAndEndorseAccessToken(grantor, granteeAlias);
+                }).doesNotThrowAnyException();
+            });
+            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
+                Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
+                assertThat(foundToken).isPresent();
+                assertThat(foundToken.get().getPayload().getAccess().getResourcesCount())
+                        .isEqualTo(2);
+            });
         }
     }
 }
