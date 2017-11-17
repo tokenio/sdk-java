@@ -20,6 +20,8 @@ public final class ReplaceAccessTokenSample {
      * @return an access Token
      */
     public static Optional<Token> findAccessToken(Member grantor, Alias granteeAlias) {
+        System.out.printf("RATSample.findAccessToken \n");
+        System.out.printf("  getAccessTokens() \n");
         for (Token token : grantor.getAccessTokens(null, 100)
                 .getList()) {
             Alias toAlias = token.getPayload().getTo().getAlias();
@@ -37,9 +39,13 @@ public final class ReplaceAccessTokenSample {
      * @param granteeAlias Token member alias acquiring information access
      * @return success or failure
      */
-    public static TokenOperationResult replaceAccessToken(Member grantor, Alias granteeAlias) {
+    public static TokenOperationResult replaceAccessToken(
+            Member grantor,
+            Alias granteeAlias,
+            Token oldToken) {
         // Replace, but don't endorse the replacement:
-        Token oldToken = findAccessToken(grantor, granteeAlias).get();
+        System.out.printf("RATSample.replaceAccessToken \n");
+        System.out.printf("  replaceAccessToken() \n");
         TokenOperationResult status = grantor.replaceAccessToken(
                 oldToken,
                 AccessTokenBuilder
@@ -58,9 +64,11 @@ public final class ReplaceAccessTokenSample {
      */
     public static TokenOperationResult replaceAndEndorseAccessToken(
             Member grantor,
-            Alias granteeAlias) {
+            Alias granteeAlias,
+            Token oldToken) {
         // Replace old access token:
-        Token oldToken = findAccessToken(grantor, granteeAlias).get();
+        System.out.printf("RATSample.replaceAndEndorseAccessToken \n");
+        System.out.printf("  replaceAccessToken() \n");
         TokenOperationResult status = grantor.replaceAccessToken(
                 oldToken,
                 AccessTokenBuilder

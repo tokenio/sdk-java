@@ -18,6 +18,7 @@ public final class CreateAndEndorseAccessTokenSample {
      * @return an access Token
      */
     public static Token createAccessToken(Member grantor, Alias granteeAlias) {
+        System.out.printf("CAEATS.createAccessToken \n");
         // Create an access token for the grantee to access bank
         // account names of the grantor.
         Token accessToken = grantor.createAccessToken(

@@ -3,6 +3,7 @@
 args=${1:-""}
 
 ./gradlew \
-  -PmaxTestForks=4 \
-  cleanTest :java:javadoc check ${args}
+    -PmaxTestForks=4 \
+    -Dtest.single=ReplaceAccessTokenSampleTest \
+  :samples:test :java:javadoc check ${args}
 
