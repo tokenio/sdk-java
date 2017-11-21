@@ -31,7 +31,6 @@ import io.reactivex.functions.Function;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -461,23 +460,21 @@ public final class TokenIO implements Closeable {
                                 + " Contact Token for more details."));
             }
 
-            Metadata versionHeaders = new Metadata();
-            Metadata devKeyHeader = new Metadata();
-            versionHeaders.put(
+            Metadata headers = new Metadata();
+            headers.put(
                     Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
                     "java");
-            versionHeaders.put(
+            headers.put(
                     Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
                     TokenVersion.getVersion());
-            devKeyHeader.put(
+            headers.put(
                     Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
                     devKey);
             return new TokenIOAsync(
                     RpcChannelFactory
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
-                            .withMetadata(versionHeaders)
-                            .withMetadata(devKeyHeader)
+                            .withMetadata(headers)
                             .build(),
                     cryptoEngine != null
                             ? cryptoEngine
