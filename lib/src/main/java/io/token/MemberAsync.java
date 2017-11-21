@@ -295,7 +295,11 @@ public final class MemberAsync {
      * @return a completable
      */
     public Completable verifyAlias(String verificationId, String code) {
-        return client.verifyAlias(verificationId, code);
+        Completable done = client.verifyAlias(verificationId, code);
+        done.blockingAwait();
+        // We probably have at least one new alias; refresh alias cache.
+        this.aliases = new ArrayList<>(client.getAliases().blockingSingle());
+        return done;
     }
 
     /**

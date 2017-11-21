@@ -31,8 +31,8 @@ import io.reactivex.functions.Function;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -265,6 +265,16 @@ public final class TokenIO implements Closeable {
      */
     public String beginRecovery(Alias alias) {
         return async.beginRecovery(alias).blockingSingle();
+    }
+
+    /**
+     * Create a recovery authorization for some agent to sign.
+     * @param memberId Id of member we claim to be.
+     * @param privilegedKey new privileged key we want to use.
+     * @return authorization structure for agent to sign
+     */
+    public Authorization createRecoveryAuthorization(String memberId, Key privilegedKey) {
+        return async.createRecoveryAuthorization(memberId, privilegedKey).blockingSingle();
     }
 
     /**
