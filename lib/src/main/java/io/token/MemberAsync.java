@@ -72,7 +72,6 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +89,6 @@ public final class MemberAsync {
 
     private final Client client;
     private final Builder member;
-    // TODO rm private List<Alias> aliases;
-
 
     /**
      * Creates an instance of {@link MemberAsync}.
@@ -102,9 +99,6 @@ public final class MemberAsync {
     MemberAsync(MemberProtos.Member member, Client client) {
         this.client = client;
         this.member = member.toBuilder();
-
-        // TODO(PR-1167): reevaluate whether we need to cache aliases
-        // TODO rm this.aliases = new ArrayList<>(client.getAliases().blockingSingle());
     }
 
     /**
