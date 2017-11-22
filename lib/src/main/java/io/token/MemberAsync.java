@@ -139,7 +139,6 @@ public final class MemberAsync {
      *
      * @return first alias owned by the user
      */
-    @Nullable
     public Observable<Alias> firstAlias() {
         return client.getAliases()
                 .map(new Function<List<Alias>, Alias>() {
