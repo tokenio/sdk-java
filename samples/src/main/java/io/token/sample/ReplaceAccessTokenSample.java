@@ -35,11 +35,14 @@ public final class ReplaceAccessTokenSample {
      *
      * @param grantor Token member granting access to her accounts
      * @param granteeAlias Token member alias acquiring information access
+     * @param oldToken token to replace
      * @return success or failure
      */
-    public static TokenOperationResult replaceAccessToken(Member grantor, Alias granteeAlias) {
+    public static TokenOperationResult replaceAccessToken(
+            Member grantor,
+            Alias granteeAlias,
+            Token oldToken) {
         // Replace, but don't endorse the replacement:
-        Token oldToken = findAccessToken(grantor, granteeAlias).get();
         TokenOperationResult status = grantor.replaceAccessToken(
                 oldToken,
                 AccessTokenBuilder
@@ -54,14 +57,15 @@ public final class ReplaceAccessTokenSample {
      *
      * @param grantor Token member granting access to her accounts
      * @param granteeAlias Token member alias acquiring information access
+     * @param oldToken token to replace
      * @return success or failure
      */
     public static TokenOperationResult replaceAndEndorseAccessToken(
             Member grantor,
-            Alias granteeAlias) {
+            Alias granteeAlias,
+            Token oldToken) {
         // Replace old access token:
-        Token oldToken = findAccessToken(grantor, granteeAlias).get();
-        TokenOperationResult status = grantor.replaceAccessToken(
+        TokenOperationResult status = grantor.replaceAndEndorseAccessToken(
                 oldToken,
                 AccessTokenBuilder
                         .fromPayload(oldToken.getPayload())

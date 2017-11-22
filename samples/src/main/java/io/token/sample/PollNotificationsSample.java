@@ -56,8 +56,8 @@ public final class PollNotificationsSample {
             if (!notifications.isEmpty()) {
                 Notification notification = notifications.get(0);
                 switch (BodyCase.valueOf(notification.getContent().getType())) {
-                    case PAYMENT_REQUEST:
-                        System.out.printf("Payment Request: %s", notification);
+                    case PAYEE_TRANSFER_PROCESSED:
+                        System.out.printf("Transfer processed: %s", notification);
                         break;
                     default:
                         System.out.printf("Got notification: %s", notification);
@@ -67,7 +67,7 @@ public final class PollNotificationsSample {
             }
             // getNotifications doc extract end
             try {
-                System.out.printf("Don't see notifications yet. Sleeping...");
+                System.out.printf("Don't see notifications yet. Sleeping...\n");
                 TimeUnit.SECONDS.sleep(1);
             } catch (InterruptedException ie) {
                 throw new RuntimeException(ie);
