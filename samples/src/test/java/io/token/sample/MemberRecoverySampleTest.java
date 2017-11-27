@@ -11,7 +11,7 @@ import io.token.proto.common.alias.AliasProtos.Alias;
 import org.junit.Test;
 
 /**
- * Created by larryhosken on 11/16/17.
+ * Tests for member-recovery sample code.
  */
 public class MemberRecoverySampleTest {
 

@@ -16,6 +16,9 @@ import io.token.security.TokenCryptoEngine;
 
 import java.util.Arrays;
 
+/**
+ * Illustrate steps of Member recovery.
+ */
 public class MemberRecoverySample {
     public Member agentMember; /* used by complex recovery rule sample */
 
