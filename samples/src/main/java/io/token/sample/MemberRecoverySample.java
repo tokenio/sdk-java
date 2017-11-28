@@ -74,6 +74,10 @@ public class MemberRecoverySample {
         String agentId = tokenIO.getMemberId(agentAlias);
         RecoveryRule recoveryRule = RecoveryRule.newBuilder()
                 .setPrimaryAgent(agentId)
+                // This example doesn't call .setSecondaryAgents ,
+                // but could have. If it had, then recovery would have
+                // required one secondary agent authorization along with
+                // the primary agent authorization.
                 .build();
         newMember.addRecoveryRule(recoveryRule);
     }
