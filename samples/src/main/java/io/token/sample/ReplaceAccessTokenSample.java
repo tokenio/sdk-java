@@ -42,13 +42,16 @@ public final class ReplaceAccessTokenSample {
             Member grantor,
             Alias granteeAlias,
             Token oldToken) {
-        // Replace, but don't endorse the replacement:
+        // Replaces, but don't endorse the replacement
+        // (replaceAndEndorseAccessToken is much safer
+        // the "find" code doesn't see unendorsed tokens,
+        // so if the unendorsed token needs replacing,
+        // it perhaps can't be "found").
         TokenOperationResult status = grantor.replaceAccessToken(
                 oldToken,
                 AccessTokenBuilder
                         .fromPayload(oldToken.getPayload())
-                        .forAllAddresses()
-                        .forAllTransactions());
+                        .forAllAddresses());
         return status;
     }
 
@@ -69,8 +72,7 @@ public final class ReplaceAccessTokenSample {
                 oldToken,
                 AccessTokenBuilder
                         .fromPayload(oldToken.getPayload())
-                        .forAllBalances()
-                        .forAllTransactions());
+                        .forAllAddresses());
         return status;
     }
 }

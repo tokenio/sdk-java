@@ -23,7 +23,8 @@ public final class CreateAndEndorseAccessTokenSample {
         Token accessToken = grantor.createAccessToken(
                 AccessTokenBuilder
                         .create(granteeAlias)
-                        .forAllAccounts());
+                        .forAllAccounts()   // user can call getAccounts()
+                        .forAllBalances()); // for each account, can call getBalance()
 
         // Grantor endorses a token to a grantee by signing it
         // with her secure private key.
