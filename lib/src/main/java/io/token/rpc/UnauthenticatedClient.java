@@ -37,6 +37,7 @@ import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
@@ -66,7 +67,6 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
-import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -315,6 +315,30 @@ public final class UnauthenticatedClient {
     }
 
     /**
+     * Create a recovery authorization for some agent to sign.
+     *
+     * @param memberId Id of member we claim to be.
+     * @param privilegedKey new privileged key we want to use.
+     * @return authorization structure for agent to sign
+     */
+    public Observable<Authorization> createRecoveryAuthorization(
+            final String memberId,
+            final Key privilegedKey) {
+        return toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+                .setMemberId(memberId)
+                .build()))
+                .map(new Function<GetMemberResponse, Authorization>() {
+                    public Authorization apply(GetMemberResponse response) throws Exception {
+                        return Authorization.newBuilder()
+                                .setMemberId(memberId)
+                                .setMemberKey(privilegedKey)
+                                .setPrevHash(response.getMember().getLastHash())
+                                .build();
+                    }
+                });
+    }
+
+    /**
      * Completes account recovery.
      *
      * @param memberId the member id
@@ -405,7 +429,7 @@ public final class UnauthenticatedClient {
                                                 .setPrevHash(memberRes.getMember().getLastHash())
                                                 .setMemberId(memberId)
                                                 .addOperations(MemberOperation.newBuilder()
-                                                    .setRecover(res.getRecoveryEntry()))
+                                                        .setRecover(res.getRecoveryEntry()))
                                                 .addAllOperations(toMemberOperations(
                                                         privilegedKey,
                                                         standardKey,
