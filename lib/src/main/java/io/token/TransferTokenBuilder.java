@@ -87,9 +87,10 @@ public final class TransferTokenBuilder {
                         .setCurrency(currency)
                         .setLifetimeAmount(Double.toString(amount)));
 
-        if (member.firstAlias() != null) {
+        Alias alias = member.firstAlias().blockingSingle();
+        if (alias != null) {
             payload.getFromBuilder()
-                    .setAlias(member.firstAlias());
+                    .setAlias(alias);
         }
 
         blobPayloads = new ArrayList<>();

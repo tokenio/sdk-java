@@ -112,7 +112,7 @@ public final class Member {
      */
     @Nullable
     public Alias firstAlias() {
-        return async.firstAlias();
+        return async.firstAlias().blockingSingle();
     }
 
     /**
@@ -121,7 +121,7 @@ public final class Member {
      * @return list of aliases owned by the member
      */
     public List<Alias> aliases() {
-        return async.aliases();
+        return async.aliases().blockingSingle();
     }
 
     /**
