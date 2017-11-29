@@ -36,7 +36,7 @@ public class MemberRecoverySample {
      */
     public Member recoverWithDefaultRule(TokenIO tokenIO, Alias alias) {
         String verificationId = tokenIO.beginRecovery(alias);
-
+        // recoverWithDefault begin snippet to include in docs
         String memberId = tokenIO.getMemberId(alias);
 
         // In the real world, we'd prompt the user to enter the code emailed to them.
@@ -48,6 +48,7 @@ public class MemberRecoverySample {
                 "1thru6");
         // We can use the same verification code to re-claim this alias.
         recoveredMember.verifyAlias(verificationId, "1thru6");
+        // recoverWithDefault done snippet to include in docs
 
         return recoveredMember;
     }
@@ -65,6 +66,7 @@ public class MemberRecoverySample {
             Member newMember,
             TokenIO tokenIO,
             Alias agentAlias) {
+        // setUpComplex begin snippet to include in docs
         // Someday in the future, this user might ask the recovery agent
         // "Please tell Token that I am the member with ID m:12345678 ."
         // While we're setting up this new member, we need to tell the
@@ -80,6 +82,7 @@ public class MemberRecoverySample {
                 // the primary agent authorization.
                 .build();
         newMember.addRecoveryRule(recoveryRule);
+        // setUpComplex done snippet to include in docs
     }
 
     /* this simple sample approves everybody */
@@ -93,6 +96,7 @@ public class MemberRecoverySample {
      * @return if authorization seems legitimate, return signature; else error
      */
     public Signature getRecoveryAgentSignature(Authorization authorization) {
+        // authorizeRecovery begin snippet to include in doc
         // "Remember" whether this person who claims to be member with
         // the ID m:12345678 really is:
         boolean isCorrect = checkMemberId(authorization.getMemberId());
@@ -100,6 +104,7 @@ public class MemberRecoverySample {
             return agentMember.authorizeRecovery(authorization);
         }
         throw new RuntimeException("I don't authorize this");
+        // authorizeRecovery done snippet to include in doc
     }
 
     /**
@@ -140,7 +145,7 @@ public class MemberRecoverySample {
         // Since our test member uses an auto-verify email address, any string will work,
         // so we use "1thru6".
         recoveredMember.verifyAlias(verificationId, "1thru6");
-        // complexRecovery end snippet to include in docs
+        // complexRecovery done snippet to include in docs
 
         return recoveredMember;
     }
