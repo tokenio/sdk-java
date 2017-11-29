@@ -42,7 +42,7 @@ public final class ReplaceAccessTokenSample {
             Member grantor,
             Alias granteeAlias,
             Token oldToken) {
-        // Replaces, but don't endorse the replacement
+        // Replace, but don't endorse the replacement
         // (replaceAndEndorseAccessToken is much safer
         // the "find" code doesn't see unendorsed tokens,
         // so if the unendorsed token needs replacing,

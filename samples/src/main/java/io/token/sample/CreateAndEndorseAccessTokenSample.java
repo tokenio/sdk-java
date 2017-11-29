@@ -11,7 +11,7 @@ import io.token.proto.common.token.TokenProtos.Token;
  */
 public final class CreateAndEndorseAccessTokenSample {
     /**
-     * Creates an information access token to allow a grantee to see all bank accounts of a grantor.
+     * Creates an information access token to allow a grantee to see all bank balances of a grantor.
      *
      * @param grantor Token member granting access to her accounts
      * @param granteeAlias Token member alias acquiring information access
