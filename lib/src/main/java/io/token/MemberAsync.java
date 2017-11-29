@@ -72,7 +72,6 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
-import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -90,8 +89,6 @@ public final class MemberAsync {
 
     private final Client client;
     private final Builder member;
-    private List<Alias> aliases;
-
 
     /**
      * Creates an instance of {@link MemberAsync}.
@@ -102,9 +99,6 @@ public final class MemberAsync {
     MemberAsync(MemberProtos.Member member, Client client) {
         this.client = client;
         this.member = member.toBuilder();
-
-        // TODO(PR-1167): reevaluate whether we need to cache aliases
-        this.aliases = new ArrayList<>(client.getAliases().blockingSingle());
     }
 
     /**
@@ -145,9 +139,17 @@ public final class MemberAsync {
      *
      * @return first alias owned by the user
      */
-    @Nullable
-    public Alias firstAlias() {
-        return aliases.isEmpty() ? null : aliases.get(0);
+    public Observable<Alias> firstAlias() {
+        return client.getAliases()
+                .map(new Function<List<Alias>, Alias>() {
+                    public Alias apply(List<Alias> aliases) throws Exception {
+                        if (aliases.isEmpty()) {
+                            return null;
+                        } else {
+                            return aliases.get(0);
+                        }
+                    }
+                });
     }
 
     /**
@@ -155,8 +157,8 @@ public final class MemberAsync {
      *
      * @return list of aliases owned by the member
      */
-    public List<Alias> aliases() {
-        return this.aliases;
+    public Observable<List<Alias>> aliases() {
+        return client.getAliases();
     }
 
     /**
@@ -221,7 +223,7 @@ public final class MemberAsync {
                                 .map(new Function<MemberProtos.Member, Boolean>() {
                                     public Boolean apply(MemberProtos.Member proto) {
                                         member.clear().mergeFrom(proto);
-                                        return aliases.addAll(aliasList);
+                                        return true;
                                     }
                                 });
                     }
@@ -339,7 +341,7 @@ public final class MemberAsync {
                                 .map(new Function<MemberProtos.Member, Boolean>() {
                                     public Boolean apply(MemberProtos.Member proto) {
                                         member.clear().mergeFrom(proto);
-                                        return aliases.removeAll(aliasList);
+                                        return true;
                                     }
                                 });
                     }
