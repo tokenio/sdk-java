@@ -54,7 +54,7 @@ import java.util.List;
  * asynchronous version. {@link TokenIOAsync} instance can be obtained by
  * calling {@link #async} method.</p>
  */
-public final class TokenIO implements Closeable {
+public class TokenIO implements Closeable {
     private final TokenIOAsync async;
     private final String devKey;
 

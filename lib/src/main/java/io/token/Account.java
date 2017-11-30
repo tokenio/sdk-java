@@ -31,7 +31,7 @@ import javax.annotation.Nullable;
 /**
  * Represents a funding account in the Token system.
  */
-public final class Account {
+public class Account {
     private final AccountAsync async;
 
     /**

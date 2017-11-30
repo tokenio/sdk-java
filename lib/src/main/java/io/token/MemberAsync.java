@@ -84,7 +84,7 @@ import org.slf4j.LoggerFactory;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public final class MemberAsync {
+public class MemberAsync {
     private static final Logger logger = LoggerFactory.getLogger(MemberAsync.class);
 
     private final Client client;
