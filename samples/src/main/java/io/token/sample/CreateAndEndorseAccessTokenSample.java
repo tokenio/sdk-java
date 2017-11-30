@@ -11,7 +11,7 @@ import io.token.proto.common.token.TokenProtos.Token;
  */
 public final class CreateAndEndorseAccessTokenSample {
     /**
-     * Creates an information access token to allow a grantee to see all bank accounts of a grantor.
+     * Creates an information access token to allow a grantee to see all bank balances of a grantor.
      *
      * @param grantor Token member granting access to her accounts
      * @param granteeAlias Token member alias acquiring information access
@@ -23,7 +23,8 @@ public final class CreateAndEndorseAccessTokenSample {
         Token accessToken = grantor.createAccessToken(
                 AccessTokenBuilder
                         .create(granteeAlias)
-                        .forAllAccounts());
+                        .forAllAccounts()   // user can call getAccounts()
+                        .forAllBalances()); // for each account, can call getBalance()
 
         // Grantor endorses a token to a grantee by signing it
         // with her secure private key.
