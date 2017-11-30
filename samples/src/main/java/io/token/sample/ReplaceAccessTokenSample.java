@@ -43,10 +43,10 @@ public final class ReplaceAccessTokenSample {
             Alias granteeAlias,
             Token oldToken) {
         // Replace, but don't endorse the replacement
-        // (replaceAndEndorseAccessToken is much safer
-        // the "find" code doesn't see unendorsed tokens,
+        // (replaceAndEndorseAccessToken is much safer.
+        // The "find" code doesn't see unendorsed tokens,
         // so if the unendorsed token needs replacing,
-        // it perhaps can't be "found").
+        // it can't be "found").
         TokenOperationResult status = grantor.replaceAccessToken(
                 oldToken,
                 AccessTokenBuilder
