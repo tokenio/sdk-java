@@ -70,7 +70,7 @@ import java.util.concurrent.TimeUnit;
  * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
  * method.</p>
  */
-public final class TokenIOAsync implements Closeable {
+public class TokenIOAsync implements Closeable {
     private static final long SHUTDOWN_DURATION_MS = 10000L;
 
     private final ManagedChannel channel;
