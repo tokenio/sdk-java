@@ -2,6 +2,7 @@ package io.token.sample;
 
 import io.token.Account;
 import io.token.Member;
+import io.token.proto.common.money.MoneyProtos.Money;
 
 import java.util.List;
 
@@ -10,20 +11,23 @@ import java.util.List;
  */
 public final class RedeemAccessTokenSample {
     /**
-     * Redeems access token to acquire access to the grantor's account names.
+     * Redeems access token to acquire access to the grantor's account balances.
      *
      * @param grantee grantee Token member
      * @param tokenId ID of the access token to redeem
      * @return list of grantor's accounts accessed by the grantee
      */
-    public static List<Account> redeemAccessToken(Member grantee, String tokenId) {
+    public static Money redeemAccessToken(Member grantee, String tokenId) {
         // Access grantor's account list by applying
         // access token to the grantee client.
         grantee.useAccessToken(tokenId);
         List<Account> grantorAccounts = grantee.getAccounts();
 
-        // Clear access token from grantee client.
+        // Get the data we want
+        Money balance0 = grantorAccounts.get(0).getCurrentBalance();
+
+        // When done using access, clear token from grantee client.
         grantee.clearAccessToken();
-        return grantorAccounts;
+        return balance0;
     }
 }
