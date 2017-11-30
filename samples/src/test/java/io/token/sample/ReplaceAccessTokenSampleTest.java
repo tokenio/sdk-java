@@ -82,7 +82,7 @@ public class ReplaceAccessTokenSampleTest {
                 Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
                 assertThat(foundToken).isPresent();
                 assertThat(foundToken.get().getPayload().getAccess().getResourcesCount())
-                        .isEqualTo(2);
+                        .isEqualTo(3);
             });
         }
     }
