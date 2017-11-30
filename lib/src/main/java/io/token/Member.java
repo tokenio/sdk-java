@@ -66,7 +66,7 @@ import javax.annotation.Nullable;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public final class Member {
+public class Member {
     private final MemberAsync async;
 
     /**
