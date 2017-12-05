@@ -31,12 +31,12 @@ public class ProvisionDeviceSample {
      * Log in on provisioned device (assuming "remote" member approved key).
      * @param tokenIO SDK client
      * @param alias member's alias
-     * @return Member , logged in
+     * @return Member
      */
     public static Member useProvisionedDevice(TokenIO tokenIO, Alias alias) {
         String memberId = tokenIO.getMemberId(alias);
         // Uses the key that remote member approved (we hope)
-        Member localLoggedIn = tokenIO.useMember(memberId);
-        return localLoggedIn;
+        Member member = tokenIO.useMember(memberId);
+        return member;
     }
 }

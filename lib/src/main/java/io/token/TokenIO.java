@@ -181,10 +181,10 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Logs in an existing member to the system.
+     * Return a MemberAsync set up to use some Token member's keys (assuming we have them).
      *
      * @param memberId member id
-     * @return logged in member
+     * @return member
      */
     public Member useMember(String memberId) {
         return async.useMember(memberId)

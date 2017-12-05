@@ -63,8 +63,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 /**
- * Create a new member using the {@link #createMember}  method or log in an
- * existing member using {@link #useMember}.
+ * An SDK Client that interacts with TokenOS.
  *
  * <p>The class provides async API with {@link TokenIO} providing a synchronous
  * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
@@ -210,10 +209,10 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Logs in an existing member to the system.
+     * Return a Member set up to use some Token member's keys (assuming we have them).
      *
      * @param memberId member id
-     * @return logged in member
+     * @return member
      */
     public Observable<MemberAsync> useMember(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
