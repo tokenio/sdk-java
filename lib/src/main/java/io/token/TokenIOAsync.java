@@ -64,7 +64,7 @@ import java.util.concurrent.TimeUnit;
 
 /**
  * Create a new member using the {@link #createMember}  method or log in an
- * existing member using {@link #login}.
+ * existing member using {@link #useMember}.
  *
  * <p>The class provides async API with {@link TokenIO} providing a synchronous
  * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
@@ -215,7 +215,7 @@ public class TokenIOAsync implements Closeable {
      * @param memberId member id
      * @return logged in member
      */
-    public Observable<MemberAsync> login(String memberId) {
+    public Observable<MemberAsync> useMember(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client

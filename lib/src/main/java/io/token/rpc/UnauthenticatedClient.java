@@ -73,7 +73,7 @@ import java.util.List;
 /**
  * Similar to {@link Client} but is only used for a handful of requests that
  * don't require authentication. We use this client to create new member or
- * login an existing one and switch to the authenticated {@link Client}.
+ * useMember an existing one and switch to the authenticated {@link Client}.
  */
 public final class UnauthenticatedClient {
     private final GatewayServiceFutureStub gateway;
