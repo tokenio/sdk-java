@@ -214,7 +214,7 @@ public class TokenIOAsync implements Closeable {
      * @param memberId member id
      * @return member
      */
-    public Observable<MemberAsync> useMember(String memberId) {
+    public Observable<MemberAsync> getMember(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client

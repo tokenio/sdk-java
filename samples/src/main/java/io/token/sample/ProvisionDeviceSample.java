@@ -36,7 +36,7 @@ public class ProvisionDeviceSample {
     public static Member useProvisionedDevice(TokenIO tokenIO, Alias alias) {
         String memberId = tokenIO.getMemberId(alias);
         // Uses the key that remote member approved (we hope)
-        Member member = tokenIO.useMember(memberId);
+        Member member = tokenIO.getMember(memberId);
         return member;
     }
 }

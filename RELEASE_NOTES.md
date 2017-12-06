@@ -3,7 +3,7 @@ see this list for Java APIs that have changed:
 
 ## Release 1.0.82
 
-The `login` methods in TokenIO and TokenIOAsync were renamed to `useMember`.
+The `login` methods in TokenIO and TokenIOAsync were renamed to `getMember`.
 
 ## Release 1.0.79
 
