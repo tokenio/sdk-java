@@ -129,6 +129,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         .setAccountId(payer.getAccounts().get(0).id())
                         .setRedeemerAlias(payeeAlias)
                         .addDestination(Destinations.sepa(
+                                "XUIWC2489",
                                 "DE89 3704 0044 0532 0130 00"))
                         .execute();
 

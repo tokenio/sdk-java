@@ -65,13 +65,15 @@ public final class Destinations {
     /**
      * Creates a destination of type sepa.
      *
+     * @param bic payee's bank's BIC
      * @param iban payee's iban
      * @return Destinations
      */
-    public static TransferEndpoint sepa(String iban) {
+    public static TransferEndpoint sepa(String bic, String iban) {
         return TransferEndpoint.newBuilder()
                 .setAccount(BankAccount.newBuilder()
                         .setSepa(Sepa.newBuilder()
+                                .setBic(bic)
                                 .setIban(iban)))
                 .build();
     }
