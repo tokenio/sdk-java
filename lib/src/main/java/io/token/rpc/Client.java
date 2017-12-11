@@ -64,6 +64,9 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
+import io.token.proto.common.transaction.TransactionProtos.GetBalancePayload;
+import io.token.proto.common.transaction.TransactionProtos.GetTransactionPayload;
+import io.token.proto.common.transaction.TransactionProtos.GetTransactionsPayload;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
@@ -162,6 +165,7 @@ import io.token.util.Util;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.annotation.Nullable;
 
 
@@ -740,14 +744,28 @@ public final class Client {
      * Looks up account available balance.
      *
      * @param accountId account id
+     * @param keyLevel key level
      * @return account available balance
      */
-    public Observable<Money> getAvailableBalance(String accountId) {
+    public Observable<Money> getAvailableBalance(String accountId, Key.Level keyLevel) {
         setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+        GetBalancePayload payload = GetBalancePayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setMemberId(memberId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+
         return toObservable(gateway
                 .getBalance(GetBalanceRequest
                         .newBuilder()
-                        .setAccountId(accountId)
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
                         .build()))
                 .map(new Function<GetBalanceResponse, Money>() {
                     public Money apply(GetBalanceResponse response) {
@@ -760,20 +778,62 @@ public final class Client {
      * Looks up account current balance.
      *
      * @param accountId account id
+     * @param keyLevel key level
      * @return account current balance
      */
-    public Observable<Money> getCurrentBalance(String accountId) {
+    public Observable<Money> getCurrentBalance(String accountId, Key.Level keyLevel) {
         setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+        GetBalancePayload payload = GetBalancePayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setMemberId(memberId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+
         return toObservable(gateway
                 .getBalance(GetBalanceRequest
                         .newBuilder()
-                        .setAccountId(accountId)
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
                         .build()))
                 .map(new Function<GetBalanceResponse, Money>() {
                     public Money apply(GetBalanceResponse response) {
                         return response.getCurrent();
                     }
                 });
+    }
+
+    /**
+     * Look up account balance.
+     * @param accountId account id
+     * @param keyLevel key level
+     * @return account balance
+     */
+    public Observable<GetBalanceResponse> getBalance(String accountId, Key.Level keyLevel) {
+        setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+        GetBalancePayload payload = GetBalancePayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setMemberId(memberId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+
+        return toObservable(gateway
+                .getBalance(GetBalanceRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
+                        .build()));
     }
 
     /**
@@ -857,17 +917,32 @@ public final class Client {
      *
      * @param accountId ID of the account
      * @param transactionId ID of the transaction
+     * @param keyLevel key level
      * @return transaction record
      */
     public Observable<Transaction> getTransaction(
             String accountId,
-            String transactionId) {
+            String transactionId,
+            Key.Level keyLevel) {
         setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+        GetTransactionPayload payload = GetTransactionPayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setMemberId(memberId)
+                .setTransactionId(transactionId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+
         return toObservable(gateway
                 .getTransaction(GetTransactionRequest
                         .newBuilder()
-                        .setAccountId(accountId)
-                        .setTransactionId(transactionId)
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
                         .build()))
                 .map(new Function<GetTransactionResponse, Transaction>() {
                     public Transaction apply(GetTransactionResponse response) {
@@ -877,23 +952,71 @@ public final class Client {
     }
 
     /**
+     * Look up an existing transaction and return the response.
+     *
+     * @param accountId account id
+     * @param transactionId transaction id
+     * @param keyLevel key level
+     * @return transaction response
+     */
+    public Observable<GetTransactionResponse> getTransactionResponse(
+            String accountId,
+            String transactionId,
+            Key.Level keyLevel) {
+        setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+        GetTransactionPayload payload = GetTransactionPayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setMemberId(memberId)
+                .setTransactionId(transactionId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+
+        return toObservable(gateway
+                .getTransaction(GetTransactionRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
+                        .build()));
+    }
+
+    /**
      * Looks up existing transactions. This is a full list of transactions with token transfers
      * being a subset.
      *
      * @param accountId ID of the account
      * @param offset optional offset to start at
      * @param limit max number of records to return
+     * @param keyLevel key level
      * @return transaction record
      */
     public Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
             @Nullable String offset,
-            int limit) {
+            int limit,
+            Key.Level keyLevel) {
         setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+        GetTransactionsPayload payload = GetTransactionsPayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setMemberId(memberId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
         return toObservable(gateway
                 .getTransactions(GetTransactionsRequest
                         .newBuilder()
-                        .setAccountId(accountId)
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
                         .setPage(pageBuilder(offset, limit))
                         .build()))
                 .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
@@ -903,6 +1026,41 @@ public final class Client {
                                 response.getOffset());
                     }
                 });
+    }
+
+    /**
+     * Lookup transactions and return response.
+     *
+     * @param accountId account id
+     * @param offset offset
+     * @param limit limit
+     * @param keyLevel key level
+     * @return transactions response
+     */
+    public Observable<GetTransactionsResponse> getTransactionsResponse(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+        GetTransactionsPayload payload = GetTransactionsPayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setMemberId(memberId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+        return toObservable(gateway
+                .getTransactions(GetTransactionsRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
+                        .setPage(pageBuilder(offset, limit))
+                        .build()));
     }
 
     /**

@@ -1,5 +1,7 @@
 package io.token.sample;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+
 import io.token.Account;
 import io.token.Member;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -23,7 +25,7 @@ public final class GetBalanceSample {
 
         List<Account> accounts = member.getAccounts();
         for (Account account : accounts) {
-            Money balance = member.getCurrentBalance(account.id());
+            Money balance = member.getCurrentBalance(account.id(), STANDARD);
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())
@@ -45,7 +47,7 @@ public final class GetBalanceSample {
 
         List<Account> accounts = member.getAccounts();
         for (Account account : accounts) {
-            Money balance = account.getCurrentBalance();
+            Money balance = account.getCurrentBalance(STANDARD);
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())

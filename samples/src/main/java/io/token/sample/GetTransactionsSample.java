@@ -1,5 +1,7 @@
 package io.token.sample;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+
 import io.token.Account;
 import io.token.Member;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
@@ -19,7 +21,7 @@ public final class GetTransactionsSample {
         List<Account> accounts = payer.getAccounts();
         String accountId = accounts.get(0).id();
         for (Transaction transaction :
-                payer.getTransactions(accountId, null, 10).getList()) {
+                payer.getTransactions(accountId, null, 10, STANDARD).getList()) {
             displayTransaction(
                     transaction.getAmount().getCurrency(),
                     transaction.getAmount().getValue(),
@@ -44,7 +46,8 @@ public final class GetTransactionsSample {
         String transactionId = transfer.getTransactionId();
         Transaction transaction = payer.getTransaction(
                 accountId,
-                transactionId);
+                transactionId,
+                STANDARD);
         return transaction;
     }
 
@@ -57,7 +60,7 @@ public final class GetTransactionsSample {
         Account account = payer.getAccounts().get(0);
 
         for (Transaction transaction :
-                account.getTransactions(null, 10).getList()) {
+                account.getTransactions(null, 10, STANDARD).getList()) {
             displayTransaction(
                     transaction.getAmount().getCurrency(),
                     transaction.getAmount().getValue(),
@@ -79,7 +82,7 @@ public final class GetTransactionsSample {
         Account account = payer.getAccounts().get(0);
 
         String txnId = transfer.getTransactionId();
-        Transaction transaction = account.getTransaction(txnId);
+        Transaction transaction = account.getTransaction(txnId, STANDARD);
         return transaction;
     }
 

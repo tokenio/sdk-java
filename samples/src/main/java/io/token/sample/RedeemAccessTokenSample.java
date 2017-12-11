@@ -1,5 +1,7 @@
 package io.token.sample;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+
 import io.token.Account;
 import io.token.Member;
 import io.token.proto.common.money.MoneyProtos.Money;
@@ -24,7 +26,7 @@ public final class RedeemAccessTokenSample {
         List<Account> grantorAccounts = grantee.getAccounts();
 
         // Get the data we want
-        Money balance0 = grantorAccounts.get(0).getCurrentBalance();
+        Money balance0 = grantorAccounts.get(0).getCurrentBalance(STANDARD);
 
         // When done using access, clear token from grantee client.
         grantee.clearAccessToken();

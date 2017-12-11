@@ -67,6 +67,7 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
@@ -956,10 +957,29 @@ public class MemberAsync {
      *
      * @param accountId the account id
      * @param transactionId ID of the transaction
+     * @param keyLevel key level
      * @return transaction record
      */
-    public Observable<Transaction> getTransaction(String accountId, String transactionId) {
-        return client.getTransaction(accountId, transactionId);
+    public Observable<Transaction> getTransaction(
+            String accountId,
+            String transactionId,
+            Key.Level keyLevel) {
+        return client.getTransaction(accountId, transactionId, keyLevel);
+    }
+
+    /**
+     * Looks up an existing transaction for a given account.
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @param keyLevel key level
+     * @return transaction record
+     */
+    public Observable<Gateway.GetTransactionResponse> getTransactionResponse(
+            String accountId,
+            String transactionId,
+            Key.Level keyLevel) {
+        return client.getTransactionResponse(accountId, transactionId, keyLevel);
     }
 
     /**
@@ -968,13 +988,32 @@ public class MemberAsync {
      * @param accountId the account id
      * @param offset optional offset to start at
      * @param limit max number of records to return
+     * @param keyLevel key level
      * @return a list of transaction records
      */
     public Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
             @Nullable String offset,
-            int limit) {
-        return client.getTransactions(accountId, offset, limit);
+            int limit,
+            Key.Level keyLevel) {
+        return client.getTransactions(accountId, offset, limit, keyLevel);
+    }
+
+    /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @return a list of transaction records
+     */
+    public Observable<Gateway.GetTransactionsResponse> getTransactionsResponse(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        return client.getTransactionsResponse(accountId, offset, limit, keyLevel);
     }
 
     /**
@@ -997,20 +1036,33 @@ public class MemberAsync {
      * Looks up account available balance.
      *
      * @param accountId the account id
+     * @param keyLevel key level
      * @return available balance
      */
-    public Observable<Money> getAvailableBalance(String accountId) {
-        return client.getAvailableBalance(accountId);
+    public Observable<Money> getAvailableBalance(String accountId, Key.Level keyLevel) {
+        return client.getAvailableBalance(accountId, keyLevel);
     }
 
     /**
      * Looks up account current balance.
      *
      * @param accountId the account id
+     * @param keyLevel key level
      * @return current balance
      */
-    public Observable<Money> getCurrentBalance(String accountId) {
-        return client.getCurrentBalance(accountId);
+    public Observable<Money> getCurrentBalance(String accountId, Key.Level keyLevel) {
+        return client.getCurrentBalance(accountId, keyLevel);
+    }
+
+    /**
+     * Looks up account balance.
+     *
+     * @param accountId the account id
+     * @param keyLevel key level
+     * @return current balance
+     */
+    public Observable<Gateway.GetBalanceResponse> getBalance(String accountId, Key.Level keyLevel) {
+        return client.getBalance(accountId, keyLevel);
     }
 
     /**
