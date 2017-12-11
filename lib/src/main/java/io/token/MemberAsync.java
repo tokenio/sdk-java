@@ -809,6 +809,10 @@ public class MemberAsync {
      * Endorses the token by signing it. The signature is persisted along
      * with the token.
      *
+     * <p>If the key's level is too low, the result's status is MORE_SIGNATURES_NEEDED
+     * and the system pushes a notification to the member prompting them to use a
+     * higher-privilege key.
+     *
      * @param token token to endorse
      * @param keyLevel key level to be used to endorse the token
      * @return result of endorse token
