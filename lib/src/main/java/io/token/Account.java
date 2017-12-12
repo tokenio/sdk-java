@@ -26,7 +26,9 @@ import io.token.proto.PagedList;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.gateway.Gateway;
+import io.token.proto.gateway.Gateway.GetBalanceResponse;
+import io.token.proto.gateway.Gateway.GetTransactionResponse;
+import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 
 import javax.annotation.Nullable;
 
@@ -133,7 +135,7 @@ public class Account {
      * @param keyLevel key level
      * @return account balance
      */
-    public Gateway.GetBalanceResponse getBalance(Key.Level keyLevel) {
+    public GetBalanceResponse getBalance(Key.Level keyLevel) {
         return async.getBalance(keyLevel).blockingSingle();
     }
 
@@ -155,7 +157,7 @@ public class Account {
      * @param keyLevel key level
      * @return transaction response
      */
-    public Gateway.GetTransactionResponse getTransactionResponse(
+    public GetTransactionResponse getTransactionResponse(
             String transactionId,
             Key.Level keyLevel) {
         return async.getTransactionResponse(transactionId, keyLevel).blockingSingle();
@@ -184,7 +186,7 @@ public class Account {
      * @param keyLevel key level
      * @return transactions response
      */
-    public Gateway.GetTransactionsResponse getTransactionsResponse(
+    public GetTransactionsResponse getTransactionsResponse(
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {

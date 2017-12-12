@@ -24,12 +24,15 @@ package io.token;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.gateway.Gateway;
+import io.token.proto.gateway.Gateway.GetBalanceResponse;
+import io.token.proto.gateway.Gateway.GetTransactionResponse;
+import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.rpc.Client;
 
 import javax.annotation.Nullable;
@@ -125,7 +128,12 @@ public class AccountAsync {
      * @return account available balance
      */
     public Observable<Money> getAvailableBalance(Key.Level keyLevel) {
-        return client.getAvailableBalance(account.getId(), keyLevel);
+        return client.getBalance(account.getId(), keyLevel)
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
+                        return response.getAvailable();
+                    }
+                });
     }
 
     /**
@@ -135,7 +143,12 @@ public class AccountAsync {
      * @return account current balance
      */
     public Observable<Money> getCurrentBalance(Key.Level keyLevel) {
-        return client.getCurrentBalance(account.getId(), keyLevel);
+        return client.getBalance(account.getId(), keyLevel)
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
+                        return response.getCurrent();
+                    }
+                });
     }
 
     /**
@@ -144,7 +157,7 @@ public class AccountAsync {
      * @param keyLevel key level
      * @return account current balance
      */
-    public Observable<Gateway.GetBalanceResponse> getBalance(Key.Level keyLevel) {
+    public Observable<GetBalanceResponse> getBalance(Key.Level keyLevel) {
         return client.getBalance(account.getId(), keyLevel);
     }
 
@@ -156,7 +169,12 @@ public class AccountAsync {
      * @return transaction record
      */
     public Observable<Transaction> getTransaction(String transactionId, Key.Level keyLevel) {
-        return client.getTransaction(account.getId(), transactionId, keyLevel);
+        return client.getTransaction(account.getId(), transactionId, keyLevel)
+                .map(new Function<GetTransactionResponse, Transaction>() {
+                    public Transaction apply(GetTransactionResponse response) {
+                        return response.getTransaction();
+                    }
+                });
     }
 
     /**
@@ -166,10 +184,10 @@ public class AccountAsync {
      * @param keyLevel key level
      * @return transaction response
      */
-    public Observable<Gateway.GetTransactionResponse> getTransactionResponse(
+    public Observable<GetTransactionResponse> getTransactionResponse(
             String transactionId,
             Key.Level keyLevel) {
-        return client.getTransactionResponse(account.getId(), transactionId, keyLevel);
+        return client.getTransaction(account.getId(), transactionId, keyLevel);
     }
 
     /**
@@ -185,7 +203,14 @@ public class AccountAsync {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        return client.getTransactions(account.getId(), offset, limit, keyLevel);
+        return client.getTransactions(account.getId(), offset, limit, keyLevel)
+                .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
+                    public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
+                        return PagedList.create(
+                                response.getTransactionsList(),
+                                response.getOffset());
+                    }
+                });
     }
 
     /**
@@ -196,11 +221,11 @@ public class AccountAsync {
      * @param keyLevel key level
      * @return transactions response
      */
-    public Observable<Gateway.GetTransactionsResponse> getTransactionsResponse(
+    public Observable<GetTransactionsResponse> getTransactionsResponse(
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        return client.getTransactionsResponse(account.getId(), offset, limit, keyLevel);
+        return client.getTransactions(account.getId(), offset, limit, keyLevel);
     }
 
     @Override

@@ -36,14 +36,12 @@ import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
-import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
-import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -53,8 +51,9 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
-import io.token.proto.gateway.Gateway;
-import io.token.security.CryptoEngine;
+import io.token.proto.gateway.Gateway.GetBalanceResponse;
+import io.token.proto.gateway.Gateway.GetTransactionResponse;
+import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.security.keystore.SecretKeyPair;
 
 import java.util.HashMap;
@@ -808,7 +807,7 @@ public class Member {
      * @param keyLevel key level
      * @return transaction response
      */
-    public Gateway.GetTransactionResponse getTransactionResponse(
+    public GetTransactionResponse getTransactionResponse(
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
@@ -841,7 +840,7 @@ public class Member {
      * @param keyLevel key level
      * @return transactions response
      */
-    public Gateway.GetTransactionsResponse getTransactionsResponse(
+    public GetTransactionsResponse getTransactionsResponse(
             String accountId,
             @Nullable String offset,
             int limit,
@@ -871,7 +870,7 @@ public class Member {
         return async.getCurrentBalance(accountId, keyLevel).blockingSingle();
     }
 
-    public Gateway.GetBalanceResponse getBalance(String accountId, Key.Level keyLevel) {
+    public GetBalanceResponse getBalance(String accountId, Key.Level keyLevel) {
         return async.getBalance(accountId, keyLevel).blockingSingle();
     }
 
