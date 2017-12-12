@@ -815,12 +815,17 @@ public final class Client {
      * @return account balance
      */
     public Observable<GetBalanceResponse> getBalance(String accountId, Key.Level keyLevel) {
+        String payloadMemberId = onBehalfOf != null
+                ?  getToken(onBehalfOf).blockingSingle().getPayload().getFrom().getId()
+                :  this.memberId;
+
         setAuthenticationContext();
         Signer signer = crypto.createSigner(keyLevel);
+
         GetBalancePayload payload = GetBalancePayload
                 .newBuilder()
                 .setAccountId(accountId)
-                .setMemberId(memberId)
+                .setMemberId(payloadMemberId)
                 .setNonce(UUID.randomUUID().toString())
                 .build();
 
@@ -963,12 +968,17 @@ public final class Client {
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
+        String payloadMemberId = onBehalfOf != null
+                ?  getToken(onBehalfOf).blockingSingle().getPayload().getFrom().getId()
+                :  this.memberId;
+
         setAuthenticationContext();
         Signer signer = crypto.createSigner(keyLevel);
+
         GetTransactionPayload payload = GetTransactionPayload
                 .newBuilder()
                 .setAccountId(accountId)
-                .setMemberId(memberId)
+                .setMemberId(payloadMemberId)
                 .setTransactionId(transactionId)
                 .setNonce(UUID.randomUUID().toString())
                 .build();
@@ -1042,12 +1052,17 @@ public final class Client {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
+        String payloadMemberId = onBehalfOf != null
+                ?  getToken(onBehalfOf).blockingSingle().getPayload().getFrom().getId()
+                :  this.memberId;
+
         setAuthenticationContext();
         Signer signer = crypto.createSigner(keyLevel);
+
         GetTransactionsPayload payload = GetTransactionsPayload
                 .newBuilder()
                 .setAccountId(accountId)
-                .setMemberId(memberId)
+                .setMemberId(payloadMemberId)
                 .setNonce(UUID.randomUUID().toString())
                 .build();
         return toObservable(gateway
