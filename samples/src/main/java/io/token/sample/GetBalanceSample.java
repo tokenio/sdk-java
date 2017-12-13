@@ -9,7 +9,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Two ways to get balances of a logged-in member's bank accounts.
+ * Two ways to get balances of a member's bank accounts.
  */
 public final class GetBalanceSample {
     /**

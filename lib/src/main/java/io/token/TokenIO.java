@@ -181,13 +181,27 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Logs in an existing member to the system.
+     * Return a MemberAsync set up to use some Token member's keys (assuming we have them).
      *
      * @param memberId member id
-     * @return logged in member
+     * @return member
      */
+    public Member getMember(String memberId) {
+        return async.getMember(memberId)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Return a MemberAsync set up to use some Token member's keys (assuming we have them).
+     *
+     * @deprecated login's name changed to getMember
+     * @param memberId member id
+     * @return member
+     */
+    @Deprecated
     public Member login(String memberId) {
-        return async.login(memberId)
+        return async.getMember(memberId)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
