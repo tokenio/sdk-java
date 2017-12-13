@@ -28,7 +28,7 @@ import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import io.grpc.Metadata;
-import io.token.proto.gateway.Auth.GRpcAuthPayload;
+import io.token.proto.gateway.Auth.GrpcAuthPayload;
 import io.token.rpc.interceptor.SimpleInterceptor;
 import io.token.security.Signer;
 
@@ -48,7 +48,7 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
     @Override
     public void onStart(ReqT reqT, Metadata metadata) {
         long now = System.currentTimeMillis();
-        GRpcAuthPayload payload = GRpcAuthPayload.newBuilder()
+        GrpcAuthPayload payload = GrpcAuthPayload.newBuilder()
                 .setRequest(ByteString.copyFrom(((Message) reqT).toByteArray()))
                 .setCreatedAtMs(now)
                 .build();
