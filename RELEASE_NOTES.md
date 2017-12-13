@@ -1,7 +1,7 @@
 If you're upgrading to a new version of the SDK,
 see this list for Java APIs that have changed:
 
-## Release 1.0.82
+## Release 1.0.84
 
 The `login` methods in TokenIO and TokenIOAsync were renamed to `getMember`.
 
