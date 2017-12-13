@@ -154,6 +154,17 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the time after which endorse is no longer possible.
+     *
+     * @param endorseUntilMs endorse until, in milliseconds.
+     * @return builder
+     */
+    public TransferTokenBuilder setEndorseUntilMs(long endorseUntilMs) {
+        payload.setEndorseUntilMs(endorseUntilMs);
+        return this;
+    }
+
+    /**
      * Sets the maximum amount per charge.
      *
      * @param chargeAmount amount
