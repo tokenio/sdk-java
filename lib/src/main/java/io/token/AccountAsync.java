@@ -112,7 +112,7 @@ public class AccountAsync {
      *
      * @return true if this account is locked; false otherwise.
      */
-    public Boolean isLocked() {
+    public boolean isLocked() {
         return account.getIsLocked();
     }
 

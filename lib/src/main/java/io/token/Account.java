@@ -110,7 +110,7 @@ public class Account {
      *
      * @return true if this account is locked; false otherwise.
      */
-    public Boolean isLocked() {
+    public boolean isLocked() {
         return async.isLocked();
     }
 
