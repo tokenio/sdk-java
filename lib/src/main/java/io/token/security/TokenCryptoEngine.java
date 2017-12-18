@@ -61,6 +61,7 @@ public final class TokenCryptoEngine implements CryptoEngine {
      *
      * @param memberId member ID
      * @param keyStore key store
+     * @param delete purge member's existing keys
      */
     public TokenCryptoEngine(String memberId, KeyStore keyStore, boolean delete) {
         this(memberId, keyStore);
