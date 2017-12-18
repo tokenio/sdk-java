@@ -66,4 +66,11 @@ public interface KeyStore {
      * @return list of SecretKey
      */
     List<SecretKey> listKeys(String memberId);
+
+    /**
+     * Deletes all of a member's keys.
+     *
+     * @param memberId Id of member
+     */
+    void deleteKeys(String memberId);
 }

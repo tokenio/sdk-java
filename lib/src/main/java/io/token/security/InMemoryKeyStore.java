@@ -28,7 +28,10 @@ import io.token.proto.common.security.SecurityProtos;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * In memory implementation of the {@link KeyStore}. Used for testing.
@@ -65,5 +68,13 @@ public final class InMemoryKeyStore implements KeyStore {
     @Override
     public List<SecretKey> listKeys(String memberId) {
         return new ArrayList<>(keys.row(memberId).values());
+    }
+
+    @Override
+    public void deleteKeys(String memberId) {
+        Set<String> memberKeys = new HashSet<>(keys.row(memberId).keySet());
+        for (String keyId : memberKeys) {
+            keys.remove(memberId, keyId);
+        }
     }
 }

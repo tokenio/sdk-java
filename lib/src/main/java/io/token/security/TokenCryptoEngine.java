@@ -56,6 +56,19 @@ public final class TokenCryptoEngine implements CryptoEngine {
                 .cryptoFor(CRYPTO_TYPE);
     }
 
+    /**
+     * Creates an instance, and specify whether to delete member's keys, or not.
+     *
+     * @param memberId member ID
+     * @param keyStore key store
+     */
+    public TokenCryptoEngine(String memberId, KeyStore keyStore, boolean delete) {
+        this(memberId, keyStore);
+        if (delete) {
+            keyStore.deleteKeys(memberId);
+        }
+    }
+
     @Override
     public Key generateKey(Key.Level keyLevel) {
         SecretKeyPair keyPair = SecretKeyPair.create(CRYPTO_TYPE);
