@@ -43,7 +43,6 @@ abstract class KeyStoreTest {
         assertThat(store.listKeys("steve").size()).isEqualTo(2);
         store.deleteKeys("steve");
 
-
         assertThat(store.listKeys("steve").size()).isEqualTo(0);
     }
 
