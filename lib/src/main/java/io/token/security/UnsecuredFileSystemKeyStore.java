@@ -96,7 +96,11 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
         return keyFromFile(getKeyFile(memberId, keyId));
     }
 
-    @Override
+    /**
+     * Deletes keys for a specific member.
+     *
+     * @param memberId Id of member
+     */
     public void deleteKeys(String memberId) {
         File memberPath = getMemberPath(memberId);
         if (memberPath.exists()) {

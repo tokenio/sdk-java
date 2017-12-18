@@ -70,7 +70,11 @@ public final class InMemoryKeyStore implements KeyStore {
         return new ArrayList<>(keys.row(memberId).values());
     }
 
-    @Override
+    /**
+     * Deletes keys for a specific member.
+     *
+     * @param memberId Id of member
+     */
     public void deleteKeys(String memberId) {
         Set<String> memberKeys = new HashSet<>(keys.row(memberId).keySet());
         for (String keyId : memberKeys) {
