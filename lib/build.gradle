@@ -32,6 +32,10 @@ license {
     skipExistingHeaders = true
 }
 
+javadocToken {
+    options.linkSource true // copy source code into javadoc, link to it
+}
+
 downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = 'compile'
