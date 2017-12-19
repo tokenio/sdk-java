@@ -39,6 +39,8 @@ abstract class KeyStoreTest {
         store.put("steve", phone);
         assertThat(store.getById("steve", "phone")).isEqualTo(phone);
         assertThat(store.getById("steve", "laptop")).isEqualTo(laptop);
+
+        assertThat(store.listKeys("steve").size()).isEqualTo(2);
     }
 
     @Test
