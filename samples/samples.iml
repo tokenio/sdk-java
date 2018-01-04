@@ -1,0 +1,113 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module external.linked.project.id=":samples" external.linked.project.path="$MODULE_DIR$" external.root.project.path="$MODULE_DIR$/.." external.system.id="GRADLE" type="JAVA_MODULE" version="4">
+  <component name="FacetManager">
+    <facet type="android-gradle" name="Android-Gradle">
+      <configuration>
+        <option name="GRADLE_PROJECT_PATH" value=":samples" />
+      </configuration>
+    </facet>
+    <facet type="java-gradle" name="Java-Gradle">
+      <configuration>
+        <option name="BUILD_FOLDER_PATH" value="$MODULE_DIR$/build" />
+        <option name="BUILDABLE" value="true" />
+      </configuration>
+    </facet>
+  </component>
+  <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_1_8">
+    <output url="file://$MODULE_DIR$/build/classes/java/main" />
+    <output-test url="file://$MODULE_DIR$/build/classes/java/test" />
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/build/sources/apt/test" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/build/sources/apt/main" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/main" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/java" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/src/main/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/test" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/src/test/resources" type="java-test-resource" />
+      <excludeFolder url="file://$MODULE_DIR$/.gradle" />
+      <excludeFolder url="file://$MODULE_DIR$/build/classes" />
+      <excludeFolder url="file://$MODULE_DIR$/build/jacoco" />
+      <excludeFolder url="file://$MODULE_DIR$/build/libs" />
+      <excludeFolder url="file://$MODULE_DIR$/build/reports" />
+      <excludeFolder url="file://$MODULE_DIR$/build/test-results" />
+      <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="module" module-name="java" exported="" />
+    <orderEntry type="module" module-name="lib" exported="" />
+    <orderEntry type="module" module-name="java" exported="" />
+    <orderEntry type="module" module-name="lib" exported="" />
+    <orderEntry type="module" module-name="java" exported="" />
+    <orderEntry type="module" module-name="lib" exported="" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: junit-4.12" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: dagger-compiler-2.9" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: tokenio-rpc-client-netty-1.0.99" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: dagger-producers-2.9" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: tokenio-proto-external-1.0.426" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: tokenio-rpc-client-1.0.99" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: tokenio-security-lib-1.0.40" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: tokenio-rpc-netty-1.0.99" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: tokenio-rpc-common-1.0.99" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: tokenio-proto-common-1.0.426" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: tokenio-util-1.0.16" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: dagger-2.9" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: grpc-services-1.5.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: grpc-protobuf-1.5.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: grpc-protobuf-lite-1.5.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: grpc-stub-1.5.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: grpc-netty-1.5.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: grpc-core-1.5.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: instrumentation-api-0.4.3" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: protobuf-java-util-3.3.1" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: guava-20.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: config-1.3.1" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: logback-classic-1.2.2" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: commons-lang3-3.5" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: auto-value-1.4" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: hamcrest-core-1.3" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: javax.inject-1" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: logback-core-1.2.2" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: metrics-core-3.1.2" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: slf4j-api-1.7.25" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: rxjava-2.1.1" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: proto-google-common-protos-0.1.9" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: protobuf-java-3.3.1" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: eddsa-0.1.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: reactive-streams-1.0.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-tcnative-boringssl-static-2.0.5.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: error_prone_annotations-2.0.19" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: jsr305-3.0.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: grpc-context-1.5.0" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-codec-http2-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-handler-proxy-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-codec-http-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-handler-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-codec-socks-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-codec-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-transport-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-buffer-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-resolver-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: netty-common-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" scope="PROVIDED" name="Gradle: gson-2.7" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: guava-20.0-rc1" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="Gradle: assertj-core-3.8.0" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="Gradle: mockito-core-2.7.19" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="Gradle: slf4j-simple-1.7.25" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="Gradle: jul-to-slf4j-1.7.25" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="Gradle: jcl-over-slf4j-1.7.25" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="Gradle: byte-buddy-1.6.11" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="Gradle: byte-buddy-agent-1.6.11" level="project" />
+    <orderEntry type="library" exported="" scope="TEST" name="Gradle: objenesis-2.5" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: samples.tokenio-sdk-samples-1.0.87" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: samples.tokenio-sdk-samples-1.0.87" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: samples.tokenio-sdk-samples-1.0.87" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: samples.tokenio-sdk-samples-1.0.87" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: samples.tokenio-sdk-samples-1.0.87" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: samples.tokenio-sdk-samples-1.0.87" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: samples.tokenio-sdk-samples-1.0.87" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: samples.tokenio-sdk-samples-1.0.87" level="project" />
+  </component>
+</module>

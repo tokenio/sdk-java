@@ -1,3 +1,7 @@
+repositories {
+    jcenter()
+}
+
 apply plugin: 'com.android.library'
 
 android {
@@ -37,12 +41,25 @@ buildscript {
     }
 }
 
+
+
+//artifactory {
+//    contextUrl = 'https://token.jfrog.io/token/'
+//    resolve {
+//        repository {
+//            repoKey = 'libs-release'             // The Artifactory repository key to download from
+//            username = "${artifactory_user}"     // The publisher user name
+//            password = "${artifactory_password}" // The publisher password
+//        }
+//    }
+//}
+
+
 dependencies {
     androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-    compile 'com.android.support:appcompat-v7:27.+'
     testCompile 'junit:junit:4.12'
     compile project(':lib')
-    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-okhttp', version: ver.tokenRpc
+//    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-okhttp', version: ver.tokenRpc
 }
