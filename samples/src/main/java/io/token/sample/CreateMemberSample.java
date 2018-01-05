@@ -41,7 +41,12 @@ public final class CreateMemberSample {
                             + "+noverify@example.com")
                     .build();
 
-            return tokenIO.createMember(alias);
+            Member newMember = tokenIO.createMember(alias);
+
+            // let user recover account by verifying email if they break their phone
+            newMember.useDefaultRecoveryRule();
+
+            return newMember;
         } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
