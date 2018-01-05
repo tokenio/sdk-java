@@ -43,7 +43,7 @@ public final class CreateMemberSample {
 
             Member newMember = tokenIO.createMember(alias);
 
-            // let user recover account by verifying email if they break their phone
+            // let user recover member by verifying email if they lose keys
             newMember.useDefaultRecoveryRule();
 
             return newMember;
