@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
 
-    package="com.example.android_sdk"
+    package="com.example.security"
     >
 
     <application android:allowBackup="false"

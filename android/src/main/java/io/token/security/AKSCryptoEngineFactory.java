@@ -22,21 +22,23 @@
 
 package io.token.security;
 
+import android.content.Context;
+
 /**
  * Creates {@link io.token.security.CryptoEngine} instances bound to a given member id.
  * Uses a provided key store to persist keys.
  */
 public class AKSCryptoEngineFactory implements io.token.security.CryptoEngineFactory {
-    private final io.token.security.KeyStore keyStore;
+    private final Context context;
 
     /**
      * Creates a new instance of the factory that uses supplied store
      * to persist the keys.
      *
-     * @param keyStore key store
+     * @param context context
      */
-    public AKSCryptoEngineFactory(io.token.security.KeyStore keyStore) {
-        this.keyStore = keyStore;
+    public AKSCryptoEngineFactory(Context context) {
+        this.context = context;
     }
 
     /**
@@ -47,6 +49,6 @@ public class AKSCryptoEngineFactory implements io.token.security.CryptoEngineFac
      */
     @Override
     public io.token.security.CryptoEngine create(String memberId) {
-        return new AKSCryptoEngine(memberId, keyStore);
+        return new AKSCryptoEngine(memberId, context);
     }
 }

@@ -22,13 +22,19 @@
 
 package io.token.security;
 
+import android.app.KeyguardManager;
+import android.content.Context;
+import android.hardware.fingerprint.FingerprintManager;
+import android.security.KeyPairGeneratorSpec;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.security.crypto.Crypto;
-import io.token.security.crypto.CryptoRegistry;
 import io.token.security.crypto.CryptoType;
-import io.token.security.keystore.SecretKeyPair;
 
+import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
+import java.security.KeyPairGenerator;
+import java.security.NoSuchAlgorithmException;
+import java.security.NoSuchProviderException;
+import javax.inject.Inject;
 
 /**
  * Token implementation of the {@link io.token.security.CryptoEngine}. The keys are persisted
@@ -38,50 +44,72 @@ public final class AKSCryptoEngine implements io.token.security.CryptoEngine {
     private static final CryptoType CRYPTO_TYPE = CryptoType.EDDSA;
     private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ED25519;
 
+    public static final String KEY_NAME = "tokenapp_key";
     private final String memberId;
-    private final io.token.security.KeyStore keyStore;
-    private final Crypto crypto;
+    private final Context context;
+    @Inject KeyguardManager mKeyguardManager;
+    @Inject FingerprintManager mFingerprintManager;
+    private final KeyPairGenerator mKeyPairGenerator;
 
     /**
      * Creates an instance.
      *
      * @param memberId member ID
-     * @param keyStore key store
+     * @param context context
      */
-    public AKSCryptoEngine(String memberId, io.token.security.KeyStore keyStore) {
+    public AKSCryptoEngine(String memberId,
+                           Context context) {
         this.memberId = memberId;
-        this.keyStore = keyStore;
-        this.crypto = CryptoRegistry
-                .getInstance()
-                .cryptoFor(CRYPTO_TYPE);
+        this.context = context;
         System.out.println("USING AKS ....");
+
+        try {
+            KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
+                    .setAlias(KEY_NAME)
+                    .setKeyType("EC")
+                    .setKeySize(256)
+                    .build();
+            mKeyPairGenerator = KeyPairGenerator.getInstance(
+                    "EC",
+                    "AndroidKeyStore");
+            mKeyPairGenerator.initialize(spec);
+        } catch (NoSuchAlgorithmException | NoSuchProviderException |
+                InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
     public Key generateKey(Key.Level keyLevel) {
-        SecretKeyPair keyPair = SecretKeyPair.create(CRYPTO_TYPE);
-        io.token.security.SecretKey key = io.token.security.SecretKey.create(
-                keyPair.id(),
-                keyLevel,
-                new KeyPair(keyPair.publicKey(), keyPair.privateKey()));
-        keyStore.put(memberId, key);
+        System.out.println("Generating key...");
+        KeyPair keyPair = mKeyPairGenerator.generateKeyPair();
+        System.out.println(keyPair);
+        System.out.println(keyPair.getPublic());
+        System.out.println(keyPair.getPrivate().getAlgorithm());
+        System.out.println(keyPair.getPrivate().getFormat());
+        for (byte b : keyPair.getPublic().getEncoded()) {
+            System.out.print(b + " : ");
+        }
+        System.out.println(keyPair.getPrivate());
         return Key.newBuilder()
-                .setId(key.getId())
-                .setAlgorithm(KEY_ALGORITHM)
-                .setLevel(keyLevel)
-                .setPublicKey(crypto.serialize(key.getPublicKey()))
+//                .setId(key.getId())
+//                .setAlgorithm(KEY_ALGORITHM)
+//                .setLevel(keyLevel)
+//                .setPublicKey(crypto.serialize(key.getPublicKey()))
                 .build();
     }
 
     @Override
     public Signer createSigner(Key.Level keyLevel) {
-        io.token.security.SecretKey key = keyStore.getByLevel(memberId, keyLevel);
-        return crypto.signer(key.getId(), key.getPrivateKey());
+//        io.token.security.SecretKey key = keyStore.getByLevel(memberId, keyLevel);
+//        return crypto.signer(key.getId(), key.getPrivateKey());
+        return null;
     }
 
     @Override
     public Verifier createVerifier(String keyId) {
-        io.token.security.SecretKey key = keyStore.getById(memberId, keyId);
-        return crypto.verifier(key.getPublicKey());
+        return null;
+//        io.token.security.SecretKey key = keyStore.getById(memberId, keyId);
+//        return crypto.verifier(key.getPublicKey());
     }
 }

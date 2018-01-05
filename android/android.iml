@@ -35,6 +35,7 @@
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/debug" isTestSource="false" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/debug" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/debug" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/test/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/androidTest/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/r/androidTest/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/aidl/androidTest/debug" isTestSource="true" generated="true" />
@@ -42,7 +43,6 @@
       <sourceFolder url="file://$MODULE_DIR$/build/generated/source/rs/androidTest/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/res/rs/androidTest/debug" type="java-test-resource" />
       <sourceFolder url="file://$MODULE_DIR$/build/generated/res/resValues/androidTest/debug" type="java-test-resource" />
-      <sourceFolder url="file://$MODULE_DIR$/build/generated/source/apt/test/debug" isTestSource="true" generated="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/res" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/resources" type="java-resource" />
       <sourceFolder url="file://$MODULE_DIR$/src/debug/assets" type="java-resource" />
@@ -86,6 +86,7 @@
       <sourceFolder url="file://$MODULE_DIR$/src/test/rs" isTestSource="true" />
       <sourceFolder url="file://$MODULE_DIR$/src/test/shaders" isTestSource="true" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/annotations" />
+      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/assets" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/attr" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/blame" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/bundles" />
@@ -95,7 +96,6 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/intermediate-jars" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/javaPrecompile" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/jniLibs" />
-      <excludeFolder url="file://$MODULE_DIR$/build/intermediates/lint" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/manifests" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/res" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/rs" />
@@ -104,73 +104,59 @@
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/tmp" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/transforms" />
       <excludeFolder url="file://$MODULE_DIR$/build/intermediates/typedefs.txt" />
-      <excludeFolder url="file://$MODULE_DIR$/build/libs" />
       <excludeFolder url="file://$MODULE_DIR$/build/outputs" />
-      <excludeFolder url="file://$MODULE_DIR$/build/publications" />
       <excludeFolder url="file://$MODULE_DIR$/build/reports" />
-      <excludeFolder url="file://$MODULE_DIR$/build/test-results" />
       <excludeFolder url="file://$MODULE_DIR$/build/tmp" />
     </content>
     <orderEntry type="jdk" jdkName="Android API 27 Platform" jdkType="Android SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" exported="" name="Gradle: netty-resolver-4.1.12.Final" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: grpc-okhttp-1.2.0" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: tokenio-util-1.0.16" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: tokenio-security-lib-1.0.40" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: netty-codec-4.1.12.Final" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: grpc-protobuf-1.5.0" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: rules-0.5" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: commons-lang3-3.5" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: gson-2.7" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: jsr305-3.0.0" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: netty-handler-4.1.12.Final" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: hamcrest-core-1.3" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: hamcrest-integration-1.3" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: netty-transport-4.1.12.Final" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: protobuf-java-util-3.3.1" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: javax.inject-1" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: javawriter-2.1.1" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: slf4j-api-1.7.25" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: hamcrest-library-1.3" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: netty-handler-proxy-4.1.12.Final" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: grpc-protobuf-lite-1.5.0" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: junit-4.12" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: instrumentation-api-0.4.3" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: javax.annotation-api-1.2" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: netty-buffer-4.1.12.Final" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: grpc-stub-1.5.0" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: logback-classic-1.2.2" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: tokenio-rpc-client-okhttp-1.0.99" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: logback-core-1.2.2" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: grpc-services-1.5.0" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: exposed-instrumentation-api-publish-0.5" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: espresso-idling-resource-2.2.2" level="project" />
     <orderEntry type="library" exported="" name="Gradle: grpc-core-1.5.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: netty-codec-http-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: grpc-okhttp-1.2.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: metrics-core-3.1.2" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: espresso-core-2.2.2" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: tokenio-util-1.0.16" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: tokenio-security-lib-1.0.40" level="project" />
     <orderEntry type="library" exported="" name="Gradle: rxjava-2.1.1" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: netty-codec-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: grpc-protobuf-1.5.0" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: commons-lang3-3.5" level="project" />
     <orderEntry type="library" exported="" name="Gradle: reactive-streams-1.0.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: grpc-context-1.5.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: grpc-netty-1.5.0" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: gson-2.7" level="project" />
     <orderEntry type="library" exported="" name="Gradle: tokenio-rpc-client-1.0.99" level="project" />
     <orderEntry type="library" exported="" name="Gradle: guava-20.0" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: jsr305-3.0.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: protobuf-java-3.3.1" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: netty-handler-4.1.12.Final" level="project" />
     <orderEntry type="library" exported="" name="Gradle: okio-1.6.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: error_prone_annotations-2.0.19" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: netty-transport-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: protobuf-java-util-3.3.1" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: javax.inject-1" level="project" />
     <orderEntry type="library" exported="" name="Gradle: tokenio-rpc-okhttp-1.0.99" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: slf4j-api-1.7.25" level="project" />
     <orderEntry type="library" exported="" name="Gradle: tokenio-proto-common-1.0.426" level="project" />
     <orderEntry type="library" exported="" name="Gradle: netty-common-4.1.12.Final" level="project" />
     <orderEntry type="library" exported="" name="Gradle: config-1.2.1" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: netty-handler-proxy-4.1.12.Final" level="project" />
     <orderEntry type="library" exported="" name="Gradle: okhttp-2.5.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: netty-codec-http2-4.1.12.Final" level="project" />
     <orderEntry type="library" exported="" name="Gradle: netty-codec-socks-4.1.12.Final" level="project" />
-    <orderEntry type="library" exported="" scope="TEST" name="Gradle: runner-0.5" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: grpc-protobuf-lite-1.5.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: proto-google-common-protos-0.1.9" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: instrumentation-api-0.4.3" level="project" />
     <orderEntry type="library" exported="" name="Gradle: tokenio-rpc-common-1.0.99" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: netty-buffer-4.1.12.Final" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: grpc-stub-1.5.0" level="project" />
     <orderEntry type="library" exported="" name="Gradle: tokenio-proto-external-1.0.426" level="project" />
     <orderEntry type="library" exported="" name="Gradle: dagger-2.9" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: logback-classic-1.2.2" level="project" />
     <orderEntry type="library" exported="" name="Gradle: eddsa-0.1.0" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: tokenio-rpc-client-okhttp-1.0.99" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: logback-core-1.2.2" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: grpc-services-1.5.0" level="project" />
     <orderEntry type="module" module-name="lib" exported="" />
   </component>
 </module>
