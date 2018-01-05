@@ -31,15 +31,15 @@ import io.token.security.keystore.SecretKeyPair;
 import java.security.KeyPair;
 
 /**
- * Token implementation of the {@link CryptoEngine}. The keys are persisted
+ * Token implementation of the {@link io.token.security.CryptoEngine}. The keys are persisted
  * in the provided storage
  */
-public final class TokenCryptoEngine implements CryptoEngine {
+public final class AKSCryptoEngine implements io.token.security.CryptoEngine {
     private static final CryptoType CRYPTO_TYPE = CryptoType.EDDSA;
     private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ED25519;
 
     private final String memberId;
-    private final KeyStore keyStore;
+    private final io.token.security.KeyStore keyStore;
     private final Crypto crypto;
 
     /**
@@ -48,18 +48,19 @@ public final class TokenCryptoEngine implements CryptoEngine {
      * @param memberId member ID
      * @param keyStore key store
      */
-    public TokenCryptoEngine(String memberId, KeyStore keyStore) {
+    public AKSCryptoEngine(String memberId, io.token.security.KeyStore keyStore) {
         this.memberId = memberId;
         this.keyStore = keyStore;
         this.crypto = CryptoRegistry
                 .getInstance()
                 .cryptoFor(CRYPTO_TYPE);
+        System.out.println("USING AKS ....");
     }
 
     @Override
     public Key generateKey(Key.Level keyLevel) {
         SecretKeyPair keyPair = SecretKeyPair.create(CRYPTO_TYPE);
-        SecretKey key = SecretKey.create(
+        io.token.security.SecretKey key = io.token.security.SecretKey.create(
                 keyPair.id(),
                 keyLevel,
                 new KeyPair(keyPair.publicKey(), keyPair.privateKey()));
@@ -74,13 +75,13 @@ public final class TokenCryptoEngine implements CryptoEngine {
 
     @Override
     public Signer createSigner(Key.Level keyLevel) {
-        SecretKey key = keyStore.getByLevel(memberId, keyLevel);
+        io.token.security.SecretKey key = keyStore.getByLevel(memberId, keyLevel);
         return crypto.signer(key.getId(), key.getPrivateKey());
     }
 
     @Override
     public Verifier createVerifier(String keyId) {
-        SecretKey key = keyStore.getById(memberId, keyId);
+        io.token.security.SecretKey key = keyStore.getById(memberId, keyId);
         return crypto.verifier(key.getPublicKey());
     }
 }

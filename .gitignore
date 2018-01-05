@@ -4,6 +4,7 @@ build/
 log/
 keys/
 /lib/out
+**/*.iml
 
 # Ignore Gradle GUI config
 gradle-app.setting

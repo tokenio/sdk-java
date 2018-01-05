@@ -1,4 +1,5 @@
 apply plugin: 'com.android.library'
+apply plugin: 'com.github.dcendents.android-maven'
 
 android {
     compileSdkVersion 27
@@ -66,19 +67,14 @@ dependencies {
     androidTestImplementation('com.android.support.test.espresso:espresso-core:2.2.2', {
         exclude group: 'com.android.support', module: 'support-annotations'
     })
-//    compile 'com.android.support:appcompat-v7:27.+'
     testImplementation 'junit:junit:4.12'
     api project(':lib')
     api group: 'io.token.rpc', name: 'tokenio-rpc-client-okhttp', version: ver.tokenRpc
 }
 
-task printRepos << {
-    repositories.each { println "Name: " + it.name + "; url: " + it.url }
-}
-
 task sourceJar(type: Jar) {
     from android.sourceSets.main.java.srcDirs
-    classifier "source"
+    classifier "sources"
 }
 
 archivesBaseName = 'tokenio-' + rootProject.name
@@ -95,6 +91,26 @@ publishing {
             artifactId archivesBaseName
             artifact(sourceJar)
             artifact("$buildDir/outputs/aar/${artifactId}-release.aar")
+
+            //generate pom nodes for dependencies
+            pom.withXml {
+                def dependenciesNode = asNode().appendNode('dependencies')
+
+                configurations.api.allDependencies.each { dependency ->
+                    if (dependency.version != null) {
+                        def artifactId = dependency.name
+                        if (artifactId == 'lib') {
+                            artifactId = 'tokenio-' + rootProject.name + '-lib'
+                        }
+//                        dependencyName = dependency.name
+//                        println dependency.properties.dependencyProject
+                        def dependencyNode = dependenciesNode.appendNode('dependency')
+                        dependencyNode.appendNode('groupId', dependency.group)
+                        dependencyNode.appendNode('artifactId', artifactId)
+                        dependencyNode.appendNode('version', dependency.version)
+                    }
+                }
+            }
         }
     }
 }
