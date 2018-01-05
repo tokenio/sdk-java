@@ -18,6 +18,7 @@ dependencies {
     compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: ver.rxjava
 }
 
+
 license {
     ext.year = Calendar.getInstance().get(Calendar.YEAR)
     ext.name = 'Token, Inc.'
@@ -40,4 +41,8 @@ javadocToken {
 downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = 'compile'
+}
+
+task printRepos << {
+    project.repositories.each { println "Name: " + it.name + "; url: " + it.url }
 }

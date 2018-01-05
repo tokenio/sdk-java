@@ -94,13 +94,13 @@
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: byte-buddy-1.6.11" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: byte-buddy-agent-1.6.11" level="project" />
     <orderEntry type="library" exported="" scope="TEST" name="Gradle: objenesis-2.5" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.87" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.87" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.87" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.87" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.87" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.87" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.87" level="project" />
-    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.87" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.88-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.88-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.88-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.88-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.88-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.88-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.88-SNAPSHOT" level="project" />
+    <orderEntry type="library" exported="" name="Gradle: lib.tokenio-sdk-lib-1.0.88-SNAPSHOT" level="project" />
   </component>
 </module>

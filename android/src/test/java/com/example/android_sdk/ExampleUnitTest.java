@@ -1,4 +1,4 @@
-package io.token.android_sdk;
+package com.example.android_sdk;
 
 import org.junit.Test;
 

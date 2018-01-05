@@ -34,7 +34,7 @@ import java.security.KeyPair;
  * Token implementation of the {@link CryptoEngine}. The keys are persisted
  * in the provided storage
  */
-public final class AKSCryptoEngine implements CryptoEngine {
+public final class TokenCryptoEngine implements CryptoEngine {
     private static final CryptoType CRYPTO_TYPE = CryptoType.EDDSA;
     private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ED25519;
 
@@ -48,7 +48,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
      * @param memberId member ID
      * @param keyStore key store
      */
-    public AKSCryptoEngine(String memberId, KeyStore keyStore) {
+    public TokenCryptoEngine(String memberId, KeyStore keyStore) {
         this.memberId = memberId;
         this.keyStore = keyStore;
         this.crypto = CryptoRegistry

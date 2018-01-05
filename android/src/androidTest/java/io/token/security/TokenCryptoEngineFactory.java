@@ -26,7 +26,7 @@ package io.token.security;
  * Creates {@link CryptoEngine} instances bound to a given member id.
  * Uses a provided key store to persist keys.
  */
-public class AKSCryptoEngineFactory implements CryptoEngineFactory {
+public class TokenCryptoEngineFactory implements CryptoEngineFactory {
     private final KeyStore keyStore;
 
     /**
@@ -35,7 +35,7 @@ public class AKSCryptoEngineFactory implements CryptoEngineFactory {
      *
      * @param keyStore key store
      */
-    public AKSCryptoEngineFactory(KeyStore keyStore) {
+    public TokenCryptoEngineFactory(KeyStore keyStore) {
         this.keyStore = keyStore;
     }
 
@@ -47,6 +47,6 @@ public class AKSCryptoEngineFactory implements CryptoEngineFactory {
      */
     @Override
     public CryptoEngine create(String memberId) {
-        return new AKSCryptoEngine(memberId, keyStore);
+        return new TokenCryptoEngine(memberId, keyStore);
     }
 }
