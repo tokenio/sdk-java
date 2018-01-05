@@ -96,6 +96,25 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
         return keyFromFile(getKeyFile(memberId, keyId));
     }
 
+    /**
+     * Deletes keys for a specific member.
+     *
+     * @param memberId Id of member
+     */
+    public void deleteKeys(String memberId) {
+        File memberPath = getMemberPath(memberId);
+        if (memberPath.exists()) {
+            File[] files = memberPath.listFiles();
+            if (files != null) {
+                for (File f : files) {
+                    if (!f.delete()) {
+                        throw new KeyIOException("Failed to delete member's key file");
+                    }
+                }
+            }
+        }
+    }
+
     private File getMemberPath(String memberId) {
         // Assumes memberId does not contain file separators, other than ':' which
         // has special meaning on Windows.

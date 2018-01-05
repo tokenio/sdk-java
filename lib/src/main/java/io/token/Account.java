@@ -110,6 +110,15 @@ public class Account {
     }
 
     /**
+     * Looks up if this account is locked.
+     *
+     * @return true if this account is locked; false otherwise.
+     */
+    public boolean isLocked() {
+        return async.isLocked();
+    }
+
+    /**
      * Looks up an account available balance.
      *
      * @param keyLevel key level

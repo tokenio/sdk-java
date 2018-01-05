@@ -113,6 +113,15 @@ public class AccountAsync {
     }
 
     /**
+     * Looks up if this account is locked.
+     *
+     * @return true if this account is locked; false otherwise.
+     */
+    public boolean isLocked() {
+        return account.getIsLocked();
+    }
+
+    /**
      * Gets a bank ID.
      *
      * @return bank ID
