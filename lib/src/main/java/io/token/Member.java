@@ -42,6 +42,8 @@ import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.RequestStepUp.RequestType;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -965,6 +967,36 @@ public class Member {
      */
     public BankAuthorization createTestBankAccount(double balance, String currency) {
         return async.createTestBankAccount(balance, currency).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for tokens.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public NotifyStatus triggerTokenStepUpNotification(String tokenId) {
+        return async.triggerTokenStepUpNotification(tokenId).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for information requests.
+     *
+     * @param requestType request type
+     * @return notification status
+     */
+    public NotifyStatus triggerRequestStepUpNotification(RequestType requestType) {
+        return async.triggerRequestStepUpNotification(requestType).blockingSingle();
+    }
+
+    /**
+     * Trigger a notification to inform of access token expiry.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public NotifyStatus notifyExpiredAccessToken(String tokenId) {
+        return async.notifyExpiredAccessToken(tokenId).blockingSingle();
     }
 
     @Override

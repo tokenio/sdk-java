@@ -4,12 +4,13 @@ import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.RequestStepUp.RequestType;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.util.Util;
 
-public final class NotifyPaymentRequestSample {
+public class NotifySample {
     /**
      * Creates a payment request (a transfer token payload)
      * and sends it to a potential payer.
@@ -44,5 +45,40 @@ public final class NotifyPaymentRequestSample {
 
         NotifyStatus status = tokenIO.notifyPaymentRequest(paymentRequest);
         return status;
+    }
+
+    /**
+     * Triggers a notification to step up the signature level when endorsing a token.
+     *
+     * @param member member
+     * @param tokenId token id
+     * @return notification status
+     */
+    public static NotifyStatus triggerTokenStepUpNotification(Member member, String tokenId) {
+        return member.triggerTokenStepUpNotification(tokenId);
+    }
+
+    /**
+     * Triggers a notification to step up the signature level when requesting information.
+     *
+     * @param member member
+     * @param requestType request type
+     * @return notification status
+     */
+    public static NotifyStatus triggerTokenStepUpNotification(
+            Member member,
+            RequestType requestType) {
+        return member.triggerRequestStepUpNotification(requestType);
+    }
+
+    /**
+     * Triggers a notification to inform an access token grantor that the token is expired.
+     *
+     * @param member member
+     * @param tokenId token id
+     * @return notification status
+     */
+    public static NotifyStatus notifyExpiredAccessToken(Member member, String tokenId) {
+        return member.notifyExpiredAccessToken(tokenId);
     }
 }

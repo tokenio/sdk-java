@@ -56,6 +56,10 @@ import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.RequestStepUp;
+import io.token.proto.common.notification.NotificationProtos.RequestStepUp.RequestType;
+import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -67,7 +71,6 @@ import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transaction.TransactionProtos.GetBalancePayload;
 import io.token.proto.common.transaction.TransactionProtos.GetTransactionPayload;
 import io.token.proto.common.transaction.TransactionProtos.GetTransactionsPayload;
-import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.gateway.Gateway;
@@ -138,6 +141,8 @@ import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetTransfersResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsResponse;
+import io.token.proto.gateway.Gateway.NotifyExpiredAccessTokenRequest;
+import io.token.proto.gateway.Gateway.NotifyExpiredAccessTokenResponse;
 import io.token.proto.gateway.Gateway.Page;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
@@ -151,6 +156,8 @@ import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
@@ -205,6 +212,7 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
+
         this.onBehalfOf = accessTokenId;
     }
 
@@ -1269,6 +1277,64 @@ public final class Client {
                         .setVerificationId(verificationId)
                         .setCode(code)
                         .build()));
+    }
+
+    /**
+     * Trigger a step up notification for tokens.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTokenStepUpNotification(String tokenId) {
+        return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
+                .newBuilder()
+                .setTokenStepUp(StepUp.newBuilder()
+                        .setTokenId(tokenId)
+                        .build())
+                .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Trigger a step up notification for information requests.
+     *
+     * @param requestType request type
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerRequestStepUpNotification(RequestType requestType) {
+        return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
+                .newBuilder()
+                .setRequestStepUp(RequestStepUp.newBuilder()
+                        .setRequestType(requestType)
+                        .build())
+                .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Trigger a notification to inform of access token expiry.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> notifyExpiredAccessToken(String tokenId) {
+        return toObservable(gateway.notifyExpiredAccessToken(NotifyExpiredAccessTokenRequest
+                .newBuilder()
+                .setTokenId(tokenId)
+                .build()))
+                .map(new Function<NotifyExpiredAccessTokenResponse, NotifyStatus>() {
+                    public NotifyStatus apply(NotifyExpiredAccessTokenResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(

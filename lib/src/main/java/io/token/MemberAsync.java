@@ -57,6 +57,8 @@ import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.RequestStepUp.RequestType;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -1126,6 +1128,36 @@ public class MemberAsync {
                 .setCurrency(currency)
                 .setValue(Double.toString(balance))
                 .build());
+    }
+
+    /**
+     * Trigger a step up notification for tokens.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTokenStepUpNotification(String tokenId) {
+        return client.triggerTokenStepUpNotification(tokenId);
+    }
+
+    /**
+     * Trigger a step up notification for information requests.
+     *
+     * @param requestType request type
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerRequestStepUpNotification(RequestType requestType) {
+        return client.triggerRequestStepUpNotification(requestType);
+    }
+
+    /**
+     * Trigger a notification to inform of access token expiry.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> notifyExpiredAccessToken(String tokenId) {
+        return client.notifyExpiredAccessToken(tokenId);
     }
 
     @Override
