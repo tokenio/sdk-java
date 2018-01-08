@@ -14,6 +14,7 @@ android {
         targetSdkVersion 27
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
 
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
@@ -30,6 +31,12 @@ android {
     }
     lintOptions {
         abortOnError false
+    }
+
+    packagingOptions {
+        exclude 'META-INF/INDEX.LIST'
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/io.netty.versions.properties'
     }
 }
 
@@ -73,11 +80,18 @@ repositories {
 
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
-    androidTestImplementation('com.android.support.test:runner:1.0.1')
-    androidTestUtil('com.android.support.test:orchestrator:1.0.1')
 
-    api project(':lib')
-    api group: 'io.token.rpc', name: 'tokenio-rpc-client-okhttp', version: ver.tokenRpc
+    api(project(':lib')){
+        exclude group: "com.google.api.grpc", module:"proto-google-common-protos"
+    }
+    api(group: 'io.token.rpc', name: 'tokenio-rpc-client-okhttp', version: ver.tokenRpc){
+        exclude group: "com.google.api.grpc", module:"proto-google-common-protos"
+    }
+
+    implementation 'com.android.support:support-annotations:25.3.1'
+
+    androidTestImplementation 'com.android.support.test:runner:1.0.1'
+    androidTestUtil 'com.android.support.test:orchestrator:1.0.1'
 }
 
 task sourceJar(type: Jar) {
@@ -110,8 +124,6 @@ publishing {
                         if (artifactId == 'lib') {
                             artifactId = 'tokenio-' + rootProject.name + '-lib'
                         }
-//                        dependencyName = dependency.name
-//                        println dependency.properties.dependencyProject
                         def dependencyNode = dependenciesNode.appendNode('dependency')
                         dependencyNode.appendNode('groupId', dependency.group)
                         dependencyNode.appendNode('artifactId', artifactId)

@@ -56,7 +56,11 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.RequestStepUp;
+import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -1015,6 +1019,14 @@ public class MemberAsync {
      */
     public Observable<Money> getCurrentBalance(String accountId) {
         return client.getCurrentBalance(accountId);
+    }
+
+    public NotifyStatus triggerStepUpNotification(StepUp stepUp) {
+
+    }
+
+    public NotifyStatus triggerStepUpNotification(RequestStepUp stepUp) {
+        client.trigg
     }
 
     /**
