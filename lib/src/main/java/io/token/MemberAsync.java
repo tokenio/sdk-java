@@ -987,41 +987,7 @@ public class MemberAsync {
      * @param keyLevel key level
      * @return transaction record
      */
-    public Observable<Transaction> getTransaction(
-            String accountId,
-            String transactionId,
-            Key.Level keyLevel) {
-        return client.getTransaction(accountId, transactionId, keyLevel)
-                .map(new Function<GetTransactionResponse, Transaction>() {
-                    public Transaction apply(GetTransactionResponse response) {
-                        return response.getTransaction();
-                    }
-                });
-    }
-
-    /**
-     * Looks up an existing transaction for a given account.
-     *
-     * @param accountId the account id
-     * @param transactionId ID of the transaction
-     * @return transaction record
-     */
-    @Deprecated
-    public Observable<GetTransactionResponse> getTransactionResponse(
-            String accountId,
-            String transactionId) {
-        return client.getTransaction(accountId, transactionId);
-    }
-
-    /**
-     * Looks up an existing transaction for a given account.
-     *
-     * @param accountId the account id
-     * @param transactionId ID of the transaction
-     * @param keyLevel key level
-     * @return transaction record
-     */
-    public Observable<GetTransactionResponse> getTransactionResponse(
+    public Observable<GetTransactionResponse> getTransaction(
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
@@ -1060,47 +1026,7 @@ public class MemberAsync {
      * @param keyLevel key level
      * @return a list of transaction records
      */
-    public Observable<PagedList<Transaction, String>> getTransactions(
-            String accountId,
-            @Nullable String offset,
-            int limit,
-            Key.Level keyLevel) {
-        return client.getTransactions(accountId, offset, limit, keyLevel)
-                .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
-                    public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
-                        return PagedList.create(
-                                response.getTransactionsList(),
-                                response.getOffset());
-                    }
-                });
-    }
-
-    /**
-     * Looks up transactions for a given account.
-     *
-     * @param accountId the account id
-     * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @return a list of transaction records
-     */
-    @Deprecated
-    public Observable<GetTransactionsResponse> getTransactionsResponse(
-            String accountId,
-            @Nullable String offset,
-            int limit) {
-        return client.getTransactions(accountId, offset, limit);
-    }
-
-    /**
-     * Looks up transactions for a given account.
-     *
-     * @param accountId the account id
-     * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @param keyLevel key level
-     * @return a list of transaction records
-     */
-    public Observable<GetTransactionsResponse> getTransactionsResponse(
+    public Observable<GetTransactionsResponse> getTransactions(
             String accountId,
             @Nullable String offset,
             int limit,
@@ -1141,22 +1067,6 @@ public class MemberAsync {
     }
 
     /**
-     * Looks up account available balance.
-     *
-     * @param accountId the account id
-     * @param keyLevel key level
-     * @return available balance
-     */
-    public Observable<Money> getAvailableBalance(String accountId, Key.Level keyLevel) {
-        return client.getBalance(accountId, keyLevel)
-                .map(new Function<GetBalanceResponse, Money>() {
-                    public Money apply(GetBalanceResponse response) {
-                        return response.getAvailable();
-                    }
-                });
-    }
-
-    /**
      * Looks up account current balance.
      *
      * @param accountId the account id
@@ -1170,33 +1080,6 @@ public class MemberAsync {
                         return response.getCurrent();
                     }
                 });
-    }
-
-    /**
-     * Looks up account current balance.
-     *
-     * @param accountId the account id
-     * @param keyLevel key level
-     * @return current balance
-     */
-    public Observable<Money> getCurrentBalance(String accountId, Key.Level keyLevel) {
-        return client.getBalance(accountId, keyLevel)
-                .map(new Function<GetBalanceResponse, Money>() {
-                    public Money apply(GetBalanceResponse response) {
-                        return response.getCurrent();
-                    }
-                });
-    }
-
-    /**
-     * Looks up account balance.
-     *
-     * @param accountId the account id
-     * @return balance
-     */
-    @Deprecated
-    public Observable<GetBalanceResponse> getBalance(String accountId) {
-        return client.getBalance(accountId);
     }
 
     /**

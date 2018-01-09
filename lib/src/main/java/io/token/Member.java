@@ -811,39 +811,13 @@ public class Member {
      * @param accountId the account id
      * @param transactionId ID of the transaction
      * @param keyLevel key level
-     * @return transaction record
-     */
-    public Transaction getTransaction(String accountId, String transactionId, Key.Level keyLevel) {
-        return async.getTransaction(accountId, transactionId, keyLevel).blockingSingle();
-    }
-
-    /**
-     * Looks up an existing transaction for a given account.
-     *
-     * @param accountId the account id
-     * @param transactionId ID of the transaction
      * @return transaction response
      */
-    @Deprecated
-    public GetTransactionResponse getTransactionResponse(
-            String accountId,
-            String transactionId) {
-        return async.getTransactionResponse(accountId, transactionId).blockingSingle();
-    }
-
-    /**
-     * Looks up an existing transaction for a given account.
-     *
-     * @param accountId the account id
-     * @param transactionId ID of the transaction
-     * @param keyLevel key level
-     * @return transaction response
-     */
-    public GetTransactionResponse getTransactionResponse(
+    public GetTransactionResponse getTransaction(
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
-        return async.getTransactionResponse(accountId, transactionId, keyLevel).blockingSingle();
+        return async.getTransaction(accountId, transactionId, keyLevel).blockingSingle();
     }
 
     /**
@@ -869,47 +843,14 @@ public class Member {
      * @param offset optional offset to start at
      * @param limit max number of records to return
      * @param keyLevel key level
-     * @return a list of transaction record
+     * @return transactions response
      */
-    public PagedList<Transaction, String> getTransactions(
+    public GetTransactionsResponse getTransactions(
             String accountId,
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
         return async.getTransactions(accountId, offset, limit, keyLevel).blockingSingle();
-    }
-
-    /**
-     * Looks up transactions for a given account.
-     *
-     * @param accountId the account id
-     * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @return transactions response
-     */
-    @Deprecated
-    public GetTransactionsResponse getTransactionsResponse(
-            String accountId,
-            @Nullable String offset,
-            int limit) {
-        return async.getTransactionsResponse(accountId, offset, limit).blockingSingle();
-    }
-
-    /**
-     * Looks up transactions for a given account.
-     *
-     * @param accountId the account id
-     * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @param keyLevel key level
-     * @return transactions response
-     */
-    public GetTransactionsResponse getTransactionsResponse(
-            String accountId,
-            @Nullable String offset,
-            int limit,
-            Key.Level keyLevel) {
-        return async.getTransactionsResponse(accountId, offset, limit, keyLevel).blockingSingle();
     }
 
     /**
@@ -924,17 +865,6 @@ public class Member {
     }
 
     /**
-     * Looks up account available balance.
-     *
-     * @param accountId the account id
-     * @param keyLevel key level
-     * @return available balance
-     */
-    public Money getAvailableBalance(String accountId, Key.Level keyLevel) {
-        return async.getAvailableBalance(accountId, keyLevel).blockingSingle();
-    }
-
-    /**
      * Looks up account current balance.
      *
      * @param accountId the account id
@@ -943,28 +873,6 @@ public class Member {
     @Deprecated
     public Money getCurrentBalance(String accountId) {
         return async.getCurrentBalance(accountId).blockingSingle();
-    }
-
-    /**
-     * Looks up account current balance.
-     *
-     * @param accountId the account id
-     * @param keyLevel key level
-     * @return current balance
-     */
-    public Money getCurrentBalance(String accountId, Key.Level keyLevel) {
-        return async.getCurrentBalance(accountId, keyLevel).blockingSingle();
-    }
-
-    /**
-     * Looks up account balance.
-     *
-     * @param accountId account id
-     * @return balance
-     */
-    @Deprecated
-    public GetBalanceResponse getBalance(String accountId) {
-        return async.getBalance(accountId).blockingSingle();
     }
 
     /**

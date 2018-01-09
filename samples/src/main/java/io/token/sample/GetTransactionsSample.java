@@ -21,7 +21,8 @@ public final class GetTransactionsSample {
         List<Account> accounts = payer.getAccounts();
         String accountId = accounts.get(0).id();
         for (Transaction transaction :
-                payer.getTransactions(accountId, null, 10, STANDARD).getList()) {
+                payer.getTransactions(accountId, null, 10, STANDARD)
+                        .getTransactionsList()) {
             displayTransaction(
                     transaction.getAmount().getCurrency(),
                     transaction.getAmount().getValue(),
@@ -47,7 +48,8 @@ public final class GetTransactionsSample {
         Transaction transaction = payer.getTransaction(
                 accountId,
                 transactionId,
-                STANDARD);
+                STANDARD)
+                .getTransaction();
         return transaction;
     }
 
@@ -60,7 +62,7 @@ public final class GetTransactionsSample {
         Account account = payer.getAccounts().get(0);
 
         for (Transaction transaction :
-                account.getTransactions(null, 10, STANDARD).getList()) {
+                account.getTransactions(null, 10, STANDARD).getTransactionsList()) {
             displayTransaction(
                     transaction.getAmount().getCurrency(),
                     transaction.getAmount().getValue(),
@@ -82,7 +84,7 @@ public final class GetTransactionsSample {
         Account account = payer.getAccounts().get(0);
 
         String txnId = transfer.getTransactionId();
-        Transaction transaction = account.getTransaction(txnId, STANDARD);
+        Transaction transaction = account.getTransaction(txnId, STANDARD).getTransaction();
         return transaction;
     }
 

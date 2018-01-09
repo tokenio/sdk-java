@@ -133,11 +133,11 @@ public class AccountAsync {
     /**
      * Looks up an account available balance.
      *
-     * @param keyLevel key level
      * @return account available balance
      */
-    public Observable<Money> getAvailableBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel)
+    @Deprecated
+    public Observable<Money> getAvailableBalance() {
+        return client.getBalance(account.getId())
                 .map(new Function<GetBalanceResponse, Money>() {
                     public Money apply(GetBalanceResponse response) {
                         return response.getAvailable();
@@ -148,11 +148,11 @@ public class AccountAsync {
     /**
      * Looks up an account current balance.
      *
-     * @param keyLevel key level
      * @return account current balance
      */
-    public Observable<Money> getCurrentBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel)
+    @Deprecated
+    public Observable<Money> getCurrentBalance() {
+        return client.getBalance(account.getId())
                 .map(new Function<GetBalanceResponse, Money>() {
                     public Money apply(GetBalanceResponse response) {
                         return response.getCurrent();
@@ -174,11 +174,11 @@ public class AccountAsync {
      * Looks up an existing transaction. Doesn't have to be a transaction for a token transfer.
      *
      * @param transactionId ID of the transaction
-     * @param keyLevel key level
      * @return transaction record
      */
-    public Observable<Transaction> getTransaction(String transactionId, Key.Level keyLevel) {
-        return client.getTransaction(account.getId(), transactionId, keyLevel)
+    @Deprecated
+    public Observable<Transaction> getTransaction(String transactionId) {
+        return client.getTransaction(account.getId(), transactionId)
                 .map(new Function<GetTransactionResponse, Transaction>() {
                     public Transaction apply(GetTransactionResponse response) {
                         return response.getTransaction();
@@ -193,7 +193,7 @@ public class AccountAsync {
      * @param keyLevel key level
      * @return transaction response
      */
-    public Observable<GetTransactionResponse> getTransactionResponse(
+    public Observable<GetTransactionResponse> getTransaction(
             String transactionId,
             Key.Level keyLevel) {
         return client.getTransaction(account.getId(), transactionId, keyLevel);
@@ -205,14 +205,13 @@ public class AccountAsync {
      *
      * @param offset offset to start at
      * @param limit max number of records to return
-     * @param keyLevel key level
      * @return list of transactions
      */
+    @Deprecated
     public Observable<PagedList<Transaction, String>> getTransactions(
             @Nullable String offset,
-            int limit,
-            Key.Level keyLevel) {
-        return client.getTransactions(account.getId(), offset, limit, keyLevel)
+            int limit) {
+        return client.getTransactions(account.getId(), offset, limit)
                 .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
                     public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
                         return PagedList.create(
@@ -230,7 +229,7 @@ public class AccountAsync {
      * @param keyLevel key level
      * @return transactions response
      */
-    public Observable<GetTransactionsResponse> getTransactionsResponse(
+    public Observable<GetTransactionsResponse> getTransactions(
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {

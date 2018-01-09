@@ -26,7 +26,7 @@ public final class RedeemAccessTokenSample {
         List<Account> grantorAccounts = grantee.getAccounts();
 
         // Get the data we want
-        Money balance0 = grantorAccounts.get(0).getCurrentBalance(STANDARD);
+        Money balance0 = grantorAccounts.get(0).getBalance(STANDARD).getCurrent();
 
         // When done using access, clear token from grantee client.
         grantee.clearAccessToken();
