@@ -748,6 +748,23 @@ public final class Client {
         return cancelAndReplace(tokenToCancel, createToken);
     }
 
+
+    /**
+     * Look up account balance.
+     * @param accountId account id
+     * @return account balance
+     */
+    @Deprecated
+    public Observable<GetBalanceResponse> getBalance(String accountId) {
+        setAuthenticationContext();
+
+        return toObservable(gateway
+                .getBalance(GetBalanceRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .build()));
+    }
+
     /**
      * Look up account balance.
      * @param accountId account id
@@ -862,6 +879,27 @@ public final class Client {
      *
      * @param accountId account id
      * @param transactionId transaction id
+     * @return transaction response
+     */
+    @Deprecated
+    public Observable<GetTransactionResponse> getTransaction(
+            String accountId,
+            String transactionId) {
+        setAuthenticationContext();
+
+        return toObservable(gateway
+                .getTransaction(GetTransactionRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .setTransactionId(transactionId)
+                        .build()));
+    }
+
+    /**
+     * Look up an existing transaction and return the response.
+     *
+     * @param accountId account id
+     * @param transactionId transaction id
      * @param keyLevel key level
      * @return transaction response
      */
@@ -893,6 +931,29 @@ public final class Client {
                                 .setMemberId(memberId)
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(payload)))
+                        .build()));
+    }
+
+    /**
+     * Lookup transactions and return response.
+     *
+     * @param accountId account id
+     * @param offset offset
+     * @param limit limit
+     * @return transactions response
+     */
+    @Deprecated
+    public Observable<GetTransactionsResponse> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit) {
+        setAuthenticationContext();
+
+        return toObservable(gateway
+                .getTransactions(GetTransactionsRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .setPage(pageBuilder(offset, limit))
                         .build()));
     }
 
@@ -1314,24 +1375,6 @@ public final class Client {
                 .build()))
                 .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
                     public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
-                        return response.getStatus();
-                    }
-                });
-    }
-
-    /**
-     * Trigger a notification to inform of access token expiry.
-     *
-     * @param tokenId token id
-     * @return notification status
-     */
-    public Observable<NotifyStatus> notifyExpiredAccessToken(String tokenId) {
-        return toObservable(gateway.notifyExpiredAccessToken(NotifyExpiredAccessTokenRequest
-                .newBuilder()
-                .setTokenId(tokenId)
-                .build()))
-                .map(new Function<NotifyExpiredAccessTokenResponse, NotifyStatus>() {
-                    public NotifyStatus apply(NotifyExpiredAccessTokenResponse response) {
                         return response.getStatus();
                     }
                 });

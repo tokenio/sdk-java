@@ -56,18 +56,4 @@ public class NotifySampleTest {
             assertThat(status).isNotNull();
         }
     }
-
-    @Test
-    public void notifyExpiredAccessTokenTest() {
-        try (TokenIO tokenIO = createClient()) {
-            Member grantor = tokenIO.createMember(randomAlias());
-            Alias granteeAlias = randomAlias();
-            Member grantee = tokenIO.createMember(granteeAlias);
-
-            Token token = createAccessToken(grantor, granteeAlias);
-
-            NotifyStatus status = grantee.notifyExpiredAccessToken(token.getId());
-            assertThat(status).isNotNull();
-        }
-    }
 }

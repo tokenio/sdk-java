@@ -965,6 +965,25 @@ public class MemberAsync {
      *
      * @param accountId the account id
      * @param transactionId ID of the transaction
+     * @return transaction record
+     */
+    @Deprecated
+    public Observable<Transaction> getTransaction(
+            String accountId,
+            String transactionId) {
+        return client.getTransaction(accountId, transactionId)
+                .map(new Function<GetTransactionResponse, Transaction>() {
+                    public Transaction apply(GetTransactionResponse response) {
+                        return response.getTransaction();
+                    }
+                });
+    }
+
+    /**
+     * Looks up an existing transaction for a given account.
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
      * @param keyLevel key level
      * @return transaction record
      */
@@ -985,6 +1004,20 @@ public class MemberAsync {
      *
      * @param accountId the account id
      * @param transactionId ID of the transaction
+     * @return transaction record
+     */
+    @Deprecated
+    public Observable<GetTransactionResponse> getTransactionResponse(
+            String accountId,
+            String transactionId) {
+        return client.getTransaction(accountId, transactionId);
+    }
+
+    /**
+     * Looks up an existing transaction for a given account.
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
      * @param keyLevel key level
      * @return transaction record
      */
@@ -993,6 +1026,29 @@ public class MemberAsync {
             String transactionId,
             Key.Level keyLevel) {
         return client.getTransaction(accountId, transactionId, keyLevel);
+    }
+
+    /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @return a list of transaction records
+     */
+    @Deprecated
+    public Observable<PagedList<Transaction, String>> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit) {
+        return client.getTransactions(accountId, offset, limit)
+                .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
+                    public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
+                        return PagedList.create(
+                                response.getTransactionsList(),
+                                response.getOffset());
+                    }
+                });
     }
 
     /**
@@ -1017,6 +1073,22 @@ public class MemberAsync {
                                 response.getOffset());
                     }
                 });
+    }
+
+    /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @return a list of transaction records
+     */
+    @Deprecated
+    public Observable<GetTransactionsResponse> getTransactionsResponse(
+            String accountId,
+            @Nullable String offset,
+            int limit) {
+        return client.getTransactions(accountId, offset, limit);
     }
 
     /**
@@ -1056,6 +1128,22 @@ public class MemberAsync {
      * Looks up account available balance.
      *
      * @param accountId the account id
+     * @return available balance
+     */
+    @Deprecated
+    public Observable<Money> getAvailableBalance(String accountId) {
+        return client.getBalance(accountId)
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
+                        return response.getAvailable();
+                    }
+                });
+    }
+
+    /**
+     * Looks up account available balance.
+     *
+     * @param accountId the account id
      * @param keyLevel key level
      * @return available balance
      */
@@ -1064,6 +1152,22 @@ public class MemberAsync {
                 .map(new Function<GetBalanceResponse, Money>() {
                     public Money apply(GetBalanceResponse response) {
                         return response.getAvailable();
+                    }
+                });
+    }
+
+    /**
+     * Looks up account current balance.
+     *
+     * @param accountId the account id
+     * @return current balance
+     */
+    @Deprecated
+    public Observable<Money> getCurrentBalance(String accountId) {
+        return client.getBalance(accountId)
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
+                        return response.getCurrent();
                     }
                 });
     }
@@ -1088,8 +1192,19 @@ public class MemberAsync {
      * Looks up account balance.
      *
      * @param accountId the account id
+     * @return balance
+     */
+    @Deprecated
+    public Observable<GetBalanceResponse> getBalance(String accountId) {
+        return client.getBalance(accountId);
+    }
+
+    /**
+     * Looks up account balance.
+     *
+     * @param accountId the account id
      * @param keyLevel key level
-     * @return current balance
+     * @return balance
      */
     public Observable<GetBalanceResponse> getBalance(String accountId, Key.Level keyLevel) {
         return client.getBalance(accountId, keyLevel);
@@ -1148,16 +1263,6 @@ public class MemberAsync {
      */
     public Observable<NotifyStatus> triggerRequestStepUpNotification(RequestType requestType) {
         return client.triggerRequestStepUpNotification(requestType);
-    }
-
-    /**
-     * Trigger a notification to inform of access token expiry.
-     *
-     * @param tokenId token id
-     * @return notification status
-     */
-    public Observable<NotifyStatus> notifyExpiredAccessToken(String tokenId) {
-        return client.notifyExpiredAccessToken(tokenId);
     }
 
     @Override

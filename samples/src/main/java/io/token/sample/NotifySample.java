@@ -70,15 +70,4 @@ public class NotifySample {
             RequestType requestType) {
         return member.triggerRequestStepUpNotification(requestType);
     }
-
-    /**
-     * Triggers a notification to inform an access token grantor that the token is expired.
-     *
-     * @param member member
-     * @param tokenId token id
-     * @return notification status
-     */
-    public static NotifyStatus notifyExpiredAccessToken(Member member, String tokenId) {
-        return member.notifyExpiredAccessToken(tokenId);
-    }
 }
