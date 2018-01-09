@@ -56,6 +56,9 @@ import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.RequestStepUp;
+import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -148,6 +151,8 @@ import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
@@ -1109,6 +1114,44 @@ public final class Client {
                 .map(new Function<GetProfilePictureResponse, Blob>() {
                     public Blob apply(GetProfilePictureResponse response) {
                         return response.getBlob();
+                    }
+                });
+    }
+
+    /**
+     * Triggers a step up notification for a token.
+     *
+     * @param stepUp notification content, containing token Id
+     * @return status of the notification
+     */
+    public Observable<NotifyStatus> triggerStepUpNotification(StepUp stepUp) {
+        return toObservable(gateway
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest
+                        .newBuilder()
+                        .setTokenStepUp(stepUp)
+                        .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Triggers a step up notification for an information request.
+     *
+     * @param stepUp notification content
+     * @return status of the notification
+     */
+    public Observable<NotifyStatus> triggerStepUpNotification(RequestStepUp stepUp) {
+        return toObservable(gateway
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest
+                        .newBuilder()
+                        .setRequestStepUp(stepUp)
+                        .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
                     }
                 });
     }

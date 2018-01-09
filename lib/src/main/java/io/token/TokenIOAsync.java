@@ -314,6 +314,17 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
+     * Sends a notification that an access token has expired.
+     *
+     * @param tokenId the id of the token
+     * @return status of the notification request
+     */
+    public Observable<NotifyStatus> notifyExpiredAccessToken(String tokenId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.notifyExpiredAccessToken(tokenId);
+    }
+
+    /**
      * Begins account recovery.
      *
      * @param alias the alias used to recover

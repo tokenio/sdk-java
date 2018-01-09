@@ -272,6 +272,18 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Sends a notification to request a payment.
+     *
+     * @param tokenId id of the token
+     * @return status of the notification request
+     */
+    public NotifyStatus notifyExpiredAccessToken(String tokenId) {
+        return async
+                .notifyExpiredAccessToken(tokenId)
+                .blockingSingle();
+    }
+
+    /**
      * Begins account recovery.
      *
      * @param alias the alias used to recover
