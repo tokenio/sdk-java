@@ -1021,14 +1021,6 @@ public class MemberAsync {
         return client.getCurrentBalance(accountId);
     }
 
-    public NotifyStatus triggerStepUpNotification(StepUp stepUp) {
-
-    }
-
-    public NotifyStatus triggerStepUpNotification(RequestStepUp stepUp) {
-        client.trigg
-    }
-
     /**
      * Returns a list of all token enabled banks.
      *
