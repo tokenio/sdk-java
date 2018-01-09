@@ -105,7 +105,8 @@ public final class AKSCryptoEngine implements io.token.security.CryptoEngine {
 
     @Override
     public Signer createSigner(Key.Level keyLevel) {
-        return new AKSSigner(getKeyFromKeyStore(keyLevel));
+        boolean requiresAuth =  !(keyLevel == Key.Level.LOW);
+        return new AKSSigner(getKeyFromKeyStore(keyLevel), requiresAuth, context);
     }
 
     @Override

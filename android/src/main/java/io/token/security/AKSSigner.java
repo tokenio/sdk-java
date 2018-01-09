@@ -1,5 +1,6 @@
 package io.token.security;
 
+import android.content.Context;
 import com.google.protobuf.Message;
 import io.token.proto.ProtoJson;
 import io.token.util.codec.ByteEncoding;
@@ -12,9 +13,13 @@ import java.security.Signature;
 
 public class AKSSigner implements Signer{
     private final Entry entry;
+    private boolean requiresAuth;
+    private Context context;
 
-    AKSSigner(Entry entry) {
+    AKSSigner(Entry entry, boolean requiresAuth, Context context) {
         this.entry = entry;
+        this.requiresAuth = requiresAuth;
+        this.context = context;
     }
     @Override
     public String getKeyId() {
@@ -30,6 +35,9 @@ public class AKSSigner implements Signer{
     @Override
     public String sign(String payload) {
         try {
+            if (requiresAuth) {
+                // TODO: Use context to prompt user for signature
+            }
             Signature s = Signature.getInstance("SHA256withECDSA");
             s.initSign(((PrivateKeyEntry) entry).getPrivateKey());
             s.update(payload.getBytes("UTF-8"));
