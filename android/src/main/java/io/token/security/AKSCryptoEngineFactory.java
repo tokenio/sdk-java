@@ -25,15 +25,14 @@ package io.token.security;
 import android.content.Context;
 
 /**
- * Creates {@link io.token.security.CryptoEngine} instances bound to a given member id.
- * Uses a provided key store to persist keys.
+ * Creates {@link io.token.security.AKSCryptoEngine} instances bound to a given member id.
+ * Uses a provided context to draw authentication UI.
  */
 public class AKSCryptoEngineFactory implements io.token.security.CryptoEngineFactory {
     private final Context context;
 
     /**
-     * Creates a new instance of the factory that uses supplied store
-     * to persist the keys.
+     * Creates a new instance of the factory
      *
      * @param context context
      */
@@ -42,7 +41,7 @@ public class AKSCryptoEngineFactory implements io.token.security.CryptoEngineFac
     }
 
     /**
-     * Creates a new {@link io.token.security.CryptoEngine} for the given member.
+     * Creates a new {@link io.token.security.AKSCryptoEngine} for the given member.
      *
      * @param memberId member id
      * @return crypto engine instance
