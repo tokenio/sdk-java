@@ -47,6 +47,7 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -55,6 +56,8 @@ import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.NotifyExpiredAccessTokenRequest;
+import io.token.proto.gateway.Gateway.NotifyExpiredAccessTokenResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
@@ -294,6 +297,25 @@ public final class UnauthenticatedClient {
     @Deprecated
     public Observable<NotifyStatus> notifyPaymentRequest(Alias alias, TokenPayload tokenPayload) {
         return notifyPaymentRequest(tokenPayload);
+    }
+
+    /**
+     * Triggers a step up notification for an information request.
+     *
+     * @param tokenId the id of the expired token
+     * @return status of the notification
+     */
+    public Observable<NotifyStatus> notifyExpiredAccessToken(String tokenId) {
+        return toObservable(gateway
+                .notifyExpiredAccessToken(NotifyExpiredAccessTokenRequest
+                        .newBuilder()
+                        .setTokenId(tokenId)
+                        .build()))
+                .map(new Function<NotifyExpiredAccessTokenResponse, NotifyStatus>() {
+                    public NotifyStatus apply(NotifyExpiredAccessTokenResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 
     /**

@@ -42,7 +42,11 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.RequestStepUp;
+import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
@@ -835,6 +839,26 @@ public class Member {
      */
     public Money getCurrentBalance(String accountId) {
         return async.getCurrentBalance(accountId).blockingSingle();
+    }
+
+    /**
+     * Triggers a step up notification for a token.
+     *
+     * @param stepUp notification payload containing tokenId
+     * @return status of the notification
+     */
+    public NotifyStatus triggerStepUpNotification(StepUp stepUp) {
+        return async.triggerStepUpNotification(stepUp).blockingSingle();
+    }
+
+    /**
+     * Triggers a step up notification for an information request.
+     *
+     * @param stepUp notification payload
+     * @return status of the notification
+     */
+    public NotifyStatus triggerStepUpNotification(RequestStepUp stepUp) {
+        return async.triggerStepUpNotification(stepUp).blockingSingle();
     }
 
     /**
