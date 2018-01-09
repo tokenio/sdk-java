@@ -23,7 +23,10 @@
 package io.token.security;
 
 import android.content.Context;
+import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
+import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyProperties;
 import com.google.common.hash.Hashing;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.util.codec.ByteEncoding;
@@ -33,12 +36,15 @@ import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
+import java.security.KeyPairGeneratorSpi;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.UnrecoverableEntryException;
 import java.security.cert.CertificateException;
+import java.security.spec.AlgorithmParameterSpec;
+import java.security.spec.ECGenParameterSpec;
 import java.util.Calendar;
 import java.util.Enumeration;
 import javax.security.auth.x500.X500Principal;
@@ -49,6 +55,7 @@ import javax.security.auth.x500.X500Principal;
  */
 public final class AKSCryptoEngine implements io.token.security.CryptoEngine {
     private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ECDSA_SHA256;
+    private static final int AUTHENTICATION_DURATION_SECONDS = 5*60;
 
     private static final String KEY_NAME = "tokenapp_key";
     private final String memberId;
@@ -69,31 +76,51 @@ public final class AKSCryptoEngine implements io.token.security.CryptoEngine {
 
     @Override
     public Key generateKey(Key.Level keyLevel) {
-        Calendar start = Calendar.getInstance();
-        Calendar end = Calendar.getInstance();
-        end.add(Calendar.YEAR, 256);
 
-        KeyPairGenerator mKeyPairGenerator;
+        KeyPairGenerator kpg;
+
         try {
-            KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
-                    .setAlias(getAlias(keyLevel))
-                    .setKeyType("EC")
-                    .setKeySize(256)
-                    .setSubject(new X500Principal("CN=myKey"))
-                    .setStartDate(start.getTime())
-                    .setEndDate(end.getTime())
-                    .setSerialNumber(BigInteger.ONE)
-                    .build();
-            mKeyPairGenerator = KeyPairGenerator.getInstance(
-                    "RSA",
-                    "AndroidKeyStore");
-            mKeyPairGenerator.initialize(spec);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // API 23 and higher, use new API
+                KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(
+                        getAlias(keyLevel),
+                        KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
+                        .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
+                        .setDigests(KeyProperties.DIGEST_SHA256)
+                        .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
+                        .setUserAuthenticationValidityDurationSeconds(
+                                AUTHENTICATION_DURATION_SECONDS);
+                kpg = KeyPairGenerator.getInstance(
+                        KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
+
+                kpg.initialize(builder.build());
+            } else {
+                // Use old method of generating keys
+                Calendar start = Calendar.getInstance();
+                Calendar end = Calendar.getInstance();
+                end.add(Calendar.YEAR, 256);
+                KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
+                        .setAlias(getAlias(keyLevel))
+                        .setKeyType("EC")
+                        .setKeySize(256)
+                        .setSubject(new X500Principal("CN=myKey"))
+                        .setStartDate(start.getTime())
+                        .setEndDate(end.getTime())
+                        .setSerialNumber(BigInteger.ONE)
+                        .build();
+                kpg = KeyPairGenerator.getInstance(
+                        "RSA",
+                        "AndroidKeyStore");
+                kpg.initialize(spec);
+            }
         } catch (NoSuchAlgorithmException | NoSuchProviderException |
                 InvalidAlgorithmParameterException e) {
             throw new RuntimeException(e);
         }
-        KeyPair keyPair = mKeyPairGenerator.generateKeyPair();
-        String serializedPk = ByteEncoding.serialize(keyPair.getPublic().getEncoded());
+
+        KeyPair kp = kpg.generateKeyPair();
+        String serializedPk = ByteEncoding.serialize(kp.getPublic().getEncoded());
+        System.out.println("PK: " + serializedPk);
 
         return Key.newBuilder()
                 .setId(keyIdFor(serializedPk))
@@ -101,6 +128,7 @@ public final class AKSCryptoEngine implements io.token.security.CryptoEngine {
                 .setLevel(keyLevel)
                 .setPublicKey(serializedPk)
                 .build();
+
     }
 
     @Override
@@ -140,14 +168,9 @@ public final class AKSCryptoEngine implements io.token.security.CryptoEngine {
             Enumeration<String> aliases = ks.aliases();
             while(aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                KeyStore.Entry entry = ks.getEntry(alias, null);
-                if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
-                    continue;
-                }
-                byte[] publicKey = ((KeyStore.PrivateKeyEntry)entry)
-                        .getCertificate().getPublicKey().getEncoded();
+                byte[] publicKey = ks.getCertificate(alias).getPublicKey().getEncoded();
                 if (keyIdFor(ByteEncoding.serialize(publicKey)).equals(keyId)) {
-                    return entry;
+                    return ks.getEntry(alias, null);
                 }
             }
         } catch (UnrecoverableEntryException |
