@@ -8,7 +8,12 @@ More information at [https://developer.token.io/sdk/](https://developer.token.io
 
 Requirements
 ============
-The SDK requires Java 7.
+The SDK requires Java 7. To run on android, add the following line to your gradle properties file,
+at ~/.gradle/gradle.properties:
+
+```
+android.injected.build.model.only.versioned=3
+```
 
 Building
 ========
