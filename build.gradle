@@ -1,5 +1,9 @@
+apply plugin: 'com.jfrog.artifactory'
+apply plugin: 'maven-publish'
+
 buildscript {
     repositories {
+        google()
         mavenLocal()
         jcenter()
         maven { url 'https://token.jfrog.io/token/public-gradle-plugins-local/' }
@@ -10,6 +14,9 @@ buildscript {
         classpath 'net.ltgt.gradle:gradle-apt-plugin:0.9'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.14.0'
         classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.4'
+        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
     }
 }
 
@@ -25,7 +32,7 @@ allprojects {
     }
 
     group = 'io.token.sdk'
-    version = '1.0.88'
+    version = '1.0.90'
 
     apply plugin: 'io.token.gradle.publish'
 }
