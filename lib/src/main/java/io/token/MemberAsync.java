@@ -57,11 +57,8 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.notification.NotificationProtos.RequestStepUp;
-import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -72,7 +69,10 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.gateway.Gateway.GetBalanceResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
+import io.token.proto.gateway.Gateway.GetTransactionResponse;
+import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
@@ -967,8 +967,31 @@ public class MemberAsync {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
-    public Observable<Transaction> getTransaction(String accountId, String transactionId) {
-        return client.getTransaction(accountId, transactionId);
+    @Deprecated
+    public Observable<Transaction> getTransaction(
+            String accountId,
+            String transactionId) {
+        return client.getTransaction(accountId, transactionId)
+                .map(new Function<GetTransactionResponse, Transaction>() {
+                    public Transaction apply(GetTransactionResponse response) {
+                        return response.getTransaction();
+                    }
+                });
+    }
+
+    /**
+     * Looks up an existing transaction for a given account.
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @param keyLevel key level
+     * @return transaction record
+     */
+    public Observable<GetTransactionResponse> getTransaction(
+            String accountId,
+            String transactionId,
+            Key.Level keyLevel) {
+        return client.getTransaction(accountId, transactionId, keyLevel);
     }
 
     /**
@@ -979,11 +1002,36 @@ public class MemberAsync {
      * @param limit max number of records to return
      * @return a list of transaction records
      */
+    @Deprecated
     public Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
             @Nullable String offset,
             int limit) {
-        return client.getTransactions(accountId, offset, limit);
+        return client.getTransactions(accountId, offset, limit)
+                .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
+                    public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
+                        return PagedList.create(
+                                response.getTransactionsList(),
+                                response.getOffset());
+                    }
+                });
+    }
+
+    /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @return a list of transaction records
+     */
+    public Observable<GetTransactionsResponse> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        return client.getTransactions(accountId, offset, limit, keyLevel);
     }
 
     /**
@@ -1008,8 +1056,14 @@ public class MemberAsync {
      * @param accountId the account id
      * @return available balance
      */
+    @Deprecated
     public Observable<Money> getAvailableBalance(String accountId) {
-        return client.getAvailableBalance(accountId);
+        return client.getBalance(accountId)
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
+                        return response.getAvailable();
+                    }
+                });
     }
 
     /**
@@ -1018,8 +1072,25 @@ public class MemberAsync {
      * @param accountId the account id
      * @return current balance
      */
+    @Deprecated
     public Observable<Money> getCurrentBalance(String accountId) {
-        return client.getCurrentBalance(accountId);
+        return client.getBalance(accountId)
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
+                        return response.getCurrent();
+                    }
+                });
+    }
+
+    /**
+     * Looks up account balance.
+     *
+     * @param accountId the account id
+     * @param keyLevel key level
+     * @return balance
+     */
+    public Observable<GetBalanceResponse> getBalance(String accountId, Key.Level keyLevel) {
+        return client.getBalance(accountId, keyLevel);
     }
 
     /**
@@ -1055,6 +1126,36 @@ public class MemberAsync {
                 .setCurrency(currency)
                 .setValue(Double.toString(balance))
                 .build());
+    }
+
+    /**
+     * Trigger a step up notification for tokens.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTokenStepUpNotification(String tokenId) {
+        return client.triggerTokenStepUpNotification(tokenId);
+    }
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(String accountId) {
+        return client.triggerBalanceStepUpNotification(accountId);
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
+        return client.triggerTransactionStepUpNotification(accountId);
     }
 
     @Override

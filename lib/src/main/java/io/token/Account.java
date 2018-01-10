@@ -24,7 +24,11 @@ package io.token;
 
 import io.token.proto.PagedList;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
+import io.token.proto.gateway.Gateway.GetBalanceResponse;
+import io.token.proto.gateway.Gateway.GetTransactionResponse;
+import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 
 import javax.annotation.Nullable;
 
@@ -119,6 +123,7 @@ public class Account {
      *
      * @return account available balance
      */
+    @Deprecated
     public Money getAvailableBalance() {
         return async.getAvailableBalance().blockingSingle();
     }
@@ -128,8 +133,19 @@ public class Account {
      *
      * @return account current balance
      */
+    @Deprecated
     public Money getCurrentBalance() {
         return async.getCurrentBalance().blockingSingle();
+    }
+
+    /**
+     * Looks up an account balance.
+     *
+     * @param keyLevel key level
+     * @return account balance
+     */
+    public GetBalanceResponse getBalance(Key.Level keyLevel) {
+        return async.getBalance(keyLevel).blockingSingle();
     }
 
     /**
@@ -138,8 +154,22 @@ public class Account {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
+    @Deprecated
     public Transaction getTransaction(String transactionId) {
         return async.getTransaction(transactionId).blockingSingle();
+    }
+
+    /**
+     * Lookup transaction.
+     *
+     * @param transactionId transaction id
+     * @param keyLevel key level
+     * @return transaction response
+     */
+    public GetTransactionResponse getTransaction(
+            String transactionId,
+            Key.Level keyLevel) {
+        return async.getTransaction(transactionId, keyLevel).blockingSingle();
     }
 
     /**
@@ -149,8 +179,24 @@ public class Account {
      * @param limit max number of records to return
      * @return list of transactions
      */
+    @Deprecated
     public PagedList<Transaction, String> getTransactions(@Nullable String offset, int limit) {
         return async.getTransactions(offset, limit).blockingSingle();
+    }
+
+    /**
+     * Lookup transactions.
+     *
+     * @param offset offset
+     * @param limit limit
+     * @param keyLevel key level
+     * @return transactions response
+     */
+    public GetTransactionsResponse getTransactions(
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        return async.getTransactions(offset, limit, keyLevel).blockingSingle();
     }
 
     @Override
