@@ -30,14 +30,16 @@ import android.content.Context;
  */
 public class AKSCryptoEngineFactory implements io.token.security.CryptoEngineFactory {
     private final Context context;
+    private final UserAuthenticationStore store;
 
     /**
-     * Creates a new instance of the factory
+     * Creates a new instance of the factory.
      *
      * @param context context
      */
-    public AKSCryptoEngineFactory(Context context) {
+    public AKSCryptoEngineFactory(Context context, UserAuthenticationStore store) {
         this.context = context;
+        this.store = store;
     }
 
     /**
@@ -48,6 +50,6 @@ public class AKSCryptoEngineFactory implements io.token.security.CryptoEngineFac
      */
     @Override
     public io.token.security.CryptoEngine create(String memberId) {
-        return new AKSCryptoEngine(memberId, context);
+        return new AKSCryptoEngine(memberId, context, store);
     }
 }

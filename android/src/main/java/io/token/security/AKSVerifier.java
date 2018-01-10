@@ -11,6 +11,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
 
+/**
+ * Verifies signatures from Android KeyStore;
+ */
 public class AKSVerifier implements Verifier {
     private final Entry entry;
 
@@ -18,11 +21,23 @@ public class AKSVerifier implements Verifier {
         this.entry = entry;
     }
 
+    /**
+     * Verifies the signature, first converting to JSON. Throws if verification fails.
+     *
+     * @param message profobuf message
+     * @param signature signature
+     */
     @Override
     public void verify(Message message, String signature) {
         verify(ProtoJson.toJson(message), signature);
     }
 
+    /**
+     * Verifies the signature on the string payload. Throws if verification fails.
+     *
+     * @param payload message
+     * @param signature signature
+     */
     @Override
     public void verify(String payload, String signature) {
         try {
