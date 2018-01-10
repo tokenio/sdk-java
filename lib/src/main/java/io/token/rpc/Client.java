@@ -23,6 +23,7 @@
 package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
+import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -36,9 +37,11 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TransferTokenException;
+import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.exceptions.StepUpRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -141,6 +144,8 @@ import io.token.proto.gateway.Gateway.GetTransferRequest;
 import io.token.proto.gateway.Gateway.GetTransferResponse;
 import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetTransfersResponse;
+import io.token.proto.gateway.Gateway.LinkAccountsOauthRequest;
+import io.token.proto.gateway.Gateway.LinkAccountsOauthResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsResponse;
 import io.token.proto.gateway.Gateway.Page;
@@ -173,7 +178,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import javax.annotation.Nullable;
 
 
@@ -213,6 +217,7 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
+
         this.onBehalfOf = accessTokenId;
     }
 
@@ -458,6 +463,7 @@ public final class Client {
     /**
      * Links a funding bank account to Token.
      *
+     *
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
@@ -470,6 +476,31 @@ public final class Client {
                         .build()))
                 .map(new Function<LinkAccountsResponse, List<Account>>() {
                     public List<Account> apply(LinkAccountsResponse response) {
+                        return response.getAccountsList();
+                    }
+                });
+    }
+
+    /**
+     * Links a funding bank account to Token.
+     *
+     * @param authorization an authorization to accounts, from the bank.
+     * @return list of linked accounts
+     * @throws BankAuthorizationRequiredException if bank authorization payload
+     *                                               is required to link accounts
+     */
+    public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
+            throws BankAuthorizationRequiredException {
+        return toObservable(gateway
+                .linkAccountsOauth(LinkAccountsOauthRequest
+                        .newBuilder()
+                        .setAuthorization(authorization)
+                        .build()))
+                .map(new Function<LinkAccountsOauthResponse, List<Account>>() {
+                    public List<Account> apply(LinkAccountsOauthResponse response) {
+                        if (response.getStatus() == FAILURE_BANK_AUTHORIZATION_REQUIRED) {
+                            throw new BankAuthorizationRequiredException();
+                        }
                         return response.getAccountsList();
                     }
                 });
@@ -748,8 +779,10 @@ public final class Client {
         return cancelAndReplace(tokenToCancel, createToken);
     }
 
+
     /**
      * Look up account balance.
+     *
      * @param accountId account id
      * @param keyLevel key level
      * @return account balance

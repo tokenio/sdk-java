@@ -20,10 +20,16 @@
  * THE SOFTWARE.
  */
 
-package io.token.exceptions;
+package io.token.browser;
 
-public class StepUpRequiredException extends RuntimeException {
-    public StepUpRequiredException(String message) {
-        super(message);
-    }
+/**
+ * A browser factory.
+ */
+public interface BrowserFactory {
+    /**
+     * Creates a new browser.
+     *
+     * @return a new browser
+     */
+    Browser create();
 }
