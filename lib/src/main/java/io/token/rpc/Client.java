@@ -140,8 +140,6 @@ import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetTransfersResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsResponse;
-import io.token.proto.gateway.Gateway.NotifyExpiredAccessTokenRequest;
-import io.token.proto.gateway.Gateway.NotifyExpiredAccessTokenResponse;
 import io.token.proto.gateway.Gateway.Page;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
