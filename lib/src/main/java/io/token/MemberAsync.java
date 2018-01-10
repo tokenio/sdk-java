@@ -33,6 +33,7 @@ import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos;
@@ -753,13 +754,28 @@ public class MemberAsync {
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * Creates a new transfer token from a token payload. If external
+     * authorization is required, throws TransferTokenException.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
     public Observable<Token> createTransferToken(TokenPayload payload) {
         return client.createTransferToken(payload);
+    }
+
+    /**
+     * Creates a new transfer token from a token payload and browser factory.
+     * If external authorization is required, directs browser to authentication page.
+     *
+     * @param payload transfer token payload
+     * @param browserFactory browser factory
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createTransferToken(
+            TokenPayload payload,
+            BrowserFactory browserFactory) {
+        return client.createTransferToken(payload, browserFactory);
     }
 
     /**

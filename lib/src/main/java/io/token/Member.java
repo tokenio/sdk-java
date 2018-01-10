@@ -23,9 +23,12 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
+import static io.token.util.Util.getBankAuthorization;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
+import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -366,6 +369,22 @@ public class Member {
      */
     public Notification getNotification(String notificationId) {
         return async.getNotification(notificationId).blockingSingle();
+    }
+
+    /**
+     * Initiates account linking using given bank info and browser factory.
+     *
+     * @param bankInfo the bank info
+     * @param browserFactory the browser factory
+     * @return account linking bank authorization
+     */
+    public Observable<BankAuthorization> initiateAccountLinking(
+            final BankInfo bankInfo,
+            final BrowserFactory browserFactory) {
+        return getBankAuthorization(
+                bankInfo.getLinkingUri(),
+                bankInfo.getRedirectUriRegex(),
+                browserFactory);
     }
 
     /**

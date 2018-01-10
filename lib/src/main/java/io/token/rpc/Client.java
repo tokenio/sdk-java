@@ -30,13 +30,18 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANC
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.proto.common.transaction.TransactionProtos.RequestStatus.SUCCESSFUL_REQUEST;
 import static io.token.rpc.util.Converters.toCompletable;
+import static io.token.util.Util.applyBankAuthorization;
+import static io.token.util.Util.getBankAuthorization;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
 import io.token.TransferTokenException;
 import io.token.exceptions.StepUpRequiredException;
+import io.token.browser.Browser;
+import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
@@ -169,6 +174,7 @@ import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 import io.token.util.Util;
 
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -213,6 +219,7 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
+
         this.onBehalfOf = accessTokenId;
     }
 
@@ -527,7 +534,8 @@ public final class Client {
     }
 
     /**
-     * Creates a new transfer token.
+     * Creates a new transfer token from a token payload. If external
+     * authorization is required, throws TransferTokenException.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
@@ -544,6 +552,41 @@ public final class Client {
                             throw new TransferTokenException(response.getStatus());
                         }
                         return response.getToken();
+                    }
+                });
+    }
+
+    /**
+     * Creates a new transfer token from a token payload and browser factory.
+     * If external authorization is required, directs browser to authentication page.
+     *
+     * @param payload transfer token payload
+     * @param browserFactory the browser factory
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createTransferToken(
+            final TokenPayload payload,
+            final BrowserFactory browserFactory) {
+        return toObservable(gateway
+                .createTransferToken(CreateTransferTokenRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .build()))
+                .flatMap(new Function<CreateTransferTokenResponse, ObservableSource<Token>>() {
+                    @Override
+                    public ObservableSource<Token> apply(
+                            final CreateTransferTokenResponse response) {
+                        switch (response.getStatus()) {
+                            case SUCCESS:
+                                return Observable.just(response.getToken());
+                            case FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED:
+                                return transferTokenExternalAuth(
+                                        payload,
+                                        response,
+                                        browserFactory);
+                            default:
+                                throw new TransferTokenException(response.getStatus());
+                        }
                     }
                 });
     }
@@ -748,8 +791,10 @@ public final class Client {
         return cancelAndReplace(tokenToCancel, createToken);
     }
 
+
     /**
      * Look up account balance.
+     *
      * @param accountId account id
      * @param keyLevel key level
      * @return account balance
@@ -1404,5 +1449,22 @@ public final class Client {
                 "%s.%s",
                 toJson(tokenPayload),
                 action.name().toLowerCase());
+    }
+
+    private Observable<Token> transferTokenExternalAuth(
+            final TokenPayload payload,
+            final CreateTransferTokenResponse response,
+            final BrowserFactory browserFactory) {
+        return getBankAuthorization(response.getAuthorizationDetails().getUrl(),
+                response.getAuthorizationDetails().getCompletionPattern(), browserFactory)
+                .flatMap(new Function<BankAuthorization, ObservableSource<Token>>() {
+                    @Override
+                    public ObservableSource<Token> apply(BankAuthorization bankAuthorization) {
+                        TokenPayload newPayload = applyBankAuthorization(
+                                payload,
+                                bankAuthorization);
+                        return createTransferToken(newPayload, browserFactory);
+                    }
+                });
     }
 }
