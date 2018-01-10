@@ -13,7 +13,7 @@ public class UserAuthenticationStore {
     }
 
     public void expireUserAuthentication() {
-
+        userAuthenticatedTime = 0;
     }
 
     public long userAuthenticatedTime() {
