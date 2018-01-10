@@ -1,10 +1,14 @@
 package io.token.browser;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
-import android.graphics.Bitmap;
+import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -30,13 +34,20 @@ public class TokenBrowserActivity extends Activity {
         }
 
         webview = new WebView(this);
+
+        WebSettings webSettings = webview.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+
         webview.setWebViewClient(new WebViewClient() {
+            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Bundle data = new Bundle(2);
                 data.putString(MSG_KEY_SID, sessionId);
-                data.putString(MSG_KEY_URL, url);
+                data.putString(MSG_KEY_URL, request.getUrl().toString());
                 messenger.send(MSG_ON_URL, data);
+                return true;
+
             }
         });
         setContentView(webview);
@@ -60,6 +71,11 @@ public class TokenBrowserActivity extends Activity {
     protected void onSaveInstanceState(Bundle outState) {
         outState.putString(MSG_KEY_SID, sessionId);
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig){
+        super.onConfigurationChanged(newConfig);
     }
 
     private class IncomingHandler extends Handler {

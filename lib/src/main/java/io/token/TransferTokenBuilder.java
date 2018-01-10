@@ -31,6 +31,7 @@ import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.browser.BrowserFactory;
 import io.token.exceptions.TokenArgumentsException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
@@ -68,6 +69,8 @@ public final class TransferTokenBuilder {
 
     // Used for attaching files / data to tokens
     private final List<Payload> blobPayloads;
+
+    private BrowserFactory browserFactory;
 
     /**
      * Creates the builder object.
@@ -128,6 +131,18 @@ public final class TransferTokenBuilder {
                         .setTokenAuthorization(TokenAuthorization.newBuilder()
                                 .setAuthorization(bankAuthorization))
                         .build());
+        return this;
+    }
+
+    /**
+     * Sets the browser factory used to request external authorization.
+     * Only needed for payments requiring external authorization.
+     *
+     * @param browserFactory browser factory
+     * @return builder
+     */
+    public TransferTokenBuilder setBrowserFactory(BrowserFactory browserFactory) {
+        this.browserFactory = browserFactory;
         return this;
     }
 
@@ -380,7 +395,10 @@ public final class TransferTokenBuilder {
                 .flatMapObservable(new Function<List<Attachment>, Observable<Token>>() {
                     public Observable<Token> apply(List<Attachment> attachments) {
                         payload.getTransferBuilder().addAllAttachments(attachments);
-                        return member.createTransferToken(payload.build());
+                        if (browserFactory == null) {
+                            return member.createTransferToken(payload.build());
+                        }
+                        return member.createTransferToken(payload.build(), browserFactory);
                     }
                 });
     }

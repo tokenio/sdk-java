@@ -30,9 +30,19 @@ import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Consumer;
+import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
+import io.token.browser.Browser;
+import io.token.browser.BrowserFactory;
+import io.token.proto.ProtoJson;
+import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
@@ -40,11 +50,11 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAliasMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TransferBody;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.concurrent.ExecutionException;
 
@@ -82,6 +92,7 @@ public abstract class Util {
 
     /**
      * Get alias with normalized value. E.g. "Captain@gmail.com" to "captain@gmail.com".
+     *
      * @param rawAlias { EMAIL, "Captain@gmail.com" }
      * @return alias with possibly-different value field
      */
@@ -200,22 +211,102 @@ public abstract class Util {
     }
 
     /**
-     * Loads the body of the resource associated with the specified url.
+     * Directs the browser through the bank authorization process, fetching and returning
+     * the bank authorization payload at the end.
      *
-     * @param url the url to fetch
-     * @return the body of the resource
-     * @throws IOException if there was a problem loading the url
+     * @param initialUrl the first url in the bank auth process
+     * @param completionPattern the final url, which provides the authorization payload
+     * @param browserFactory browser factory
+     * @return bank authorization payload
      */
-    public static String fetchUrl(URL url) throws IOException {
-        InputStream is = url.openConnection().getInputStream();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder builder = new StringBuilder();
-        String line;
+    public static Observable<BankAuthorization> getBankAuthorization(
+            final String initialUrl,
+            final String completionPattern,
+            final BrowserFactory browserFactory) {
+        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
+            @Override
+            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
+                final Browser browser = browserFactory.create();
+                browser.url()
+                        .filter(new Predicate<URL>() {
+                            @Override
+                            public boolean test(URL url) {
+                                if (url
+                                        .toExternalForm()
+                                        .matches(completionPattern)) {
+                                    return true;
+                                }
+                                browser.goTo(url);
+                                return false;
+                            }
+                        })
+                        .observeOn(Schedulers.newThread())
+                        .flatMap(new Function<URL, ObservableSource<String>>() {
+                            @Override
+                            public ObservableSource<String> apply(URL url) {
+                                return browser.fetchData(url);
+                            }
+                        })
+                        .subscribe(
+                                new Consumer<String>() {
+                                    @Override
+                                    public void accept(String json) {
+                                        BankAuthorization bankAuthorization = ProtoJson
+                                                .fromJson(
+                                                        json,
+                                                        BankAuthorization.newBuilder());
+                                        emitter.onSuccess(bankAuthorization);
+                                        browser.close();
+                                    }
+                                },
+                                new Consumer<Throwable>() {
+                                    @Override
+                                    public void accept(Throwable ex) {
+                                        emitter.onError(ex);
+                                        browser.close();
+                                    }
+                                });
+                browser.goTo(new URL(initialUrl));
+            }
+        }).toObservable();
+    }
 
-        while ((line = reader.readLine()) != null) {
-            builder.append(line);
-        }
+    /**
+     * Add a bank authorization to an unauthorized token payload.
+     *
+     * @param payload token payload without bank authorization
+     * @param bankAuthorization bank authorization
+     * @return token payload with bank authorization
+     */
+    public static TokenPayload applyBankAuthorization(
+            TokenPayload payload,
+            BankAuthorization bankAuthorization) {
+        BankAccount account = BankAccount.newBuilder()
+                .setTokenAuthorization(BankAccount.TokenAuthorization.newBuilder()
+                        .setAuthorization(bankAuthorization)
+                        .build())
+                .build();
 
-        return builder.toString();
+        TransferEndpoint endpoint = payload.toBuilder()
+                .getTransferBuilder()
+                .getInstructionsBuilder()
+                .getSourceBuilder()
+                .setAccount(account)
+                .build();
+
+        TransferInstructions instructions = payload.toBuilder()
+                .getTransferBuilder()
+                .getInstructionsBuilder()
+                .setSource(endpoint)
+                .build();
+
+        TransferBody transfer = payload.toBuilder()
+                .getTransferBuilder()
+                .setInstructions(instructions)
+                .build();
+
+        return payload.toBuilder()
+                .setTransfer(transfer)
+                .build();
     }
 }

@@ -23,7 +23,6 @@
 package io.token;
 
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
-import static io.token.util.Util.fetchUrl;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
@@ -33,15 +32,9 @@ import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToStrin
 import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleOnSubscribe;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
-import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
@@ -83,8 +76,6 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -763,13 +754,28 @@ public class MemberAsync {
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * Creates a new transfer token from a token payload. If external
+     * authorization is required, throws TransferTokenException.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
     public Observable<Token> createTransferToken(TokenPayload payload) {
         return client.createTransferToken(payload);
+    }
+
+    /**
+     * Creates a new transfer token from a token payload and browser factory.
+     * If external authorization is required, directs browser to authentication page.
+     *
+     * @param payload transfer token payload
+     * @param browserFactory browser factory
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createTransferToken(
+            TokenPayload payload,
+            BrowserFactory browserFactory) {
+        return client.createTransferToken(payload, browserFactory);
     }
 
     /**
@@ -1172,48 +1178,5 @@ public class MemberAsync {
                                 });
                     }
                 });
-    }
-
-    /**
-     * Initiates bank account linking.
-     *
-     * @param bankInfo the bank info
-     * @param browserFactory the browser factory
-     * @return an observable bank authorization
-     */
-    public Observable<BankAuthorization> initiateAccountLinking(
-            final BankInfo bankInfo,
-            final BrowserFactory browserFactory) {
-        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
-            @Override
-            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
-                final Browser browser = browserFactory.create();
-                browser.url().subscribe(
-                        new Consumer<URL>() {
-                            @Override
-                            public void accept(URL url) {
-                                if (url.toExternalForm().matches(bankInfo.getRedirectUriRegex())) {
-                                    try {
-                                        String json = fetchUrl(url);
-                                        BankAuthorization bankAuthorization = ProtoJson
-                                                .fromJson(json, BankAuthorization.newBuilder());
-                                        emitter.onSuccess(bankAuthorization);
-                                    } catch (IOException ex) {
-                                        emitter.onError(ex);
-                                    } finally {
-                                        browser.close();
-                                    }
-                                }
-                            }
-                        },
-                        new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable ex) {
-                                emitter.onError(ex);
-                            }
-                        });
-                browser.goTo(new URL(bankInfo.getLinkingUri()));
-            }
-        }).toObservable();
     }
 }
