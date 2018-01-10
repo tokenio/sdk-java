@@ -27,7 +27,6 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toAddAliasOperation;
 import static io.token.util.Util.toAddAliasOperationMetadata;
 import static io.token.util.Util.toAddKeyOperation;
@@ -151,11 +150,11 @@ public class TokenIOAsync implements Closeable {
                         operations.add(toAddKeyOperation(crypto.generateKey(STANDARD)));
                         operations.add(toAddKeyOperation(crypto.generateKey(LOW)));
                         if (alias != null) {
-                            operations.add(toAddAliasOperation(normalizeAlias(alias)));
+                            operations.add(toAddAliasOperation(alias));
                         }
                         List<MemberOperationMetadata> metadata = alias == null
                                 ? Collections.<MemberOperationMetadata>emptyList()
-                                : singletonList(toAddAliasOperationMetadata(normalizeAlias(alias)));
+                                : singletonList(toAddAliasOperationMetadata(alias));
                         Signer signer = crypto.createSigner(PRIVILEGED);
                         return unauthenticated.createMember(memberId, operations, metadata, signer);
                     }

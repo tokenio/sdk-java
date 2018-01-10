@@ -25,7 +25,6 @@ package io.token;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
-import static io.token.util.Util.normalizeAlias;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
@@ -213,8 +212,8 @@ public class MemberAsync {
         final List<MemberOperation> operations = new LinkedList<>();
         final List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliasList) {
-            operations.add(Util.toAddAliasOperation(normalizeAlias(alias)));
-            metadata.add(Util.toMemberOperationMetadata(normalizeAlias(alias)));
+            operations.add(Util.toAddAliasOperation(alias));
+            metadata.add(Util.toMemberOperationMetadata(alias));
         }
         return Completable.fromObservable(client
                 .getMember(memberId())

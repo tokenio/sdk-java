@@ -76,25 +76,6 @@ public abstract class Util {
     }
 
     /**
-     * Get alias with normalized value. E.g. "Captain@gmail.com" to "captain@gmail.com".
-     * @param rawAlias { EMAIL, "Captain@gmail.com" }
-     * @return alias with possibly-different value field
-     */
-    public static Alias normalizeAlias(Alias rawAlias) {
-        switch (rawAlias.getType()) {
-            case EMAIL:
-            case DOMAIN:
-                return rawAlias.toBuilder()
-                        .setValue(rawAlias.getValue().toLowerCase().trim())
-                        .build();
-
-            default:
-                return rawAlias.toBuilder()
-                        .build();
-        }
-    }
-
-    /**
      * Converts alias to AddAlias operation.
      *
      * @param alias alias to add
