@@ -76,7 +76,7 @@ public abstract class Util {
     }
 
     /**
-     * Get alias with normalized value. E.g. "Captain@gmail.com" -> "captain@gmail.com".
+     * Get alias with normalized value. E.g. "Captain@gmail.com" to "captain@gmail.com".
      * @param rawAlias { EMAIL, "Captain@gmail.com" }
      * @return alias with possibly-different value field
      */
