@@ -58,7 +58,6 @@ import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.notification.NotificationProtos.RequestStepUp.RequestType;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -1139,13 +1138,23 @@ public class MemberAsync {
     }
 
     /**
-     * Trigger a step up notification for information requests.
+     * Trigger a step up notification for balance requests.
      *
-     * @param requestType request type
+     * @param accountId account id
      * @return notification status
      */
-    public Observable<NotifyStatus> triggerRequestStepUpNotification(RequestType requestType) {
-        return client.triggerRequestStepUpNotification(requestType);
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(String accountId) {
+        return client.triggerBalanceStepUpNotification(accountId);
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
+        return client.triggerTransactionStepUpNotification(accountId);
     }
 
     @Override

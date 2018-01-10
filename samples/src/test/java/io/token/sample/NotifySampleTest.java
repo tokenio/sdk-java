@@ -10,7 +10,6 @@ import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.notification.NotificationProtos.RequestStepUp.RequestType;
 import io.token.proto.common.token.TokenProtos.Token;
 
 import org.junit.Test;
@@ -48,11 +47,21 @@ public class NotifySampleTest {
     }
 
     @Test
-    public void triggerRequestStepUpNotificationTest() {
+    public void triggerBalanceStepUpNotificationTest() {
         try (TokenIO tokenIO = createClient()) {
             Member member = tokenIO.createMember(randomAlias());
 
-            NotifyStatus status = member.triggerRequestStepUpNotification(RequestType.GET_BALANCE);
+            NotifyStatus status = member.triggerBalanceStepUpNotification("123");
+            assertThat(status).isNotNull();
+        }
+    }
+
+    @Test
+    public void triggerTransactionStepUpNotificationTest() {
+        try (TokenIO tokenIO = createClient()) {
+            Member member = tokenIO.createMember(randomAlias());
+
+            NotifyStatus status = member.triggerTransactionStepUpNotification("123");
             assertThat(status).isNotNull();
         }
     }

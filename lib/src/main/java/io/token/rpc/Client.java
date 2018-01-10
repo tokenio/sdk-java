@@ -55,10 +55,9 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.notification.NotificationProtos.RequestStepUp;
-import io.token.proto.common.notification.NotificationProtos.RequestStepUp.RequestType;
 import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -772,17 +771,12 @@ public final class Client {
      * @return account balance
      */
     public Observable<GetBalanceResponse> getBalance(String accountId, Key.Level keyLevel) {
-        String payloadMemberId = onBehalfOf != null
-                ?  getToken(onBehalfOf).blockingSingle().getPayload().getFrom().getId()
-                :  this.memberId;
-
         setAuthenticationContext();
         Signer signer = crypto.createSigner(keyLevel);
 
         GetBalancePayload payload = GetBalancePayload
                 .newBuilder()
                 .setAccountId(accountId)
-                .setMemberId(payloadMemberId)
                 .setNonce(UUID.randomUUID().toString())
                 .build();
 
@@ -907,17 +901,12 @@ public final class Client {
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
-        String payloadMemberId = onBehalfOf != null
-                ?  getToken(onBehalfOf).blockingSingle().getPayload().getFrom().getId()
-                :  this.memberId;
-
         setAuthenticationContext();
         Signer signer = crypto.createSigner(keyLevel);
 
         GetTransactionPayload payload = GetTransactionPayload
                 .newBuilder()
                 .setAccountId(accountId)
-                .setMemberId(payloadMemberId)
                 .setTransactionId(transactionId)
                 .setNonce(UUID.randomUUID().toString())
                 .build();
@@ -971,17 +960,12 @@ public final class Client {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        String payloadMemberId = onBehalfOf != null
-                ?  getToken(onBehalfOf).blockingSingle().getPayload().getFrom().getId()
-                :  this.memberId;
-
         setAuthenticationContext();
         Signer signer = crypto.createSigner(keyLevel);
 
         GetTransactionsPayload payload = GetTransactionsPayload
                 .newBuilder()
                 .setAccountId(accountId)
-                .setMemberId(payloadMemberId)
                 .setNonce(UUID.randomUUID().toString())
                 .build();
         return toObservable(gateway
@@ -1361,16 +1345,36 @@ public final class Client {
     }
 
     /**
-     * Trigger a step up notification for information requests.
+     * Trigger a step up notification for balance requests.
      *
-     * @param requestType request type
+     * @param accountId account id
      * @return notification status
      */
-    public Observable<NotifyStatus> triggerRequestStepUpNotification(RequestType requestType) {
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(String accountId) {
         return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
                 .newBuilder()
-                .setRequestStepUp(RequestStepUp.newBuilder()
-                        .setRequestType(requestType)
+                .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
+                        .setAccountId(accountId)
+                        .build())
+                .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
+        return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
+                .newBuilder()
+                .setTransactionStepUp(NotificationProtos.TransactionStepUp.newBuilder()
+                        .setAccountId(accountId)
                         .build())
                 .build()))
                 .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {

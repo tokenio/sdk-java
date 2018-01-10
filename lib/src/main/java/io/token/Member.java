@@ -43,7 +43,6 @@ import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.notification.NotificationProtos.RequestStepUp.RequestType;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -986,13 +985,23 @@ public class Member {
     }
 
     /**
-     * Trigger a step up notification for information requests.
+     * Trigger a step up notification for balance requests.
      *
-     * @param requestType request type
+     * @param accountId account id
      * @return notification status
      */
-    public NotifyStatus triggerRequestStepUpNotification(RequestType requestType) {
-        return async.triggerRequestStepUpNotification(requestType).blockingSingle();
+    public NotifyStatus triggerBalanceStepUpNotification(String accountId) {
+        return async.triggerBalanceStepUpNotification(accountId).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public NotifyStatus triggerTransactionStepUpNotification(String accountId) {
+        return async.triggerBalanceStepUpNotification(accountId).blockingSingle();
     }
 
     @Override

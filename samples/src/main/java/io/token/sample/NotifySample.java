@@ -4,7 +4,6 @@ import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.notification.NotificationProtos.RequestStepUp.RequestType;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
@@ -59,15 +58,29 @@ public class NotifySample {
     }
 
     /**
-     * Triggers a notification to step up the signature level when requesting information.
+     * Triggers a notification to step up the signature level when requesting balance information.
      *
      * @param member member
-     * @param requestType request type
+     * @param accountId account id
      * @return notification status
      */
-    public static NotifyStatus triggerTokenStepUpNotification(
+    public static NotifyStatus triggerBalanceStepUpNotification(
             Member member,
-            RequestType requestType) {
-        return member.triggerRequestStepUpNotification(requestType);
+            String accountId) {
+        return member.triggerBalanceStepUpNotification(accountId);
+    }
+
+    /**
+     * Triggers a notification to step up the signature level when requesting transaction history.
+     *
+     * @param member member
+     * @param accountId account id
+     * @return notification status
+     */
+    public static NotifyStatus triggerTransactionStepUpNotification(
+            Member member,
+            String accountId) {
+        return member.triggerTransactionStepUpNotification(accountId);
     }
 }
+
