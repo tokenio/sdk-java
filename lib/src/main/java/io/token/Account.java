@@ -180,9 +180,7 @@ public class Account {
      * @return list of transactions
      */
     @Deprecated
-    public PagedList<Transaction, String> getTransactions(
-            @Nullable String offset,
-            int limit) {
+    public PagedList<Transaction, String> getTransactions(@Nullable String offset, int limit) {
         return async.getTransactions(offset, limit).blockingSingle();
     }
 
