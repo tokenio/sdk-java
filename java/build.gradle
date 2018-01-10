@@ -1,3 +1,4 @@
+apply plugin: 'io.token.gradle.publish'
 apply plugin: 'io.token.gradle.lib'
 base.useJava7 = true
 sourceCompatibility = 1.7
