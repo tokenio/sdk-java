@@ -45,19 +45,21 @@ artifactory {
 
     publish {
         repository {
-            afterEvaluate {
-                // The Artifactory repository key to publish to
-                if (version.endsWith("SNAPSHOT")) {
-                    repoKey = 'libs-snapshot-local'
-                } else {
-                    repoKey = 'public-libs-release-local'
-                }
+            // The Artifactory repository key to publish to
+            if (version.endsWith("SNAPSHOT")) {
+                repoKey = 'libs-snapshot-local'
+            } else {
+                repoKey = 'public-libs-release-local'
             }
             username = "${artifactory_user}"     // The publisher user name
             password = "${artifactory_password}" // The publisher password
         }
         defaults {
-            publications('mavenJava')
+            publications('aar')
+            publishArtifacts = true
+
+            properties = ['qa.level': 'basic', 'q.os': 'android', 'dev.team': 'core']
+            publishPom = true
         }
     }
 }
