@@ -53,7 +53,7 @@ import javax.security.auth.x500.X500Principal;
 public final class AKSCryptoEngine implements CryptoEngine {
     private static final String KEY_NAME = "tokenapp_key";
     private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ECDSA_SHA256;
-    private static final int AUTHENTICATION_DURATION_SECONDS = 5 * 60;
+    private static final int AUTHENTICATION_DURATION_SECONDS = 30;
 
     private final String memberId;
     private final Context context;
