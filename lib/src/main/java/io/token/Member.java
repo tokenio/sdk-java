@@ -52,9 +52,6 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
-import io.token.proto.gateway.Gateway.GetBalanceResponse;
-import io.token.proto.gateway.Gateway.GetTransactionResponse;
-import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.security.keystore.SecretKeyPair;
 
 import java.util.HashMap;
@@ -797,22 +794,10 @@ public class Member {
      *
      * @param accountId the account id
      * @param transactionId ID of the transaction
-     * @return transaction record
-     */
-    @Deprecated
-    public Transaction getTransaction(String accountId, String transactionId) {
-        return async.getTransaction(accountId, transactionId).blockingSingle();
-    }
-
-    /**
-     * Looks up an existing transaction for a given account.
-     *
-     * @param accountId the account id
-     * @param transactionId ID of the transaction
      * @param keyLevel key level
-     * @return transaction response
+     * @return transaction
      */
-    public GetTransactionResponse getTransaction(
+    public Transaction getTransaction(
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
@@ -825,26 +810,10 @@ public class Member {
      * @param accountId the account id
      * @param offset optional offset to start at
      * @param limit max number of records to return
-     * @return a list of transaction record
-     */
-    @Deprecated
-    public PagedList<Transaction, String> getTransactions(
-            String accountId,
-            @Nullable String offset,
-            int limit) {
-        return async.getTransactions(accountId, offset, limit).blockingSingle();
-    }
-
-    /**
-     * Looks up transactions for a given account.
-     *
-     * @param accountId the account id
-     * @param offset optional offset to start at
-     * @param limit max number of records to return
      * @param keyLevel key level
-     * @return transactions response
+     * @return paged list of transactions
      */
-    public GetTransactionsResponse getTransactions(
+    public PagedList<Transaction, String> getTransactions(
             String accountId,
             @Nullable String offset,
             int limit,
@@ -855,34 +824,23 @@ public class Member {
     /**
      * Looks up account available balance.
      *
-     * @param accountId the account id
-     * @return available balance
+     * @param accountId account id
+     * @param keyLevel key level
+     * @return balance
      */
-    @Deprecated
-    public Money getAvailableBalance(String accountId) {
-        return async.getAvailableBalance(accountId).blockingSingle();
+    public Money getAvailableBalance(String accountId, Key.Level keyLevel) {
+        return async.getAvailableBalance(accountId, keyLevel).blockingSingle();
     }
 
     /**
-     * Looks up account current balance.
-     *
-     * @param accountId the account id
-     * @return current balance
-     */
-    @Deprecated
-    public Money getCurrentBalance(String accountId) {
-        return async.getCurrentBalance(accountId).blockingSingle();
-    }
-
-    /**
-     * Looks up account balance.
+     * Looks up account available balance.
      *
      * @param accountId account id
      * @param keyLevel key level
      * @return balance
      */
-    public GetBalanceResponse getBalance(String accountId, Key.Level keyLevel) {
-        return async.getBalance(accountId, keyLevel).blockingSingle();
+    public Money getCurrentBalance(String accountId, Key.Level keyLevel) {
+        return async.getCurrentBalance(accountId, keyLevel).blockingSingle();
     }
 
     /**

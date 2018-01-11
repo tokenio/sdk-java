@@ -119,44 +119,23 @@ public class Account {
     }
 
     /**
-     * Looks up an account available balance.
-     *
-     * @return account available balance
-     */
-    @Deprecated
-    public Money getAvailableBalance() {
-        return async.getAvailableBalance().blockingSingle();
-    }
-
-    /**
      * Looks up an account current balance.
      *
+     * @param keyLevel key level
      * @return account current balance
      */
-    @Deprecated
-    public Money getCurrentBalance() {
-        return async.getCurrentBalance().blockingSingle();
+    public Money getCurrentBalance(Key.Level keyLevel) {
+        return async.getCurrentBalance(keyLevel).blockingSingle();
     }
 
     /**
-     * Looks up an account balance.
+     * Looks up an account available balance.
      *
      * @param keyLevel key level
-     * @return account balance
+     * @return account available balance
      */
-    public GetBalanceResponse getBalance(Key.Level keyLevel) {
-        return async.getBalance(keyLevel).blockingSingle();
-    }
-
-    /**
-     * Looks up an existing transaction. Doesn't have to be a transaction for a token transfer.
-     *
-     * @param transactionId ID of the transaction
-     * @return transaction record
-     */
-    @Deprecated
-    public Transaction getTransaction(String transactionId) {
-        return async.getTransaction(transactionId).blockingSingle();
+    public Money getAvailableBalance(Key.Level keyLevel) {
+        return async.getAvailableBalance(keyLevel).blockingSingle();
     }
 
     /**
@@ -164,24 +143,12 @@ public class Account {
      *
      * @param transactionId transaction id
      * @param keyLevel key level
-     * @return transaction response
+     * @return transaction
      */
-    public GetTransactionResponse getTransaction(
+    public Transaction getTransaction(
             String transactionId,
             Key.Level keyLevel) {
         return async.getTransaction(transactionId, keyLevel).blockingSingle();
-    }
-
-    /**
-     * Looks up existing transactions by using an access token.
-     *
-     * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @return list of transactions
-     */
-    @Deprecated
-    public PagedList<Transaction, String> getTransactions(@Nullable String offset, int limit) {
-        return async.getTransactions(offset, limit).blockingSingle();
     }
 
     /**
@@ -190,9 +157,9 @@ public class Account {
      * @param offset offset
      * @param limit limit
      * @param keyLevel key level
-     * @return transactions response
+     * @return paged list of transactions
      */
-    public GetTransactionsResponse getTransactions(
+    public PagedList<Transaction, String> getTransactions(
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {

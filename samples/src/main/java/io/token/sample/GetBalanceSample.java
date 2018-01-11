@@ -25,7 +25,7 @@ public final class GetBalanceSample {
 
         List<Account> accounts = member.getAccounts();
         for (Account account : accounts) {
-            Money balance = member.getBalance(account.id(), STANDARD).getCurrent();
+            Money balance = member.getCurrentBalance(account.id(), STANDARD);
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())
@@ -47,7 +47,7 @@ public final class GetBalanceSample {
 
         List<Account> accounts = member.getAccounts();
         for (Account account : accounts) {
-            Money balance = account.getBalance(STANDARD).getCurrent();
+            Money balance = account.getCurrentBalance(STANDARD);
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())
