@@ -1206,6 +1206,13 @@ public class MemberAsync {
                 });
     }
 
+    /**
+     * Initiates bank account linking.
+     *
+     * @param bankInfo the bank info
+     * @param browserFactory the browser factory
+     * @return an observable bank authorization
+     */
     public Observable<BankAuthorization> initiateAccountLinking(
             final BankInfo bankInfo,
             final BrowserFactory browserFactory) {
@@ -1225,7 +1232,7 @@ public class MemberAsync {
                                         emitter.onSuccess(bankAuthorization);
                                     } catch (IOException ex) {
                                         emitter.onError(ex);
-                                    } finally{
+                                    } finally {
                                         browser.close();
                                     }
                                 }
