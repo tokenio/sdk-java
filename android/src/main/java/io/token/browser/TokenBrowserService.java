@@ -35,21 +35,17 @@ public class TokenBrowserService extends Service {
     private class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
-            broadcast(msg);
             switch (msg.what) {
                 case MSG_REGISTER_CLIENT:
                     clients.add(msg.replyTo);
+                    broadcast(msg);
                     break;
                 case MSG_UNREGISTER_CLIENT:
                     clients.remove(msg.replyTo);
-                    break;
-                case MSG_ON_URL:
-                    break;
-                case MSG_GO_TO:
-                    break;
-                case MSG_CLOSE:
+                    broadcast(msg);
                     break;
                 default:
+                    broadcast(msg);
                     super.handleMessage(msg);
             }
         }

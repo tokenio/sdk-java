@@ -1,5 +1,8 @@
 package io.token.browser;
 
+import static io.token.browser.TokenBrowserService.MSG_REGISTER_CLIENT;
+import static io.token.browser.TokenBrowserService.MSG_UNREGISTER_CLIENT;
+
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -10,7 +13,6 @@ import android.os.IBinder;
 import android.os.Message;
 import android.os.Messenger;
 import android.os.RemoteException;
-
 import io.reactivex.annotations.Nullable;
 
 class MessengerClient {
@@ -50,6 +52,7 @@ class MessengerClient {
 
     public void stop() {
         if (isBound) {
+            send(MSG_UNREGISTER_CLIENT, null);
             context.unbindService(connection);
         }
     }
@@ -68,7 +71,7 @@ class MessengerClient {
             service = new Messenger(serviceBinder);
             messenger = new Messenger(handler);
             isBound = true;
-            send(TokenBrowserService.MSG_REGISTER_CLIENT, data);
+            send(MSG_REGISTER_CLIENT, data);
         }
 
         @Override
