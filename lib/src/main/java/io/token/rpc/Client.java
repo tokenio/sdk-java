@@ -55,7 +55,10 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -64,7 +67,9 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
-import io.token.proto.common.transaction.TransactionProtos.Transaction;
+import io.token.proto.common.transaction.TransactionProtos.GetBalancePayload;
+import io.token.proto.common.transaction.TransactionProtos.GetTransactionPayload;
+import io.token.proto.common.transaction.TransactionProtos.GetTransactionsPayload;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.gateway.Gateway;
@@ -148,6 +153,8 @@ import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
@@ -162,6 +169,7 @@ import io.token.util.Util;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.UUID;
 import javax.annotation.Nullable;
 
 
@@ -201,6 +209,7 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
+
         this.onBehalfOf = accessTokenId;
     }
 
@@ -736,44 +745,49 @@ public final class Client {
         return cancelAndReplace(tokenToCancel, createToken);
     }
 
+
     /**
-     * Looks up account available balance.
-     *
+     * Look up account balance.
      * @param accountId account id
-     * @return account available balance
+     * @return account balance
      */
-    public Observable<Money> getAvailableBalance(String accountId) {
+    @Deprecated
+    public Observable<GetBalanceResponse> getBalance(String accountId) {
         setAuthenticationContext();
+
         return toObservable(gateway
                 .getBalance(GetBalanceRequest
                         .newBuilder()
                         .setAccountId(accountId)
-                        .build()))
-                .map(new Function<GetBalanceResponse, Money>() {
-                    public Money apply(GetBalanceResponse response) {
-                        return response.getAvailable();
-                    }
-                });
+                        .build()));
     }
 
     /**
-     * Looks up account current balance.
-     *
+     * Look up account balance.
      * @param accountId account id
-     * @return account current balance
+     * @param keyLevel key level
+     * @return account balance
      */
-    public Observable<Money> getCurrentBalance(String accountId) {
+    public Observable<GetBalanceResponse> getBalance(String accountId, Key.Level keyLevel) {
         setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+
+        GetBalancePayload payload = GetBalancePayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+
         return toObservable(gateway
                 .getBalance(GetBalanceRequest
                         .newBuilder()
-                        .setAccountId(accountId)
-                        .build()))
-                .map(new Function<GetBalanceResponse, Money>() {
-                    public Money apply(GetBalanceResponse response) {
-                        return response.getCurrent();
-                    }
-                });
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
+                        .build()));
     }
 
     /**
@@ -853,56 +867,116 @@ public final class Client {
     }
 
     /**
-     * Looks up an existing transaction. Doesn't have to be a transaction for a token transfer.
+     * Look up an existing transaction and return the response.
      *
-     * @param accountId ID of the account
-     * @param transactionId ID of the transaction
-     * @return transaction record
+     * @param accountId account id
+     * @param transactionId transaction id
+     * @return transaction response
      */
-    public Observable<Transaction> getTransaction(
+    @Deprecated
+    public Observable<GetTransactionResponse> getTransaction(
             String accountId,
             String transactionId) {
         setAuthenticationContext();
+
         return toObservable(gateway
                 .getTransaction(GetTransactionRequest
                         .newBuilder()
                         .setAccountId(accountId)
                         .setTransactionId(transactionId)
-                        .build()))
-                .map(new Function<GetTransactionResponse, Transaction>() {
-                    public Transaction apply(GetTransactionResponse response) {
-                        return response.getTransaction();
-                    }
-                });
+                        .build()));
     }
 
     /**
-     * Looks up existing transactions. This is a full list of transactions with token transfers
-     * being a subset.
+     * Look up an existing transaction and return the response.
      *
-     * @param accountId ID of the account
-     * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @return transaction record
+     * @param accountId account id
+     * @param transactionId transaction id
+     * @param keyLevel key level
+     * @return transaction response
      */
-    public Observable<PagedList<Transaction, String>> getTransactions(
+    public Observable<GetTransactionResponse> getTransaction(
+            String accountId,
+            String transactionId,
+            Key.Level keyLevel) {
+        setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+
+        GetTransactionPayload payload = GetTransactionPayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setTransactionId(transactionId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+
+        return toObservable(gateway
+                .getTransaction(GetTransactionRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
+                        .build()));
+    }
+
+    /**
+     * Lookup transactions and return response.
+     *
+     * @param accountId account id
+     * @param offset offset
+     * @param limit limit
+     * @return transactions response
+     */
+    @Deprecated
+    public Observable<GetTransactionsResponse> getTransactions(
             String accountId,
             @Nullable String offset,
             int limit) {
         setAuthenticationContext();
+
         return toObservable(gateway
                 .getTransactions(GetTransactionsRequest
                         .newBuilder()
                         .setAccountId(accountId)
                         .setPage(pageBuilder(offset, limit))
-                        .build()))
-                .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
-                    public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
-                        return PagedList.create(
-                                response.getTransactionsList(),
-                                response.getOffset());
-                    }
-                });
+                        .build()));
+    }
+
+    /**
+     * Lookup transactions and return response.
+     *
+     * @param accountId account id
+     * @param offset offset
+     * @param limit limit
+     * @param keyLevel key level
+     * @return transactions response
+     */
+    public Observable<GetTransactionsResponse> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+
+        GetTransactionsPayload payload = GetTransactionsPayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+        return toObservable(gateway
+                .getTransactions(GetTransactionsRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
+                        .setPage(pageBuilder(offset, limit))
+                        .build()));
     }
 
     /**
@@ -1246,6 +1320,66 @@ public final class Client {
                         .setVerificationId(verificationId)
                         .setCode(code)
                         .build()));
+    }
+
+    /**
+     * Trigger a step up notification for tokens.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTokenStepUpNotification(String tokenId) {
+        return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
+                .newBuilder()
+                .setTokenStepUp(StepUp.newBuilder()
+                        .setTokenId(tokenId)
+                        .build())
+                .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(String accountId) {
+        return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
+                .newBuilder()
+                .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
+                        .setAccountId(accountId)
+                        .build())
+                .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
+        return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
+                .newBuilder()
+                .setTransactionStepUp(NotificationProtos.TransactionStepUp.newBuilder()
+                        .setAccountId(accountId)
+                        .build())
+                .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(

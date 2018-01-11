@@ -36,14 +36,13 @@ import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
-import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
-import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -53,7 +52,9 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
-import io.token.security.CryptoEngine;
+import io.token.proto.gateway.Gateway.GetBalanceResponse;
+import io.token.proto.gateway.Gateway.GetTransactionResponse;
+import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.security.keystore.SecretKeyPair;
 
 import java.util.HashMap;
@@ -798,8 +799,24 @@ public class Member {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
+    @Deprecated
     public Transaction getTransaction(String accountId, String transactionId) {
         return async.getTransaction(accountId, transactionId).blockingSingle();
+    }
+
+    /**
+     * Looks up an existing transaction for a given account.
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @param keyLevel key level
+     * @return transaction response
+     */
+    public GetTransactionResponse getTransaction(
+            String accountId,
+            String transactionId,
+            Key.Level keyLevel) {
+        return async.getTransaction(accountId, transactionId, keyLevel).blockingSingle();
     }
 
     /**
@@ -810,6 +827,7 @@ public class Member {
      * @param limit max number of records to return
      * @return a list of transaction record
      */
+    @Deprecated
     public PagedList<Transaction, String> getTransactions(
             String accountId,
             @Nullable String offset,
@@ -818,11 +836,29 @@ public class Member {
     }
 
     /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @return transactions response
+     */
+    public GetTransactionsResponse getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        return async.getTransactions(accountId, offset, limit, keyLevel).blockingSingle();
+    }
+
+    /**
      * Looks up account available balance.
      *
      * @param accountId the account id
      * @return available balance
      */
+    @Deprecated
     public Money getAvailableBalance(String accountId) {
         return async.getAvailableBalance(accountId).blockingSingle();
     }
@@ -833,8 +869,20 @@ public class Member {
      * @param accountId the account id
      * @return current balance
      */
+    @Deprecated
     public Money getCurrentBalance(String accountId) {
         return async.getCurrentBalance(accountId).blockingSingle();
+    }
+
+    /**
+     * Looks up account balance.
+     *
+     * @param accountId account id
+     * @param keyLevel key level
+     * @return balance
+     */
+    public GetBalanceResponse getBalance(String accountId, Key.Level keyLevel) {
+        return async.getBalance(accountId, keyLevel).blockingSingle();
     }
 
     /**
@@ -924,6 +972,36 @@ public class Member {
      */
     public BankAuthorization createTestBankAccount(double balance, String currency) {
         return async.createTestBankAccount(balance, currency).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for tokens.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public NotifyStatus triggerTokenStepUpNotification(String tokenId) {
+        return async.triggerTokenStepUpNotification(tokenId).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public NotifyStatus triggerBalanceStepUpNotification(String accountId) {
+        return async.triggerBalanceStepUpNotification(accountId).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public NotifyStatus triggerTransactionStepUpNotification(String accountId) {
+        return async.triggerBalanceStepUpNotification(accountId).blockingSingle();
     }
 
     @Override
