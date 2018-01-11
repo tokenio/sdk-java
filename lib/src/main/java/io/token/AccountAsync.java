@@ -24,15 +24,11 @@ package io.token;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.gateway.Gateway.GetBalanceResponse;
-import io.token.proto.gateway.Gateway.GetTransactionResponse;
-import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.rpc.Client;
 
 import javax.annotation.Nullable;
