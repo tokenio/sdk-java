@@ -78,7 +78,7 @@ public class AKSSigner implements Signer{
                 // If user authentication has expired
                 if (System.currentTimeMillis() >= userAuthenticationStore.userAuthenticatedTime()
                                         + authenticationTimeSeconds * 1000) {
-                    throw new TokenAuthenticationException(s);
+                    throw new TokenAuthenticationException(null);
                 }
             }
 
@@ -96,7 +96,7 @@ public class AKSSigner implements Signer{
                     // only happens on new devices (Android M or later) which is why we do an additional
                     // check above, for the older devices. Before throwing, the signature is saved
                     // for later
-                    throw new TokenAuthenticationException(s);
+                    throw new TokenAuthenticationException(null);
                 } else if (ex instanceof KeyPermanentlyInvalidatedException) {
                     // Throws when the user has changed their device passcode or biometrics
                     throw new TokenInvalidKeyException(ex);
