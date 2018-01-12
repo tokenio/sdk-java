@@ -103,7 +103,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
                         .setDigests(KeyProperties.DIGEST_SHA256)
                         .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
                         .setUserAuthenticationValidityDurationSeconds(
-                            userAuthenticationStore.authenticationTimeSeconds());
+                            userAuthenticationStore.authenticationDurationSeconds());
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     // On Android N and above, we can invalidate the key if the user changes

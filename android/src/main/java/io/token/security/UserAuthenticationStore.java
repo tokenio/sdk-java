@@ -35,7 +35,7 @@ public class UserAuthenticationStore {
                 userAuthenticatedTime + authenticationDurationSeconds * 1000);
     }
 
-    public int authenticationTimeSeconds() {
+    public int authenticationDurationSeconds() {
         return authenticationDurationSeconds;
     }
 }
