@@ -24,15 +24,11 @@ package io.token;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.gateway.Gateway.GetBalanceResponse;
-import io.token.proto.gateway.Gateway.GetTransactionResponse;
-import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.rpc.Client;
 
 import javax.annotation.Nullable;
@@ -131,59 +127,23 @@ public class AccountAsync {
     }
 
     /**
-     * Looks up an account available balance.
-     *
-     * @return account available balance
-     */
-    @Deprecated
-    public Observable<Money> getAvailableBalance() {
-        return client.getBalance(account.getId())
-                .map(new Function<GetBalanceResponse, Money>() {
-                    public Money apply(GetBalanceResponse response) {
-                        return response.getAvailable();
-                    }
-                });
-    }
-
-    /**
-     * Looks up an account current balance.
-     *
-     * @return account current balance
-     */
-    @Deprecated
-    public Observable<Money> getCurrentBalance() {
-        return client.getBalance(account.getId())
-                .map(new Function<GetBalanceResponse, Money>() {
-                    public Money apply(GetBalanceResponse response) {
-                        return response.getCurrent();
-                    }
-                });
-    }
-
-    /**
      * Looks up an account current balance.
      *
      * @param keyLevel key level
      * @return account current balance
      */
-    public Observable<GetBalanceResponse> getBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel);
+    public Observable<Money> getCurrentBalance(Key.Level keyLevel) {
+        return client.getCurrentBalance(account.getId(), keyLevel);
     }
 
     /**
-     * Looks up an existing transaction. Doesn't have to be a transaction for a token transfer.
+     * Looks up an account available balance.
      *
-     * @param transactionId ID of the transaction
-     * @return transaction record
+     * @param keyLevel key level
+     * @return account current balance
      */
-    @Deprecated
-    public Observable<Transaction> getTransaction(String transactionId) {
-        return client.getTransaction(account.getId(), transactionId)
-                .map(new Function<GetTransactionResponse, Transaction>() {
-                    public Transaction apply(GetTransactionResponse response) {
-                        return response.getTransaction();
-                    }
-                });
+    public Observable<Money> getAvailableBalance(Key.Level keyLevel) {
+        return client.getAvailableBalance(account.getId(), keyLevel);
     }
 
     /**
@@ -191,34 +151,12 @@ public class AccountAsync {
      *
      * @param transactionId transaction id
      * @param keyLevel key level
-     * @return transaction response
+     * @return transaction
      */
-    public Observable<GetTransactionResponse> getTransaction(
+    public Observable<Transaction> getTransaction(
             String transactionId,
             Key.Level keyLevel) {
         return client.getTransaction(account.getId(), transactionId, keyLevel);
-    }
-
-    /**
-     * Looks up existing transactions. This is a full list of transactions with token transfers
-     * being a subset.
-     *
-     * @param offset offset to start at
-     * @param limit max number of records to return
-     * @return list of transactions
-     */
-    @Deprecated
-    public Observable<PagedList<Transaction, String>> getTransactions(
-            @Nullable String offset,
-            int limit) {
-        return client.getTransactions(account.getId(), offset, limit)
-                .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
-                    public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
-                        return PagedList.create(
-                                response.getTransactionsList(),
-                                response.getOffset());
-                    }
-                });
     }
 
     /**
@@ -227,9 +165,9 @@ public class AccountAsync {
      * @param offset offset
      * @param limit limit
      * @param keyLevel key level
-     * @return transactions response
+     * @return paged list of transactions
      */
-    public Observable<GetTransactionsResponse> getTransactions(
+    public Observable<PagedList<Transaction, String>> getTransactions(
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {

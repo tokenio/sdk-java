@@ -35,6 +35,7 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TransferTokenException;
+import io.token.exceptions.StepUpRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
@@ -70,6 +71,8 @@ import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transaction.TransactionProtos.GetBalancePayload;
 import io.token.proto.common.transaction.TransactionProtos.GetTransactionPayload;
 import io.token.proto.common.transaction.TransactionProtos.GetTransactionsPayload;
+import io.token.proto.common.transaction.TransactionProtos.RequestStatus;
+import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.gateway.Gateway;
@@ -745,30 +748,13 @@ public final class Client {
         return cancelAndReplace(tokenToCancel, createToken);
     }
 
-
     /**
-     * Look up account balance.
-     * @param accountId account id
-     * @return account balance
-     */
-    @Deprecated
-    public Observable<GetBalanceResponse> getBalance(String accountId) {
-        setAuthenticationContext();
-
-        return toObservable(gateway
-                .getBalance(GetBalanceRequest
-                        .newBuilder()
-                        .setAccountId(accountId)
-                        .build()));
-    }
-
-    /**
-     * Look up account balance.
+     * Look up current account balance.
      * @param accountId account id
      * @param keyLevel key level
-     * @return account balance
+     * @return current account balance
      */
-    public Observable<GetBalanceResponse> getBalance(String accountId, Key.Level keyLevel) {
+    public Observable<Money> getCurrentBalance(String accountId, Key.Level keyLevel) {
         setAuthenticationContext();
         Signer signer = crypto.createSigner(keyLevel);
 
@@ -787,7 +773,53 @@ public final class Client {
                                 .setMemberId(memberId)
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(payload)))
-                        .build()));
+                        .build()))
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
+                        if (response.getStatus() == RequestStatus.SUCCESSFUL_REQUEST) {
+                            return response.getCurrent();
+                        } else {
+                            throw new StepUpRequiredException("Balance step up required.");
+                        }
+                    }
+                });
+    }
+
+    /**
+     * Look up available account balance.
+     * @param accountId account id
+     * @param keyLevel key level
+     * @return available account balance
+     */
+    public Observable<Money> getAvailableBalance(String accountId, Key.Level keyLevel) {
+        setAuthenticationContext();
+        Signer signer = crypto.createSigner(keyLevel);
+
+        GetBalancePayload payload = GetBalancePayload
+                .newBuilder()
+                .setAccountId(accountId)
+                .setNonce(UUID.randomUUID().toString())
+                .build();
+
+        return toObservable(gateway
+                .getBalance(GetBalanceRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .setSignature(Signature
+                                .newBuilder()
+                                .setMemberId(memberId)
+                                .setKeyId(signer.getKeyId())
+                                .setSignature(signer.sign(payload)))
+                        .build()))
+                .map(new Function<GetBalanceResponse, Money>() {
+                    public Money apply(GetBalanceResponse response) {
+                        if (response.getStatus() == RequestStatus.SUCCESSFUL_REQUEST) {
+                            return response.getAvailable();
+                        } else {
+                            throw new StepUpRequiredException("Balance step up required.");
+                        }
+                    }
+                });
     }
 
     /**
@@ -871,31 +903,10 @@ public final class Client {
      *
      * @param accountId account id
      * @param transactionId transaction id
-     * @return transaction response
-     */
-    @Deprecated
-    public Observable<GetTransactionResponse> getTransaction(
-            String accountId,
-            String transactionId) {
-        setAuthenticationContext();
-
-        return toObservable(gateway
-                .getTransaction(GetTransactionRequest
-                        .newBuilder()
-                        .setAccountId(accountId)
-                        .setTransactionId(transactionId)
-                        .build()));
-    }
-
-    /**
-     * Look up an existing transaction and return the response.
-     *
-     * @param accountId account id
-     * @param transactionId transaction id
      * @param keyLevel key level
-     * @return transaction response
+     * @return transaction
      */
-    public Observable<GetTransactionResponse> getTransaction(
+    public Observable<Transaction> getTransaction(
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
@@ -918,30 +929,16 @@ public final class Client {
                                 .setMemberId(memberId)
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(payload)))
-                        .build()));
-    }
-
-    /**
-     * Lookup transactions and return response.
-     *
-     * @param accountId account id
-     * @param offset offset
-     * @param limit limit
-     * @return transactions response
-     */
-    @Deprecated
-    public Observable<GetTransactionsResponse> getTransactions(
-            String accountId,
-            @Nullable String offset,
-            int limit) {
-        setAuthenticationContext();
-
-        return toObservable(gateway
-                .getTransactions(GetTransactionsRequest
-                        .newBuilder()
-                        .setAccountId(accountId)
-                        .setPage(pageBuilder(offset, limit))
-                        .build()));
+                        .build()))
+                .map(new Function<GetTransactionResponse, Transaction>() {
+                    public Transaction apply(GetTransactionResponse response) {
+                        if (response.getStatus() == RequestStatus.SUCCESSFUL_REQUEST) {
+                            return response.getTransaction();
+                        } else {
+                            throw new StepUpRequiredException("Transaction step up required.");
+                        }
+                    }
+                });
     }
 
     /**
@@ -951,9 +948,9 @@ public final class Client {
      * @param offset offset
      * @param limit limit
      * @param keyLevel key level
-     * @return transactions response
+     * @return paged list of transactions
      */
-    public Observable<GetTransactionsResponse> getTransactions(
+    public Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
             @Nullable String offset,
             int limit,
@@ -976,7 +973,18 @@ public final class Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(payload)))
                         .setPage(pageBuilder(offset, limit))
-                        .build()));
+                        .build()))
+                .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
+                    public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
+                        if (response.getStatus() == RequestStatus.SUCCESSFUL_REQUEST) {
+                            return PagedList.create(
+                                    response.getTransactionsList(),
+                                    response.getOffset());
+                        } else {
+                            throw new StepUpRequiredException("Transactions step up required.");
+                        }
+                    }
+                });
     }
 
     /**
