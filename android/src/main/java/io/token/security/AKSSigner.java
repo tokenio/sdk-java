@@ -15,6 +15,7 @@ import java.security.GeneralSecurityException;
 import java.security.KeyStore.Entry;
 import java.security.KeyStore.PrivateKeyEntry;
 import java.security.Signature;
+import java.security.SignatureException;
 
 /**
  * Signs payloads using keys in the Android KeyStore.
@@ -23,17 +24,21 @@ public class AKSSigner implements Signer{
     private final Entry entry;
     private final Key.Level keyLevel;
     private final UserAuthenticationStore userAuthenticationStore;
-    private final int authenticationTimeSeconds;
 
+    /**
+     * Creates a KeyStore signer.
+     *
+     * @param entry entry in the Android KeyStore
+     * @param keyLevel level of the key in the entry
+     * @param userAuthenticationStore store for user authentication
+     */
     AKSSigner(
             Entry entry,
             Key.Level keyLevel,
-            UserAuthenticationStore userAuthenticationStore,
-            int authenticationTimeSeconds) {
+            UserAuthenticationStore userAuthenticationStore) {
         this.entry = entry;
         this.keyLevel = keyLevel;
         this.userAuthenticationStore = userAuthenticationStore;
-        this.authenticationTimeSeconds = authenticationTimeSeconds;
     }
 
     /**
@@ -70,28 +75,27 @@ public class AKSSigner implements Signer{
         try {
             s = Signature.getInstance("SHA256withECDSA");
             s.initSign(((PrivateKeyEntry) entry).getPrivateKey());
-            s.update(payload.getBytes("UTF-8"));
 
-            // Throws on old devices that haven't authenticated user.
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M && keyLevel != Key.Level.LOW) {
-                if (System.currentTimeMillis() >= userAuthenticationStore.userAuthenticatedTime()
-                                        + authenticationTimeSeconds * 1000) {
-                    throw new TokenAuthenticationException(s);
-                } else {
-                    // Only allow one privileged signature for each authentication
-                    userAuthenticationStore.expireUserAuthentication();
-                }
+            // If this is a privileged signer / operation
+            if (keyLevel != Key.Level.LOW && !userAuthenticationStore.isAuthenticated()) {
+                throw new TokenAuthenticationException(null);
             }
 
+            s.update(payload.getBytes("UTF-8"));
             byte[] signature = s.sign();
+
+            // Only allow one privileged signature for each authentication
+            userAuthenticationStore.expireUserAuthentication();
+
             return ByteEncoding.serialize(signature);
         } catch (GeneralSecurityException | UnsupportedEncodingException ex) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                if (ex instanceof UserNotAuthenticatedException) {
+                if (ex instanceof UserNotAuthenticatedException || ex instanceof SignatureException) {
                     // Throws on new devices that haven't authenticated users. Checked by KeyStore. This
                     // only happens on new devices (Android M or later) which is why we do an additional
-                    // check above, for the older devices.
-                    throw new TokenAuthenticationException(s);
+                    // check above, for the older devices. Before throwing, the signature is saved
+                    // for later
+                    throw new TokenAuthenticationException(null);
                 } else if (ex instanceof KeyPermanentlyInvalidatedException) {
                     // Throws when the user has changed their device passcode or biometrics
                     throw new TokenInvalidKeyException(ex);
