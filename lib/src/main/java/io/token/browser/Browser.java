@@ -36,12 +36,15 @@ public interface Browser extends Closeable {
      * Instructs the browser to load the given url.
      *
      * @param url the url to be loaded
+     * @throws BrowserClosedException if the browser was closed by the user
      */
     void goTo(URL url);
 
     /**
      * Returns an url observable which will be notified
      * before a new url is loaded into the browser.
+     * In case the browser was closed by the user the
+     * observable should be notified with a {@link BrowserClosedException}.
      *
      * @return an url observable
      */
