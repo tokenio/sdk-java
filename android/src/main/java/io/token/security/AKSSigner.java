@@ -24,17 +24,21 @@ public class AKSSigner implements Signer{
     private final Entry entry;
     private final Key.Level keyLevel;
     private final UserAuthenticationStore userAuthenticationStore;
-    private final int authenticationTimeSeconds;
 
+    /**
+     * Creates a KeyStore signer.
+     *
+     * @param entry entry in the Android KeyStore
+     * @param keyLevel level of the key in the entry
+     * @param userAuthenticationStore store for user authentication
+     */
     AKSSigner(
             Entry entry,
             Key.Level keyLevel,
-            UserAuthenticationStore userAuthenticationStore,
-            int authenticationTimeSeconds) {
+            UserAuthenticationStore userAuthenticationStore) {
         this.entry = entry;
         this.keyLevel = keyLevel;
         this.userAuthenticationStore = userAuthenticationStore;
-        this.authenticationTimeSeconds = authenticationTimeSeconds;
     }
 
     /**
@@ -73,13 +77,8 @@ public class AKSSigner implements Signer{
             s.initSign(((PrivateKeyEntry) entry).getPrivateKey());
 
             // If this is a privileged signer / operation
-            if (keyLevel != Key.Level.LOW) {
-
-                // If user authentication has expired
-                if (System.currentTimeMillis() >= userAuthenticationStore.userAuthenticatedTime()
-                                        + authenticationTimeSeconds * 1000) {
-                    throw new TokenAuthenticationException(null);
-                }
+            if (keyLevel != Key.Level.LOW && !userAuthenticationStore.isAuthenticated()) {
+                throw new TokenAuthenticationException(null);
             }
 
             s.update(payload.getBytes("UTF-8"));

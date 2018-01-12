@@ -53,7 +53,6 @@ import javax.security.auth.x500.X500Principal;
 public final class AKSCryptoEngine implements CryptoEngine {
     private static final String KEY_NAME = "tokenapp_key";
     private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ECDSA_SHA256;
-    private static final int AUTHENTICATION_DURATION_SECONDS = 5;
 
     private final String memberId;
     private final Context context;
@@ -104,7 +103,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
                         .setDigests(KeyProperties.DIGEST_SHA256)
                         .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
                         .setUserAuthenticationValidityDurationSeconds(
-                            AUTHENTICATION_DURATION_SECONDS);
+                            userAuthenticationStore.authenticationTimeSeconds());
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     // On Android N and above, we can invalidate the key if the user changes
@@ -163,8 +162,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
         return new AKSSigner(
                 getKeyFromKeyStore(keyLevel),
                 keyLevel,
-                userAuthenticationStore,
-                AUTHENTICATION_DURATION_SECONDS);
+                userAuthenticationStore);
     }
 
     /**

@@ -5,9 +5,22 @@ package io.token.security;
  * use the KeyStore to check for user authentication.
  */
 public class UserAuthenticationStore {
+    private static final int AUTHENTICATION_DURATION_SECONDS_DEFAULT = 5;
+    private final int authenticationDurationSeconds;
     private long userAuthenticatedTime = 0;
 
-    public UserAuthenticationStore() { }
+    /**
+     * Creates a store for authentication time of user
+     *
+     * @param authenticationDurationSeconds how many seconds the authentication lasts for
+     */
+    public UserAuthenticationStore(int authenticationDurationSeconds) {
+        this.authenticationDurationSeconds = authenticationDurationSeconds;
+    }
+
+    public UserAuthenticationStore() {
+        this.authenticationDurationSeconds = AUTHENTICATION_DURATION_SECONDS_DEFAULT;
+    }
 
     public void authenticateUser() {
         userAuthenticatedTime = System.currentTimeMillis();
@@ -17,7 +30,12 @@ public class UserAuthenticationStore {
         userAuthenticatedTime = 0;
     }
 
-    public long userAuthenticatedTime() {
-        return userAuthenticatedTime;
+    public boolean isAuthenticated() {
+        return (System.currentTimeMillis() <
+                userAuthenticatedTime + authenticationDurationSeconds * 1000);
+    }
+
+    public int authenticationTimeSeconds() {
+        return authenticationDurationSeconds;
     }
 }
