@@ -27,6 +27,7 @@ import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
+import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import com.google.common.hash.Hashing;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.util.codec.ByteEncoding;
@@ -53,12 +54,13 @@ import javax.security.auth.x500.X500Principal;
 public final class AKSCryptoEngine implements CryptoEngine {
     private static final String KEY_NAME = "tokenapp_key";
     private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ECDSA_SHA256;
-    private static final int AUTHENTICATION_DURATION_SECONDS = 30;
+    private static final int AUTHENTICATION_DURATION_SECONDS = 5;
 
     private final String memberId;
     private final Context context;
     private final UserAuthenticationStore userAuthenticationStore;
     private final KeyStore keyStore;
+    private final FingerprintManagerCompat fingerprintManager;
 
     /**
      * Creates an instance.
@@ -78,6 +80,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
         } catch (KeyStoreException ex) {
             throw new RuntimeException(ex);
         }
+        this.fingerprintManager = FingerprintManagerCompat.from(context);
     }
 
     /**
@@ -102,10 +105,15 @@ public final class AKSCryptoEngine implements CryptoEngine {
                         KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
                         .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
                         .setDigests(KeyProperties.DIGEST_SHA256)
-                        .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
-                        .setUserAuthenticationValidityDurationSeconds(
-                                AUTHENTICATION_DURATION_SECONDS);
+                        .setUserAuthenticationRequired(keyLevel != Key.Level.LOW);
 
+                if (!fingerprintManager.hasEnrolledFingerprints()) {
+                    // On devices without a fingerprint sensor, limit authentication validity
+                    // for a short amount of time, to force use to reauthenticate for every
+                    // privileged operation
+                    builder.setUserAuthenticationValidityDurationSeconds(
+                            AUTHENTICATION_DURATION_SECONDS);
+                }
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     // On Android N and above, we can invalidate the key if the user changes
                     // their biometrics
@@ -164,7 +172,8 @@ public final class AKSCryptoEngine implements CryptoEngine {
                 getKeyFromKeyStore(keyLevel),
                 keyLevel,
                 userAuthenticationStore,
-                AUTHENTICATION_DURATION_SECONDS);
+                AUTHENTICATION_DURATION_SECONDS,
+                fingerprintManager);
     }
 
     /**
