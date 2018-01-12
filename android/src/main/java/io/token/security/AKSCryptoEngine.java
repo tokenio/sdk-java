@@ -27,7 +27,6 @@ import android.os.Build;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyProperties;
-import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import com.google.common.hash.Hashing;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.util.codec.ByteEncoding;

@@ -3,7 +3,6 @@ package io.token.security;
 import android.os.Build;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.UserNotAuthenticatedException;
-import android.support.v4.hardware.fingerprint.FingerprintManagerCompat;
 import com.google.protobuf.Message;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -68,14 +67,10 @@ public class AKSSigner implements Signer{
      */
     @Override
     public String sign(String payload) {
-        Signature cached = userAuthenticationStore.getSignature(payload);
-        System.out.println("Signing.....Signature is: " + cached);
-        Signature s = cached;
+        Signature s = null;
         try {
-            if (s == null) {
-                s = Signature.getInstance("SHA256withECDSA");
-                s.initSign(((PrivateKeyEntry) entry).getPrivateKey());
-            }
+            s = Signature.getInstance("SHA256withECDSA");
+            s.initSign(((PrivateKeyEntry) entry).getPrivateKey());
 
             // If we are in an old device ad this is a privileged signer / operation
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M && keyLevel != Key.Level.LOW) {
