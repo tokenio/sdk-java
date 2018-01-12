@@ -72,8 +72,8 @@ public class AKSSigner implements Signer{
             s = Signature.getInstance("SHA256withECDSA");
             s.initSign(((PrivateKeyEntry) entry).getPrivateKey());
 
-            // If we are in an old device ad this is a privileged signer / operation
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M && keyLevel != Key.Level.LOW) {
+            // If this is a privileged signer / operation
+            if (keyLevel != Key.Level.LOW) {
 
                 // If user authentication has expired
                 if (System.currentTimeMillis() >= userAuthenticationStore.userAuthenticatedTime()
