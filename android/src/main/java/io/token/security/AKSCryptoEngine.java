@@ -60,7 +60,6 @@ public final class AKSCryptoEngine implements CryptoEngine {
     private final Context context;
     private final UserAuthenticationStore userAuthenticationStore;
     private final KeyStore keyStore;
-    private final FingerprintManagerCompat fingerprintManager;
 
     /**
      * Creates an instance.
@@ -80,7 +79,6 @@ public final class AKSCryptoEngine implements CryptoEngine {
         } catch (KeyStoreException ex) {
             throw new RuntimeException(ex);
         }
-        this.fingerprintManager = FingerprintManagerCompat.from(context);
     }
 
     /**
@@ -105,15 +103,10 @@ public final class AKSCryptoEngine implements CryptoEngine {
                         KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
                         .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
                         .setDigests(KeyProperties.DIGEST_SHA256)
-                        .setUserAuthenticationRequired(keyLevel != Key.Level.LOW);
-
-                if (!fingerprintManager.hasEnrolledFingerprints()) {
-                    // On devices without a fingerprint sensor, limit authentication validity
-                    // for a short amount of time, to force use to reauthenticate for every
-                    // privileged operation
-                    builder.setUserAuthenticationValidityDurationSeconds(
+                        .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
+                        .setUserAuthenticationValidityDurationSeconds(
                             AUTHENTICATION_DURATION_SECONDS);
-                }
+
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
                     // On Android N and above, we can invalidate the key if the user changes
                     // their biometrics
@@ -172,8 +165,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
                 getKeyFromKeyStore(keyLevel),
                 keyLevel,
                 userAuthenticationStore,
-                AUTHENTICATION_DURATION_SECONDS,
-                fingerprintManager);
+                AUTHENTICATION_DURATION_SECONDS);
     }
 
     /**

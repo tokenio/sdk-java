@@ -15,7 +15,6 @@ import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
 import java.security.KeyStore.Entry;
 import java.security.KeyStore.PrivateKeyEntry;
-import java.security.KeyStoreException;
 import java.security.Signature;
 import java.security.SignatureException;
 
@@ -27,19 +26,16 @@ public class AKSSigner implements Signer{
     private final Key.Level keyLevel;
     private final UserAuthenticationStore userAuthenticationStore;
     private final int authenticationTimeSeconds;
-    private final FingerprintManagerCompat fingerprintManager;
 
     AKSSigner(
             Entry entry,
             Key.Level keyLevel,
             UserAuthenticationStore userAuthenticationStore,
-            int authenticationTimeSeconds,
-            FingerprintManagerCompat fingerprintManager) {
+            int authenticationTimeSeconds) {
         this.entry = entry;
         this.keyLevel = keyLevel;
         this.userAuthenticationStore = userAuthenticationStore;
         this.authenticationTimeSeconds = authenticationTimeSeconds;
-        this.fingerprintManager = fingerprintManager;
     }
 
     /**
@@ -81,10 +77,8 @@ public class AKSSigner implements Signer{
                 s.initSign(((PrivateKeyEntry) entry).getPrivateKey());
             }
 
-            // If we are in an old device, or a new device without fingerprint sensor, AND this a
-            // privileged signer / operation
-            if ((Build.VERSION.SDK_INT < Build.VERSION_CODES.M ||
-                    !fingerprintManager.hasEnrolledFingerprints())  && keyLevel != Key.Level.LOW) {
+            // If we are in an old device ad this is a privileged signer / operation
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M && keyLevel != Key.Level.LOW) {
 
                 // If user authentication has expired
                 if (System.currentTimeMillis() >= userAuthenticationStore.userAuthenticatedTime()
@@ -107,7 +101,6 @@ public class AKSSigner implements Signer{
                     // only happens on new devices (Android M or later) which is why we do an additional
                     // check above, for the older devices. Before throwing, the signature is saved
                     // for later
-                    userAuthenticationStore.putSignature(payload, s);
                     throw new TokenAuthenticationException(s);
                 } else if (ex instanceof KeyPermanentlyInvalidatedException) {
                     // Throws when the user has changed their device passcode or biometrics
