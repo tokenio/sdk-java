@@ -1245,7 +1245,6 @@ public class MemberAsync {
                             }
                         });
                 browser.goTo(new URL(bankInfo.getLinkingUri()));
-                // TODO(Luke) when user closes browser, emitter.onError(...)
             }
         }).toObservable();
     }

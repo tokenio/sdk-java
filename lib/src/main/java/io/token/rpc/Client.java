@@ -37,6 +37,7 @@ import static io.token.util.Util.toObservable;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
@@ -47,6 +48,7 @@ import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
+import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.account.AccountProtos.Account;
@@ -591,14 +593,13 @@ public final class Client {
                 );
     }
 
-    // TODO move down
     private Observable<Token> transferTokenExternalAuth(
             final TokenPayload payload,
             final CreateTransferTokenResponse response,
             final BrowserFactory browserFactory) {
-        return Single.create(new SingleOnSubscribe<Token>() {
+        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
             @Override
-            public void subscribe(final SingleEmitter<Token> emitter) throws Exception {
+            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
                 final Browser browser = browserFactory.create();
                 browser.url().subscribe(new Consumer<URL>() {
                     @Override
@@ -611,15 +612,7 @@ public final class Client {
                                 String json = fetchUrl(url);
                                 BankAuthorization bankAuthorization = ProtoJson
                                         .fromJson(json, BankAuthorization.newBuilder());
-                                payload.toBuilder()
-                                        .getTransferBuilder()
-                                        .getInstructionsBuilder()
-                                        .getSourceBuilder()
-                                        .setAccount(BankAccount.newBuilder()
-                                                .setTokenAuthorization(TokenAuthorization.newBuilder()
-                                                        .setAuthorization(bankAuthorization)
-                                                        .build()));
-                                // TODO call createTransfer with new payload; deal with Observable
+                                emitter.onSuccess(bankAuthorization);
                             } catch (IOException e) {
                                 emitter.onError(e);
                             } finally {
@@ -632,7 +625,21 @@ public final class Client {
                         .getAuthorizationDetails()
                         .getUrl()));
             }
-        }).toObservable();
+        }).toObservable()
+                .flatMap(new Function<BankAuthorization, ObservableSource<Token>>() {
+                    @Override
+                    public ObservableSource<Token> apply(BankAuthorization bankAuthorization) {
+                        payload.toBuilder()
+                                .getTransferBuilder()
+                                .getInstructionsBuilder()
+                                .getSourceBuilder()
+                                .setAccount(BankAccount.newBuilder()
+                                        .setTokenAuthorization(TokenAuthorization.newBuilder()
+                                                .setAuthorization(bankAuthorization)
+                                                .build()));
+                        return createTransferToken(payload, browserFactory);
+                    }
+                });
     }
 
     /**
