@@ -6,11 +6,15 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.Callable;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
@@ -76,6 +80,25 @@ public class TokenBrowserFactory implements BrowserFactory {
             data.putString(MSG_KEY_SID, sessionId);
             data.putString(MSG_KEY_URL, url.toExternalForm());
             messenger.send(MSG_GO_TO, data);
+        }
+
+        @Override
+        public Observable<String> fetchData(final URL url) {
+            return Observable.fromCallable(new Callable<String>() {
+                @Override
+                public String call() throws Exception {
+                    InputStream is = url.openConnection().getInputStream();
+                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                    StringBuilder builder = new StringBuilder();
+                    String line;
+
+                    while ((line = reader.readLine()) != null) {
+                        builder.append(line);
+                    }
+
+                    return builder.toString();
+                }
+            });
         }
 
         @Override

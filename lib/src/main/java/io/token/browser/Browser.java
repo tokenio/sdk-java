@@ -28,23 +28,34 @@ import java.io.Closeable;
 import java.net.URL;
 
 /**
- * A browser abstraction used by the SDK
- * to interact with web content.
+ * A browser abstraction used by the SDK to interact with web content.
+ * The user may call goTo(url) to display the url in the browser, or
+ * fetchData(url) to fetch data from the URL without displaying the page.
+ *
+ * <p>Redirects are handled by the user: the observable returned by url()
+ * will be notified, and the URL will not be loaded unless the user
+ * specifically calls goTo(url) on the redirect URL.
+ *
  */
 public interface Browser extends Closeable {
     /**
      * Instructs the browser to load the given url.
      *
      * @param url the url to be loaded
-     * @throws BrowserClosedException if the browser was closed by the user
      */
     void goTo(URL url);
 
     /**
-     * Returns an url observable which will be notified
-     * before a new url is loaded into the browser.
-     * In case the browser was closed by the user the
-     * observable should be notified with a {@link BrowserClosedException}.
+     * Fetch data from URL. Does not load the page.
+     *
+     * @param url the url to fetch data from
+     * @return data observable
+     */
+    Observable<String> fetchData(URL url);
+
+    /**
+     * Returns an url observable which will notify the user of redirects.
+     * The redirected page will not be loaded unless the user calls goTo on that URL.
      *
      * @return an url observable
      */

@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 
@@ -197,25 +198,5 @@ public abstract class Util {
                     }
                 })
                 .toObservable();
-    }
-
-    /**
-     * Loads the body of the resource associated with the specified url.
-     *
-     * @param url the url to fetch
-     * @return the body of the resource
-     * @throws IOException if there was a problem loading the url
-     */
-    public static String fetchUrl(URL url) throws IOException {
-        InputStream is = url.openConnection().getInputStream();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder builder = new StringBuilder();
-        String line;
-
-        while ((line = reader.readLine()) != null) {
-            builder.append(line);
-        }
-
-        return builder.toString();
     }
 }

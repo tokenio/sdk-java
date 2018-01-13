@@ -25,9 +25,23 @@ package io.token;
 import static io.token.proto.common.address.AddressProtos.Address;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
+import com.google.common.base.Strings;
+import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
+import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
+import io.token.proto.ProtoJson;
+import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -58,6 +72,9 @@ import io.token.proto.gateway.Gateway.GetTransactionResponse;
 import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.security.keystore.SecretKeyPair;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -378,12 +395,55 @@ public class Member {
      * @param browserFactory the browser factory
      * @return account linking bank authorization
      */
-    public BankAuthorization initiateAccountLinking(
-            BankInfo bankInfo,
-            BrowserFactory browserFactory) {
-        return async
-                .initiateAccountLinking(bankInfo, browserFactory)
-                .blockingSingle();
+    public Observable<BankAuthorization> initiateAccountLinking(
+            final BankInfo bankInfo,
+            final BrowserFactory browserFactory) {
+        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
+            @Override
+            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
+                final Browser browser = browserFactory.create();
+                browser.url()
+                        .filter(new Predicate<URL>() {
+                            @Override
+                            public boolean test(URL url) {
+                                if (url
+                                        .toExternalForm()
+                                        .matches(bankInfo.getRedirectUriRegex())) {
+                                    return true;
+                                }
+                                browser.goTo(url);
+                                return false;
+                            }
+                        })
+                        .observeOn(Schedulers.newThread())
+                        .flatMap(new Function<URL, ObservableSource<String>>() {
+                            @Override
+                            public ObservableSource<String> apply(URL url) {
+                                return browser.fetchData(url);
+                            }
+                        })
+                        .subscribe(
+                                new Consumer<String>() {
+                                    @Override
+                                    public void accept(String json) {
+                                        BankAuthorization bankAuthorization = ProtoJson
+                                                .fromJson(
+                                                        json,
+                                                        BankAuthorization.newBuilder());
+                                        emitter.onSuccess(bankAuthorization);
+                                        browser.close();
+                                    }
+                                },
+                                new Consumer<Throwable>() {
+                                    @Override
+                                    public void accept(Throwable ex) {
+                                        emitter.onError(ex);
+                                        browser.close();
+                                    }
+                                });
+                browser.goTo(new URL(bankInfo.getLinkingUri()));
+            }
+        }).toObservable();
     }
 
     /**

@@ -23,7 +23,6 @@
 package io.token;
 
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
-import static io.token.util.Util.fetchUrl;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
@@ -1204,48 +1203,5 @@ public class MemberAsync {
                                 });
                     }
                 });
-    }
-
-    /**
-     * Initiates bank account linking.
-     *
-     * @param bankInfo the bank info
-     * @param browserFactory the browser factory
-     * @return an observable bank authorization
-     */
-    public Observable<BankAuthorization> initiateAccountLinking(
-            final BankInfo bankInfo,
-            final BrowserFactory browserFactory) {
-        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
-            @Override
-            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
-                final Browser browser = browserFactory.create();
-                browser.url().subscribe(
-                        new Consumer<URL>() {
-                            @Override
-                            public void accept(URL url) {
-                                if (url.toExternalForm().matches(bankInfo.getRedirectUriRegex())) {
-                                    try {
-                                        String json = fetchUrl(url);
-                                        BankAuthorization bankAuthorization = ProtoJson
-                                                .fromJson(json, BankAuthorization.newBuilder());
-                                        emitter.onSuccess(bankAuthorization);
-                                    } catch (IOException ex) {
-                                        emitter.onError(ex);
-                                    } finally {
-                                        browser.close();
-                                    }
-                                }
-                            }
-                        },
-                        new Consumer<Throwable>() {
-                            @Override
-                            public void accept(Throwable ex) {
-                                emitter.onError(ex);
-                            }
-                        });
-                browser.goTo(new URL(bankInfo.getLinkingUri()));
-            }
-        }).toObservable();
     }
 }

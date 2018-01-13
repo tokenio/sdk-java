@@ -1,10 +1,15 @@
 package io.token.browser;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
@@ -18,6 +23,7 @@ public class TokenBrowserActivity extends Activity {
     private String sessionId;
     private MessengerClient messenger;
     private WebView webview;
+    private volatile boolean force;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -30,13 +36,24 @@ public class TokenBrowserActivity extends Activity {
         }
 
         webview = new WebView(this);
+
+        WebSettings webSettings = webview.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+
         webview.setWebViewClient(new WebViewClient() {
+            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             @Override
-            public void onPageStarted(WebView view, String url, Bitmap favicon) {
-                Bundle data = new Bundle(2);
-                data.putString(MSG_KEY_SID, sessionId);
-                data.putString(MSG_KEY_URL, url);
-                messenger.send(MSG_ON_URL, data);
+            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+                if (force) {
+                    force = false;
+                    return false; // display page
+                } else {
+                    Bundle data = new Bundle(2);
+                    data.putString(MSG_KEY_SID, sessionId);
+                    data.putString(MSG_KEY_URL, request.getUrl().toString());
+                    messenger.send(MSG_ON_URL, data);
+                    return true; // do not display page
+                }
             }
         });
         setContentView(webview);
@@ -62,6 +79,11 @@ public class TokenBrowserActivity extends Activity {
         super.onSaveInstanceState(outState);
     }
 
+    @Override
+    public void onConfigurationChanged(Configuration newConfig){
+        super.onConfigurationChanged(newConfig);
+    }
+
     private class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
@@ -77,6 +99,7 @@ public class TokenBrowserActivity extends Activity {
                 case MSG_GO_TO:
                     final String url = data.getString(MSG_KEY_URL);
                     if (sessionId.equals(sid)) {
+                        force = true;
                         webview.loadUrl(url);
                     }
                     break;
