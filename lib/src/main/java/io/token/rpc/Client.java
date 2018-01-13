@@ -544,7 +544,7 @@ public final class Client {
     }
 
     /**
-     * Creates a new transfer token.
+     * Creates a new transfer token. If external auth required, throws exception.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
@@ -565,6 +565,13 @@ public final class Client {
                 });
     }
 
+    /**
+     * Create a new transfer token. If external auth required, directs browser to auth page.
+     *
+     * @param payload transfer token payload
+     * @param browserFactory the browser factory
+     * @return transfer token returned by the server
+     */
     public Observable<Token> createTransferToken(
             final TokenPayload payload,
             final BrowserFactory browserFactory) {
@@ -574,70 +581,20 @@ public final class Client {
                         .setPayload(payload)
                         .build()))
                 .flatMap(new Function<CreateTransferTokenResponse, ObservableSource<Token>>() {
-                             @Override
-                             public ObservableSource<Token> apply(
-                                     final CreateTransferTokenResponse response) {
-                                 switch (response.getStatus()) {
-                                     case SUCCESS:
-                                         return Observable.just(response.getToken());
-                                     case FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED:
-                                         return transferTokenExternalAuth(
-                                                 payload,
-                                                 response,
-                                                 browserFactory);
-                                     default:
-                                         throw new TransferTokenException(response.getStatus());
-                                 }
-                             }
-                         }
-                );
-    }
-
-    private Observable<Token> transferTokenExternalAuth(
-            final TokenPayload payload,
-            final CreateTransferTokenResponse response,
-            final BrowserFactory browserFactory) {
-        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
-            @Override
-            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
-                final Browser browser = browserFactory.create();
-                browser.url().subscribe(new Consumer<URL>() {
                     @Override
-                    public void accept(URL url) {
-                        if (url.toExternalForm()
-                                .matches(response
-                                        .getAuthorizationDetails()
-                                        .getCompletionPattern())) {
-                            try {
-                                String json = fetchUrl(url);
-                                BankAuthorization bankAuthorization = ProtoJson
-                                        .fromJson(json, BankAuthorization.newBuilder());
-                                emitter.onSuccess(bankAuthorization);
-                            } catch (IOException e) {
-                                emitter.onError(e);
-                            } finally {
-                                browser.close();
-                            }
+                    public ObservableSource<Token> apply(
+                            final CreateTransferTokenResponse response) {
+                        switch (response.getStatus()) {
+                            case SUCCESS:
+                                return Observable.just(response.getToken());
+                            case FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED:
+                                return transferTokenExternalAuth(
+                                        payload,
+                                        response,
+                                        browserFactory);
+                            default:
+                                throw new TransferTokenException(response.getStatus());
                         }
-                    }
-                });
-                browser.goTo(new URL(response
-                        .getAuthorizationDetails()
-                        .getUrl()));
-            }
-        }).toObservable()
-                .flatMap(new Function<BankAuthorization, ObservableSource<Token>>() {
-                    @Override
-                    public ObservableSource<Token> apply(BankAuthorization bankAuthorization) {
-                        payload.toBuilder()
-                                .getTransferBuilder()
-                                .getInstructionsBuilder()
-                                .getSourceBuilder()
-                                .setAccount(BankAccount.newBuilder()
-                                        .setTokenAuthorization(TokenAuthorization.newBuilder()
-                                                .setAuthorization(bankAuthorization)
-                                                .build()));
-                        return createTransferToken(payload, browserFactory);
                     }
                 });
     }
@@ -1531,5 +1488,54 @@ public final class Client {
                 "%s.%s",
                 toJson(tokenPayload),
                 action.name().toLowerCase());
+    }
+
+    private Observable<Token> transferTokenExternalAuth(
+            final TokenPayload payload,
+            final CreateTransferTokenResponse response,
+            final BrowserFactory browserFactory) {
+        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
+            @Override
+            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
+                final Browser browser = browserFactory.create();
+                browser.url().subscribe(new Consumer<URL>() {
+                    @Override
+                    public void accept(URL url) {
+                        if (url.toExternalForm()
+                                .matches(response
+                                        .getAuthorizationDetails()
+                                        .getCompletionPattern())) {
+                            try {
+                                String json = fetchUrl(url);
+                                BankAuthorization bankAuthorization = ProtoJson
+                                        .fromJson(json, BankAuthorization.newBuilder());
+                                emitter.onSuccess(bankAuthorization);
+                            } catch (IOException e) {
+                                emitter.onError(e);
+                            } finally {
+                                browser.close();
+                            }
+                        }
+                    }
+                });
+                browser.goTo(new URL(response
+                        .getAuthorizationDetails()
+                        .getUrl()));
+            }
+        }).toObservable()
+                .flatMap(new Function<BankAuthorization, ObservableSource<Token>>() {
+                    @Override
+                    public ObservableSource<Token> apply(BankAuthorization bankAuthorization) {
+                        payload.toBuilder()
+                                .getTransferBuilder()
+                                .getInstructionsBuilder()
+                                .getSourceBuilder()
+                                .setAccount(BankAccount.newBuilder()
+                                        .setTokenAuthorization(TokenAuthorization.newBuilder()
+                                                .setAuthorization(bankAuthorization)
+                                                .build()));
+                        return createTransferToken(payload, browserFactory);
+                    }
+                });
     }
 }
