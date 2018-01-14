@@ -84,9 +84,6 @@ public class AKSSigner implements Signer{
             s.update(payload.getBytes("UTF-8"));
             byte[] signature = s.sign();
 
-            // Only allow one privileged signature for each authentication
-            userAuthenticationStore.expireUserAuthentication();
-
             return ByteEncoding.serialize(signature);
         } catch (GeneralSecurityException | UnsupportedEncodingException ex) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

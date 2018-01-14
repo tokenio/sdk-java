@@ -5,7 +5,7 @@ package io.token.security;
  * use the KeyStore to check for user authentication.
  */
 public class UserAuthenticationStore {
-    private static final int AUTHENTICATION_DURATION_SECONDS_DEFAULT = 5;
+    private static final int AUTHENTICATION_DURATION_SECONDS_DEFAULT = 7;
     private final int authenticationDurationSeconds;
     private long userAuthenticatedTime = 0;
 
