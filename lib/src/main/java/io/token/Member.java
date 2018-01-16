@@ -833,7 +833,7 @@ public class Member {
     }
 
     /**
-     * Looks up account available balance.
+     * Looks up account current balance.
      *
      * @param accountId account id
      * @param keyLevel key level
@@ -841,6 +841,32 @@ public class Member {
      */
     public Money getCurrentBalance(String accountId, Key.Level keyLevel) {
         return async.getCurrentBalance(accountId, keyLevel).blockingSingle();
+    }
+
+    /**
+     * Looks up current balance for a list of accounts.
+     *
+     * @param accountIds list of account ids
+     * @param keyLevel key level
+     * @return map of account id to current balance
+     */
+    public Map<String, Money> getCurrentBalanceList(
+            List<String> accountIds,
+            Key.Level keyLevel) {
+        return async.getCurrentBalanceList(accountIds, keyLevel).blockingSingle();
+    }
+
+    /**
+     * Looks up available balance for a list of accounts.
+     *
+     * @param accountIds list of account ids
+     * @param keyLevel key level
+     * @return map of account id to available balance
+     */
+    public Map<String, Money> getAvailableBalanceList(
+            List<String> accountIds,
+            Key.Level keyLevel) {
+        return async.getAvailableBalanceList(accountIds, keyLevel).blockingSingle();
     }
 
     /**

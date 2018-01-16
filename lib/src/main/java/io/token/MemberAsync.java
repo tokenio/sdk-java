@@ -1028,6 +1028,30 @@ public class MemberAsync {
     }
 
     /**
+     * Looks up current balance for a list of accounts.
+     *
+     * @param accountIds list of account ids
+     * @param keyLevel key level
+     * @return map of account id to current balance
+     */
+    public Observable<Map<String, Money>> getCurrentBalanceList(
+            List<String> accountIds, Key.Level keyLevel) {
+        return client.getCurrentBalanceList(accountIds, keyLevel);
+    }
+
+    /**
+     * Looks up available balance for a list of accounts.
+     *
+     * @param accountIds list of account ids
+     * @param keyLevel key level
+     * @return map of account id to available balance
+     */
+    public Observable<Map<String, Money>> getAvailableBalanceList(
+            List<String> accountIds, Key.Level keyLevel) {
+        return client.getAvailableBalanceList(accountIds, keyLevel);
+    }
+
+    /**
      * Returns a list of all token enabled banks.
      *
      * @return a list of banks
