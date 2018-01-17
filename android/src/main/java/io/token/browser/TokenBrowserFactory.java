@@ -47,7 +47,7 @@ public class TokenBrowserFactory implements BrowserFactory {
         browsers.put(sessionId, browser);
 
         System.out.println("<<<<< UI THREAD? " + (Looper.myLooper() == Looper.getMainLooper()));
-        Intent intent = new Intent(parent, TokenBrowserActivity.class);
+        Intent intent = TokenBrowserActivity.newIntent(parent, "Title", "https://bank-demo.sandbox.token.io/auth/login?username=tien", "eoeoueuxueix");
         Bundle extras = new Bundle(1);
         extras.putString(MSG_KEY_SID, sessionId);
         intent.putExtras(extras);

@@ -433,39 +433,39 @@ public class Member {
         }).toObservable();
 
 
-//        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
-//            @Override
-//            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
-//                System.out.println("<<<< CALL subscribe");
-//                final Browser browser = browserFactory.create();
-//                browser.url().subscribe(
-//                        new Consumer<URL>() {
-//                            @Override
-//                            public void accept(URL url) {
-//                                if (url.toExternalForm().matches(bankInfo.getRedirectUriRegex())) {
-//                                    try {
-//                                        String json = fetchUrl(url);
-//                                        BankAuthorization bankAuthorization = ProtoJson
-//                                                .fromJson(json, BankAuthorization.newBuilder());
-//                                        emitter.onSuccess(bankAuthorization);
-//                                    } catch (IOException ex) {
-//                                        emitter.onError(ex);
-//                                    } finally {
-//                                        browser.close();
-//                                    }
-//                                }
-//                            }
-//                        },
-//                        new Consumer<Throwable>() {
-//                            @Override
-//                            public void accept(Throwable ex) {
+//return Single.create(new SingleOnSubscribe<BankAuthorization>() {
+//    @Override
+//    public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
+//        System.out.println("<<<< CALL subscribe");
+//        final Browser browser = browserFactory.create();
+//        browser.url().subscribe(
+//                new Consumer<URL>() {
+//                    @Override
+//                    public void accept(URL url) {
+//                        if (url.toExternalForm().matches(bankInfo.getRedirectUriRegex())) {
+//                            try {
+//                                String json = fetchUrl(url);
+//                                BankAuthorization bankAuthorization = ProtoJson
+//                                        .fromJson(json, BankAuthorization.newBuilder());
+//                                emitter.onSuccess(bankAuthorization);
+//                            } catch (IOException ex) {
 //                                emitter.onError(ex);
+//                            } finally {
+//                                browser.close();
 //                            }
-//                        });
-//                System.out.println("<<<<< ABOUT TO CALL GOTO");
-//                browser.goTo(new URL(bankInfo.getLinkingUri()));
-//            }
-//        }).toObservable();
+//                        }
+//                    }
+//                },
+//                new Consumer<Throwable>() {
+//                    @Override
+//                    public void accept(Throwable ex) {
+//                        emitter.onError(ex);
+//                    }
+//                });
+//        System.out.println("<<<<< ABOUT TO CALL GOTO");
+//        browser.goTo(new URL(bankInfo.getLinkingUri()));
+//    }
+//}).toObservable();
     }
 
     /**
