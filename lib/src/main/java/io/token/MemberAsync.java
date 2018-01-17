@@ -1034,9 +1034,9 @@ public class MemberAsync {
      * @param keyLevel key level
      * @return map of account id to current balance
      */
-    public Observable<Map<String, Money>> getCurrentBalanceList(
+    public Observable<Map<String, Money>> getCurrentBalanceMap(
             List<String> accountIds, Key.Level keyLevel) {
-        return client.getCurrentBalanceList(accountIds, keyLevel);
+        return client.getCurrentBalanceMap(accountIds, keyLevel);
     }
 
     /**
@@ -1046,9 +1046,9 @@ public class MemberAsync {
      * @param keyLevel key level
      * @return map of account id to available balance
      */
-    public Observable<Map<String, Money>> getAvailableBalanceList(
+    public Observable<Map<String, Money>> getAvailableBalanceMap(
             List<String> accountIds, Key.Level keyLevel) {
-        return client.getAvailableBalanceList(accountIds, keyLevel);
+        return client.getAvailableBalanceMap(accountIds, keyLevel);
     }
 
     /**

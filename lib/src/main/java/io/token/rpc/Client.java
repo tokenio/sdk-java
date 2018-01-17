@@ -104,8 +104,8 @@ import io.token.proto.gateway.Gateway.GetAddressesRequest;
 import io.token.proto.gateway.Gateway.GetAddressesResponse;
 import io.token.proto.gateway.Gateway.GetAliasesRequest;
 import io.token.proto.gateway.Gateway.GetAliasesResponse;
-import io.token.proto.gateway.Gateway.GetBalanceListRequest;
-import io.token.proto.gateway.Gateway.GetBalanceListResponse;
+import io.token.proto.gateway.Gateway.GetBalanceMapRequest;
+import io.token.proto.gateway.Gateway.GetBalanceMapResponse;
 import io.token.proto.gateway.Gateway.GetBalanceRequest;
 import io.token.proto.gateway.Gateway.GetBalanceResponse;
 import io.token.proto.gateway.Gateway.GetBankInfoRequest;
@@ -835,7 +835,7 @@ public final class Client {
      * @param keyLevel key level
      * @return map of account ids to GetBalanceResponses
      */
-    public Observable<Map<String, Money>> getCurrentBalanceList(
+    public Observable<Map<String, Money>> getCurrentBalanceMap(
             List<String> accountIdList,
             Key.Level keyLevel) {
         setAuthenticationContext();
@@ -851,12 +851,12 @@ public final class Client {
                     }
                 }).collect(Collectors.<GetBalancePayload>toList());
 
-        GetBalanceListRequest.Payload payload = GetBalanceListRequest.Payload.newBuilder()
+        GetBalanceMapRequest.Payload payload = GetBalanceMapRequest.Payload.newBuilder()
                 .addAllBalancePayload(balancePayloads)
                 .build();
 
         return toObservable(gateway
-                .getBalanceList(GetBalanceListRequest
+                .getBalanceMap(GetBalanceMapRequest
                         .newBuilder()
                         .setPayload(payload)
                         .setSignature(Signature
@@ -865,8 +865,8 @@ public final class Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(payload)))
                         .build()))
-                .map(new Function<GetBalanceListResponse, Map<String, Money>>() {
-                    public Map<String, Money> apply(GetBalanceListResponse response) {
+                .map(new Function<GetBalanceMapResponse, Map<String, Money>>() {
+                    public Map<String, Money> apply(GetBalanceMapResponse response) {
                         return response
                                 .getResponseMap()
                                 .entrySet()
@@ -907,7 +907,7 @@ public final class Client {
      * @param keyLevel key level
      * @return map of account ids to GetBalanceResponses
      */
-    public Observable<Map<String, Money>> getAvailableBalanceList(
+    public Observable<Map<String, Money>> getAvailableBalanceMap(
             List<String> accountIdList,
             Key.Level keyLevel) {
         setAuthenticationContext();
@@ -923,12 +923,12 @@ public final class Client {
                     }
                 }).collect(Collectors.<GetBalancePayload>toList());
 
-        GetBalanceListRequest.Payload payload = GetBalanceListRequest.Payload.newBuilder()
+        GetBalanceMapRequest.Payload payload = GetBalanceMapRequest.Payload.newBuilder()
                 .addAllBalancePayload(balancePayloads)
                 .build();
 
         return toObservable(gateway
-                .getBalanceList(GetBalanceListRequest
+                .getBalanceMap(GetBalanceMapRequest
                         .newBuilder()
                         .setPayload(payload)
                         .setSignature(Signature
@@ -937,8 +937,8 @@ public final class Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(payload)))
                         .build()))
-                .map(new Function<GetBalanceListResponse, Map<String, Money>>() {
-                    public Map<String, Money> apply(GetBalanceListResponse response) {
+                .map(new Function<GetBalanceMapResponse, Map<String, Money>>() {
+                    public Map<String, Money> apply(GetBalanceMapResponse response) {
                         return response
                                 .getResponseMap()
                                 .entrySet()

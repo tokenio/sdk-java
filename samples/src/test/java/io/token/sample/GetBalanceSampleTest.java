@@ -41,7 +41,7 @@ public class GetBalanceSampleTest {
     }
 
     @Test
-    public void memberGetBalanceListSampleTest() {
+    public void memberGetBalanceMapSampleTest() {
         try (TokenIO tokenIO = createClient()) {
             Member member = tokenIO.createMember(randomAlias());
             Banklink.BankAuthorization encryptedBankAuthorizationA =
@@ -53,7 +53,7 @@ public class GetBalanceSampleTest {
 
             member.linkAccounts(encryptedBankAuthorizationB);
 
-            Map<String, Money> balances = GetBalanceSample.memberGetBalanceListSample(member);
+            Map<String, Money> balances = GetBalanceSample.memberGetBalanceMapSample(member);
             assertThat(balances.size()).isEqualTo(2);
             assertThat(balances.values().stream().map(Money::getValue).map(Double::parseDouble))
                     .containsExactlyInAnyOrder(1000.0, 500.0);

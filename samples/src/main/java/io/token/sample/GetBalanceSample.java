@@ -60,14 +60,14 @@ public final class GetBalanceSample {
     }
 
     /**
-     * Get a member's balance list.
+     * Get a member's balance map.
      *
      * @param member Member.
      * @return map accountId:balance
      */
-    public static Map<String, Money> memberGetBalanceListSample(Member member) {
+    public static Map<String, Money> memberGetBalanceMapSample(Member member) {
         List<String> accountIds = member.getAccounts().stream().map(Account::id).collect(toList());
-        Map<String, Money> balances = member.getCurrentBalanceList(accountIds, STANDARD);
+        Map<String, Money> balances = member.getCurrentBalanceMap(accountIds, STANDARD);
 
         return balances;
     }

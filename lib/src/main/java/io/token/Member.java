@@ -850,10 +850,10 @@ public class Member {
      * @param keyLevel key level
      * @return map of account id to current balance
      */
-    public Map<String, Money> getCurrentBalanceList(
+    public Map<String, Money> getCurrentBalanceMap(
             List<String> accountIds,
             Key.Level keyLevel) {
-        return async.getCurrentBalanceList(accountIds, keyLevel).blockingSingle();
+        return async.getCurrentBalanceMap(accountIds, keyLevel).blockingSingle();
     }
 
     /**
@@ -863,10 +863,10 @@ public class Member {
      * @param keyLevel key level
      * @return map of account id to available balance
      */
-    public Map<String, Money> getAvailableBalanceList(
+    public Map<String, Money> getAvailableBalanceMap(
             List<String> accountIds,
             Key.Level keyLevel) {
-        return async.getAvailableBalanceList(accountIds, keyLevel).blockingSingle();
+        return async.getAvailableBalanceMap(accountIds, keyLevel).blockingSingle();
     }
 
     /**
@@ -985,7 +985,7 @@ public class Member {
      * @return notification status
      */
     public NotifyStatus triggerTransactionStepUpNotification(String accountId) {
-        return async.triggerBalanceStepUpNotification(accountId).blockingSingle();
+        return async.triggerTransactionStepUpNotification(accountId).blockingSingle();
     }
 
     @Override
