@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static java.util.stream.Collectors.toList;
 
 import io.token.Account;
 import io.token.Member;
@@ -56,5 +57,18 @@ public final class GetBalanceSample {
         }
 
         return sums;
+    }
+
+    /**
+     * Get a member's balance list.
+     *
+     * @param member Member.
+     * @return map accountId:balance
+     */
+    public static Map<String, Money> memberGetBalanceListSample(Member member) {
+        List<String> accountIds = member.getAccounts().stream().map(Account::id).collect(toList());
+        Map<String, Money> balances = member.getCurrentBalanceList(accountIds, STANDARD);
+
+        return balances;
     }
 }
