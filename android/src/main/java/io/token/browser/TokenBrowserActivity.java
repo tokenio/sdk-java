@@ -1,12 +1,18 @@
 package io.token.browser;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.webkit.JavascriptInterface;
+import android.webkit.WebChromeClient;
+import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 import static io.token.browser.TokenBrowserService.MSG_CLOSE;
 import static io.token.browser.TokenBrowserService.MSG_GO_TO;
@@ -18,19 +24,39 @@ public class TokenBrowserActivity extends Activity {
     private String sessionId;
     private MessengerClient messenger;
     private WebView webview;
+    @BindView(R.id.webview) WebView webView;
 
+    @SuppressLint("SetJavaScriptEnabled")
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        System.out.println("<<<<< TokenBrowserActivity/onCreate");
         super.onCreate(savedInstanceState);
-
         if (savedInstanceState != null) {
             this.sessionId = savedInstanceState.getString(MSG_KEY_SID);
         } else {
             this.sessionId = getIntent().getExtras().getString(MSG_KEY_SID);
         }
 
+        setContentView(R.layout.activity_webview);
+        ButterKnife.bind(this);
+
         webview = new WebView(this);
+
+        WebSettings webSettings = webview.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+
+        webview.addJavascriptInterface(new JavascriptInterface(), "HTMLOUT");
+        webView.setWebChromeClient(new WebChromeClient());
+
+
+
         webview.setWebViewClient(new WebViewClient() {
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                return super.shouldOverrideUrlLoading(view, url);
+            }
+
             @Override
             public void onPageStarted(WebView view, String url, Bitmap favicon) {
                 Bundle data = new Bundle(2);
@@ -39,7 +65,7 @@ public class TokenBrowserActivity extends Activity {
                 messenger.send(MSG_ON_URL, data);
             }
         });
-        setContentView(webview);
+//        setContentView(webview);
     }
 
     @Override

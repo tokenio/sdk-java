@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.os.Message;
 
 import java.net.MalformedURLException;
@@ -39,11 +40,13 @@ public class TokenBrowserFactory implements BrowserFactory {
 
     @Override
     public Browser create() {
+        System.out.println("<<<<< CALL TokenBrowserFactory/create");
         String sessionId = UUID.randomUUID().toString();
 
         TokenBrowser browser = new TokenBrowser(sessionId);
         browsers.put(sessionId, browser);
 
+        System.out.println("<<<<< UI THREAD? " + (Looper.myLooper() == Looper.getMainLooper()));
         Intent intent = new Intent(parent, TokenBrowserActivity.class);
         Bundle extras = new Bundle(1);
         extras.putString(MSG_KEY_SID, sessionId);
@@ -68,10 +71,13 @@ public class TokenBrowserFactory implements BrowserFactory {
 
         @Override
         public void goTo(URL url) {
+            System.out.println("<<<<< Call goTo(" + url + ")");
             if (!registered) {
+                System.out.println("<<<<< Not yet registered");
                 nextToGoTo = url;
                 return;
             }
+            System.out.println("<<<<< Going to " + url);
             Bundle data = new Bundle(2);
             data.putString(MSG_KEY_SID, sessionId);
             data.putString(MSG_KEY_URL, url.toExternalForm());
@@ -97,9 +103,11 @@ public class TokenBrowserFactory implements BrowserFactory {
         }
 
         private void onRegistered() {
+            System.out.println("<<<<< Registering...");
             this.registered = true;
 
             if (nextToGoTo != null) {
+                System.out.println("<<<<< Go to missed URL");
                 goTo(nextToGoTo);
                 nextToGoTo = null;
             }

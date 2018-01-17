@@ -23,11 +23,19 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
+import static io.token.util.Util.fetchUrl;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
+import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -58,6 +66,9 @@ import io.token.proto.gateway.Gateway.GetTransactionResponse;
 import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.security.keystore.SecretKeyPair;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -378,12 +389,83 @@ public class Member {
      * @param browserFactory the browser factory
      * @return account linking bank authorization
      */
-    public BankAuthorization initiateAccountLinking(
-            BankInfo bankInfo,
-            BrowserFactory browserFactory) {
-        return async
-                .initiateAccountLinking(bankInfo, browserFactory)
-                .blockingSingle();
+    public Observable<BankAuthorization> initiateAccountLinking(
+            final BankInfo bankInfo,
+            final BrowserFactory browserFactory) {
+        System.out.println("<<<<< CALL initiateAccountLinking");
+
+        final Browser browser = browserFactory.create();
+        try {
+            browser.goTo(new URL(bankInfo.getLinkingUri()));
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
+            @Override
+            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
+                System.out.println("<<<< CALL subscribe");
+                browser.url().subscribe(
+                        new Consumer<URL>() {
+                            @Override
+                            public void accept(URL url) {
+                                if (url.toExternalForm().matches(bankInfo.getRedirectUriRegex())) {
+                                    try {
+                                        String json = fetchUrl(url);
+                                        BankAuthorization bankAuthorization = ProtoJson
+                                                .fromJson(json, BankAuthorization.newBuilder());
+                                        emitter.onSuccess(bankAuthorization);
+                                    } catch (IOException ex) {
+                                        emitter.onError(ex);
+                                    } finally {
+                                        browser.close();
+                                    }
+                                }
+                            }
+                        },
+                        new Consumer<Throwable>() {
+                            @Override
+                            public void accept(Throwable ex) {
+                                emitter.onError(ex);
+                            }
+                        });
+            }
+        }).toObservable();
+
+
+//        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
+//            @Override
+//            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
+//                System.out.println("<<<< CALL subscribe");
+//                final Browser browser = browserFactory.create();
+//                browser.url().subscribe(
+//                        new Consumer<URL>() {
+//                            @Override
+//                            public void accept(URL url) {
+//                                if (url.toExternalForm().matches(bankInfo.getRedirectUriRegex())) {
+//                                    try {
+//                                        String json = fetchUrl(url);
+//                                        BankAuthorization bankAuthorization = ProtoJson
+//                                                .fromJson(json, BankAuthorization.newBuilder());
+//                                        emitter.onSuccess(bankAuthorization);
+//                                    } catch (IOException ex) {
+//                                        emitter.onError(ex);
+//                                    } finally {
+//                                        browser.close();
+//                                    }
+//                                }
+//                            }
+//                        },
+//                        new Consumer<Throwable>() {
+//                            @Override
+//                            public void accept(Throwable ex) {
+//                                emitter.onError(ex);
+//                            }
+//                        });
+//                System.out.println("<<<<< ABOUT TO CALL GOTO");
+//                browser.goTo(new URL(bankInfo.getLinkingUri()));
+//            }
+//        }).toObservable();
     }
 
     /**

@@ -1216,9 +1216,11 @@ public class MemberAsync {
     public Observable<BankAuthorization> initiateAccountLinking(
             final BankInfo bankInfo,
             final BrowserFactory browserFactory) {
+        System.out.println("<<<<< CALL initiateAccountLinking");
         return Single.create(new SingleOnSubscribe<BankAuthorization>() {
             @Override
             public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
+                System.out.println("<<<< CALL subscribe");
                 final Browser browser = browserFactory.create();
                 browser.url().subscribe(
                         new Consumer<URL>() {
