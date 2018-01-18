@@ -439,6 +439,7 @@ public class Member {
                                     @Override
                                     public void accept(Throwable ex) {
                                         emitter.onError(ex);
+                                        browser.close();
                                     }
                                 });
                 browser.goTo(new URL(bankInfo.getLinkingUri()));
