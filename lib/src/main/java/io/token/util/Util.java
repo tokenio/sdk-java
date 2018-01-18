@@ -208,7 +208,6 @@ public abstract class Util {
      * @throws IOException if there was a problem loading the url
      */
     public static Observable<String> fetchUrl(final URL url) throws IOException {
-        System.out.println("<<<<<< FETCHING (DATA FROM) URL");
         return Observable.fromCallable(new Callable<String>() {
             @Override
             public String call() throws Exception {
@@ -217,11 +216,9 @@ public abstract class Util {
                 StringBuilder builder = new StringBuilder();
                 String line;
 
-                System.out.println("<<<<<< READING LINES");
                 while ((line = reader.readLine()) != null) {
                     builder.append(line);
                 }
-                System.out.println("<<<<<< DONE READING LINES");
 
                 return builder.toString();
             }

@@ -36,6 +36,7 @@ import io.reactivex.SingleOnSubscribe;
 import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
 import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
@@ -398,99 +399,40 @@ public class Member {
     public Observable<BankAuthorization> initiateAccountLinking(
             final BankInfo bankInfo,
             final BrowserFactory browserFactory) {
-        System.out.println("<<<<< CALL initiateAccountLinking");
-        System.out.println("2. " + Thread.currentThread().getName());
-//        final Browser browser = browserFactory.create();
-//        try {
-//            browser.goTo(new URL(bankInfo.getLinkingUri()));
-//        } catch (MalformedURLException e) {
-//            e.printStackTrace();
-//        }
-//
-//        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
-//            @Override
-//            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
-//                System.out.println("<<<< CALL subscribe");
-//                browser.url().subscribe(
-//                        new Consumer<URL>() {
-//                            @Override
-//                            public void accept(URL url) {
-//                                System.out.println("<<<<< REGEX MATCH?");
-//                                if (url.toExternalForm().matches(bankInfo.getRedirectUriRegex())) {
-//                                    System.out.println("<<<<< YES");
-//                                    try {
-//                                        String json = fetchUrl(url);
-//                                        BankAuthorization bankAuthorization = ProtoJson
-//                                                .fromJson(json, BankAuthorization.newBuilder());
-//                                        emitter.onSuccess(bankAuthorization);
-//                                    } catch (IOException ex) {
-//                                        emitter.onError(ex);
-//                                    } finally {
-//                                        browser.close();
-//                                    }
-//                                } else {
-//                                    System.out.println("<<<<< NO");
-//                                }
-//                            }
-//                        },
-//                        new Consumer<Throwable>() {
-//                            @Override
-//                            public void accept(Throwable ex) {
-//                                emitter.onError(ex);
-//                            }
-//                        });
-//            }
-//        }).toObservable();
-
         return Single.create(new SingleOnSubscribe<BankAuthorization>() {
             @Override
             public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
-                System.out.println("3. " + Thread.currentThread().getName());
-                System.out.println("<<<< CALL subscribe");
                 final Browser browser = browserFactory.create();
                 browser.url()
-//                        .subscribeOn(Schedulers.computation())
-//                        .flatMap(new Function<URL, ObservableSource<String>>() {
-//                            @Override
-//                            public ObservableSource<String> apply(URL url) throws Exception {
-//                                System.out.println("4. " + Thread.currentThread().getName());
-//                                if (url.toExternalForm().matches(bankInfo.getRedirectUriRegex())) {
-//                                    return fetchUrl(url);
-//                                }
-//                                return Observable.just("");
-//                            }
-//                        })
+                        .filter(new Predicate<URL>() {
+                            @Override
+                            public boolean test(URL url) {
+                                return url
+                                        .toExternalForm()
+                                        .matches(bankInfo.getRedirectUriRegex());
+                            }
+                        })
+                        .observeOn(Schedulers.newThread())
+                        .flatMap(new Function<URL, ObservableSource<String>>() {
+                            @Override
+                            public ObservableSource<String> apply(URL url) {
+                                try {
+                                    return fetchUrl(url);
+                                } catch (IOException e) {
+                                    return Observable.error(e);
+                                }
+                            }
+                        })
                         .subscribe(
-                                new Consumer<URL>() {
+                                new Consumer<String>() {
                                     @Override
-                                    public void accept(URL url) {
-                                        if (url
-                                                .toExternalForm()
-                                                .matches(bankInfo.getRedirectUriRegex())) {
-                                            try {
-                                                fetchUrl(url)
-                                                        .subscribeOn(Schedulers.newThread())
-                                                        .subscribe(new Consumer<String>() {
-                                                            @Override
-                                                            public void accept(String json)
-                                                                    throws Exception {
-                                                                BankAuthorization bankAuthorization = ProtoJson
-                                                                        .fromJson(
-                                                                                json,
-                                                                                BankAuthorization.newBuilder());
-                                                                System.out.println(
-                                                                        "<<<<< SENDING BANK AUTH: "
-                                                                                + bankAuthorization);
-                                                                emitter.onSuccess(bankAuthorization);
-                                                            }
-                                                        });
-                                            } catch (IOException e) {
-                                                emitter.onError(e);
-                                            } finally {
-                                                System.out.println("<<<<< CALLING browser.close()");
-                                                browser.close();
-                                            }
-                                        }
+                                    public void accept(String json) {
+                                        BankAuthorization bankAuthorization = ProtoJson
+                                                .fromJson(
+                                                        json,
+                                                        BankAuthorization.newBuilder());
+                                        emitter.onSuccess(bankAuthorization);
+                                        browser.close();
                                     }
                                 },
                                 new Consumer<Throwable>() {
@@ -499,7 +441,6 @@ public class Member {
                                         emitter.onError(ex);
                                     }
                                 });
-                System.out.println("<<<<< ABOUT TO CALL GOTO");
                 browser.goTo(new URL(bankInfo.getLinkingUri()));
             }
         }).toObservable();
