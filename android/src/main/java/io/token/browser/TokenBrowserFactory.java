@@ -80,10 +80,10 @@ public class TokenBrowserFactory implements BrowserFactory {
 
         @Override
         public void close() {
-            Bundle data = new Bundle(1);
-            data.putString(MSG_KEY_SID, sessionId);
-            messenger.send(MSG_CLOSE, data);
-            subject.onComplete();
+//            Bundle data = new Bundle(1);
+//            data.putString(MSG_KEY_SID, sessionId);
+//            messenger.send(MSG_CLOSE, data);
+//            subject.onComplete();
         }
 
         @Override

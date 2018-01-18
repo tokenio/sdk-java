@@ -46,6 +46,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 
 
@@ -206,16 +207,24 @@ public abstract class Util {
      * @return the body of the resource
      * @throws IOException if there was a problem loading the url
      */
-    public static String fetchUrl(URL url) throws IOException {
-        InputStream is = url.openConnection().getInputStream();
-        BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-        StringBuilder builder = new StringBuilder();
-        String line;
+    public static Observable<String> fetchUrl(final URL url) throws IOException {
+        System.out.println("<<<<<< FETCHING (DATA FROM) URL");
+        return Observable.fromCallable(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                InputStream is = url.openConnection().getInputStream();
+                BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+                StringBuilder builder = new StringBuilder();
+                String line;
 
-        while ((line = reader.readLine()) != null) {
-            builder.append(line);
-        }
+                System.out.println("<<<<<< READING LINES");
+                while ((line = reader.readLine()) != null) {
+                    builder.append(line);
+                }
+                System.out.println("<<<<<< DONE READING LINES");
 
-        return builder.toString();
+                return builder.toString();
+            }
+        });
     }
 }

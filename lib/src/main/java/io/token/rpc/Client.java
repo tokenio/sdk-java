@@ -1506,7 +1506,7 @@ public final class Client {
                                         .getAuthorizationDetails()
                                         .getCompletionPattern())) {
                             try {
-                                String json = fetchUrl(url);
+                                String json = fetchUrl(url).blockingFirst(); // TODO fix
                                 BankAuthorization bankAuthorization = ProtoJson
                                         .fromJson(json, BankAuthorization.newBuilder());
                                 emitter.onSuccess(bankAuthorization);
