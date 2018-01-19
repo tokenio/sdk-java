@@ -8,7 +8,9 @@ import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.banklink.Banklink;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 
+import java.util.List;
 import java.util.Map;
 
 import org.junit.Test;
@@ -41,7 +43,7 @@ public class GetBalanceSampleTest {
     }
 
     @Test
-    public void memberGetBalanceMapSampleTest() {
+    public void memberGetBalancListSampleTest() {
         try (TokenIO tokenIO = createClient()) {
             Member member = tokenIO.createMember(randomAlias());
             Banklink.BankAuthorization encryptedBankAuthorizationA =
@@ -53,9 +55,13 @@ public class GetBalanceSampleTest {
 
             member.linkAccounts(encryptedBankAuthorizationB);
 
-            Map<String, Money> balances = GetBalanceSample.memberGetBalanceMapSample(member);
+            List<Balance> balances = GetBalanceSample.memberGetBalanceListSample(member);
             assertThat(balances.size()).isEqualTo(2);
-            assertThat(balances.values().stream().map(Money::getValue).map(Double::parseDouble))
+            assertThat(balances
+                    .stream()
+                    .map(Balance::getCurrent)
+                    .map(Money::getValue)
+                    .map(Double::parseDouble))
                     .containsExactlyInAnyOrder(1000.0, 500.0);
         }
     }

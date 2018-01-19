@@ -25,10 +25,8 @@ package io.token;
 import io.token.proto.PagedList;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.gateway.Gateway.GetBalanceResponse;
-import io.token.proto.gateway.Gateway.GetTransactionResponse;
-import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 
 import javax.annotation.Nullable;
 
@@ -116,6 +114,16 @@ public class Account {
      */
     public boolean isLocked() {
         return async.isLocked();
+    }
+
+    /**
+     * Looks up an account balance.
+     *
+     * @param keyLevel key level
+     * @return account balance
+     */
+    public Balance getBalance(Key.Level keyLevel) {
+        return async.getBalance(keyLevel).blockingSingle();
     }
 
     /**

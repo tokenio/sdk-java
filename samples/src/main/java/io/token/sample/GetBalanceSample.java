@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.toList;
 import io.token.Account;
 import io.token.Member;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 
 import java.util.HashMap;
 import java.util.List;
@@ -60,14 +61,14 @@ public final class GetBalanceSample {
     }
 
     /**
-     * Get a member's balance map.
+     * Get a member's list of balances.
      *
      * @param member Member.
-     * @return map accountId:balance
+     * @return list of balances
      */
-    public static Map<String, Money> memberGetBalanceMapSample(Member member) {
+    public static List<Balance> memberGetBalanceListSample(Member member) {
         List<String> accountIds = member.getAccounts().stream().map(Account::id).collect(toList());
-        Map<String, Money> balances = member.getCurrentBalanceMap(accountIds, STANDARD);
+        List<Balance> balances = member.getBalanceList(accountIds, STANDARD);
 
         return balances;
     }

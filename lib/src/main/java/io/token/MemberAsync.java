@@ -65,6 +65,7 @@ import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
@@ -1006,6 +1007,17 @@ public class MemberAsync {
     }
 
     /**
+     * Looks up account balance.
+     *
+     * @param accountId the account id
+     * @param keyLevel key level
+     * @return balance
+     */
+    public Observable<Balance> getBalance(String accountId, Key.Level keyLevel) {
+        return client.getBalance(accountId, keyLevel);
+    }
+
+    /**
      * Looks up current account balance.
      *
      * @param accountId the account id
@@ -1013,7 +1025,12 @@ public class MemberAsync {
      * @return current balance
      */
     public Observable<Money> getCurrentBalance(String accountId, Key.Level keyLevel) {
-        return client.getCurrentBalance(accountId, keyLevel);
+        return client.getBalance(accountId, keyLevel).map(new Function<Balance, Money>() {
+            @Override
+            public Money apply(Balance balance) throws Exception {
+                return balance.getCurrent();
+            }
+        });
     }
 
     /**
@@ -1024,31 +1041,24 @@ public class MemberAsync {
      * @return available balance
      */
     public Observable<Money> getAvailableBalance(String accountId, Key.Level keyLevel) {
-        return client.getAvailableBalance(accountId, keyLevel);
+        return client.getBalance(accountId, keyLevel).map(new Function<Balance, Money>() {
+            @Override
+            public Money apply(Balance balance) throws Exception {
+                return balance.getAvailable();
+            }
+        });
     }
 
     /**
-     * Looks up current balance for a list of accounts.
+     * Looks up balance for a list of accounts.
      *
      * @param accountIds list of account ids
      * @param keyLevel key level
-     * @return map of account id to current balance
+     * @return list of balances
      */
-    public Observable<Map<String, Money>> getCurrentBalanceMap(
+    public Observable<List<Balance>> getBalanceList(
             List<String> accountIds, Key.Level keyLevel) {
-        return client.getCurrentBalanceMap(accountIds, keyLevel);
-    }
-
-    /**
-     * Looks up available balance for a list of accounts.
-     *
-     * @param accountIds list of account ids
-     * @param keyLevel key level
-     * @return map of account id to available balance
-     */
-    public Observable<Map<String, Money>> getAvailableBalanceMap(
-            List<String> accountIds, Key.Level keyLevel) {
-        return client.getAvailableBalanceMap(accountIds, keyLevel);
+        return client.getBalanceList(accountIds, keyLevel);
     }
 
     /**

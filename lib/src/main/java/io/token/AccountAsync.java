@@ -24,10 +24,12 @@ package io.token;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.rpc.Client;
 
@@ -127,23 +129,43 @@ public class AccountAsync {
     }
 
     /**
+     * Looks up an account balance.
+     *
+     * @param keyLevel key level
+     * @return account balance
+     */
+    public Observable<Balance> getBalance(Key.Level keyLevel) {
+        return client.getBalance(account.getId(), keyLevel);
+    }
+
+    /**
      * Looks up an account current balance.
      *
      * @param keyLevel key level
      * @return account current balance
      */
     public Observable<Money> getCurrentBalance(Key.Level keyLevel) {
-        return client.getCurrentBalance(account.getId(), keyLevel);
+        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
+            @Override
+            public Money apply(Balance balance) throws Exception {
+                return balance.getCurrent();
+            }
+        });
     }
 
     /**
      * Looks up an account available balance.
      *
      * @param keyLevel key level
-     * @return account current balance
+     * @return account available balance
      */
     public Observable<Money> getAvailableBalance(Key.Level keyLevel) {
-        return client.getAvailableBalance(account.getId(), keyLevel);
+        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
+            @Override
+            public Money apply(Balance balance) throws Exception {
+                return balance.getAvailable();
+            }
+        });
     }
 
     /**

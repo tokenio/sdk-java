@@ -49,6 +49,7 @@ import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -822,6 +823,17 @@ public class Member {
     }
 
     /**
+     * Looks up account balance.
+     *
+     * @param accountId account id
+     * @param keyLevel key level
+     * @return balance
+     */
+    public Balance getBalance(String accountId, Key.Level keyLevel) {
+        return async.getBalance(accountId, keyLevel).blockingSingle();
+    }
+
+    /**
      * Looks up account available balance.
      *
      * @param accountId account id
@@ -844,29 +856,16 @@ public class Member {
     }
 
     /**
-     * Looks up current balance for a list of accounts.
+     * Looks up balance for a list of accounts.
      *
      * @param accountIds list of account ids
      * @param keyLevel key level
-     * @return map of account id to current balance
+     * @return list of balances
      */
-    public Map<String, Money> getCurrentBalanceMap(
+    public List<Balance> getBalanceList(
             List<String> accountIds,
             Key.Level keyLevel) {
-        return async.getCurrentBalanceMap(accountIds, keyLevel).blockingSingle();
-    }
-
-    /**
-     * Looks up available balance for a list of accounts.
-     *
-     * @param accountIds list of account ids
-     * @param keyLevel key level
-     * @return map of account id to available balance
-     */
-    public Map<String, Money> getAvailableBalanceMap(
-            List<String> accountIds,
-            Key.Level keyLevel) {
-        return async.getAvailableBalanceMap(accountIds, keyLevel).blockingSingle();
+        return async.getBalanceList(accountIds, keyLevel).blockingSingle();
     }
 
     /**
