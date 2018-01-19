@@ -26,6 +26,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
@@ -305,7 +306,7 @@ public final class UnauthenticatedClient {
     public Observable<String> beginRecovery(Alias alias) {
         return toObservable(gateway
                 .beginRecovery(BeginRecoveryRequest.newBuilder()
-                        .setAlias(alias)
+                        .setAlias(normalizeAlias(alias))
                         .build()))
                 .map(new Function<BeginRecoveryResponse, String>() {
                     public String apply(BeginRecoveryResponse response) {
