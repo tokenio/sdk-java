@@ -780,7 +780,9 @@ public class MemberAsync {
      * @param browserFactory browser factory
      * @return transfer token returned by the server
      */
-    public Observable<Token> createTransferToken(TokenPayload payload, BrowserFactory browserFactory) {
+    public Observable<Token> createTransferToken(
+            TokenPayload payload,
+            BrowserFactory browserFactory) {
         return client.createTransferToken(payload, browserFactory);
     }
 

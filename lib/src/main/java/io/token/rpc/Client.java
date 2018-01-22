@@ -31,7 +31,6 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDO
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.SUCCESS;
 import static io.token.rpc.util.Converters.toCompletable;
-import static io.token.util.Util.fetchUrl;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Completable;
@@ -1515,11 +1514,7 @@ public final class Client {
                         .flatMap(new Function<URL, ObservableSource<String>>() {
                             @Override
                             public ObservableSource<String> apply(URL url) {
-                                try {
-                                    return fetchUrl(url);
-                                } catch (IOException e) {
-                                    return Observable.error(e);
-                                }
+                                return browser.fetchData(url);
                             }
                         })
                         .subscribe(
