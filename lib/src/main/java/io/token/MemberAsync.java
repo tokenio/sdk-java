@@ -774,6 +774,17 @@ public class MemberAsync {
     }
 
     /**
+     * Creates a new transfer token from a token payload and browser factory.
+     *
+     * @param payload transfer token payload
+     * @param browserFactory browser factory
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createTransferToken(TokenPayload payload, BrowserFactory browserFactory) {
+        return client.createTransferToken(payload, browserFactory);
+    }
+
+    /**
      * Creates an access token built from a given {@link AccessTokenBuilder}.
      *
      * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from

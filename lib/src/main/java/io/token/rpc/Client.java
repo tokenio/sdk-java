@@ -28,16 +28,34 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
+import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED;
+import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.SUCCESS;
 import static io.token.rpc.util.Converters.toCompletable;
+import static io.token.util.Util.fetchUrl;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Observer;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
 import io.token.TransferTokenException;
+import io.token.browser.Browser;
+import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
+import io.token.proto.ProtoJson;
+import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.account.AccountProtos.Account;
+import io.token.proto.common.account.AccountProtos.BankAccount;
+import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -62,6 +80,7 @@ import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -166,6 +185,9 @@ import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 import io.token.util.Util;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -524,7 +546,7 @@ public final class Client {
     }
 
     /**
-     * Creates a new transfer token.
+     * Creates a new transfer token. If external auth required, throws exception.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
@@ -541,6 +563,40 @@ public final class Client {
                             throw new TransferTokenException(response.getStatus());
                         }
                         return response.getToken();
+                    }
+                });
+    }
+
+    /**
+     * Create a new transfer token. If external auth required, directs browser to auth page.
+     *
+     * @param payload transfer token payload
+     * @param browserFactory the browser factory
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createTransferToken(
+            final TokenPayload payload,
+            final BrowserFactory browserFactory) {
+        return toObservable(gateway
+                .createTransferToken(CreateTransferTokenRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .build()))
+                .flatMap(new Function<CreateTransferTokenResponse, ObservableSource<Token>>() {
+                    @Override
+                    public ObservableSource<Token> apply(
+                            final CreateTransferTokenResponse response) {
+                        switch (response.getStatus()) {
+                            case SUCCESS:
+                                return Observable.just(response.getToken());
+                            case FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED:
+                                return transferTokenExternalAuth(
+                                        payload,
+                                        response,
+                                        browserFactory);
+                            default:
+                                throw new TransferTokenException(response.getStatus());
+                        }
                     }
                 });
     }
@@ -748,6 +804,7 @@ public final class Client {
 
     /**
      * Look up account balance.
+     *
      * @param accountId account id
      * @return account balance
      */
@@ -764,6 +821,7 @@ public final class Client {
 
     /**
      * Look up account balance.
+     *
      * @param accountId account id
      * @param keyLevel key level
      * @return account balance
@@ -864,7 +922,6 @@ public final class Client {
                         return PagedList.create(response.getTransfersList(), response.getOffset());
                     }
                 });
-
     }
 
     /**
@@ -1433,5 +1490,75 @@ public final class Client {
                 "%s.%s",
                 toJson(tokenPayload),
                 action.name().toLowerCase());
+    }
+
+    private Observable<Token> transferTokenExternalAuth(
+            final TokenPayload payload,
+            final CreateTransferTokenResponse response,
+            final BrowserFactory browserFactory) {
+        return Single.create(new SingleOnSubscribe<BankAuthorization>() {
+            @Override
+            public void subscribe(final SingleEmitter<BankAuthorization> emitter) throws Exception {
+                final Browser browser = browserFactory.create();
+                browser.url()
+                        .filter(new Predicate<URL>() {
+                            @Override
+                            public boolean test(URL url) {
+                                return url
+                                        .toExternalForm()
+                                        .matches(response
+                                                .getAuthorizationDetails()
+                                                .getCompletionPattern());
+                            }
+                        })
+                        .observeOn(Schedulers.newThread())
+                        .flatMap(new Function<URL, ObservableSource<String>>() {
+                            @Override
+                            public ObservableSource<String> apply(URL url) {
+                                try {
+                                    return fetchUrl(url);
+                                } catch (IOException e) {
+                                    return Observable.error(e);
+                                }
+                            }
+                        })
+                        .subscribe(
+                                new Consumer<String>() {
+                                    @Override
+                                    public void accept(String json) {
+                                        BankAuthorization bankAuthorization = ProtoJson
+                                                .fromJson(
+                                                        json,
+                                                        BankAuthorization.newBuilder());
+                                        emitter.onSuccess(bankAuthorization);
+                                        browser.close();
+                                    }
+                                },
+                                new Consumer<Throwable>() {
+                                    @Override
+                                    public void accept(Throwable ex) {
+                                        emitter.onError(ex);
+                                        browser.close();
+                                    }
+                                });
+                browser.goTo(new URL(response
+                        .getAuthorizationDetails()
+                        .getUrl()));
+            }
+        }).toObservable()
+                .flatMap(new Function<BankAuthorization, ObservableSource<Token>>() {
+                    @Override
+                    public ObservableSource<Token> apply(BankAuthorization bankAuthorization) {
+                        payload.toBuilder()
+                                .getTransferBuilder()
+                                .getInstructionsBuilder()
+                                .getSourceBuilder()
+                                .setAccount(BankAccount.newBuilder()
+                                        .setTokenAuthorization(TokenAuthorization.newBuilder()
+                                                .setAuthorization(bankAuthorization)
+                                                .build()));
+                        return createTransferToken(payload, browserFactory);
+                    }
+                });
     }
 }
