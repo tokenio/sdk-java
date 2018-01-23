@@ -33,6 +33,10 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
+import io.token.proto.banklink.Banklink;
+import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
@@ -40,6 +44,12 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAliasMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TransferBody;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -198,5 +208,44 @@ public abstract class Util {
                     }
                 })
                 .toObservable();
+    }
+
+    /**
+     * Add a bank authorization to an unauthorized token payload.
+     *
+     * @param payload token payload without bank authorization
+     * @param bankAuthorization bank authorization
+     * @return token payload with bank authorization
+     */
+    public static TokenPayload applyBankAuthorization(
+            TokenPayload payload,
+            BankAuthorization bankAuthorization) {
+        BankAccount account = BankAccount.newBuilder()
+                .setTokenAuthorization(BankAccount.TokenAuthorization.newBuilder()
+                        .setAuthorization(bankAuthorization)
+                        .build())
+                .build();
+
+        TransferEndpoint endpoint = payload.toBuilder()
+                .getTransferBuilder()
+                .getInstructionsBuilder()
+                .getSourceBuilder()
+                .setAccount(account)
+                .build();
+
+        TransferInstructions instructions = payload.toBuilder()
+                .getTransferBuilder()
+                .getInstructionsBuilder()
+                .setSource(endpoint)
+                .build();
+
+        TransferBody transfer = payload.toBuilder()
+                .getTransferBuilder()
+                .setInstructions(instructions)
+                .build();
+
+        return payload.toBuilder()
+                .setTransfer(transfer)
+                .build();
     }
 }

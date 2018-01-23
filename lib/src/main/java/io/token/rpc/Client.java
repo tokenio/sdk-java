@@ -31,6 +31,7 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDO
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.SUCCESS;
 import static io.token.rpc.util.Converters.toCompletable;
+import static io.token.util.Util.applyBankAuthorization;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Completable;
@@ -84,12 +85,16 @@ import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
+import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transaction.TransactionProtos.GetBalancePayload;
 import io.token.proto.common.transaction.TransactionProtos.GetTransactionPayload;
 import io.token.proto.common.transaction.TransactionProtos.GetTransactionsPayload;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
@@ -1503,11 +1508,15 @@ public final class Client {
                         .filter(new Predicate<URL>() {
                             @Override
                             public boolean test(URL url) {
-                                return url
+                                if (url
                                         .toExternalForm()
                                         .matches(response
                                                 .getAuthorizationDetails()
-                                                .getCompletionPattern());
+                                                .getCompletionPattern())) {
+                                    return true;
+                                }
+                                browser.goTo(url);
+                                return false;
                             }
                         })
                         .observeOn(Schedulers.newThread())
@@ -1544,15 +1553,10 @@ public final class Client {
                 .flatMap(new Function<BankAuthorization, ObservableSource<Token>>() {
                     @Override
                     public ObservableSource<Token> apply(BankAuthorization bankAuthorization) {
-                        payload.toBuilder()
-                                .getTransferBuilder()
-                                .getInstructionsBuilder()
-                                .getSourceBuilder()
-                                .setAccount(BankAccount.newBuilder()
-                                        .setTokenAuthorization(TokenAuthorization.newBuilder()
-                                                .setAuthorization(bankAuthorization)
-                                                .build()));
-                        return createTransferToken(payload, browserFactory);
+                        TokenPayload newPayload = applyBankAuthorization(
+                                payload,
+                                bankAuthorization);
+                        return createTransferToken(newPayload, browserFactory);
                     }
                 });
     }
