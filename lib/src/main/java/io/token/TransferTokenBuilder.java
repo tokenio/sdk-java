@@ -135,9 +135,10 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the Browser Factory.
+     * Sets the browser factory used to request external authorization.
+     * Only needed for payments requiring external authorization.
      *
-     * @param browserFactory BrowserFactory
+     * @param browserFactory browser factory
      * @return builder
      */
     public TransferTokenBuilder setBrowserFactory(BrowserFactory browserFactory) {

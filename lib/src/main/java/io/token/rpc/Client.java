@@ -550,7 +550,8 @@ public final class Client {
     }
 
     /**
-     * Creates a new transfer token. If external auth required, throws exception.
+     * Creates a new transfer token from a token payload. If external
+     * authorization is required, will throw exception.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
@@ -572,7 +573,8 @@ public final class Client {
     }
 
     /**
-     * Create a new transfer token. If external auth required, directs browser to auth page.
+     * Creates a new transfer token from a token payload and browser factory.
+     * If external authorization is required, directs browser to authentication page.
      *
      * @param payload transfer token payload
      * @param browserFactory the browser factory
