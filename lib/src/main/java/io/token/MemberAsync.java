@@ -765,7 +765,7 @@ public class MemberAsync {
 
     /**
      * Creates a new transfer token from a token payload. If external
-     * authorization is required, will throw exception.
+     * authorization is required, throws TransferTokenException.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
