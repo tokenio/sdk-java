@@ -100,16 +100,21 @@ public final class AKSCryptoEngine implements CryptoEngine {
                         getAlias(keyLevel),
                         KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
                         .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
-                        .setDigests(KeyProperties.DIGEST_SHA256)
-                        .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
-                        .setUserAuthenticationValidityDurationSeconds(
-                            userAuthenticationStore.authenticationDurationSeconds());
+                        .setDigests(KeyProperties.DIGEST_SHA256);
 
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    // On Android N and above, we can invalidate the key if the user changes
-                    // their biometrics
-                    builder.setInvalidatedByBiometricEnrollment(true);
+                    // On Android N and above, make sure user authentication is required for the key
+                    // Android M has a bug where authentication loops, so require N instead. For any
+                    // key that is not low privilege, user authentication is required.
+                    //
+                    // We can also invalidate the key if the user changes their biometrics
+                    builder = builder
+                            .setInvalidatedByBiometricEnrollment(true)
+                            .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
+                            .setUserAuthenticationValidityDurationSeconds(
+                                    userAuthenticationStore.authenticationDurationSeconds());
                 }
+
                 kpg = KeyPairGenerator.getInstance(
                         KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
 
