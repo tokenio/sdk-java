@@ -93,9 +93,8 @@ public final class AKSCryptoEngine implements CryptoEngine {
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                // API 23 and higher, uses new API. This allows us to setUserAuthenticationRequired,
-                // which validates that the user has recently authenticated, and this is checked by
-                // they KeyStore, and trusted hardware, if it's available.
+                // API 23 and higher, uses new API. This allows for the use of EC keys.
+                // Trusted hardware is used if it's available.
                 KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(
                         getAlias(keyLevel),
                         KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
@@ -106,6 +105,8 @@ public final class AKSCryptoEngine implements CryptoEngine {
                     // On Android N and above, make sure user authentication is required for the key
                     // Android M has a bug where authentication loops, so require N instead. For any
                     // key that is not low privilege, user authentication is required.
+                    // Authentication is checked by the KeyStore, and trusted hardware, if it's
+                    // available.
                     //
                     // We can also invalidate the key if the user changes their biometrics
                     builder = builder
