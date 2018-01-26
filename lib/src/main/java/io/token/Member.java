@@ -856,16 +856,16 @@ public class Member {
     }
 
     /**
-     * Looks up balance for a list of accounts.
+     * Looks up balances for a list of accounts.
      *
      * @param accountIds list of account ids
      * @param keyLevel key level
      * @return list of balances
      */
-    public List<Balance> getBalanceList(
+    public List<Balance> getBalances(
             List<String> accountIds,
             Key.Level keyLevel) {
-        return async.getBalanceList(accountIds, keyLevel).blockingSingle();
+        return async.getBalances(accountIds, keyLevel).blockingSingle();
     }
 
     /**

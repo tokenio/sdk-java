@@ -23,7 +23,6 @@
 package io.token.rpc;
 
 import io.grpc.ManagedChannel;
-import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.gateway.GatewayServiceGrpc;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
@@ -65,7 +64,7 @@ public abstract class ClientFactory {
         GatewayServiceGrpc.GatewayServiceFutureStub stub = GatewayServiceGrpc.newFutureStub(
                 RpcChannelFactory.intercept(
                         channel,
-                        new ClientAuthenticatorFactory(memberId, crypto.createSigner(Level.LOW)),
+                        new ClientAuthenticatorFactory(memberId, crypto),
                         new ErrorHandlerFactory()
                 )
         );

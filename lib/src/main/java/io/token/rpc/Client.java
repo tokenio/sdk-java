@@ -70,7 +70,6 @@ import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
-import io.token.proto.common.transaction.TransactionProtos.SignedNonce;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
@@ -101,10 +100,10 @@ import io.token.proto.gateway.Gateway.GetAddressesRequest;
 import io.token.proto.gateway.Gateway.GetAddressesResponse;
 import io.token.proto.gateway.Gateway.GetAliasesRequest;
 import io.token.proto.gateway.Gateway.GetAliasesResponse;
-import io.token.proto.gateway.Gateway.GetBalanceListRequest;
-import io.token.proto.gateway.Gateway.GetBalanceListResponse;
 import io.token.proto.gateway.Gateway.GetBalanceRequest;
 import io.token.proto.gateway.Gateway.GetBalanceResponse;
+import io.token.proto.gateway.Gateway.GetBalancesRequest;
+import io.token.proto.gateway.Gateway.GetBalancesResponse;
 import io.token.proto.gateway.Gateway.GetBankInfoRequest;
 import io.token.proto.gateway.Gateway.GetBankInfoResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
@@ -214,7 +213,6 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
-
         this.onBehalfOf = accessTokenId;
     }
 
@@ -497,7 +495,7 @@ public final class Client {
      * @return account info
      */
     public Observable<Account> getAccount(String accountId) {
-        setAuthenticationContext();
+        setOnBehalfOf();
         return toObservable(gateway
                 .getAccount(GetAccountRequest
                         .newBuilder()
@@ -516,7 +514,7 @@ public final class Client {
      * @return list of linked accounts
      */
     public Observable<List<Account>> getAccounts() {
-        setAuthenticationContext();
+        setOnBehalfOf();
         return toObservable(gateway
                 .getAccounts(GetAccountsRequest
                         .newBuilder()
@@ -757,13 +755,14 @@ public final class Client {
      * @return account balance
      */
     public Observable<Balance> getBalance(String accountId, Key.Level keyLevel) {
-        setAuthenticationContext();
+        setOnBehalfOf();
+        setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
                 .getBalance(GetBalanceRequest
                         .newBuilder()
                         .setAccountId(accountId)
-                        .setSignedNonce(signedNonce(keyLevel))
+                        .setNonce(UUID.randomUUID().toString())
                         .build()))
                 .map(new Function<GetBalanceResponse, Balance>() {
                     public Balance apply(GetBalanceResponse response) {
@@ -777,23 +776,24 @@ public final class Client {
     }
 
     /**
-     * Look up balance for a list of accounts.
+     * Look up balances for a list of accounts.
      *
      * @param accountIds list of account ids
      * @param keyLevel key level
      * @return list of balances
      */
-    public Observable<List<Balance>> getBalanceList(List<String> accountIds, Key.Level keyLevel) {
-        setAuthenticationContext();
+    public Observable<List<Balance>> getBalances(List<String> accountIds, Key.Level keyLevel) {
+        setOnBehalfOf();
+        setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
-                .getBalanceList(GetBalanceListRequest
+                .getBalances(GetBalancesRequest
                         .newBuilder()
                         .addAllAccountId(accountIds)
-                        .setSignedNonce(signedNonce(keyLevel))
+                        .setNonce(UUID.randomUUID().toString())
                         .build()))
-                .map(new Function<GetBalanceListResponse, List<Balance>>() {
-                    public List<Balance> apply(GetBalanceListResponse response) {
+                .map(new Function<GetBalancesResponse, List<Balance>>() {
+                    public List<Balance> apply(GetBalancesResponse response) {
                         List<Balance> balances = new ArrayList<>();
                         for (GetBalanceResponse getBalanceResponse : response.getResponseList()) {
                             if (getBalanceResponse.getStatus() == SUCCESSFUL_REQUEST) {
@@ -893,14 +893,15 @@ public final class Client {
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
-        setAuthenticationContext();
+        setOnBehalfOf();
+        setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
                 .getTransaction(GetTransactionRequest
                         .newBuilder()
                         .setAccountId(accountId)
                         .setTransactionId(transactionId)
-                        .setSignedNonce(signedNonce(keyLevel))
+                        .setNonce(UUID.randomUUID().toString())
                         .build()))
                 .map(new Function<GetTransactionResponse, Transaction>() {
                     public Transaction apply(GetTransactionResponse response) {
@@ -927,14 +928,15 @@ public final class Client {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        setAuthenticationContext();
+        setOnBehalfOf();
+        setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
                 .getTransactions(GetTransactionsRequest
                         .newBuilder()
                         .setAccountId(accountId)
                         .setPage(pageBuilder(offset, limit))
-                        .setSignedNonce(signedNonce(keyLevel))
+                        .setNonce(UUID.randomUUID().toString())
                         .build()))
                 .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
                     public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
@@ -1043,7 +1045,7 @@ public final class Client {
      * @return an address record
      */
     public Observable<AddressRecord> getAddress(String addressId) {
-        setAuthenticationContext();
+        setOnBehalfOf();
         return toObservable(gateway
                 .getAddress(GetAddressRequest
                         .newBuilder()
@@ -1062,7 +1064,7 @@ public final class Client {
      * @return a list of addresses
      */
     public Observable<List<AddressRecord>> getAddresses() {
-        setAuthenticationContext();
+        setOnBehalfOf();
         return toObservable(gateway
                 .getAddresses(GetAddressesRequest
                         .newBuilder()
@@ -1377,10 +1379,14 @@ public final class Client {
                 });
     }
 
-    private void setAuthenticationContext() {
+    private void setOnBehalfOf() {
         if (onBehalfOf != null) {
             AuthenticationContext.setOnBehalfOf(onBehalfOf);
         }
+    }
+
+    private void setRequestSignerKeyLevel(Key.Level keyLevel) {
+        AuthenticationContext.setKeyLevel(keyLevel);
     }
 
     private Page.Builder pageBuilder(@Nullable String offset, int limit) {
@@ -1402,21 +1408,5 @@ public final class Client {
                 "%s.%s",
                 toJson(tokenPayload),
                 action.name().toLowerCase());
-    }
-
-    private SignedNonce signedNonce(Key.Level keyLevel) {
-        String nonce = UUID.randomUUID().toString();
-        Signer signer = crypto.createSigner(keyLevel);
-
-        Signature signature = Signature.newBuilder()
-                .setMemberId(memberId)
-                .setKeyId(signer.getKeyId())
-                .setSignature(signer.sign(nonce))
-                .build();
-
-        return SignedNonce.newBuilder()
-                .setNonce(nonce)
-                .setSignature(signature)
-                .build();
     }
 }

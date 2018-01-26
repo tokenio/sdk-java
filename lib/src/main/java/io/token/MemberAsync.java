@@ -1050,15 +1050,15 @@ public class MemberAsync {
     }
 
     /**
-     * Looks up balance for a list of accounts.
+     * Looks up balances for a list of accounts.
      *
      * @param accountIds list of account ids
      * @param keyLevel key level
      * @return list of balances
      */
-    public Observable<List<Balance>> getBalanceList(
+    public Observable<List<Balance>> getBalances(
             List<String> accountIds, Key.Level keyLevel) {
-        return client.getBalanceList(accountIds, keyLevel);
+        return client.getBalances(accountIds, keyLevel);
     }
 
     /**

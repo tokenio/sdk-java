@@ -68,7 +68,7 @@ public final class GetBalanceSample {
      */
     public static List<Balance> memberGetBalanceListSample(Member member) {
         List<String> accountIds = member.getAccounts().stream().map(Account::id).collect(toList());
-        List<Balance> balances = member.getBalanceList(accountIds, STANDARD);
+        List<Balance> balances = member.getBalances(accountIds, STANDARD);
 
         return balances;
     }

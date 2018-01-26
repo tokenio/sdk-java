@@ -28,8 +28,10 @@ import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import io.grpc.Metadata;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.gateway.Auth.GrpcAuthPayload;
 import io.token.rpc.interceptor.SimpleInterceptor;
+import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
 /**
@@ -38,11 +40,11 @@ import io.token.security.Signer;
  */
 final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
     private final String memberId;
-    private final Signer signer;
+    private final CryptoEngine crypto;
 
-    ClientAuthenticator(String memberId, Signer signer) {
+    ClientAuthenticator(String memberId, CryptoEngine crypto) {
         this.memberId = memberId;
-        this.signer = signer;
+        this.crypto = crypto;
     }
 
     @Override
@@ -52,6 +54,8 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 .setRequest(ByteString.copyFrom(((Message) reqT).toByteArray()))
                 .setCreatedAtMs(now)
                 .build();
+        Key.Level keyLevel = AuthenticationContext.resetKeyLevel();
+        Signer signer = crypto.createSigner(keyLevel);
         String signature = signer.sign(payload);
 
         metadata.put(Metadata.Key.of("token-realm", ASCII_STRING_MARSHALLER), "Token");
@@ -59,6 +63,7 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 Metadata.Key.of("token-scheme", ASCII_STRING_MARSHALLER),
                 "Token-Ed25519-SHA512");
         metadata.put(Metadata.Key.of("token-key-id", ASCII_STRING_MARSHALLER), signer.getKeyId());
+        metadata.put(Metadata.Key.of("token-key-level", ASCII_STRING_MARSHALLER), keyLevel.name());
         metadata.put(Metadata.Key.of("token-signature", ASCII_STRING_MARSHALLER), signature);
         metadata.put(
                 Metadata.Key.of("token-created-at-ms", ASCII_STRING_MARSHALLER),
