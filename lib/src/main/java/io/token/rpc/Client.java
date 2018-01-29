@@ -762,7 +762,6 @@ public final class Client {
                 .getBalance(GetBalanceRequest
                         .newBuilder()
                         .setAccountId(accountId)
-                        .setNonce(UUID.randomUUID().toString())
                         .build()))
                 .map(new Function<GetBalanceResponse, Balance>() {
                     public Balance apply(GetBalanceResponse response) {
@@ -790,7 +789,6 @@ public final class Client {
                 .getBalances(GetBalancesRequest
                         .newBuilder()
                         .addAllAccountId(accountIds)
-                        .setNonce(UUID.randomUUID().toString())
                         .build()))
                 .map(new Function<GetBalancesResponse, List<Balance>>() {
                     public List<Balance> apply(GetBalancesResponse response) {
@@ -901,7 +899,6 @@ public final class Client {
                         .newBuilder()
                         .setAccountId(accountId)
                         .setTransactionId(transactionId)
-                        .setNonce(UUID.randomUUID().toString())
                         .build()))
                 .map(new Function<GetTransactionResponse, Transaction>() {
                     public Transaction apply(GetTransactionResponse response) {
@@ -936,7 +933,6 @@ public final class Client {
                         .newBuilder()
                         .setAccountId(accountId)
                         .setPage(pageBuilder(offset, limit))
-                        .setNonce(UUID.randomUUID().toString())
                         .build()))
                 .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
                     public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
