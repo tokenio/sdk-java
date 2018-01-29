@@ -63,7 +63,6 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 Metadata.Key.of("token-scheme", ASCII_STRING_MARSHALLER),
                 "Token-Ed25519-SHA512");
         metadata.put(Metadata.Key.of("token-key-id", ASCII_STRING_MARSHALLER), signer.getKeyId());
-        metadata.put(Metadata.Key.of("token-key-level", ASCII_STRING_MARSHALLER), keyLevel.name());
         metadata.put(Metadata.Key.of("token-signature", ASCII_STRING_MARSHALLER), signature);
         metadata.put(
                 Metadata.Key.of("token-created-at-ms", ASCII_STRING_MARSHALLER),
