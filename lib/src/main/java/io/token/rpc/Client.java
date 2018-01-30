@@ -28,6 +28,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
+import static io.token.proto.common.transaction.TransactionProtos.RequestStatus.SUCCESSFUL_REQUEST;
 import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
 
@@ -68,10 +69,7 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
-import io.token.proto.common.transaction.TransactionProtos.GetBalancePayload;
-import io.token.proto.common.transaction.TransactionProtos.GetTransactionPayload;
-import io.token.proto.common.transaction.TransactionProtos.GetTransactionsPayload;
-import io.token.proto.common.transaction.TransactionProtos.RequestStatus;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
@@ -104,6 +102,8 @@ import io.token.proto.gateway.Gateway.GetAliasesRequest;
 import io.token.proto.gateway.Gateway.GetAliasesResponse;
 import io.token.proto.gateway.Gateway.GetBalanceRequest;
 import io.token.proto.gateway.Gateway.GetBalanceResponse;
+import io.token.proto.gateway.Gateway.GetBalancesRequest;
+import io.token.proto.gateway.Gateway.GetBalancesResponse;
 import io.token.proto.gateway.Gateway.GetBankInfoRequest;
 import io.token.proto.gateway.Gateway.GetBankInfoResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
@@ -169,6 +169,7 @@ import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 import io.token.util.Util;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -212,7 +213,6 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
-
         this.onBehalfOf = accessTokenId;
     }
 
@@ -495,7 +495,7 @@ public final class Client {
      * @return account info
      */
     public Observable<Account> getAccount(String accountId) {
-        setAuthenticationContext();
+        setOnBehalfOf();
         return toObservable(gateway
                 .getAccount(GetAccountRequest
                         .newBuilder()
@@ -514,7 +514,7 @@ public final class Client {
      * @return list of linked accounts
      */
     public Observable<List<Account>> getAccounts() {
-        setAuthenticationContext();
+        setOnBehalfOf();
         return toObservable(gateway
                 .getAccounts(GetAccountsRequest
                         .newBuilder()
@@ -749,35 +749,24 @@ public final class Client {
     }
 
     /**
-     * Look up current account balance.
+     * Look up account balance.
      * @param accountId account id
      * @param keyLevel key level
-     * @return current account balance
+     * @return account balance
      */
-    public Observable<Money> getCurrentBalance(String accountId, Key.Level keyLevel) {
-        setAuthenticationContext();
-        Signer signer = crypto.createSigner(keyLevel);
-
-        GetBalancePayload payload = GetBalancePayload
-                .newBuilder()
-                .setAccountId(accountId)
-                .setNonce(UUID.randomUUID().toString())
-                .build();
+    public Observable<Balance> getBalance(String accountId, Key.Level keyLevel) {
+        setOnBehalfOf();
+        setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
                 .getBalance(GetBalanceRequest
                         .newBuilder()
-                        .setPayload(payload)
-                        .setSignature(Signature
-                                .newBuilder()
-                                .setMemberId(memberId)
-                                .setKeyId(signer.getKeyId())
-                                .setSignature(signer.sign(payload)))
+                        .setAccountId(accountId)
                         .build()))
-                .map(new Function<GetBalanceResponse, Money>() {
-                    public Money apply(GetBalanceResponse response) {
-                        if (response.getStatus() == RequestStatus.SUCCESSFUL_REQUEST) {
-                            return response.getCurrent();
+                .map(new Function<GetBalanceResponse, Balance>() {
+                    public Balance apply(GetBalanceResponse response) {
+                        if (response.getStatus() == SUCCESSFUL_REQUEST) {
+                            return response.getBalance();
                         } else {
                             throw new StepUpRequiredException("Balance step up required.");
                         }
@@ -786,38 +775,30 @@ public final class Client {
     }
 
     /**
-     * Look up available account balance.
-     * @param accountId account id
+     * Look up balances for a list of accounts.
+     *
+     * @param accountIds list of account ids
      * @param keyLevel key level
-     * @return available account balance
+     * @return list of balances
      */
-    public Observable<Money> getAvailableBalance(String accountId, Key.Level keyLevel) {
-        setAuthenticationContext();
-        Signer signer = crypto.createSigner(keyLevel);
-
-        GetBalancePayload payload = GetBalancePayload
-                .newBuilder()
-                .setAccountId(accountId)
-                .setNonce(UUID.randomUUID().toString())
-                .build();
+    public Observable<List<Balance>> getBalances(List<String> accountIds, Key.Level keyLevel) {
+        setOnBehalfOf();
+        setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
-                .getBalance(GetBalanceRequest
+                .getBalances(GetBalancesRequest
                         .newBuilder()
-                        .setPayload(payload)
-                        .setSignature(Signature
-                                .newBuilder()
-                                .setMemberId(memberId)
-                                .setKeyId(signer.getKeyId())
-                                .setSignature(signer.sign(payload)))
+                        .addAllAccountId(accountIds)
                         .build()))
-                .map(new Function<GetBalanceResponse, Money>() {
-                    public Money apply(GetBalanceResponse response) {
-                        if (response.getStatus() == RequestStatus.SUCCESSFUL_REQUEST) {
-                            return response.getAvailable();
-                        } else {
-                            throw new StepUpRequiredException("Balance step up required.");
+                .map(new Function<GetBalancesResponse, List<Balance>>() {
+                    public List<Balance> apply(GetBalancesResponse response) {
+                        List<Balance> balances = new ArrayList<>();
+                        for (GetBalanceResponse getBalanceResponse : response.getResponseList()) {
+                            if (getBalanceResponse.getStatus() == SUCCESSFUL_REQUEST) {
+                                balances.add(getBalanceResponse.getBalance());
+                            }
                         }
+                        return balances;
                     }
                 });
     }
@@ -910,29 +891,18 @@ public final class Client {
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
-        setAuthenticationContext();
-        Signer signer = crypto.createSigner(keyLevel);
-
-        GetTransactionPayload payload = GetTransactionPayload
-                .newBuilder()
-                .setAccountId(accountId)
-                .setTransactionId(transactionId)
-                .setNonce(UUID.randomUUID().toString())
-                .build();
+        setOnBehalfOf();
+        setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
                 .getTransaction(GetTransactionRequest
                         .newBuilder()
-                        .setPayload(payload)
-                        .setSignature(Signature
-                                .newBuilder()
-                                .setMemberId(memberId)
-                                .setKeyId(signer.getKeyId())
-                                .setSignature(signer.sign(payload)))
+                        .setAccountId(accountId)
+                        .setTransactionId(transactionId)
                         .build()))
                 .map(new Function<GetTransactionResponse, Transaction>() {
                     public Transaction apply(GetTransactionResponse response) {
-                        if (response.getStatus() == RequestStatus.SUCCESSFUL_REQUEST) {
+                        if (response.getStatus() == SUCCESSFUL_REQUEST) {
                             return response.getTransaction();
                         } else {
                             throw new StepUpRequiredException("Transaction step up required.");
@@ -955,28 +925,18 @@ public final class Client {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        setAuthenticationContext();
-        Signer signer = crypto.createSigner(keyLevel);
+        setOnBehalfOf();
+        setRequestSignerKeyLevel(keyLevel);
 
-        GetTransactionsPayload payload = GetTransactionsPayload
-                .newBuilder()
-                .setAccountId(accountId)
-                .setNonce(UUID.randomUUID().toString())
-                .build();
         return toObservable(gateway
                 .getTransactions(GetTransactionsRequest
                         .newBuilder()
-                        .setPayload(payload)
-                        .setSignature(Signature
-                                .newBuilder()
-                                .setMemberId(memberId)
-                                .setKeyId(signer.getKeyId())
-                                .setSignature(signer.sign(payload)))
+                        .setAccountId(accountId)
                         .setPage(pageBuilder(offset, limit))
                         .build()))
                 .map(new Function<GetTransactionsResponse, PagedList<Transaction, String>>() {
                     public PagedList<Transaction, String> apply(GetTransactionsResponse response) {
-                        if (response.getStatus() == RequestStatus.SUCCESSFUL_REQUEST) {
+                        if (response.getStatus() == SUCCESSFUL_REQUEST) {
                             return PagedList.create(
                                     response.getTransactionsList(),
                                     response.getOffset());
@@ -1081,7 +1041,7 @@ public final class Client {
      * @return an address record
      */
     public Observable<AddressRecord> getAddress(String addressId) {
-        setAuthenticationContext();
+        setOnBehalfOf();
         return toObservable(gateway
                 .getAddress(GetAddressRequest
                         .newBuilder()
@@ -1100,7 +1060,7 @@ public final class Client {
      * @return a list of addresses
      */
     public Observable<List<AddressRecord>> getAddresses() {
-        setAuthenticationContext();
+        setOnBehalfOf();
         return toObservable(gateway
                 .getAddresses(GetAddressesRequest
                         .newBuilder()
@@ -1415,10 +1375,14 @@ public final class Client {
                 });
     }
 
-    private void setAuthenticationContext() {
+    private void setOnBehalfOf() {
         if (onBehalfOf != null) {
             AuthenticationContext.setOnBehalfOf(onBehalfOf);
         }
+    }
+
+    private void setRequestSignerKeyLevel(Key.Level keyLevel) {
+        AuthenticationContext.setKeyLevel(keyLevel);
     }
 
     private Page.Builder pageBuilder(@Nullable String offset, int limit) {

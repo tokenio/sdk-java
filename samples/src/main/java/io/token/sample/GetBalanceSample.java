@@ -1,10 +1,12 @@
 package io.token.sample;
 
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static java.util.stream.Collectors.toList;
 
 import io.token.Account;
 import io.token.Member;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 
 import java.util.HashMap;
 import java.util.List;
@@ -56,5 +58,23 @@ public final class GetBalanceSample {
         }
 
         return sums;
+    }
+
+    /**
+     * Get a member's list of balances.
+     *
+     * @param member Member.
+     * @return list of balances
+     */
+    public static List<Balance> memberGetBalanceListSample(Member member) {
+        List<String> accountIds = member
+                .getAccounts()
+                .stream()
+                .map(Account::id)
+                .collect(toList());
+
+        List<Balance> balances = member.getBalances(accountIds, STANDARD);
+
+        return balances;
     }
 }

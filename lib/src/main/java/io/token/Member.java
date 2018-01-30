@@ -49,6 +49,7 @@ import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -822,6 +823,17 @@ public class Member {
     }
 
     /**
+     * Looks up account balance.
+     *
+     * @param accountId account id
+     * @param keyLevel key level
+     * @return balance
+     */
+    public Balance getBalance(String accountId, Key.Level keyLevel) {
+        return async.getBalance(accountId, keyLevel).blockingSingle();
+    }
+
+    /**
      * Looks up account available balance.
      *
      * @param accountId account id
@@ -833,7 +845,7 @@ public class Member {
     }
 
     /**
-     * Looks up account available balance.
+     * Looks up account current balance.
      *
      * @param accountId account id
      * @param keyLevel key level
@@ -841,6 +853,19 @@ public class Member {
      */
     public Money getCurrentBalance(String accountId, Key.Level keyLevel) {
         return async.getCurrentBalance(accountId, keyLevel).blockingSingle();
+    }
+
+    /**
+     * Looks up balances for a list of accounts.
+     *
+     * @param accountIds list of account ids
+     * @param keyLevel key level
+     * @return list of balances
+     */
+    public List<Balance> getBalances(
+            List<String> accountIds,
+            Key.Level keyLevel) {
+        return async.getBalances(accountIds, keyLevel).blockingSingle();
     }
 
     /**
@@ -959,7 +984,7 @@ public class Member {
      * @return notification status
      */
     public NotifyStatus triggerTransactionStepUpNotification(String accountId) {
-        return async.triggerBalanceStepUpNotification(accountId).blockingSingle();
+        return async.triggerTransactionStepUpNotification(accountId).blockingSingle();
     }
 
     @Override

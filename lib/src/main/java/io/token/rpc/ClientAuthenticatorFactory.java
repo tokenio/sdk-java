@@ -25,7 +25,7 @@ package io.token.rpc;
 import io.grpc.MethodDescriptor;
 import io.token.rpc.interceptor.InterceptorFactory;
 import io.token.rpc.interceptor.SimpleInterceptor;
-import io.token.security.Signer;
+import io.token.security.CryptoEngine;
 
 /**
  * Responsible for creation of {@link ClientAuthenticator} instances which
@@ -33,15 +33,15 @@ import io.token.security.Signer;
  */
 final class ClientAuthenticatorFactory implements InterceptorFactory {
     private final String memberId;
-    private final Signer signer;
+    private final CryptoEngine crypto;
 
-    public ClientAuthenticatorFactory(String memberId, Signer signer) {
+    public ClientAuthenticatorFactory(String memberId, CryptoEngine crypto) {
         this.memberId = memberId;
-        this.signer = signer;
+        this.crypto = crypto;
     }
 
     @Override
     public <ReqT, ResT> SimpleInterceptor<ReqT, ResT> create(MethodDescriptor<ReqT, ResT> ignore) {
-        return new ClientAuthenticator<>(memberId, signer);
+        return new ClientAuthenticator<>(memberId, crypto);
     }
 }
