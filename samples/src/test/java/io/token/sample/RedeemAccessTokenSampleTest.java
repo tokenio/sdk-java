@@ -22,6 +22,7 @@ import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 
 import java.math.BigDecimal;
+import java.util.Arrays;
 
 import org.junit.Test;
 
@@ -68,8 +69,11 @@ public class RedeemAccessTokenSampleTest {
             Money balance3 = carefullyUseAccessToken(grantee, token1.getId()); // use replaced token
             assertThat(MoneyUtil.parseAmount(balance3.getValue())).isGreaterThan(BigDecimal.TEN);
 
-            Money balance6 = carefullyUseAccessToken(grantee, token3.getId()); // use replaced token
+            Money balance6 = carefullyUseAccessToken(grantee, token3.getId()); // use new token
             assertThat(MoneyUtil.parseAmount(balance6.getValue())).isGreaterThan(BigDecimal.TEN);
+            grantor.unlinkAccounts(Arrays.asList(account1Id, account2Id));
+            Money balance7 = carefullyUseAccessToken(grantee, token3.getId());
+            assertThat(MoneyUtil.parseAmount(balance7.getValue())).isZero();
         }
     }
 }

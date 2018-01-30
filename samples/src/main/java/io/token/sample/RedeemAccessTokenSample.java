@@ -1,11 +1,13 @@
 package io.token.sample;
 
+import static io.grpc.Status.Code.FAILED_PRECONDITION;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 
+import io.grpc.StatusRuntimeException;
 import io.token.Account;
 import io.token.Member;
 import io.token.proto.common.money.MoneyProtos.Money;
-import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.Token;
 
@@ -76,12 +78,25 @@ public final class RedeemAccessTokenSample {
                 accountIds.add(grantorAccounts.get(i).id());
             }
         }
+        // We don't have access to any accounts, so return empty balance.
         if (accountIds.size() < 1) {
             return Money.getDefaultInstance();
         }
-        String account0Id = accountIds.iterator().next();
-        Money balance0 = grantee.getAvailableBalance(account0Id, Key.Level.LOW);
-        grantee.clearAccessToken();
-        return balance0;
+        for (String accountId : accountIds) {
+            try {
+                Money balance = grantee.getAvailableBalance(accountId, LOW);
+                grantee.clearAccessToken(); // stop using access token
+                return balance;
+            } catch (StatusRuntimeException ex) {
+                // If grantor previously un-linked an account, then grantee can't get its balance.
+                if (ex.getStatus().getCode() == FAILED_PRECONDITION) {
+                    continue;
+                }
+                throw ex;
+            }
+        }
+        grantee.clearAccessToken(); // stop using access token
+        // We don't have access to any accounts, so return empty balance.
+        return Money.getDefaultInstance();
     }
 }
