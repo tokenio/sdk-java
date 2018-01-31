@@ -43,7 +43,7 @@ public class GetBalanceSampleTest {
     }
 
     @Test
-    public void memberGetBalancListSampleTest() {
+    public void memberGetBalancesSampleTest() {
         try (TokenIO tokenIO = createClient()) {
             Member member = tokenIO.createMember(randomAlias());
             Banklink.BankAuthorization encryptedBankAuthorizationA =
