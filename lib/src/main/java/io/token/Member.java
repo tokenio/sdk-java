@@ -970,11 +970,11 @@ public class Member {
     /**
      * Trigger a step up notification for balance requests.
      *
-     * @param accountId account id
+     * @param accountIds list of account ids
      * @return notification status
      */
-    public NotifyStatus triggerBalanceStepUpNotification(String accountId) {
-        return async.triggerBalanceStepUpNotification(accountId).blockingSingle();
+    public NotifyStatus triggerBalanceStepUpNotification(List<String> accountIds) {
+        return async.triggerBalanceStepUpNotification(accountIds).blockingSingle();
     }
 
     /**

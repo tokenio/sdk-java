@@ -1313,14 +1313,14 @@ public final class Client {
     /**
      * Trigger a step up notification for balance requests.
      *
-     * @param accountId account id
+     * @param accountIds list of account ids
      * @return notification status
      */
-    public Observable<NotifyStatus> triggerBalanceStepUpNotification(String accountId) {
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
         return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
                 .newBuilder()
                 .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
-                        .setAccountId(accountId)
+                        .addAllAccountId(accountIds)
                         .build())
                 .build()))
                 .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {

@@ -1109,11 +1109,11 @@ public class MemberAsync {
     /**
      * Trigger a step up notification for balance requests.
      *
-     * @param accountId account id
+     * @param accountIds list of account ids
      * @return notification status
      */
-    public Observable<NotifyStatus> triggerBalanceStepUpNotification(String accountId) {
-        return client.triggerBalanceStepUpNotification(accountId);
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
+        return client.triggerBalanceStepUpNotification(accountIds);
     }
 
     /**
