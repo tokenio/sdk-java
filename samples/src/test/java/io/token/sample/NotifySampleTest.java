@@ -6,6 +6,7 @@ import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
 import static io.token.sample.TestUtil.randomAlias;
 import static org.assertj.core.api.Assertions.assertThat;
 
+import com.google.common.collect.ImmutableList;
 import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -51,7 +52,9 @@ public class NotifySampleTest {
         try (TokenIO tokenIO = createClient()) {
             Member member = tokenIO.createMember(randomAlias());
 
-            NotifyStatus status = member.triggerBalanceStepUpNotification("123");
+            NotifyStatus status = member.triggerBalanceStepUpNotification(ImmutableList.of(
+                    "123",
+                    "456"));
             assertThat(status).isNotNull();
         }
     }
