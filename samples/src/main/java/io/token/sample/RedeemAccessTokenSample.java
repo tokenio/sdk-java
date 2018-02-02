@@ -33,7 +33,7 @@ public final class RedeemAccessTokenSample {
         List<Account> grantorAccounts = grantee.getAccounts();
 
         // Get the data we want
-        Money balance0 = grantorAccounts.get(0).getCurrentBalance(STANDARD);
+        Money balance0 = grantorAccounts.get(0).getCurrentBalance();
         // When done using access, clear token from grantee client.
         grantee.clearAccessToken();
         return balance0;
@@ -84,7 +84,7 @@ public final class RedeemAccessTokenSample {
         }
         for (String accountId : accountIds) {
             try {
-                Money balance = grantee.getAvailableBalance(accountId, LOW);
+                Money balance = grantee.getAvailableBalance(accountId);
                 grantee.clearAccessToken(); // stop using access token
                 return balance;
             } catch (StatusRuntimeException ex) {

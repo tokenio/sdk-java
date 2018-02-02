@@ -131,21 +131,19 @@ public class AccountAsync {
     /**
      * Looks up an account balance.
      *
-     * @param keyLevel key level
      * @return account balance
      */
-    public Observable<Balance> getBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel);
+    public Observable<Balance> getBalance() {
+        return client.getBalance(account.getId());
     }
 
     /**
      * Looks up an account current balance.
      *
-     * @param keyLevel key level
      * @return account current balance
      */
-    public Observable<Money> getCurrentBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
+    public Observable<Money> getCurrentBalance() {
+        return client.getBalance(account.getId()).map(new Function<Balance, Money>() {
             @Override
             public Money apply(Balance balance) throws Exception {
                 return balance.getCurrent();
@@ -156,11 +154,10 @@ public class AccountAsync {
     /**
      * Looks up an account available balance.
      *
-     * @param keyLevel key level
      * @return account available balance
      */
-    public Observable<Money> getAvailableBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
+    public Observable<Money> getAvailableBalance() {
+        return client.getBalance(account.getId()).map(new Function<Balance, Money>() {
             @Override
             public Money apply(Balance balance) throws Exception {
                 return balance.getAvailable();
@@ -172,13 +169,11 @@ public class AccountAsync {
      * Lookup transaction.
      *
      * @param transactionId transaction id
-     * @param keyLevel key level
      * @return transaction
      */
     public Observable<Transaction> getTransaction(
-            String transactionId,
-            Key.Level keyLevel) {
-        return client.getTransaction(account.getId(), transactionId, keyLevel);
+            String transactionId) {
+        return client.getTransaction(account.getId(), transactionId);
     }
 
     /**
@@ -186,14 +181,12 @@ public class AccountAsync {
      *
      * @param offset offset
      * @param limit limit
-     * @param keyLevel key level
      * @return paged list of transactions
      */
     public Observable<PagedList<Transaction, String>> getTransactions(
             @Nullable String offset,
-            int limit,
-            Key.Level keyLevel) {
-        return client.getTransactions(account.getId(), offset, limit, keyLevel);
+            int limit) {
+        return client.getTransactions(account.getId(), offset, limit);
     }
 
     @Override

@@ -119,44 +119,38 @@ public class Account {
     /**
      * Looks up an account balance.
      *
-     * @param keyLevel key level
      * @return account balance
      */
-    public Balance getBalance(Key.Level keyLevel) {
-        return async.getBalance(keyLevel).blockingSingle();
+    public Balance getBalance() {
+        return async.getBalance().blockingSingle();
     }
 
     /**
      * Looks up an account current balance.
      *
-     * @param keyLevel key level
      * @return account current balance
      */
-    public Money getCurrentBalance(Key.Level keyLevel) {
-        return async.getCurrentBalance(keyLevel).blockingSingle();
+    public Money getCurrentBalance() {
+        return async.getCurrentBalance().blockingSingle();
     }
 
     /**
      * Looks up an account available balance.
      *
-     * @param keyLevel key level
      * @return account available balance
      */
-    public Money getAvailableBalance(Key.Level keyLevel) {
-        return async.getAvailableBalance(keyLevel).blockingSingle();
+    public Money getAvailableBalance() {
+        return async.getAvailableBalance().blockingSingle();
     }
 
     /**
      * Lookup transaction.
      *
      * @param transactionId transaction id
-     * @param keyLevel key level
      * @return transaction
      */
-    public Transaction getTransaction(
-            String transactionId,
-            Key.Level keyLevel) {
-        return async.getTransaction(transactionId, keyLevel).blockingSingle();
+    public Transaction getTransaction(String transactionId) {
+        return async.getTransaction(transactionId).blockingSingle();
     }
 
     /**
@@ -164,14 +158,10 @@ public class Account {
      *
      * @param offset offset
      * @param limit limit
-     * @param keyLevel key level
      * @return paged list of transactions
      */
-    public PagedList<Transaction, String> getTransactions(
-            @Nullable String offset,
-            int limit,
-            Key.Level keyLevel) {
-        return async.getTransactions(offset, limit, keyLevel).blockingSingle();
+    public PagedList<Transaction, String> getTransactions(@Nullable String offset, int limit) {
+        return async.getTransactions(offset, limit).blockingSingle();
     }
 
     @Override

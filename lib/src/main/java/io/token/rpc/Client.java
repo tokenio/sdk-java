@@ -24,6 +24,7 @@ package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
@@ -645,7 +646,7 @@ public final class Client {
      * @return result of the cancel operation, returned by the server
      */
     public Observable<TokenOperationResult> cancelToken(Token token) {
-        Signer signer = crypto.createSigner(Key.Level.LOW);
+        Signer signer = crypto.createSigner(LOW);
         return toObservable(gateway
                 .cancelToken(CancelTokenRequest
                         .newBuilder()
@@ -751,6 +752,15 @@ public final class Client {
     /**
      * Look up account balance.
      * @param accountId account id
+     * @return account balance
+     */
+    public Observable<Balance> getBalance(String accountId) {
+        return getBalance(accountId, LOW);
+    }
+
+    /**
+     * Look up account balance.
+     * @param accountId account id
      * @param keyLevel key level
      * @return account balance
      */
@@ -772,6 +782,16 @@ public final class Client {
                         }
                     }
                 });
+    }
+
+    /**
+     * Look up balances for a list of accounts.
+     *
+     * @param accountIds list of account ids
+     * @return list of balances
+     */
+    public Observable<List<Balance>> getBalances(List<String> accountIds) {
+        return getBalances(accountIds, LOW);
     }
 
     /**
@@ -810,7 +830,7 @@ public final class Client {
      * @return transfer record
      */
     public Observable<Transfer> createTransfer(TransferPayload transfer) {
-        Signer signer = crypto.createSigner(Key.Level.LOW);
+        Signer signer = crypto.createSigner(LOW);
         return toObservable(gateway
                 .createTransfer(CreateTransferRequest
                         .newBuilder()
@@ -884,6 +904,17 @@ public final class Client {
      *
      * @param accountId account id
      * @param transactionId transaction id
+     * @return transaction
+     */
+    public Observable<Transaction> getTransaction(String accountId, String transactionId) {
+        return getTransaction(accountId, transactionId, LOW);
+    }
+
+    /**
+     * Look up an existing transaction and return the response.
+     *
+     * @param accountId account id
+     * @param transactionId transaction id
      * @param keyLevel key level
      * @return transaction
      */
@@ -909,6 +940,21 @@ public final class Client {
                         }
                     }
                 });
+    }
+
+    /**
+     * Lookup transactions and return response.
+     *
+     * @param accountId account id
+     * @param offset offset
+     * @param limit limit
+     * @return paged list of transactions
+     */
+    public Observable<PagedList<Transaction, String>> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit) {
+        return getTransactions(accountId, offset, limit, LOW);
     }
 
     /**
@@ -1014,7 +1060,7 @@ public final class Client {
      * @return an address record created
      */
     public Observable<AddressRecord> addAddress(String name, Address address) {
-        Signer signer = crypto.createSigner(Key.Level.LOW);
+        Signer signer = crypto.createSigner(LOW);
         return toObservable(gateway
                 .addAddress(AddAddressRequest
                         .newBuilder()
@@ -1353,7 +1399,7 @@ public final class Client {
     private Observable<TokenOperationResult> cancelAndReplace(
             Token tokenToCancel,
             CreateToken.Builder createToken) {
-        Signer signer = crypto.createSigner(Key.Level.LOW);
+        Signer signer = crypto.createSigner(LOW);
         return toObservable(gateway
                 .replaceToken(ReplaceTokenRequest
                         .newBuilder()
