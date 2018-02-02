@@ -24,7 +24,6 @@ package io.token;
 
 import io.token.proto.PagedList;
 import io.token.proto.common.money.MoneyProtos.Money;
-import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 

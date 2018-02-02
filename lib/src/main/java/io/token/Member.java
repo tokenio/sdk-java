@@ -23,7 +23,6 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.reactivex.functions.Function;
