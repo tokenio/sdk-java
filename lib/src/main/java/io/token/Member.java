@@ -797,9 +797,7 @@ public class Member {
      * @param transactionId ID of the transaction
      * @return transaction
      */
-    public Transaction getTransaction(
-            String accountId,
-            String transactionId) {
+    public Transaction getTransaction(String accountId, String transactionId) {
         return async.getTransaction(accountId, transactionId).blockingSingle();
     }
 

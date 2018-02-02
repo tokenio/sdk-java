@@ -965,9 +965,7 @@ public class MemberAsync {
      * @param transactionId ID of the transaction
      * @return transaction record
      */
-    public Observable<Transaction> getTransaction(
-            String accountId,
-            String transactionId) {
+    public Observable<Transaction> getTransaction(String accountId, String transactionId) {
         return client.getTransaction(accountId, transactionId);
     }
 
@@ -1048,8 +1046,7 @@ public class MemberAsync {
      * @param accountIds list of account ids
      * @return list of balances
      */
-    public Observable<List<Balance>> getBalances(
-            List<String> accountIds) {
+    public Observable<List<Balance>> getBalances(List<String> accountIds) {
         return client.getBalances(accountIds);
     }
 
