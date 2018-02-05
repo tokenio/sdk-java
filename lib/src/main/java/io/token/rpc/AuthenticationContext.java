@@ -24,8 +24,6 @@ package io.token.rpc;
 
 import io.token.proto.common.security.SecurityProtos.Key;
 
-import java.util.function.Supplier;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,13 +34,7 @@ import org.slf4j.LoggerFactory;
 public class AuthenticationContext {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationContext.class);
     private static final ThreadLocal<String> onBehalfOf = new ThreadLocal<>();
-    private static final ThreadLocal<Key.Level> keyLevel = ThreadLocal.withInitial(
-            new Supplier<Key.Level>() {
-                @Override
-                public Key.Level get() {
-                    return Key.Level.LOW;
-                }
-            });
+    private static final ThreadLocal<Key.Level> keyLevel = new ThreadLocal<>();
 
     /**
      * Retrieves the On-Behalf-Of value.
@@ -59,7 +51,11 @@ public class AuthenticationContext {
      * @return the current Key-Level value
      */
     public static Key.Level getKeyLevel() {
-        return keyLevel.get();
+        Key.Level level = keyLevel.get();
+        if (level == null) {
+            return Key.Level.LOW;
+        }
+        return level;
     }
 
     /**
@@ -98,7 +94,7 @@ public class AuthenticationContext {
      * @return a Key-Level value
      */
     public static Key.Level resetKeyLevel() {
-        Key.Level level = keyLevel.get();
+        Key.Level level = getKeyLevel();
         keyLevel.set(Key.Level.LOW);
         return level;
     }
