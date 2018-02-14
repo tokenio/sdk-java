@@ -56,7 +56,9 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
 import java.net.URL;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
+import javax.annotation.Nullable;
 
 
 /**
@@ -308,5 +310,21 @@ public abstract class Util {
         return payload.toBuilder()
                 .setTransfer(transfer)
                 .build();
+    }
+
+    /**
+     * Retrieve the access token from the URL fragment, given the full URL.
+     *
+     * @param fullUrl full url
+     * @return access token, or null if not found
+     */
+    public static @Nullable String parseAccessToken(String fullUrl) {
+        String[] urlParts = fullUrl.split("#|&");
+        for (int i = 0; i < urlParts.length; i++) {
+            if (urlParts[i].contains("token=")) {
+                return urlParts[i].substring(6);
+            }
+        }
+        return null;
     }
 }

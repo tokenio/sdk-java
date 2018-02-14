@@ -47,7 +47,6 @@ public class TokenBrowserActivity extends Activity {
                 data.putString(MSG_KEY_URL, request.getUrl().toString());
                 messenger.send(MSG_ON_URL, data);
                 return true;
-
             }
         });
         setContentView(webview);

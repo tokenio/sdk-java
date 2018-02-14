@@ -24,12 +24,22 @@ package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
 import static io.token.util.Util.getBankAuthorization;
+import static io.token.util.Util.parseAccessToken;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.reactivex.schedulers.Schedulers;
+import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
+import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -58,6 +68,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.security.keystore.SecretKeyPair;
 
+import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -376,15 +387,46 @@ public class Member {
      *
      * @param bankInfo the bank info
      * @param browserFactory the browser factory
-     * @return account linking bank authorization
+     * @return access token
      */
     public Observable<String> initiateAccountLinking(
             final BankInfo bankInfo,
             final BrowserFactory browserFactory) {
-        return getBankAuthorization(
-                bankInfo.getLinkingUri(),
-                bankInfo.getRedirectUriRegex(),
-                browserFactory);
+        return Single.create(new SingleOnSubscribe<String>() {
+            @Override
+            public void subscribe(final SingleEmitter<String> emitter) throws Exception {
+                final Browser browser = browserFactory.create();
+                browser.url()
+                        .filter(new Predicate<URL>() {
+                            @Override
+                            public boolean test(URL url) {
+                                if (url
+                                        .toExternalForm()
+                                        .matches(".*#.*token=.+")) {
+                                    return true;
+                                }
+                                browser.goTo(url);
+                                return false;
+                            }
+                        })
+                        .subscribe(
+                                new Consumer<URL>() {
+                                    @Override
+                                    public void accept(URL url) {
+                                        emitter.onSuccess(parseAccessToken(url.toExternalForm()));
+                                        browser.close();
+                                    }
+                                },
+                                new Consumer<Throwable>() {
+                                    @Override
+                                    public void accept(Throwable ex) {
+                                        emitter.onError(ex);
+                                        browser.close();
+                                    }
+                                });
+                browser.goTo(new URL(bankInfo.getBankLinkingUri()));
+            }
+        }).toObservable();
     }
 
     /**
