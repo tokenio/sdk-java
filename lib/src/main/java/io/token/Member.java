@@ -378,7 +378,7 @@ public class Member {
      * @param browserFactory the browser factory
      * @return account linking bank authorization
      */
-    public Observable<BankAuthorization> initiateAccountLinking(
+    public Observable<String> initiateAccountLinking(
             final BankInfo bankInfo,
             final BrowserFactory browserFactory) {
         return getBankAuthorization(
