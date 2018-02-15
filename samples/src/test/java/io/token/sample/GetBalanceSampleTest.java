@@ -55,7 +55,7 @@ public class GetBalanceSampleTest {
 
             member.linkAccounts(encryptedBankAuthorizationB);
 
-            List<Balance> balances = GetBalanceSample.memberGetBalanceListSample(member);
+            List<Balance> balances = GetBalanceSample.memberGetBalancesSample(member);
             assertThat(balances.size()).isEqualTo(2);
             assertThat(balances
                     .stream()

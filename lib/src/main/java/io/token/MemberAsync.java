@@ -963,14 +963,10 @@ public class MemberAsync {
      *
      * @param accountId the account id
      * @param transactionId ID of the transaction
-     * @param keyLevel key level
      * @return transaction record
      */
-    public Observable<Transaction> getTransaction(
-            String accountId,
-            String transactionId,
-            Key.Level keyLevel) {
-        return client.getTransaction(accountId, transactionId, keyLevel);
+    public Observable<Transaction> getTransaction(String accountId, String transactionId) {
+        return client.getTransaction(accountId, transactionId);
     }
 
     /**
@@ -979,15 +975,13 @@ public class MemberAsync {
      * @param accountId the account id
      * @param offset optional offset to start at
      * @param limit max number of records to return
-     * @param keyLevel key level
      * @return a paged list of transaction records
      */
     public Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
             @Nullable String offset,
-            int limit,
-            Key.Level keyLevel) {
-        return client.getTransactions(accountId, offset, limit, keyLevel);
+            int limit) {
+        return client.getTransactions(accountId, offset, limit);
     }
 
     /**
@@ -1010,22 +1004,20 @@ public class MemberAsync {
      * Looks up account balance.
      *
      * @param accountId the account id
-     * @param keyLevel key level
      * @return balance
      */
-    public Observable<Balance> getBalance(String accountId, Key.Level keyLevel) {
-        return client.getBalance(accountId, keyLevel);
+    public Observable<Balance> getBalance(String accountId) {
+        return client.getBalance(accountId);
     }
 
     /**
      * Looks up current account balance.
      *
      * @param accountId the account id
-     * @param keyLevel key level
      * @return current balance
      */
-    public Observable<Money> getCurrentBalance(String accountId, Key.Level keyLevel) {
-        return client.getBalance(accountId, keyLevel).map(new Function<Balance, Money>() {
+    public Observable<Money> getCurrentBalance(String accountId) {
+        return client.getBalance(accountId).map(new Function<Balance, Money>() {
             @Override
             public Money apply(Balance balance) throws Exception {
                 return balance.getCurrent();
@@ -1037,11 +1029,10 @@ public class MemberAsync {
      * Looks up available account balance.
      *
      * @param accountId the account id
-     * @param keyLevel key level
      * @return available balance
      */
-    public Observable<Money> getAvailableBalance(String accountId, Key.Level keyLevel) {
-        return client.getBalance(accountId, keyLevel).map(new Function<Balance, Money>() {
+    public Observable<Money> getAvailableBalance(String accountId) {
+        return client.getBalance(accountId).map(new Function<Balance, Money>() {
             @Override
             public Money apply(Balance balance) throws Exception {
                 return balance.getAvailable();
@@ -1053,12 +1044,10 @@ public class MemberAsync {
      * Looks up balances for a list of accounts.
      *
      * @param accountIds list of account ids
-     * @param keyLevel key level
      * @return list of balances
      */
-    public Observable<List<Balance>> getBalances(
-            List<String> accountIds, Key.Level keyLevel) {
-        return client.getBalances(accountIds, keyLevel);
+    public Observable<List<Balance>> getBalances(List<String> accountIds) {
+        return client.getBalances(accountIds);
     }
 
     /**

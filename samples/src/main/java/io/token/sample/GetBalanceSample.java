@@ -27,7 +27,7 @@ public final class GetBalanceSample {
 
         List<Account> accounts = member.getAccounts();
         for (Account account : accounts) {
-            Money balance = member.getCurrentBalance(account.id(), STANDARD);
+            Money balance = member.getCurrentBalance(account.id());
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())
@@ -49,7 +49,7 @@ public final class GetBalanceSample {
 
         List<Account> accounts = member.getAccounts();
         for (Account account : accounts) {
-            Money balance = account.getCurrentBalance(STANDARD);
+            Money balance = account.getCurrentBalance();
             sums.put(
                     balance.getCurrency(),
                     Double.parseDouble(balance.getValue())
@@ -66,14 +66,14 @@ public final class GetBalanceSample {
      * @param member Member.
      * @return list of balances
      */
-    public static List<Balance> memberGetBalanceListSample(Member member) {
+    public static List<Balance> memberGetBalancesSample(Member member) {
         List<String> accountIds = member
                 .getAccounts()
                 .stream()
                 .map(Account::id)
                 .collect(toList());
 
-        List<Balance> balances = member.getBalances(accountIds, STANDARD);
+        List<Balance> balances = member.getBalances(accountIds);
 
         return balances;
     }

@@ -795,14 +795,10 @@ public class Member {
      *
      * @param accountId the account id
      * @param transactionId ID of the transaction
-     * @param keyLevel key level
      * @return transaction
      */
-    public Transaction getTransaction(
-            String accountId,
-            String transactionId,
-            Key.Level keyLevel) {
-        return async.getTransaction(accountId, transactionId, keyLevel).blockingSingle();
+    public Transaction getTransaction(String accountId, String transactionId) {
+        return async.getTransaction(accountId, transactionId).blockingSingle();
     }
 
     /**
@@ -811,61 +807,53 @@ public class Member {
      * @param accountId the account id
      * @param offset optional offset to start at
      * @param limit max number of records to return
-     * @param keyLevel key level
      * @return paged list of transactions
      */
     public PagedList<Transaction, String> getTransactions(
             String accountId,
             @Nullable String offset,
-            int limit,
-            Key.Level keyLevel) {
-        return async.getTransactions(accountId, offset, limit, keyLevel).blockingSingle();
+            int limit) {
+        return async.getTransactions(accountId, offset, limit).blockingSingle();
     }
 
     /**
      * Looks up account balance.
      *
      * @param accountId account id
-     * @param keyLevel key level
      * @return balance
      */
-    public Balance getBalance(String accountId, Key.Level keyLevel) {
-        return async.getBalance(accountId, keyLevel).blockingSingle();
+    public Balance getBalance(String accountId) {
+        return async.getBalance(accountId).blockingSingle();
     }
 
     /**
      * Looks up account available balance.
      *
      * @param accountId account id
-     * @param keyLevel key level
      * @return balance
      */
-    public Money getAvailableBalance(String accountId, Key.Level keyLevel) {
-        return async.getAvailableBalance(accountId, keyLevel).blockingSingle();
+    public Money getAvailableBalance(String accountId) {
+        return async.getAvailableBalance(accountId).blockingSingle();
     }
 
     /**
      * Looks up account current balance.
      *
      * @param accountId account id
-     * @param keyLevel key level
      * @return balance
      */
-    public Money getCurrentBalance(String accountId, Key.Level keyLevel) {
-        return async.getCurrentBalance(accountId, keyLevel).blockingSingle();
+    public Money getCurrentBalance(String accountId) {
+        return async.getCurrentBalance(accountId).blockingSingle();
     }
 
     /**
      * Looks up balances for a list of accounts.
      *
      * @param accountIds list of account ids
-     * @param keyLevel key level
      * @return list of balances
      */
-    public List<Balance> getBalances(
-            List<String> accountIds,
-            Key.Level keyLevel) {
-        return async.getBalances(accountIds, keyLevel).blockingSingle();
+    public List<Balance> getBalances(List<String> accountIds) {
+        return async.getBalances(accountIds).blockingSingle();
     }
 
     /**
