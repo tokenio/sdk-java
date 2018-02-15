@@ -320,7 +320,7 @@ public abstract class Util {
      */
     public static @Nullable String parseAccessToken(String fullUrl) {
         String[] urlParts = fullUrl.split("#|&");
-        for (int i = 0; i < urlParts.length; i++) {
+        for (int i = urlParts.length - 1; i >= 0; i--) {
             if (urlParts[i].contains("token=")) {
                 return urlParts[i].substring(6);
             }
