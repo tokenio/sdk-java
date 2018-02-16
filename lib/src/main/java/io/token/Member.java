@@ -426,7 +426,7 @@ public class Member {
                                         browser.close();
                                     }
                                 });
-                String url = bankInfo.getBankLinkingUri() + "redirect_uri=https%3A%2F%2Ftoken.io";
+                String url = bankInfo.getBankLinkingUri() + "&redirect_uri=https%3A%2F%2Ftoken.io";
                 browser.goTo(new URL(url));
             }
         }).toObservable();
