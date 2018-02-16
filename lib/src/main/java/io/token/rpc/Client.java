@@ -42,7 +42,9 @@ import io.token.TransferTokenException;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.StepUpRequiredException;
 import io.token.proto.PagedList;
+import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -147,6 +149,8 @@ import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetTransfersResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsResponse;
+import io.token.proto.gateway.Gateway.LinkBankAccountsRequest;
+import io.token.proto.gateway.Gateway.LinkBankAccountsResponse;
 import io.token.proto.gateway.Gateway.Page;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
@@ -467,6 +471,7 @@ public final class Client {
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
+    @Deprecated
     public Observable<List<Account>> linkAccounts(
             BankAuthorization authorization) {
         return toObservable(gateway
@@ -476,6 +481,25 @@ public final class Client {
                         .build()))
                 .map(new Function<LinkAccountsResponse, List<Account>>() {
                     public List<Account> apply(LinkAccountsResponse response) {
+                        return response.getAccountsList();
+                    }
+                });
+    }
+
+    /**
+     * Links a funding bank account to Token.
+     *
+     * @param authorization an authorization to accounts, from the bank.
+     * @return list of linked accounts
+     */
+    public Observable<List<Account>> linkBankAccounts(OauthBankAuthorization authorization) {
+        return toObservable(gateway
+                .linkBankAccounts(LinkBankAccountsRequest
+                        .newBuilder()
+                        .setAuthorization(authorization)
+                        .build()))
+                .map(new Function<LinkBankAccountsResponse, List<Account>>() {
+                    public List<Account> apply(LinkBankAccountsResponse response) {
                         return response.getAccountsList();
                     }
                 });

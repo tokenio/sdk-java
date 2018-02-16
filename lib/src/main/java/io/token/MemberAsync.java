@@ -35,7 +35,9 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
+import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -492,6 +494,7 @@ public class MemberAsync {
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
+    @Deprecated
     public Observable<List<AccountAsync>> linkAccounts(
             BankAuthorization authorization) {
         return client
@@ -507,6 +510,28 @@ public class MemberAsync {
                     }
                 });
     }
+
+    /**
+     * Links funding bank accounts to Token and returns them to the caller.
+     *
+     * @param authorization an authorization to accounts, from the bank
+     * @return list of linked accounts
+     */
+    public Observable<List<AccountAsync>> linkBankAccounts(OauthBankAuthorization authorization) {
+        return client
+                .linkBankAccounts(authorization)
+                .map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
+                    @Override
+                    public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
+                        List<AccountAsync> result = new LinkedList<>();
+                        for (AccountProtos.Account account : accounts) {
+                            result.add(new AccountAsync(MemberAsync.this, account, client));
+                        }
+                        return result;
+                    }
+                });
+    }
+
 
     /**
      * Unlinks bank accounts previously linked via linkAccounts call.

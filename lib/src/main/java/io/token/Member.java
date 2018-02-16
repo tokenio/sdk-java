@@ -40,7 +40,9 @@ import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
 import io.token.proto.ProtoJson;
+import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
@@ -435,8 +437,29 @@ public class Member {
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
+    @Deprecated
     public List<Account> linkAccounts(BankAuthorization authorization) {
         return async.linkAccounts(authorization)
+                .map(new Function<List<AccountAsync>, List<Account>>() {
+                    public List<Account> apply(List<AccountAsync> asyncList) {
+                        List<Account> accounts = new LinkedList<>();
+                        for (AccountAsync async : asyncList) {
+                            accounts.add(async.sync());
+                        }
+                        return accounts;
+                    }
+                })
+                .blockingSingle();
+    }
+
+    /**
+     * Links funding bank accounts to Token and returns them to the caller.
+     *
+     * @param authorization an authorization to accounts, from the bank
+     * @return list of linked accounts
+     */
+    public List<Account> linkBankAccounts(OauthBankAuthorization authorization) {
+        return async.linkBankAccounts(authorization)
                 .map(new Function<List<AccountAsync>, List<Account>>() {
                     public List<Account> apply(List<AccountAsync> asyncList) {
                         List<Account> accounts = new LinkedList<>();
