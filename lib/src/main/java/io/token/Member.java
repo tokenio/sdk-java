@@ -404,7 +404,7 @@ public class Member {
                             public boolean test(URL url) {
                                 if (url
                                         .toExternalForm()
-                                        .matches(".*#.*token=.+")) {
+                                        .matches(".*token.io.*#.*token=.+")) {
                                     return true;
                                 }
                                 browser.goTo(url);
@@ -426,7 +426,8 @@ public class Member {
                                         browser.close();
                                     }
                                 });
-                browser.goTo(new URL(bankInfo.getBankLinkingUri()));
+                String url = bankInfo.getBankLinkingUri() + "redirect_uri=https%3A%2F%2Ftoken.io";
+                browser.goTo(new URL(url));
             }
         }).toObservable();
     }
