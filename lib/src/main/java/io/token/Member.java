@@ -428,10 +428,9 @@ public class Member {
     }
 
     /**
-     * Deprecated. If the bank supports OAuth account linking, use linkBankAccounts.
-     *
      * Links a funding bank account to Token and returns it to the caller.
      *
+     * @deprecated If the bank supports OAuth account linking, use linkBankAccounts
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
