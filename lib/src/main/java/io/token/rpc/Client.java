@@ -466,6 +466,8 @@ public final class Client {
     }
 
     /**
+     * Deprecated. If the bank supports OAuth account linking, use linkBankAccounts.
+     *
      * Links a funding bank account to Token.
      *
      * @param authorization an authorization to accounts, from the bank

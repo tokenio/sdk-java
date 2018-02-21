@@ -23,24 +23,19 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
-import static io.token.util.Util.getBankAuthorization;
-import static io.token.util.Util.parseAccessToken;
+import static io.token.util.Util.parseOauthAccessToken;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
-import io.reactivex.schedulers.Schedulers;
 import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
-import io.token.proto.ProtoJson;
-import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -389,7 +384,7 @@ public class Member {
      *
      * @param bankInfo the bank info
      * @param browserFactory the browser factory
-     * @return access token
+     * @return oauth access token
      */
     public Observable<String> initiateAccountLinking(
             final BankInfo bankInfo,
@@ -404,7 +399,7 @@ public class Member {
                             public boolean test(URL url) {
                                 if (url
                                         .toExternalForm()
-                                        .matches(".*token.io.*#.*token=.+")) {
+                                        .matches("https://token.io/.*#.*token=.+")) {
                                     return true;
                                 }
                                 browser.goTo(url);
@@ -415,7 +410,7 @@ public class Member {
                                 new Consumer<URL>() {
                                     @Override
                                     public void accept(URL url) {
-                                        emitter.onSuccess(parseAccessToken(url.toExternalForm()));
+                                        emitter.onSuccess(parseOauthAccessToken(url.toExternalForm()));
                                         browser.close();
                                     }
                                 },
@@ -433,6 +428,8 @@ public class Member {
     }
 
     /**
+     * Deprecated. If the bank supports OAuth account linking, use linkBankAccounts.
+     *
      * Links a funding bank account to Token and returns it to the caller.
      *
      * @param authorization an authorization to accounts, from the bank

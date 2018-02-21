@@ -316,9 +316,9 @@ public abstract class Util {
      * Retrieve the access token from the URL fragment, given the full URL.
      *
      * @param fullUrl full url
-     * @return access token, or null if not found
+     * @return oauth access token, or null if not found
      */
-    public static @Nullable String parseAccessToken(String fullUrl) {
+    public static @Nullable String parseOauthAccessToken(String fullUrl) {
         String[] urlParts = fullUrl.split("#|&");
         for (int i = urlParts.length - 1; i >= 0; i--) {
             if (urlParts[i].contains("token=")) {
