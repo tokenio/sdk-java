@@ -35,6 +35,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
+import io.token.exceptions.AuthorizationPayloadRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
@@ -387,11 +388,14 @@ public class Member {
      * @param bankInfo the bank info
      * @param browserFactory the browser factory
      * @return list of linked accounts
+     * @throws AuthorizationPayloadRequiredException if bank authorization payload
+     *                                               is required to link accounts
      */
     public Observable<List<Account>> linkAccounts(
             final String bankId,
             final BankInfo bankInfo,
-            final BrowserFactory browserFactory) {
+            final BrowserFactory browserFactory)
+            throws AuthorizationPayloadRequiredException {
         return Single.create(new SingleOnSubscribe<List<Account>>() {
             @Override
             public void subscribe(final SingleEmitter<List<Account>> emitter) throws Exception {
@@ -400,21 +404,12 @@ public class Member {
                         .filter(new Predicate<URL>() {
                             @Override
                             public boolean test(URL url) {
-                                System.out.println("<<<<<<<< URL: " + url);
-                                System.out.println("<<<<<<<< MATCH? " + url
-                                        .toExternalForm()
-                                        .matches(".*token.io.*#.*access_token=.+"));
                                 if (url
                                         .toExternalForm()
                                         .matches(".*token.io.*#.*access_token=.+")) {
                                     return true;
                                 }
-                                try {
-                                    browser.goTo(new URL(url.toExternalForm()
-                                            .replace("localhost", "192.168.1.188")));
-                                } catch (MalformedURLException e) {
-                                    e.printStackTrace();
-                                }
+                                browser.goTo(url);
                                 return false;
                             }
                         })
@@ -452,9 +447,7 @@ public class Member {
                                         browser.close();
                                     }
                                 });
-                String url = bankInfo.getBankLinkingUri()
-                        .replace("localhost", "192.168.1.188")
-                        + "&redirect_uri=https%3A%2F%2Ftoken.io";
+                String url = bankInfo.getBankLinkingUri() + "&redirect_uri=https%3A%2F%2Ftoken.io";
                 browser.goTo(new URL(url));
             }
         }).toObservable();
@@ -467,26 +460,6 @@ public class Member {
      * @return list of linked accounts
      */
     public List<Account> linkAccounts(BankAuthorization authorization) {
-        return async.linkAccounts(authorization)
-                .map(new Function<List<AccountAsync>, List<Account>>() {
-                    public List<Account> apply(List<AccountAsync> asyncList) {
-                        List<Account> accounts = new LinkedList<>();
-                        for (AccountAsync async : asyncList) {
-                            accounts.add(async.sync());
-                        }
-                        return accounts;
-                    }
-                })
-                .blockingSingle();
-    }
-
-    /**
-     * Links funding bank accounts to Token and returns them to the caller.
-     *
-     * @param authorization an authorization to accounts, from the bank
-     * @return list of linked accounts
-     */
-    public List<Account> linkAccountsOauth(OauthBankAuthorization authorization) {
         return async.linkAccounts(authorization)
                 .map(new Function<List<AccountAsync>, List<Account>>() {
                     public List<Account> apply(List<AccountAsync> asyncList) {

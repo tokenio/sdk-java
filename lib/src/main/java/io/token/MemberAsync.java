@@ -34,6 +34,7 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
+import io.token.exceptions.AuthorizationPayloadRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
@@ -495,18 +496,7 @@ public class MemberAsync {
      */
     public Observable<List<AccountAsync>> linkAccounts(
             BankAuthorization authorization) {
-        return client
-                .linkAccounts(authorization)
-                .map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
-                    @Override
-                    public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
-                        List<AccountAsync> result = new LinkedList<>();
-                        for (AccountProtos.Account account : accounts) {
-                            result.add(new AccountAsync(MemberAsync.this, account, client));
-                        }
-                        return result;
-                    }
-                });
+        return toAccountAsyncList(client.linkAccounts(authorization));
     }
 
     /**
@@ -514,20 +504,12 @@ public class MemberAsync {
      *
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
+     * @throws AuthorizationPayloadRequiredException if bank authorization payload
+     *                                               is required to link accounts
      */
-    public Observable<List<AccountAsync>> linkAccounts(OauthBankAuthorization authorization) {
-        return client
-                .linkAccounts(authorization)
-                .map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
-                    @Override
-                    public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
-                        List<AccountAsync> result = new LinkedList<>();
-                        for (AccountProtos.Account account : accounts) {
-                            result.add(new AccountAsync(MemberAsync.this, account, client));
-                        }
-                        return result;
-                    }
-                });
+    public Observable<List<AccountAsync>> linkAccounts(OauthBankAuthorization authorization)
+            throws AuthorizationPayloadRequiredException {
+        return toAccountAsyncList(client.linkAccounts(authorization));
     }
 
 
@@ -1201,5 +1183,19 @@ public class MemberAsync {
                                 });
                     }
                 });
+    }
+
+    private Observable<List<AccountAsync>> toAccountAsyncList(
+            Observable<List<AccountProtos.Account>> accounts) {
+        return accounts.map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
+            @Override
+            public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
+                List<AccountAsync> result = new LinkedList<>();
+                for (AccountProtos.Account account : accounts) {
+                    result.add(new AccountAsync(MemberAsync.this, account, client));
+                }
+                return result;
+            }
+        });
     }
 }
