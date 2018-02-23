@@ -35,7 +35,6 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
 import io.token.proto.PagedList;
-import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
@@ -494,7 +493,6 @@ public class MemberAsync {
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
-    @Deprecated
     public Observable<List<AccountAsync>> linkAccounts(
             BankAuthorization authorization) {
         return client
@@ -517,9 +515,9 @@ public class MemberAsync {
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
-    public Observable<List<AccountAsync>> linkBankAccounts(OauthBankAuthorization authorization) {
+    public Observable<List<AccountAsync>> linkAccounts(OauthBankAuthorization authorization) {
         return client
-                .linkBankAccounts(authorization)
+                .linkAccounts(authorization)
                 .map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
                     @Override
                     public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {

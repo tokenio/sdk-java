@@ -42,7 +42,6 @@ import io.token.TransferTokenException;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.StepUpRequiredException;
 import io.token.proto.PagedList;
-import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
@@ -147,10 +146,10 @@ import io.token.proto.gateway.Gateway.GetTransferRequest;
 import io.token.proto.gateway.Gateway.GetTransferResponse;
 import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetTransfersResponse;
+import io.token.proto.gateway.Gateway.LinkAccountsOauthRequest;
+import io.token.proto.gateway.Gateway.LinkAccountsOauthResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsResponse;
-import io.token.proto.gateway.Gateway.LinkBankAccountsRequest;
-import io.token.proto.gateway.Gateway.LinkBankAccountsResponse;
 import io.token.proto.gateway.Gateway.Page;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
@@ -177,12 +176,10 @@ import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 import io.token.util.Util;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 import javax.annotation.Nullable;
 
 
@@ -468,11 +465,10 @@ public final class Client {
     /**
      * Links a funding bank account to Token.
      *
-     * @deprecated if the bank supports OAuth account linking, use linkBankAccounts
+     *
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
-    @Deprecated
     public Observable<List<Account>> linkAccounts(
             BankAuthorization authorization) {
         return toObservable(gateway
@@ -493,14 +489,14 @@ public final class Client {
      * @param authorization an authorization to accounts, from the bank.
      * @return list of linked accounts
      */
-    public Observable<List<Account>> linkBankAccounts(OauthBankAuthorization authorization) {
+    public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization) {
         return toObservable(gateway
-                .linkBankAccounts(LinkBankAccountsRequest
+                .linkAccountsOauth(LinkAccountsOauthRequest
                         .newBuilder()
                         .setAuthorization(authorization)
                         .build()))
-                .map(new Function<LinkBankAccountsResponse, List<Account>>() {
-                    public List<Account> apply(LinkBankAccountsResponse response) {
+                .map(new Function<LinkAccountsOauthResponse, List<Account>>() {
+                    public List<Account> apply(LinkAccountsOauthResponse response) {
                         return response.getAccountsList();
                     }
                 });

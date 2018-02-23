@@ -65,6 +65,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.security.keystore.SecretKeyPair;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -380,37 +381,67 @@ public class Member {
     }
 
     /**
-     * Initiates account linking using given bank info and browser factory.
+     * Links accounts given bank info and browser factory.
      *
+     * @param bankId the bank id
      * @param bankInfo the bank info
      * @param browserFactory the browser factory
-     * @return oauth access token
+     * @return list of linked accounts
      */
-    public Observable<String> initiateAccountLinking(
+    public Observable<List<Account>> linkAccounts(
+            final String bankId,
             final BankInfo bankInfo,
             final BrowserFactory browserFactory) {
-        return Single.create(new SingleOnSubscribe<String>() {
+        return Single.create(new SingleOnSubscribe<List<Account>>() {
             @Override
-            public void subscribe(final SingleEmitter<String> emitter) throws Exception {
+            public void subscribe(final SingleEmitter<List<Account>> emitter) throws Exception {
                 final Browser browser = browserFactory.create();
                 browser.url()
                         .filter(new Predicate<URL>() {
                             @Override
                             public boolean test(URL url) {
+                                System.out.println("<<<<<<<< URL: " + url);
+                                System.out.println("<<<<<<<< MATCH? " + url
+                                        .toExternalForm()
+                                        .matches(".*token.io.*#.*access_token=.+"));
                                 if (url
                                         .toExternalForm()
-                                        .matches("https://token.io/.*#.*token=.+")) {
+                                        .matches(".*token.io.*#.*access_token=.+")) {
                                     return true;
                                 }
-                                browser.goTo(url);
+                                try {
+                                    browser.goTo(new URL(url.toExternalForm()
+                                            .replace("localhost", "192.168.1.188")));
+                                } catch (MalformedURLException e) {
+                                    e.printStackTrace();
+                                }
                                 return false;
                             }
                         })
+                        .flatMap(new Function<URL, Observable<List<Account>>>() {
+                            @Override
+                            public Observable<List<Account>> apply(URL url) {
+                                String accessToken = parseOauthAccessToken(url.toExternalForm());
+                                return async.linkAccounts(OauthBankAuthorization.newBuilder()
+                                        .setBankId(bankId)
+                                        .setAccessToken(accessToken)
+                                        .build())
+                                .map(new Function<List<AccountAsync>, List<Account>>() {
+                                    public List<Account> apply(List<AccountAsync> asyncList) {
+                                        List<Account> accounts = new LinkedList<>();
+                                        for (AccountAsync async : asyncList) {
+                                            accounts.add(async.sync());
+                                        }
+                                        return accounts;
+                                    }
+                                });
+                            }
+                        })
                         .subscribe(
-                                new Consumer<URL>() {
+                                new Consumer<List<Account>>() {
                                     @Override
-                                    public void accept(URL url) {
-                                        emitter.onSuccess(parseOauthAccessToken(url.toExternalForm()));
+                                    public void accept(List<Account> accounts) {
+                                        emitter.onSuccess(accounts);
                                         browser.close();
                                     }
                                 },
@@ -421,7 +452,9 @@ public class Member {
                                         browser.close();
                                     }
                                 });
-                String url = bankInfo.getBankLinkingUri() + "&redirect_uri=https%3A%2F%2Ftoken.io";
+                String url = bankInfo.getBankLinkingUri()
+                        .replace("localhost", "192.168.1.188")
+                        + "&redirect_uri=https%3A%2F%2Ftoken.io";
                 browser.goTo(new URL(url));
             }
         }).toObservable();
@@ -430,11 +463,9 @@ public class Member {
     /**
      * Links a funding bank account to Token and returns it to the caller.
      *
-     * @deprecated If the bank supports OAuth account linking, use linkBankAccounts
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
-    @Deprecated
     public List<Account> linkAccounts(BankAuthorization authorization) {
         return async.linkAccounts(authorization)
                 .map(new Function<List<AccountAsync>, List<Account>>() {
@@ -455,8 +486,8 @@ public class Member {
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
-    public List<Account> linkBankAccounts(OauthBankAuthorization authorization) {
-        return async.linkBankAccounts(authorization)
+    public List<Account> linkAccountsOauth(OauthBankAuthorization authorization) {
+        return async.linkAccounts(authorization)
                 .map(new Function<List<AccountAsync>, List<Account>>() {
                     public List<Account> apply(List<AccountAsync> asyncList) {
                         List<Account> accounts = new LinkedList<>();

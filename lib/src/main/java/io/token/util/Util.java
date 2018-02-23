@@ -321,8 +321,8 @@ public abstract class Util {
     public static @Nullable String parseOauthAccessToken(String fullUrl) {
         String[] urlParts = fullUrl.split("#|&");
         for (int i = urlParts.length - 1; i >= 0; i--) {
-            if (urlParts[i].contains("token=")) {
-                return urlParts[i].substring(6);
+            if (urlParts[i].contains("access_token=")) {
+                return urlParts[i].substring(13);
             }
         }
         return null;
