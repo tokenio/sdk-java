@@ -406,7 +406,7 @@ public class Member {
                             public boolean test(URL url) {
                                 if (url
                                         .toExternalForm()
-                                        .matches(".*token.io.*#.*access_token=.+")) {
+                                        .matches(".*token.io/.*#.*access_token=.+")) {
                                     return true;
                                 }
                                 browser.goTo(url);
