@@ -23,7 +23,7 @@
 package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
-import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED;
+import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -502,7 +502,7 @@ public final class Client {
                         .build()))
                 .map(new Function<LinkAccountsOauthResponse, List<Account>>() {
                     public List<Account> apply(LinkAccountsOauthResponse response) {
-                        if (response.getStatus() == FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED) {
+                        if (response.getStatus() == FAILURE_BANK_AUTHORIZATION_REQUIRED) {
                             throw new AuthorizationPayloadRequiredException();
                         }
                         return response.getAccountsList();
