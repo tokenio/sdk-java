@@ -23,7 +23,7 @@
 package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
-import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_PUSH_NOTIFICATION_FLOW;
+import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -44,7 +44,6 @@ import io.token.browser.BrowserFactory;
 import io.token.exceptions.AuthorizationPayloadRequiredException;
 import io.token.exceptions.StepUpRequiredException;
 import io.token.proto.PagedList;
-import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
@@ -503,7 +502,7 @@ public final class Client {
                         .build()))
                 .map(new Function<LinkAccountsOauthResponse, List<Account>>() {
                     public List<Account> apply(LinkAccountsOauthResponse response) {
-                        if (response.getStatus() == FAILURE_PUSH_NOTIFICATION_FLOW) {
+                        if (response.getStatus() == FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED) {
                             throw new AuthorizationPayloadRequiredException();
                         }
                         return response.getAccountsList();
