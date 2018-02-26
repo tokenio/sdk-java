@@ -35,7 +35,7 @@ import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
-import io.token.exceptions.AuthorizationPayloadRequiredException;
+import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
@@ -66,7 +66,6 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.security.keystore.SecretKeyPair;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -388,14 +387,14 @@ public class Member {
      * @param bankInfo the bank info
      * @param browserFactory the browser factory
      * @return list of linked accounts
-     * @throws AuthorizationPayloadRequiredException if bank authorization payload
+     * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                               is required to link accounts
      */
     public Observable<List<Account>> linkAccounts(
             final String bankId,
             final BankInfo bankInfo,
             final BrowserFactory browserFactory)
-            throws AuthorizationPayloadRequiredException {
+            throws BankAuthorizationRequiredException {
         return Single.create(new SingleOnSubscribe<List<Account>>() {
             @Override
             public void subscribe(final SingleEmitter<List<Account>> emitter) throws Exception {

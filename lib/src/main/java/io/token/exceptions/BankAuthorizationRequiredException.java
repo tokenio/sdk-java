@@ -22,8 +22,8 @@
 
 package io.token.exceptions;
 
-public class AuthorizationPayloadRequiredException extends RuntimeException {
-    public AuthorizationPayloadRequiredException() {
+public class BankAuthorizationRequiredException extends RuntimeException {
+    public BankAuthorizationRequiredException() {
         super("Must call linkAccounts with bank authorization payload.");
     }
 }

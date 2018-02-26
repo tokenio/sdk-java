@@ -34,7 +34,7 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
-import io.token.exceptions.AuthorizationPayloadRequiredException;
+import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
@@ -504,11 +504,11 @@ public class MemberAsync {
      *
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
-     * @throws AuthorizationPayloadRequiredException if bank authorization payload
+     * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                               is required to link accounts
      */
     public Observable<List<AccountAsync>> linkAccounts(OauthBankAuthorization authorization)
-            throws AuthorizationPayloadRequiredException {
+            throws BankAuthorizationRequiredException {
         return toAccountAsyncList(client.linkAccounts(authorization));
     }
 

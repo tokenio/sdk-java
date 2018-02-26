@@ -41,7 +41,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.functions.Function;
 import io.token.TransferTokenException;
 import io.token.browser.BrowserFactory;
-import io.token.exceptions.AuthorizationPayloadRequiredException;
+import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.exceptions.StepUpRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -490,11 +490,11 @@ public final class Client {
      *
      * @param authorization an authorization to accounts, from the bank.
      * @return list of linked accounts
-     * @throws AuthorizationPayloadRequiredException if bank authorization payload
+     * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                               is required to link accounts
      */
     public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
-            throws AuthorizationPayloadRequiredException {
+            throws BankAuthorizationRequiredException {
         return toObservable(gateway
                 .linkAccountsOauth(LinkAccountsOauthRequest
                         .newBuilder()
@@ -503,7 +503,7 @@ public final class Client {
                 .map(new Function<LinkAccountsOauthResponse, List<Account>>() {
                     public List<Account> apply(LinkAccountsOauthResponse response) {
                         if (response.getStatus() == FAILURE_BANK_AUTHORIZATION_REQUIRED) {
-                            throw new AuthorizationPayloadRequiredException();
+                            throw new BankAuthorizationRequiredException();
                         }
                         return response.getAccountsList();
                     }
