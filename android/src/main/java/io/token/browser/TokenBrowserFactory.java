@@ -81,25 +81,6 @@ public class TokenBrowserFactory implements BrowserFactory {
         }
 
         @Override
-        public Observable<String> fetchData(final URL url) {
-            return Observable.fromCallable(new Callable<String>() {
-                @Override
-                public String call() throws Exception {
-                    InputStream is = url.openConnection().getInputStream();
-                    BufferedReader reader = new BufferedReader(new InputStreamReader(is));
-                    StringBuilder builder = new StringBuilder();
-                    String line;
-
-                    while ((line = reader.readLine()) != null) {
-                        builder.append(line);
-                    }
-
-                    return builder.toString();
-                }
-            });
-        }
-
-        @Override
         public void close() {
             Bundle data = new Bundle(1);
             data.putString(MSG_KEY_SID, sessionId);

@@ -29,8 +29,6 @@ import java.net.URL;
 
 /**
  * A browser abstraction used by the SDK to interact with web content.
- * The user may call goTo(url) to display the url in the browser, or
- * fetchData(url) to fetch data from the URL without displaying the page.
  *
  * <p>Pages will only be displayed in the browser as a result of a call to goTo(url).
  * Hyperlinks and redirects will cause the url() Observable to be notified
@@ -43,14 +41,6 @@ public interface Browser extends Closeable {
      * @param url the url to be loaded
      */
     void goTo(URL url);
-
-    /**
-     * Fetch data from URL. Does not load the page.
-     *
-     * @param url the url to fetch data from
-     * @return data observable
-     */
-    Observable<String> fetchData(URL url);
 
     /**
      * Returns a url Observable which will notify the user of hyperlinks and redirects.

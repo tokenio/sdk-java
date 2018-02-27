@@ -357,7 +357,6 @@ public class Member {
         async.unsubscribeFromNotifications(subscriberId).blockingAwait();
     }
 
-
     /**
      * Gets a list of the member's notifications.
      *
