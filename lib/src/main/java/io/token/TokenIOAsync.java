@@ -40,6 +40,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
@@ -230,9 +231,9 @@ public class TokenIOAsync implements Closeable {
     /**
      * Return a Member set up to use some Token member's keys (assuming we have them).
      *
-     * @deprecated login's name changed to getMember
      * @param memberId member id
      * @return member
+     * @deprecated login's name changed to getMember
      */
     @Deprecated
     public Observable<MemberAsync> login(String memberId) {
@@ -327,6 +328,7 @@ public class TokenIOAsync implements Closeable {
 
     /**
      * Create a recovery authorization for some agent to sign.
+     *
      * @param memberId Id of member we claim to be.
      * @param privilegedKey new privileged key we want to use.
      * @return authorization structure for agent to sign
@@ -407,5 +409,16 @@ public class TokenIOAsync implements Closeable {
                         return new MemberAsync(member, client);
                     }
                 });
+    }
+
+
+    /**
+     * Returns a list of token enabled banks.
+     *
+     * @return a list of banks
+     */
+    public Observable<List<Bank>> getBanks() {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getBanks();
     }
 }

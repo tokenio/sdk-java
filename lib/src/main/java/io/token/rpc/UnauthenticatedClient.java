@@ -33,6 +33,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -48,12 +49,15 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
 import io.token.proto.gateway.Gateway.CompleteRecoveryResponse;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
+import io.token.proto.gateway.Gateway.GetBanksRequest;
+import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
@@ -478,6 +482,22 @@ public final class UnauthenticatedClient {
                 .map(new Function<CompleteRecoveryResponse, MemberRecoveryOperation>() {
                     public MemberRecoveryOperation apply(CompleteRecoveryResponse response) {
                         return response.getRecoveryEntry();
+                    }
+                });
+    }
+
+
+    /**
+     * Returns a list of all token enabled banks.
+     *
+     * @return a list of banks
+     */
+    public Observable<List<Bank>> getBanks() {
+        return toObservable(gateway
+                .getBanks(GetBanksRequest.getDefaultInstance()))
+                .map(new Function<GetBanksResponse, List<Bank>>() {
+                    public List<Bank> apply(GetBanksResponse response) {
+                        return response.getBanksList();
                     }
                 });
     }

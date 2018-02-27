@@ -1062,15 +1062,6 @@ public class MemberAsync {
     }
 
     /**
-     * Returns a list of all token enabled banks.
-     *
-     * @return a list of banks
-     */
-    public Observable<List<Bank>> getBanks() {
-        return client.getBanks();
-    }
-
-    /**
      * Returns linking information for the specified bank id.
      *
      * @param bankId the bank id

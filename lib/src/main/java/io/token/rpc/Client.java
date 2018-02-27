@@ -1156,23 +1156,6 @@ public final class Client {
     }
 
     /**
-     * Returns a list of all token enabled banks.
-     *
-     * @return a list of banks
-     */
-    public Observable<List<Bank>> getBanks() {
-        return toObservable(gateway
-                .getBanks(GetBanksRequest
-                        .newBuilder()
-                        .build()))
-                .map(new Function<GetBanksResponse, List<Bank>>() {
-                    public List<Bank> apply(GetBanksResponse response) {
-                        return response.getBanksList();
-                    }
-                });
-    }
-
-    /**
      * Returns linking information for the specified bank id.
      *
      * @param bankId the bank id
