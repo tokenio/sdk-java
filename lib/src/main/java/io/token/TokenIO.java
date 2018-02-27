@@ -31,6 +31,7 @@ import io.reactivex.functions.Function;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -195,9 +196,9 @@ public class TokenIO implements Closeable {
     /**
      * Return a MemberAsync set up to use some Token member's keys (assuming we have them).
      *
-     * @deprecated login's name changed to getMember
      * @param memberId member id
      * @return member
+     * @deprecated login's name changed to getMember
      */
     @Deprecated
     public Member login(String memberId) {
@@ -283,6 +284,7 @@ public class TokenIO implements Closeable {
 
     /**
      * Create a recovery authorization for some agent to sign.
+     *
      * @param memberId Id of member we claim to be.
      * @param privilegedKey new privileged key we want to use.
      * @return authorization structure for agent to sign
@@ -340,6 +342,15 @@ public class TokenIO implements Closeable {
         return async.completeRecoveryWithDefaultRule(memberId, verificationId, code)
                 .map(new MemberFunction())
                 .blockingSingle();
+    }
+
+    /**
+     * Returns a list of all available banks for linking.
+     *
+     * @return a list of banks
+     */
+    public List<Bank> getBanks() {
+        return async.getBanks().blockingSingle();
     }
 
     /**

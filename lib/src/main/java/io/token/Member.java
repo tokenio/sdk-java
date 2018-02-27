@@ -869,15 +869,6 @@ public class Member {
     }
 
     /**
-     * Returns a list of all available banks for linking.
-     *
-     * @return a list of banks
-     */
-    public List<Bank> getBanks() {
-        return async.getBanks().blockingSingle();
-    }
-
-    /**
      * Returns linking information for the specified bank id.
      *
      * @param bankId the bank id

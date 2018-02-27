@@ -40,6 +40,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.bank.BankProtos;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
@@ -407,5 +408,16 @@ public class TokenIOAsync implements Closeable {
                         return new MemberAsync(member, client);
                     }
                 });
+    }
+
+
+    /**
+     * Returns a list of all token enabled banks.
+     *
+     * @return a list of banks
+     */
+    public Observable<List<BankProtos.Bank>> getBanks() {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getBanks();
     }
 }
