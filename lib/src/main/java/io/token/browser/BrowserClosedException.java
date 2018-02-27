@@ -20,10 +20,16 @@
  * THE SOFTWARE.
  */
 
-package io.token.exceptions;
+package io.token.browser;
 
-public class StepUpRequiredException extends RuntimeException {
-    public StepUpRequiredException(String message) {
-        super(message);
+/**
+ * An exception indicating that a {@link Browser} session has been closed.
+ */
+public class BrowserClosedException extends RuntimeException {
+    /**
+     * Constructs a new browser closed exception.
+     */
+    public BrowserClosedException() {
+        super();
     }
 }

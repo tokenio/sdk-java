@@ -22,8 +22,8 @@
 
 package io.token.exceptions;
 
-public class StepUpRequiredException extends RuntimeException {
-    public StepUpRequiredException(String message) {
-        super(message);
+public class BankAuthorizationRequiredException extends RuntimeException {
+    public BankAuthorizationRequiredException() {
+        super("Must call linkAccounts with bank authorization payload.");
     }
 }

@@ -20,10 +20,36 @@
  * THE SOFTWARE.
  */
 
-package io.token.exceptions;
+package io.token.browser;
 
-public class StepUpRequiredException extends RuntimeException {
-    public StepUpRequiredException(String message) {
-        super(message);
-    }
+import io.reactivex.Observable;
+
+import java.io.Closeable;
+import java.net.URL;
+
+/**
+ * A browser abstraction used by the SDK to interact with web content.
+ *
+ * <p>Pages will only be displayed in the browser as a result of a call to goTo(url).
+ * Hyperlinks and redirects will cause the url() Observable to be notified
+ * but will not load the page unless goTo(url) is explicitly called by an Observer.
+ */
+public interface Browser extends Closeable {
+    /**
+     * Instructs the browser to load the given url.
+     *
+     * @param url the url to be loaded
+     */
+    void goTo(URL url);
+
+    /**
+     * Returns a url Observable which will notify the user of hyperlinks and redirects.
+     * The new page will not be loaded unless the user calls goTo on that URL.
+     *
+     * @return a url observable
+     */
+    Observable<URL> url();
+
+    @Override
+    void close();
 }

@@ -42,6 +42,7 @@ import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAlia
 import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.util.concurrent.ExecutionException;
+import javax.annotation.Nullable;
 
 
 /**
@@ -77,6 +78,7 @@ public abstract class Util {
 
     /**
      * Get alias with normalized value. E.g. "Captain@gmail.com" to "captain@gmail.com".
+     *
      * @param rawAlias { EMAIL, "Captain@gmail.com" }
      * @return alias with possibly-different value field
      */
@@ -192,5 +194,21 @@ public abstract class Util {
                     }
                 })
                 .toObservable();
+    }
+
+    /**
+     * Retrieve the access token from the URL fragment, given the full URL.
+     *
+     * @param fullUrl full url
+     * @return oauth access token, or null if not found
+     */
+    public static @Nullable String parseOauthAccessToken(String fullUrl) {
+        String[] urlParts = fullUrl.split("#|&");
+        for (int i = urlParts.length - 1; i >= 0; i--) {
+            if (urlParts[i].contains("access_token=")) {
+                return urlParts[i].substring(13);
+            }
+        }
+        return null;
     }
 }

@@ -33,8 +33,10 @@ import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -493,19 +495,22 @@ public class MemberAsync {
      */
     public Observable<List<AccountAsync>> linkAccounts(
             BankAuthorization authorization) {
-        return client
-                .linkAccounts(authorization)
-                .map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
-                    @Override
-                    public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
-                        List<AccountAsync> result = new LinkedList<>();
-                        for (AccountProtos.Account account : accounts) {
-                            result.add(new AccountAsync(MemberAsync.this, account, client));
-                        }
-                        return result;
-                    }
-                });
+        return toAccountAsyncList(client.linkAccounts(authorization));
     }
+
+    /**
+     * Links funding bank accounts to Token and returns them to the caller.
+     *
+     * @param authorization an authorization to accounts, from the bank
+     * @return list of linked accounts
+     * @throws BankAuthorizationRequiredException if bank authorization payload
+     *                                               is required to link accounts
+     */
+    public Observable<List<AccountAsync>> linkAccounts(OauthBankAuthorization authorization)
+            throws BankAuthorizationRequiredException {
+        return toAccountAsyncList(client.linkAccounts(authorization));
+    }
+
 
     /**
      * Unlinks bank accounts previously linked via linkAccounts call.
@@ -783,7 +788,7 @@ public class MemberAsync {
     }
 
     /**
-     * Looks up transfer tokens owned by the member.
+     * Looks up transfer tokens owned by the member.git st
      *
      * @param offset optional offset to start at
      * @param limit max number of records to return
@@ -1153,5 +1158,19 @@ public class MemberAsync {
                                 });
                     }
                 });
+    }
+
+    private Observable<List<AccountAsync>> toAccountAsyncList(
+            Observable<List<AccountProtos.Account>> accounts) {
+        return accounts.map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
+            @Override
+            public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
+                List<AccountAsync> result = new LinkedList<>();
+                for (AccountProtos.Account account : accounts) {
+                    result.add(new AccountAsync(MemberAsync.this, account, client));
+                }
+                return result;
+            }
+        });
     }
 }
