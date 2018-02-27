@@ -413,7 +413,7 @@ public class TokenIOAsync implements Closeable {
 
 
     /**
-     * Returns a list of all token enabled banks.
+     * Returns a list of token enabled banks.
      *
      * @return a list of banks
      */

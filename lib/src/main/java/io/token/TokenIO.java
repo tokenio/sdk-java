@@ -345,7 +345,7 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Returns a list of all available banks for linking.
+     * Returns a list of available banks for linking.
      *
      * @return a list of banks
      */
