@@ -1122,6 +1122,16 @@ public class MemberAsync {
         return client.triggerTransactionStepUpNotification(accountId);
     }
 
+    /**
+     * Apply SCA for the given list of account IDs.
+     *
+     * @param accountIds list of account ids
+     * @return completable
+     */
+    public Completable applySca(List<String> accountIds) {
+        return client.applySca(accountIds);
+    }
+
     @Override
     public int hashCode() {
         return member.getId().hashCode();

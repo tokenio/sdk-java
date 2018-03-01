@@ -1065,6 +1065,15 @@ public class Member {
         return async.triggerTransactionStepUpNotification(accountId).blockingSingle();
     }
 
+    /**
+     * Apply SCA for the given list of account IDs.
+     *
+     * @param accountIds list of account ids
+     */
+    public void applySca(List<String> accountIds) {
+        async.applySca(accountIds).blockingAwait();
+    }
+
     @Override
     public int hashCode() {
         return async.hashCode();
