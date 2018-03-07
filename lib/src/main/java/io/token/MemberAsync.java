@@ -40,7 +40,6 @@ import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
@@ -744,6 +743,16 @@ public class MemberAsync {
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
         return client.getProfilePicture(memberId, size);
+    }
+
+    /**
+     * Stores an token request. This can be retrieved later by the token request id.
+     *
+     * @param tokenRequest token request
+     * @return token request id
+     */
+    public Observable<String> storeTokenRequest(TokenRequest tokenRequest) {
+        return client.storeTokenRequest(tokenRequest.getTokenPayload(), tokenRequest.getOptions());
     }
 
     /**

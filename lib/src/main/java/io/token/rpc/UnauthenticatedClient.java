@@ -31,6 +31,7 @@ import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.TokenRequest;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -49,7 +50,6 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -66,6 +66,8 @@ import io.token.proto.gateway.Gateway.RequestTransferRequest;
 import io.token.proto.gateway.Gateway.RequestTransferResponse;
 import io.token.proto.gateway.Gateway.ResolveAliasRequest;
 import io.token.proto.gateway.Gateway.ResolveAliasResponse;
+import io.token.proto.gateway.Gateway.RetrieveTokenRequestRequest;
+import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -174,6 +176,29 @@ public final class UnauthenticatedClient {
                 .map(new Function<UpdateMemberResponse, Member>() {
                     public Member apply(UpdateMemberResponse response) {
                         return response.getMember();
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a transfer token request.
+     *
+     * @param tokenRequestId token request id
+     *
+     * @return TokenRequest representing the request that was stored with the request id
+     */
+    public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
+        return toObservable(gateway.retrieveTokenRequest(RetrieveTokenRequestRequest.newBuilder()
+                .setRequestId(tokenRequestId)
+                .build()))
+                .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
+                    @Override
+                    public TokenRequest apply(
+                            RetrieveTokenRequestResponse retrieveTokenRequestResponse)
+                            throws Exception {
+                        return TokenRequest.create(
+                                retrieveTokenRequestResponse.getPayload(),
+                                retrieveTokenRequestResponse.getOptionsMap());
                     }
                 });
     }

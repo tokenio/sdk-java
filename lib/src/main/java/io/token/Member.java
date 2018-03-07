@@ -40,7 +40,6 @@ import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
@@ -66,7 +65,6 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.security.keystore.SecretKeyPair;
 
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -639,6 +637,17 @@ public class Member {
      */
     public Blob getProfilePicture(String memberId, ProfilePictureSize size) {
         return async.getProfilePicture(memberId, size).blockingSingle();
+    }
+
+    /**
+     * Stores a token request to be retrieved later (possibly by another member).
+     *
+     * @param tokenRequest token request
+     *
+     * @return ID to reference the stored token request
+     */
+    public String storeTokenRequest(TokenRequest tokenRequest) {
+        return async.storeTokenRequest(tokenRequest).blockingSingle();
     }
 
     /**
