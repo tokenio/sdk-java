@@ -194,6 +194,16 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Returns a token request for a specified token request id.
+     *
+     * @param requestId request id
+     * @return token request
+     */
+    public TokenRequest retrieveTokenRequest(String requestId) {
+        return async.retrieveTokenRequest(requestId).blockingSingle();
+    }
+
+    /**
      * Return a MemberAsync set up to use some Token member's keys (assuming we have them).
      *
      * @param memberId member id

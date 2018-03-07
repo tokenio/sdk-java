@@ -24,7 +24,6 @@ package io.token;
 
 import static io.token.util.Util.generateNonce;
 
-import com.google.common.base.Strings;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.AccessBody;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
@@ -63,6 +62,16 @@ public final class AccessTokenBuilder {
      */
     public static AccessTokenBuilder create(Alias redeemerAlias) {
         return new AccessTokenBuilder().to(redeemerAlias);
+    }
+
+    /**
+     * Creates an instance of {@link AccessTokenBuilder}.
+     *
+     * @param redeemerMemberId redeemer member id
+     * @return instance of {@link AccessTokenBuilder}
+     */
+    public static AccessTokenBuilder create(String redeemerMemberId) {
+        return new AccessTokenBuilder().to(redeemerMemberId);
     }
 
     /**
@@ -219,15 +228,23 @@ public final class AccessTokenBuilder {
     }
 
     /**
+     * Sets "to" field on the payload.
+     *
+     * @param redeemerMemberId redeemer member id
+     * @return {@link AccessTokenBuilder}
+     */
+    AccessTokenBuilder to(String redeemerMemberId) {
+        payload.setTo(TokenMember.newBuilder()
+                .setId(redeemerMemberId));
+        return this;
+    }
+
+    /**
      * Builds the {@link TokenPayload} with all specified settings.
      *
      * @return {@link AccessTokenBuilder}
      */
     TokenPayload build() {
-        if (payload.getFrom() == null || Strings.isNullOrEmpty(payload.getFrom().getId())) {
-            throw new IllegalArgumentException("Missing 'payload.from' value");
-        }
-
         if (payload.getAccess().getResourcesList().isEmpty()) {
             throw new IllegalArgumentException("At least one access resource must be set");
         }

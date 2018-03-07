@@ -1,0 +1,34 @@
+package io.token.sample;
+
+import static io.token.sample.StoreAndRetrieveTokenRequestSample.storeAccessTokenRequest;
+import static io.token.sample.StoreAndRetrieveTokenRequestSample.storeTransferTokenRequest;
+import static io.token.sample.TestUtil.createClient;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+
+import io.token.Member;
+import io.token.TokenIO;
+import io.token.TokenRequest;
+
+import org.junit.Test;
+
+public class StoreAndRetrieveTokenRequestSampleTest {
+    @Test
+    public void storeAndRetrieveTransferTokenTest() {
+        try (TokenIO tokenIO = createClient()) {
+            Member payee = tokenIO.createMember();
+            String requestId = storeTransferTokenRequest(payee);
+            TokenRequest request = tokenIO.retrieveTokenRequest(requestId);
+            assertThat(request).isNotNull();
+        }
+    }
+
+    @Test
+    public void storeAndRetrieveAccessTokenTest() {
+        try (TokenIO tokenIO = createClient()) {
+            Member payee = tokenIO.createMember();
+            String requestId = storeAccessTokenRequest(payee);
+            TokenRequest request = tokenIO.retrieveTokenRequest(requestId);
+            assertThat(request).isNotNull();
+        }
+    }
+}

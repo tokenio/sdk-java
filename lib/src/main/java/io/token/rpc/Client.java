@@ -45,7 +45,6 @@ import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
@@ -109,8 +108,6 @@ import io.token.proto.gateway.Gateway.GetBalancesRequest;
 import io.token.proto.gateway.Gateway.GetBalancesResponse;
 import io.token.proto.gateway.Gateway.GetBankInfoRequest;
 import io.token.proto.gateway.Gateway.GetBankInfoResponse;
-import io.token.proto.gateway.Gateway.GetBanksRequest;
-import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAccountResponse;
@@ -159,6 +156,8 @@ import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
+import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
+import io.token.proto.gateway.Gateway.StoreTokenRequestResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
@@ -553,6 +552,30 @@ public final class Client {
                 .map(new Function<GetAccountsResponse, List<Account>>() {
                     public List<Account> apply(GetAccountsResponse response) {
                         return response.getAccountsList();
+                    }
+                });
+    }
+
+    /**
+     * Stores a transfer token request.
+     *
+     * @param payload transfer token payload
+     * @param options map of options
+     *
+     * @return id to reference token request
+     */
+    public Observable<String> storeTokenRequest(
+            TokenPayload payload,
+            Map<String, String> options) {
+        return toObservable(gateway.storeTokenRequest(StoreTokenRequestRequest.newBuilder()
+                .setPayload(payload)
+                .putAllOptions(options)
+                .build()))
+                .map(new Function<StoreTokenRequestResponse, String>() {
+                    @Override
+                    public String apply(StoreTokenRequestResponse storeTokenRequestResponse)
+                            throws Exception {
+                        return storeTokenRequestResponse.getRequestId();
                     }
                 });
     }
