@@ -11,6 +11,9 @@ import io.token.TokenRequest;
 
 import org.junit.Test;
 
+/**
+ * Sample to show how to store and retrieve token requests.
+ */
 public class StoreAndRetrieveTokenRequestSampleTest {
     @Test
     public void storeAndRetrieveTransferTokenTest() {

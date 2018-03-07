@@ -38,6 +38,8 @@ public abstract class TokenRequest {
         private final String name;
 
         /**
+         * Name of enum.
+         *
          * @param name name
          */
         TokenRequestOptions(final String name) {
@@ -73,6 +75,13 @@ public abstract class TokenRequest {
         return TokenRequest.create(transferTokenBuilder.buildPayload(), options);
     }
 
+    /**
+     * Create token request.
+     *
+     * @param payload token payload
+     * @param options options map
+     * @return token request
+     */
     public static TokenRequest create(TokenPayload payload, Map<String, String> options) {
         if (options == null) {
             options = new HashMap<>();

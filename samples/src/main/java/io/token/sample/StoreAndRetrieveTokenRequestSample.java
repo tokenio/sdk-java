@@ -11,7 +11,7 @@ import io.token.TokenRequest;
 import io.token.TransferTokenBuilder;
 
 /**
- * Stores and retrieves a token request
+ * Stores and retrieves a token request.
  */
 public final class StoreAndRetrieveTokenRequestSample {
     /**
