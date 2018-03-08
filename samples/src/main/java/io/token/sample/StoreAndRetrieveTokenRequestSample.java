@@ -29,7 +29,7 @@ public final class StoreAndRetrieveTokenRequestSample {
 
         // Create a TokenRequest to be stored
         TokenRequest request = TokenRequest.create(tokenBuilder)
-                .setOption(ALIAS, "payerAlias@token.io") // user alias
+                .setOption(ALIAS, "payer-alias@token.io") // user alias
                 .setOption(BANKID, "iron") // bank id
                 .setOption(REDIRECT_URL, "https://token.io/callback"); // callback url
 
@@ -40,21 +40,21 @@ public final class StoreAndRetrieveTokenRequestSample {
     /**
      * Stores an access token request.
      *
-     * @param payee Payee Token member (the member requesting the transfer token be created)
+     * @param grantee Grantee Token member (the member requesting the access token be created)
      * @return a token request id
      */
-    public static String storeAccessTokenRequest(Member payee) {
+    public static String storeAccessTokenRequest(Member grantee) {
         // Create an AccessTokenBuilder
-        AccessTokenBuilder tokenBuilder = AccessTokenBuilder.create(payee.memberId()).forAll();
+        AccessTokenBuilder tokenBuilder = AccessTokenBuilder.create(grantee.memberId()).forAll();
 
         // Create a TokenRequest to be stored
         TokenRequest request = TokenRequest.create(tokenBuilder)
                 // Configure options for the TokenRequest
-                .setOption(ALIAS, "userAlias@token.io")
+                .setOption(ALIAS, "user-alias@token.io")
                 .setOption(BANKID, "iron")
                 .setOption(REDIRECT_URL, "https://token.io/callback");
 
-        return payee.storeTokenRequest(request);
+        return grantee.storeTokenRequest(request);
     }
 
     /**
