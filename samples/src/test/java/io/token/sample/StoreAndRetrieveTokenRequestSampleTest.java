@@ -28,8 +28,8 @@ public class StoreAndRetrieveTokenRequestSampleTest {
     @Test
     public void storeAndRetrieveAccessTokenTest() {
         try (TokenIO tokenIO = createClient()) {
-            Member payee = tokenIO.createMember();
-            String requestId = storeAccessTokenRequest(payee);
+            Member grantee = tokenIO.createMember();
+            String requestId = storeAccessTokenRequest(grantee);
             TokenRequest request = tokenIO.retrieveTokenRequest(requestId);
             assertThat(request).isNotNull();
         }
