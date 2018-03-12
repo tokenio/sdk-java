@@ -26,6 +26,7 @@ import static io.token.proto.ProtoHasher.hashAndSerializeJson;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
+import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -34,13 +35,17 @@ import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAliasMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.security.KeyNotFoundException;
 
+import java.nio.charset.Charset;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 
@@ -210,5 +215,42 @@ public abstract class Util {
             }
         }
         return null;
+    }
+
+    /**
+     * Hashes a string.
+     *
+     * @param value value to hash
+     * @return hash
+     */
+    public static String hashString(String value) {
+        return Hashing
+                .sha256()
+                .hashString(value, Charset.forName("ASCII"))
+                .toString();
+    }
+
+    /**
+     * Get the signing key from a member for a given signature.
+     * @param member member
+     * @param signature signature
+     * @return signing key, or throws KeyNotFound exception if member does not own the key
+     */
+    public static Key getSigningKey(Member member, Signature signature) {
+        Key key = null;
+        String keyId = signature.getKeyId();
+
+        for (Key k : member.getKeysList()) {
+            if (k.getId().equals(keyId)) {
+                key = k;
+                break;
+            }
+        }
+
+        if (key == null) {
+            throw new KeyNotFoundException(keyId);
+        }
+
+        return key;
     }
 }

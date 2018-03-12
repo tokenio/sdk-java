@@ -22,16 +22,22 @@
 
 package io.token.rpc;
 
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.getSigningKey;
+import static io.token.util.Util.hashString;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
+import io.token.exceptions.InvalidStateException;
+import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -49,6 +55,7 @@ import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
@@ -71,9 +78,13 @@ import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.security.crypto.Crypto;
+import io.token.security.crypto.CryptoRegistry;
 
+import java.security.PublicKey;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -83,6 +94,11 @@ import java.util.List;
  * getMember an existing one and switch to the authenticated {@link Client}.
  */
 public final class UnauthenticatedClient {
+    private static final Alias TOKEN = Alias.newBuilder()
+            .setType(DOMAIN)
+            .setValue("token.io")
+            .build();
+
     private final GatewayServiceFutureStub gateway;
 
     /**
@@ -127,6 +143,25 @@ public final class UnauthenticatedClient {
                 .map(new Function<ResolveAliasResponse, String>() {
                     public String apply(ResolveAliasResponse response) {
                         return response.hasMember() ? response.getMember().getId() : null;
+                    }
+                });
+    }
+
+    /**
+     * Looks up member information for the given member ID. The user is defined by
+     * the key used for authentication.
+     *
+     * @param memberId member id
+     * @return an observable of member
+     */
+    public Observable<Member> getMember(String memberId) {
+        return Converters
+                .toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetMemberResponse, Member>() {
+                    public Member apply(GetMemberResponse response) {
+                        return response.getMember();
                     }
                 });
     }
@@ -527,6 +562,34 @@ public final class UnauthenticatedClient {
                 });
     }
 
+    /**
+     * Verify that the state contains the nonce's hash, and that the signature of the payload
+     * (state | tokenId) is valid.
+     *
+     * @param payload request signature payload
+     * @param nonce nonce
+     * @param signature signature
+     * @return completable
+     */
+    public Completable verifyState(
+            RequestSignaturePayload payload,
+            String nonce,
+            Signature signature) {
+        String nonceHash = hashString(nonce);
+        isNonceInState(nonceHash, payload.getState());
+
+        String tokenMemberId = getMemberId(TOKEN).blockingSingle();
+
+        Member tokenMember = getMember(tokenMemberId).blockingSingle();
+        Key key = getSigningKey(tokenMember, signature);
+
+        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(key.getAlgorithm());
+        PublicKey publicKey = crypto.toPublicKey(key.getPublicKey());
+        crypto.verifier(publicKey).verify(ProtoJson.toJson(payload), signature.getSignature());
+
+        return Completable.complete();
+    }
+
     private List<MemberOperation> toMemberOperations(Key... keys) {
         List<MemberOperation> operations = new LinkedList<>();
         for (Key key : keys) {
@@ -536,5 +599,12 @@ public final class UnauthenticatedClient {
                     .build());
         }
         return operations;
+    }
+
+    // TODO (PL-1395): is this correct?
+    private void isNonceInState(String nonceHash, String state) {
+        if (!state.contains(nonceHash)) {
+            throw new InvalidStateException(nonceHash, state);
+        }
     }
 }
