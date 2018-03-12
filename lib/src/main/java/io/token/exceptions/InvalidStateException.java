@@ -25,7 +25,7 @@ package io.token.exceptions;
 import static java.lang.String.format;
 
 public class InvalidStateException extends RuntimeException {
-    public InvalidStateException(String nonceHash, String state) {
-        super(format("Nonce hash %s not found in state %s", nonceHash, state));
+    public InvalidStateException(String nonceHash) {
+        super(format("Nonce hash %s not found in state", nonceHash));
     }
 }

@@ -23,6 +23,7 @@
 package io.token.util;
 
 import static io.token.proto.ProtoHasher.hashAndSerializeJson;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
@@ -54,6 +55,14 @@ import javax.annotation.Nullable;
  * Utility methods.
  */
 public abstract class Util {
+    /**
+     * The token alias.
+     */
+    public static final Alias TOKEN = Alias.newBuilder()
+            .setType(DOMAIN)
+            .setValue("token.io")
+            .build();
+
     private Util() {
     }
 
@@ -230,27 +239,4 @@ public abstract class Util {
                 .toString();
     }
 
-    /**
-     * Get the signing key from a member for a given signature.
-     * @param member member
-     * @param signature signature
-     * @return signing key, or throws KeyNotFound exception if member does not own the key
-     */
-    public static Key getSigningKey(Member member, Signature signature) {
-        Key key = null;
-        String keyId = signature.getKeyId();
-
-        for (Key k : member.getKeysList()) {
-            if (k.getId().equals(keyId)) {
-                key = k;
-                break;
-            }
-        }
-
-        if (key == null) {
-            throw new KeyNotFoundException(keyId);
-        }
-
-        return key;
-    }
 }

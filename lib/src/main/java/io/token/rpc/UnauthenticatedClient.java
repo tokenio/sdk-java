@@ -22,12 +22,11 @@
 
 package io.token.rpc;
 
-import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.util.Util.TOKEN;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.getSigningKey;
 import static io.token.util.Util.hashString;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
@@ -37,6 +36,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
 import io.token.exceptions.InvalidStateException;
+import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -56,6 +56,7 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestState;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -79,6 +80,7 @@ import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
+import io.token.security.KeyNotFoundException;
 import io.token.security.Signer;
 import io.token.security.crypto.Crypto;
 import io.token.security.crypto.CryptoRegistry;
@@ -93,11 +95,6 @@ import java.util.List;
  * getMember an existing one and switch to the authenticated {@link Client}.
  */
 public final class UnauthenticatedClient {
-    private static final Alias TOKEN = Alias.newBuilder()
-            .setType(DOMAIN)
-            .setValue("token.io")
-            .build();
-
     private final GatewayServiceFutureStub gateway;
 
     /**
@@ -457,6 +454,17 @@ public final class UnauthenticatedClient {
                 });
     }
 
+    private List<MemberOperation> toMemberOperations(Key... keys) {
+        List<MemberOperation> operations = new LinkedList<>();
+        for (Key key : keys) {
+            operations.add(MemberOperation.newBuilder()
+                    .setAddKey(MemberAddKeyOperation.newBuilder()
+                            .setKey(key))
+                    .build());
+        }
+        return operations;
+    }
+
     /**
      * Completes account recovery if the default recovery rule was set.
      *
@@ -562,48 +570,84 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Verify that the state contains the nonce's hash, and that the signature of the payload
-     * (state | tokenId) is valid.
+     * Verify that the state contains the nonce's hash, and that the signature of the token request
+     * payload is valid.
      *
-     * @param payload request signature payload
+     * @param tokenId token id
      * @param nonce nonce
+     * @param serializedState state
      * @param signature signature
      * @return completable
      */
-    public Completable verifyState(
-            RequestSignaturePayload payload,
+    public Completable verifyTokenRequestState(
+            String tokenId,
             String nonce,
+            String serializedState,
             Signature signature) {
-        String nonceHash = hashString(nonce);
-        isNonceInState(nonceHash, payload.getState());
+        TokenRequestState state = fromSerializedState(serializedState);
 
-        String tokenMemberId = getMemberId(TOKEN).blockingSingle();
-
-        Member tokenMember = getMember(tokenMemberId).blockingSingle();
-        Key key = getSigningKey(tokenMember, signature);
-
-        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(key.getAlgorithm());
-        PublicKey publicKey = crypto.toPublicKey(key.getPublicKey());
-        crypto.verifier(publicKey).verify(payload, signature.getSignature());
+        verifyNonceHashInState(hashString(nonce), state);
+        verifyTokenRequestSignature(tokenId, state, signature);
 
         return Completable.complete();
     }
 
-    private List<MemberOperation> toMemberOperations(Key... keys) {
-        List<MemberOperation> operations = new LinkedList<>();
-        for (Key key : keys) {
-            operations.add(MemberOperation.newBuilder()
-                    .setAddKey(MemberAddKeyOperation.newBuilder()
-                            .setKey(key))
-                    .build());
-        }
-        return operations;
+
+    private TokenRequestState fromSerializedState(String serializedState) {
+        return (TokenRequestState) ProtoJson.fromJson(
+                serializedState,
+                TokenRequestState.newBuilder());
     }
 
-    // TODO (PL-1395): is this correct?
-    private void isNonceInState(String nonceHash, String state) {
-        if (!state.contains(nonceHash)) {
-            throw new InvalidStateException(nonceHash, state);
+    private void verifyNonceHashInState(String nonceHash, TokenRequestState state) {
+        if (!state.getNonceHash().equals(nonceHash)) {
+            throw new InvalidStateException(nonceHash);
         }
+    }
+
+    private void verifyTokenRequestSignature(
+            String tokenId,
+            TokenRequestState state,
+            Signature signature) {
+        Key key = getTokenSigningKey(signature);
+        RequestSignaturePayload payload = getRequestSignaturePayload(tokenId, state);
+
+        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(key.getAlgorithm());
+        PublicKey publicKey = crypto.toPublicKey(key.getPublicKey());
+        crypto.verifier(publicKey).verify(payload, signature.getSignature());
+    }
+
+    private Key getTokenSigningKey(Signature signature) {
+        Member tokenMember = getTokenMember();
+        Key key = null;
+        String keyId = signature.getKeyId();
+
+        for (Key k : tokenMember.getKeysList()) {
+            if (k.getId().equals(keyId)) {
+                key = k;
+                break;
+            }
+        }
+
+        if (key == null) {
+            throw new KeyNotFoundException(keyId);
+        }
+
+        return key;
+    }
+
+    private RequestSignaturePayload getRequestSignaturePayload(
+            String tokenId,
+            TokenRequestState serializedState) {
+        return RequestSignaturePayload.newBuilder()
+                .setTokenId(tokenId)
+                .setState(serializedState)
+                .build();
+    }
+
+    private Member getTokenMember() {
+        String tokenMemberId = getMemberId(TOKEN).blockingSingle();
+        Member tokenMember = getMember(tokenMemberId).blockingSingle();
+        return tokenMember;
     }
 }
