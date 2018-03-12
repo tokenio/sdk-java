@@ -36,17 +36,16 @@ import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAliasMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.security.KeyNotFoundException;
+import io.token.proto.common.token.TokenProtos.TokenRequestState;
 
 import java.nio.charset.Charset;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 
@@ -238,5 +237,4 @@ public abstract class Util {
                 .hashString(value, Charset.forName("ASCII"))
                 .toString();
     }
-
 }
