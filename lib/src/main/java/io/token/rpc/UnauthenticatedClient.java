@@ -37,7 +37,6 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
 import io.token.exceptions.InvalidStateException;
-import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -585,7 +584,7 @@ public final class UnauthenticatedClient {
 
         Crypto crypto = CryptoRegistry.getInstance().cryptoFor(key.getAlgorithm());
         PublicKey publicKey = crypto.toPublicKey(key.getPublicKey());
-        crypto.verifier(publicKey).verify(ProtoJson.toJson(payload), signature.getSignature());
+        crypto.verifier(publicKey).verify(payload, signature.getSignature());
 
         return Completable.complete();
     }
