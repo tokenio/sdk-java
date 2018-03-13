@@ -42,10 +42,8 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAliasMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.token.TokenProtos.TokenRequestState;
 
 import java.nio.charset.Charset;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 

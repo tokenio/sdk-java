@@ -35,8 +35,8 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
+import io.token.TokenRequestQueryParser;
 import io.token.exceptions.InvalidStateException;
-import io.token.proto.ProtoJson;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -85,6 +85,7 @@ import io.token.security.Signer;
 import io.token.security.crypto.Crypto;
 import io.token.security.crypto.CryptoRegistry;
 
+import java.net.URL;
 import java.security.PublicKey;
 import java.util.LinkedList;
 import java.util.List;
@@ -573,30 +574,16 @@ public final class UnauthenticatedClient {
      * Verify that the state contains the nonce's hash, and that the signature of the token request
      * payload is valid.
      *
-     * @param tokenId token id
-     * @param nonce nonce
-     * @param serializedState state
-     * @param signature signature
+     * @param tokenRequestUrl token request url
      * @return completable
      */
-    public Completable verifyTokenRequestState(
-            String tokenId,
-            String nonce,
-            String serializedState,
-            Signature signature) {
-        TokenRequestState state = fromSerializedState(serializedState);
+    public Completable verifyTokenRequestState(URL tokenRequestUrl) {
+        TokenRequestQueryParser parser = TokenRequestQueryParser.create(tokenRequestUrl.getQuery());
 
-        verifyNonceHashInState(hashString(nonce), state);
-        verifyTokenRequestSignature(tokenId, state, signature);
+        verifyNonceHashInState(hashString(parser.getNonce()), parser.getState());
+        verifyTokenRequestSignature(parser.getTokenId(), parser.getState(), parser.getSignature());
 
         return Completable.complete();
-    }
-
-
-    private TokenRequestState fromSerializedState(String serializedState) {
-        return (TokenRequestState) ProtoJson.fromJson(
-                serializedState,
-                TokenRequestState.newBuilder());
     }
 
     private void verifyNonceHashInState(String nonceHash, TokenRequestState state) {

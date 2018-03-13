@@ -20,33 +20,11 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.exceptions;
 
-import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.hashString;
-
-import com.google.auto.value.AutoValue;
-import io.token.proto.common.token.TokenProtos.TokenRequestState;
-
-@AutoValue
-public abstract class TokenRequestGeneratedState {
-    /**
-     * Create an instance of TokenRequestGeneratedState.
-     *
-     * @param state state
-     * @return instance of TokenRequestGeneratedState
-     */
-    public static TokenRequestGeneratedState create(String state) {
-        String nonce = generateNonce();
-        String nonceHash = hashString(nonce);
-        TokenRequestState tokenRequestState = TokenRequestState.newBuilder()
-                .setNonceHash(nonceHash)
-                .setState(state)
-                .build();
-        return new AutoValue_TokenRequestGeneratedState(nonce, tokenRequestState);
+public class InvalidTokenRequestQuery extends RuntimeException {
+    public InvalidTokenRequestQuery() {
+        super("Invalid or missing parameters in token request query.");
     }
 
-    public abstract String getNonce();
-
-    public abstract TokenRequestState getState();
 }
