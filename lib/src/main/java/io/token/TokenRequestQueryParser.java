@@ -26,7 +26,6 @@ import com.google.auto.value.AutoValue;
 import io.token.exceptions.InvalidTokenRequestQuery;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.token.TokenProtos.TokenRequestState;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -59,9 +58,7 @@ public abstract class TokenRequestQueryParser {
         return new AutoValue_TokenRequestQueryParser(
                 map.get(TOKEN_ID_HEADER),
                 map.get(NONCE_HEADER),
-                (TokenRequestState) ProtoJson.fromJson(
-                        map.get(STATE_HEADER),
-                        TokenRequestState.newBuilder()),
+                TokenRequestState.fromSerializedState(map.get(STATE_HEADER)),
                 map.get(STATE_HEADER),
                 (Signature) ProtoJson.fromJson(map.get(SIGNATURE_HEADER), Signature.newBuilder()));
     }

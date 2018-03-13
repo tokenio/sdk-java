@@ -22,33 +22,32 @@
 
 package io.token;
 
-import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.hashString;
+import static io.token.util.codec.ByteEncoding.parseHumanReadable;
+import static io.token.util.codec.ByteEncoding.serializeHumanReadable;
 
 import com.google.auto.value.AutoValue;
 
-@AutoValue
-public abstract class TokenRequestGeneratedState {
-    /**
-     * Create an instance of TokenRequestGeneratedState.
-     *
-     * @param state state
-     * @return instance of TokenRequestGeneratedState
-     */
-    public static TokenRequestGeneratedState create(String state) {
-        String nonce = generateNonce();
-        String nonceHash = hashString(nonce);
-        TokenRequestState tokenRequestState = TokenRequestState.create(nonceHash, state);
+import java.io.Serializable;
 
-        return new AutoValue_TokenRequestGeneratedState(
-                nonce,
-                tokenRequestState,
-                tokenRequestState.toSerializedState());
+import org.apache.commons.lang3.SerializationUtils;
+
+@AutoValue
+public abstract class TokenRequestState implements Serializable {
+    public static TokenRequestState create(String nonceHash, String state) {
+        return new AutoValue_TokenRequestState(nonceHash, state);
     }
 
-    public abstract String getNonce();
+    public abstract String getNonceHash();
 
-    public abstract TokenRequestState getState();
+    public abstract String getState();
 
-    public abstract String getSerializedState();
+    public String toSerializedState() {
+        byte[] data = SerializationUtils.serialize(this);
+        return serializeHumanReadable(data);
+    }
+
+    public static TokenRequestState fromSerializedState(String state) {
+        return (TokenRequestState) SerializationUtils.deserialize(parseHumanReadable(state));
+    }
 }
+

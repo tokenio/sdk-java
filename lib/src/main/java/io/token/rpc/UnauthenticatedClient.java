@@ -36,6 +36,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
 import io.token.TokenRequestQueryParser;
+import io.token.TokenRequestState;
 import io.token.exceptions.InvalidStateException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -56,7 +57,6 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.proto.common.token.TokenProtos.TokenRequestState;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -631,7 +631,7 @@ public final class UnauthenticatedClient {
             String serializedState) {
         return RequestSignaturePayload.newBuilder()
                 .setTokenId(tokenId)
-                .setTokenRequestState(serializedState)
+                .setState(serializedState)
                 .build();
     }
 
