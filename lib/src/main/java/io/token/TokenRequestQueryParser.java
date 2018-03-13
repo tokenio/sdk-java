@@ -62,6 +62,7 @@ public abstract class TokenRequestQueryParser {
                 (TokenRequestState) ProtoJson.fromJson(
                         map.get(STATE_HEADER),
                         TokenRequestState.newBuilder()),
+                map.get(STATE_HEADER),
                 (Signature) ProtoJson.fromJson(map.get(SIGNATURE_HEADER), Signature.newBuilder()));
     }
 
@@ -79,6 +80,8 @@ public abstract class TokenRequestQueryParser {
     public abstract String getNonce();
 
     public abstract TokenRequestState getState();
+
+    public abstract String getSerializedState();
 
     public abstract Signature getSignature();
 }

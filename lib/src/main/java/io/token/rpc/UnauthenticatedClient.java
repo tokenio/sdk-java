@@ -581,7 +581,10 @@ public final class UnauthenticatedClient {
         TokenRequestQueryParser parser = TokenRequestQueryParser.create(tokenRequestUrl.getQuery());
 
         verifyNonceHashInState(hashString(parser.getNonce()), parser.getState());
-        verifyTokenRequestSignature(parser.getTokenId(), parser.getState(), parser.getSignature());
+        verifyTokenRequestSignature(
+                parser.getTokenId(),
+                parser.getSerializedState(),
+                parser.getSignature());
 
         return Completable.complete();
     }
@@ -594,10 +597,10 @@ public final class UnauthenticatedClient {
 
     private void verifyTokenRequestSignature(
             String tokenId,
-            TokenRequestState state,
+            String serializedState,
             Signature signature) {
         Key key = getTokenSigningKey(signature);
-        RequestSignaturePayload payload = getRequestSignaturePayload(tokenId, state);
+        RequestSignaturePayload payload = getRequestSignaturePayload(tokenId, serializedState);
 
         Crypto crypto = CryptoRegistry.getInstance().cryptoFor(key.getAlgorithm());
         PublicKey publicKey = crypto.toPublicKey(key.getPublicKey());
@@ -625,10 +628,10 @@ public final class UnauthenticatedClient {
 
     private RequestSignaturePayload getRequestSignaturePayload(
             String tokenId,
-            TokenRequestState serializedState) {
+            String serializedState) {
         return RequestSignaturePayload.newBuilder()
                 .setTokenId(tokenId)
-                .setState(serializedState)
+                .setTokenRequestState(serializedState)
                 .build();
     }
 
