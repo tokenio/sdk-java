@@ -36,6 +36,7 @@ import static java.util.Collections.singletonList;
 
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -59,6 +60,7 @@ import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 
 import java.io.Closeable;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -431,5 +433,17 @@ public class TokenIOAsync implements Closeable {
     public Observable<List<Bank>> getBanks() {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getBanks();
+    }
+
+    /**
+     * Verify that the state contains the nonce's hash, and that the signature of the token request
+     * payload is valid.
+     *
+     * @param tokenRequestUrl token request url
+     * @return completable
+     */
+    public Completable verifyTokenRequestState(URL tokenRequestUrl) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.verifyTokenRequestState(tokenRequestUrl);
     }
 }

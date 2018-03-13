@@ -45,6 +45,7 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -361,6 +362,17 @@ public class TokenIO implements Closeable {
      */
     public List<Bank> getBanks() {
         return async.getBanks().blockingSingle();
+    }
+
+
+    /**
+     * Verify that the state contains the nonce's hash, and that the signature of the token request
+     * payload is valid.
+     *
+     * @param tokenRequestUrl token request url
+     */
+    public void verifyTokenRequestState(URL tokenRequestUrl) {
+        async.verifyTokenRequestState(tokenRequestUrl).blockingAwait();
     }
 
     /**
