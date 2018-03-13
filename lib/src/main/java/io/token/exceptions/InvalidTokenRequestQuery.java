@@ -26,5 +26,4 @@ public class InvalidTokenRequestQuery extends RuntimeException {
     public InvalidTokenRequestQuery() {
         super("Invalid or missing parameters in token request query.");
     }
-
 }

@@ -26,6 +26,7 @@ import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashString;
 
 import com.google.auto.value.AutoValue;
+import io.token.proto.ProtoJson;
 import io.token.proto.common.token.TokenProtos.TokenRequestState;
 
 @AutoValue
@@ -43,10 +44,15 @@ public abstract class TokenRequestGeneratedState {
                 .setNonceHash(nonceHash)
                 .setState(state)
                 .build();
-        return new AutoValue_TokenRequestGeneratedState(nonce, tokenRequestState);
+        return new AutoValue_TokenRequestGeneratedState(
+                nonce,
+                tokenRequestState,
+                ProtoJson.toJson(tokenRequestState));
     }
 
     public abstract String getNonce();
 
     public abstract TokenRequestState getState();
+
+    public abstract String getSerializedState();
 }
