@@ -1131,6 +1131,17 @@ public class MemberAsync {
         return client.triggerTransactionStepUpNotification(accountId);
     }
 
+    /**
+     * Request a signature for a (tokenID | state) payload.
+     *
+     * @param tokenId token id
+     * @param state state
+     * @return signature
+     */
+    public Observable<Signature> requestSignature(String tokenId, String state) {
+        return client.requestSignature(tokenId, state);
+    }
+
     @Override
     public int hashCode() {
         return member.getId().hashCode();

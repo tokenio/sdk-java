@@ -1074,6 +1074,17 @@ public class Member {
         return async.triggerTransactionStepUpNotification(accountId).blockingSingle();
     }
 
+    /**
+     * Request a signature for a (tokenID | state) payload.
+     *
+     * @param tokenId token id
+     * @param state state
+     * @return signature
+     */
+    public Signature requestSignature(String tokenId, String state) {
+        return async.requestSignature(tokenId, state).blockingSingle();
+    }
+
     @Override
     public int hashCode() {
         return async.hashCode();
