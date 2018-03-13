@@ -66,6 +66,7 @@ import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -150,6 +151,8 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.RequestSignatureRequest;
+import io.token.proto.gateway.Gateway.RequestSignatureResponse;
 import io.token.proto.gateway.Gateway.RetryVerificationRequest;
 import io.token.proto.gateway.Gateway.RetryVerificationResponse;
 import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
@@ -1385,6 +1388,26 @@ public final class Client {
                 .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
                     public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
                         return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Request a signature for a (tokenID | state) payload.
+     *
+     * @param tokenId token id
+     * @param state state
+     * @return signature
+     */
+    public Observable<Signature> requestSignature(String tokenId, String state) {
+        return toObservable(gateway.requestSignature(RequestSignatureRequest.newBuilder()
+                .setPayload(RequestSignaturePayload.newBuilder()
+                        .setTokenId(tokenId)
+                        .setTokenRequestState(state))
+                .build()))
+                .map(new Function<RequestSignatureResponse, Signature>() {
+                    public Signature apply(RequestSignatureResponse response) {
+                        return response.getSignature();
                     }
                 });
     }
