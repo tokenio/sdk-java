@@ -10,7 +10,7 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
-        classpath 'io.token.gradle:token-gradle:1.0.75'
+        classpath 'io.token.gradle:token-gradle:1.0.85'
         classpath 'net.ltgt.gradle:gradle-apt-plugin:0.9'
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.14.0'
         classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1'
@@ -32,5 +32,5 @@ allprojects {
     }
 
     group = 'io.token.sdk'
-    version = '1.0.100'
+    version = '1.0.101'
 }
