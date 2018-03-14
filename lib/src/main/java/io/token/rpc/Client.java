@@ -578,7 +578,7 @@ public final class Client {
                     @Override
                     public String apply(StoreTokenRequestResponse storeTokenRequestResponse)
                             throws Exception {
-                        return storeTokenRequestResponse.getRequestId();
+                        return storeTokenRequestResponse.getTokenRequest().getId();
                     }
                 });
     }
