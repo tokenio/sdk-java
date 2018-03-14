@@ -35,6 +35,7 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
+import io.token.TokenRequestGeneratedUrl;
 import io.token.TokenRequestQueryParser;
 import io.token.TokenRequestState;
 import io.token.exceptions.InvalidStateException;
@@ -85,10 +86,12 @@ import io.token.security.Signer;
 import io.token.security.crypto.Crypto;
 import io.token.security.crypto.CryptoRegistry;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.security.PublicKey;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 /**
  * Similar to {@link Client} but is only used for a handful of requests that
@@ -571,22 +574,53 @@ public final class UnauthenticatedClient {
     }
 
     /**
+     * Generate the token request authentication url from a request ID and a state string.
+     *
+     * @param requestId request id
+     * @param state state
+     * @return token request authentication url
+     * @throws MalformedURLException malformed url exception
+     */
+    public Observable<TokenRequestGeneratedUrl> generateTokenRequestUrl(
+            String requestId,
+            String state)
+            throws MalformedURLException {
+        final TokenRequestGeneratedUrl generatedUrl = TokenRequestGeneratedUrl.create(
+                requestId,
+                state);
+
+        return Observable.fromCallable(new Callable<TokenRequestGeneratedUrl>() {
+            @Override
+            public TokenRequestGeneratedUrl call() throws Exception {
+                return generatedUrl;
+            }
+        });
+    }
+
+    /**
      * Verify that the state contains the nonce's hash, and that the signature of the token request
-     * payload is valid.
+     * payload is valid. Return the extracted original state.
      *
      * @param tokenRequestUrl token request url
-     * @return completable
+     * @param nonce nonce
+     * @return the extracted original state
      */
-    public Completable verifyTokenRequestState(URL tokenRequestUrl) {
-        TokenRequestQueryParser parser = TokenRequestQueryParser.create(tokenRequestUrl.getQuery());
+    public Observable<String> extractTokenRequestState(URL tokenRequestUrl, String nonce) {
+        final TokenRequestQueryParser parser = TokenRequestQueryParser
+                .create(tokenRequestUrl.getQuery());
 
-        verifyNonceHashInState(hashString(parser.getNonce()), parser.getState());
+        verifyNonceHashInState(hashString(nonce), parser.getState());
         verifyTokenRequestSignature(
                 parser.getTokenId(),
                 parser.getSerializedState(),
                 parser.getSignature());
 
-        return Completable.complete();
+        return Observable.fromCallable(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                return parser.getState().getState();
+            }
+        });
     }
 
     private void verifyNonceHashInState(String nonceHash, TokenRequestState state) {

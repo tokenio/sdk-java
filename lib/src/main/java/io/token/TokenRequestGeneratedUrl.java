@@ -24,31 +24,44 @@ package io.token;
 
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashString;
+import static java.lang.String.format;
 
 import com.google.auto.value.AutoValue;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 @AutoValue
-public abstract class TokenRequestGeneratedState {
+public abstract class TokenRequestGeneratedUrl {
+    private static final String PROTOCOL = "https";
+    private static final String DOMAIN = "web-app.token.io";
+    private static final String PATH_TEMPLATE = "/authorize ?requestId=%s&state=%s";
+
     /**
-     * Create an instance of TokenRequestGeneratedState.
+     * Create an instance of TokenRequestGeneratedUrl.
      *
+     * @param requestId request id
      * @param state state
-     * @return instance of TokenRequestGeneratedState
+     * @return instance of TokenRequestGeneratedUrl
+     * @throws MalformedURLException malformed url exception
      */
-    public static TokenRequestGeneratedState create(String state) {
+    public static TokenRequestGeneratedUrl create(String requestId, String state)
+            throws MalformedURLException {
         String nonce = generateNonce();
         String nonceHash = hashString(nonce);
         TokenRequestState tokenRequestState = TokenRequestState.create(nonceHash, state);
 
-        return new AutoValue_TokenRequestGeneratedState(
+        return new AutoValue_TokenRequestGeneratedUrl(
                 nonce,
-                tokenRequestState,
-                tokenRequestState.toSerializedState());
+                toUrl(requestId, tokenRequestState.toSerializedState()));
     }
 
     public abstract String getNonce();
 
-    public abstract TokenRequestState getState();
+    public abstract URL getUrl();
 
-    public abstract String getSerializedState();
+    private static URL toUrl(String requestId, String state) throws MalformedURLException {
+        return new URL(PROTOCOL, DOMAIN, format(PATH_TEMPLATE, requestId, state));
+    }
 }
+

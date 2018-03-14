@@ -45,6 +45,7 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 
@@ -364,15 +365,29 @@ public class TokenIO implements Closeable {
         return async.getBanks().blockingSingle();
     }
 
+    /**
+     * Generate the token request authentication url from a request ID and a state string.
+     *
+     * @param requestId request id
+     * @param state state
+     * @return token request authentication url
+     * @throws MalformedURLException malformed url exception
+     */
+    public TokenRequestGeneratedUrl generateTokenRequestUrl(String requestId, String state)
+            throws MalformedURLException {
+        return async.generateTokenRequestUrl(requestId, state).blockingSingle();
+    }
 
     /**
      * Verify that the state contains the nonce's hash, and that the signature of the token request
-     * payload is valid.
+     * payload is valid. Return the extracted original state
      *
      * @param tokenRequestUrl token request url
+     * @param nonce nonce
+     * @return the extracted original state
      */
-    public void verifyTokenRequestState(URL tokenRequestUrl) {
-        async.verifyTokenRequestState(tokenRequestUrl).blockingAwait();
+    public String extractTokenRequestState(URL tokenRequestUrl, String nonce) {
+        return async.extractTokenRequestState(tokenRequestUrl, nonce).blockingSingle();
     }
 
     /**

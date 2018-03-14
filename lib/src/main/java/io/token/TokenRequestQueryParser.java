@@ -33,7 +33,6 @@ import java.util.Map;
 @AutoValue
 public abstract class TokenRequestQueryParser {
     private static final String TOKEN_ID_HEADER = "token-id";
-    private static final String NONCE_HEADER = "nonce";
     private static final String STATE_HEADER = "state";
     private static final String SIGNATURE_HEADER = "signature";
 
@@ -57,7 +56,6 @@ public abstract class TokenRequestQueryParser {
 
         return new AutoValue_TokenRequestQueryParser(
                 map.get(TOKEN_ID_HEADER),
-                map.get(NONCE_HEADER),
                 TokenRequestState.fromSerializedState(map.get(STATE_HEADER)),
                 map.get(STATE_HEADER),
                 (Signature) ProtoJson.fromJson(map.get(SIGNATURE_HEADER), Signature.newBuilder()));
@@ -65,7 +63,6 @@ public abstract class TokenRequestQueryParser {
 
     private static void verifyParameters(Map<String, String> map) {
         if (!map.containsKey(TOKEN_ID_HEADER)
-                || !map.containsKey(NONCE_HEADER)
                 || !map.containsKey(STATE_HEADER)
                 || !map.containsKey(SIGNATURE_HEADER)) {
             throw new InvalidTokenRequestQuery();
@@ -73,8 +70,6 @@ public abstract class TokenRequestQueryParser {
     }
 
     public abstract String getTokenId();
-
-    public abstract String getNonce();
 
     public abstract TokenRequestState getState();
 

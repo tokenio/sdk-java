@@ -60,6 +60,7 @@ import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 
 import java.io.Closeable;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -436,14 +437,31 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
+     * Generate the token request authentication url from a request ID and a state string.
+     *
+     * @param requestId request id
+     * @param state state
+     * @return token request authentication url
+     * @throws MalformedURLException malformed url exception
+     */
+    public Observable<TokenRequestGeneratedUrl> generateTokenRequestUrl(
+            String requestId,
+            String state)
+            throws MalformedURLException {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.generateTokenRequestUrl(requestId, state);
+    }
+
+    /**
      * Verify that the state contains the nonce's hash, and that the signature of the token request
-     * payload is valid.
+     * payload is valid. Return the extracted original state.
      *
      * @param tokenRequestUrl token request url
-     * @return completable
+     * @param nonce nonce
+     * @return the extracted original state
      */
-    public Completable verifyTokenRequestState(URL tokenRequestUrl) {
+    public Observable<String> extractTokenRequestState(URL tokenRequestUrl, String nonce) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.verifyTokenRequestState(tokenRequestUrl);
+        return unauthenticated.extractTokenRequestState(tokenRequestUrl, nonce);
     }
 }
