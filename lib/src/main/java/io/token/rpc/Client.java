@@ -1403,7 +1403,7 @@ public final class Client {
         return toObservable(gateway.requestSignature(RequestSignatureRequest.newBuilder()
                 .setPayload(RequestSignaturePayload.newBuilder()
                         .setTokenId(tokenId)
-                        .setTokenRequestState(state))
+                        .setState(state))
                 .build()))
                 .map(new Function<RequestSignatureResponse, Signature>() {
                     public Signature apply(RequestSignatureResponse response) {
