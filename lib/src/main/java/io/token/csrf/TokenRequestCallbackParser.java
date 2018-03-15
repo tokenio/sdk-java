@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.csrf;
 
 import com.google.auto.value.AutoValue;
 import io.token.exceptions.InvalidTokenRequestQuery;
@@ -31,18 +31,12 @@ import java.util.HashMap;
 import java.util.Map;
 
 @AutoValue
-public abstract class TokenRequestQueryParser {
+abstract class TokenRequestCallbackParser {
     private static final String TOKEN_ID_FIELD = "token-id";
     private static final String STATE_FIELD = "state";
     private static final String SIGNATURE_FIELD = "signature";
 
-    /**
-     * Create a new instance of TokenRequestQueryParser.
-     *
-     * @param query query
-     * @return instance of TokenRequestQueryParser
-     */
-    public static TokenRequestQueryParser parse(String query) {
+    static TokenRequestCallbackParser parse(String query) {
         String[] params = query.split("&");
         Map<String, String> parameters = new HashMap<>();
 
@@ -54,11 +48,13 @@ public abstract class TokenRequestQueryParser {
 
         verifyParameters(parameters);
 
-        return new AutoValue_TokenRequestQueryParser(
+        return new AutoValue_TokenRequestCallbackParser(
                 parameters.get(TOKEN_ID_FIELD),
                 TokenRequestState.fromSerializedState(parameters.get(STATE_FIELD)),
                 parameters.get(STATE_FIELD),
-                (Signature) ProtoJson.fromJson(parameters.get(SIGNATURE_FIELD), Signature.newBuilder()));
+                (Signature) ProtoJson.fromJson(
+                        parameters.get(SIGNATURE_FIELD),
+                        Signature.newBuilder()));
     }
 
     private static void verifyParameters(Map<String, String> parameters) {
@@ -69,11 +65,11 @@ public abstract class TokenRequestQueryParser {
         }
     }
 
-    public abstract String getTokenId();
+    abstract String getTokenId();
 
-    public abstract TokenRequestState getState();
+    abstract TokenRequestState getState();
 
-    public abstract String getSerializedState();
+    abstract String getSerializedState();
 
-    public abstract Signature getSignature();
+    abstract Signature getSignature();
 }

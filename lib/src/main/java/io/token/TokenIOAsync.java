@@ -23,10 +23,10 @@
 package io.token;
 
 import static io.grpc.Status.NOT_FOUND;
+import static io.token.TokenIO.TokenCluster;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
-import static io.token.TokenIO.TokenCluster;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toAddAliasOperation;
@@ -39,6 +39,8 @@ import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.csrf.CsrfToken;
+import io.token.csrf.CsrfTokenManager;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -442,32 +444,31 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Generate the token request authentication url from a request ID and a state string.
+     * Generate a CSRF token containing a nonce and a token request authentication url from a
+     * request ID and a state string.
      *
      * @param requestId request id
      * @param state state
-     * @return token request authentication url
+     * @return CSRF token
      */
-    public Observable<TokenRequestGeneratedUrl> generateTokenRequestUrl(
+    public Observable<CsrfToken> generateCsrfToken(
             String requestId,
             String state) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.generateTokenRequestUrl(
-                requestId,
-                state,
-                tokenCluster);
+        return Observable.just(CsrfTokenManager.generateCsrfToken(requestId, state, tokenCluster));
     }
 
     /**
      * Verify that the state contains the nonce's hash, and that the signature of the token request
      * payload is valid. Return the extracted original state.
      *
-     * @param tokenRequestUrl token request url
+     * @param tokenRequestCallbackUrl token request callback url
      * @param nonce nonce
      * @return the extracted original state
      */
-    public Observable<String> extractTokenRequestState(URL tokenRequestUrl, String nonce) {
+    public Observable<String> parseTokenRequestCallbackUrl(
+            URL tokenRequestCallbackUrl,
+            String nonce) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.extractTokenRequestState(tokenRequestUrl, nonce);
+        return unauthenticated.parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, nonce);
     }
 }

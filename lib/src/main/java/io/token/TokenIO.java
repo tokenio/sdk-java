@@ -28,6 +28,7 @@ import static io.grpc.Status.INVALID_ARGUMENT;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
+import io.token.csrf.CsrfToken;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -371,20 +372,20 @@ public class TokenIO implements Closeable {
      * @param state state
      * @return token request authentication url
      */
-    public TokenRequestGeneratedUrl generateTokenRequestUrl(String requestId, String state) {
-        return async.generateTokenRequestUrl(requestId, state).blockingSingle();
+    public CsrfToken generateCsrfToken(String requestId, String state) {
+        return async.generateCsrfToken(requestId, state).blockingSingle();
     }
 
     /**
      * Verify that the state contains the nonce's hash, and that the signature of the token request
      * payload is valid. Return the extracted original state
      *
-     * @param tokenRequestUrl token request url
+     * @param tokenRequestCallbackUrl token request callback url
      * @param nonce nonce
      * @return the extracted original state
      */
-    public String extractTokenRequestState(URL tokenRequestUrl, String nonce) {
-        return async.extractTokenRequestState(tokenRequestUrl, nonce).blockingSingle();
+    public String parseTokenRequestCallbackUrl(URL tokenRequestCallbackUrl, String nonce) {
+        return async.parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, nonce).blockingSingle();
     }
 
     /**

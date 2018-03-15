@@ -25,21 +25,15 @@ package io.token.rpc;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
-import static io.token.TokenIO.TokenCluster;
 import static io.token.util.Util.TOKEN;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.hashString;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
-import static io.token.util.Util.verifySignature;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
-import io.token.TokenRequestGeneratedUrl;
-import io.token.TokenRequestQueryParser;
-import io.token.TokenRequestState;
-import io.token.exceptions.InvalidStateException;
+import io.token.csrf.CsrfTokenManager;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -57,7 +51,6 @@ import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
@@ -87,7 +80,6 @@ import io.token.security.Signer;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Similar to {@link Client} but is only used for a handful of requests that
@@ -570,74 +562,27 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Generate the token request authentication url from a request ID and a state string.
-     *
-     * @param requestId request id
-     * @param state state
-     * @param tokenCluster token cluster
-     * @return token request authentication url
-     */
-    public Observable<TokenRequestGeneratedUrl> generateTokenRequestUrl(
-            String requestId,
-            String state,
-            TokenCluster tokenCluster) {
-        final TokenRequestGeneratedUrl generatedUrl = TokenRequestGeneratedUrl.create(
-                requestId,
-                state,
-                tokenCluster);
-
-        return Observable.fromCallable(new Callable<TokenRequestGeneratedUrl>() {
-            @Override
-            public TokenRequestGeneratedUrl call() throws Exception {
-                return generatedUrl;
-            }
-        });
-    }
-
-    /**
      * Verify that the state contains the nonce's hash, and that the signature of the token request
      * payload is valid. Return the extracted original state.
      *
-     * @param tokenRequestUrl token request url
+     * @param tokenRequestCallbackUrl token request callback url
      * @param nonce nonce
      * @return the extracted original state
      */
-    public Observable<String> extractTokenRequestState(
-            final URL tokenRequestUrl,
+    public Observable<String> parseTokenRequestCallbackUrl(
+            final URL tokenRequestCallbackUrl,
             final String nonce) {
         return getTokenMember().map(new Function<Member, String>() {
             @Override
             public String apply(Member member) throws Exception {
-                final TokenRequestQueryParser parser = TokenRequestQueryParser
-                        .parse(tokenRequestUrl.getQuery());
-
-                verifyNonceHashInState(hashString(nonce), parser.getState());
-                verifySignature(
+                return CsrfTokenManager.parseTokenRequestCallbackUrl(
                         member,
-                        getRequestSignaturePayload(
-                                parser.getTokenId(),
-                                parser.getSerializedState()),
-                        parser.getSignature());
-
-                return parser.getState().getState();
+                        tokenRequestCallbackUrl,
+                        nonce);
             }
         });
     }
 
-    private void verifyNonceHashInState(String nonceHash, TokenRequestState state) {
-        if (!state.getNonceHash().equals(nonceHash)) {
-            throw new InvalidStateException(nonceHash);
-        }
-    }
-
-    private RequestSignaturePayload getRequestSignaturePayload(
-            String tokenId,
-            String serializedState) {
-        return RequestSignaturePayload.newBuilder()
-                .setTokenId(tokenId)
-                .setState(serializedState)
-                .build();
-    }
 
     private Observable<Member> getTokenMember() {
         return getMemberId(TOKEN).flatMap(

@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.csrf;
 
 import static io.token.TokenIO.TokenCluster;
 import static io.token.util.Util.generateNonce;
@@ -34,7 +34,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 
 @AutoValue
-public abstract class TokenRequestGeneratedUrl {
+public abstract class CsrfToken {
     private static final String PROTOCOL = "https";
     private static final String PATH_TEMPLATE = "/authorize ?requestId=%s&state=%s";
 
@@ -56,8 +56,16 @@ public abstract class TokenRequestGeneratedUrl {
         }
     }
 
+    private static URL toUrl(String requestId, String state, TokenCluster tokenCluster)
+            throws MalformedURLException {
+        return new URL(
+                PROTOCOL,
+                TokenWebCluster.valueOf(tokenCluster.name()).getUrl(),
+                format(PATH_TEMPLATE, requestId, state));
+    }
+
     /**
-     * Create an instance of TokenRequestGeneratedUrl.
+     * Create an instance of CsrfToken.
      *
      * @param requestId request id
      * @param state state
@@ -65,7 +73,7 @@ public abstract class TokenRequestGeneratedUrl {
      * @return instance of TokenRequestGeneratedUrl
      * @throws MalformedTokenRequestUrlException malformed token request url exception
      */
-    public static TokenRequestGeneratedUrl create(
+    public static CsrfToken create(
             String requestId,
             String state,
             TokenCluster tokenCluster) {
@@ -74,7 +82,7 @@ public abstract class TokenRequestGeneratedUrl {
             String nonceHash = hashString(nonce);
             TokenRequestState tokenRequestState = TokenRequestState.create(nonceHash, state);
 
-            return new AutoValue_TokenRequestGeneratedUrl(
+            return new AutoValue_CsrfToken(
                     nonce,
                     toUrl(requestId, tokenRequestState.toSerializedState(), tokenCluster));
         } catch (MalformedURLException ex) {
@@ -84,14 +92,6 @@ public abstract class TokenRequestGeneratedUrl {
 
     public abstract String getNonce();
 
-    public abstract URL getUrl();
-
-    private static URL toUrl(String requestId, String state, TokenCluster tokenCluster)
-            throws MalformedURLException {
-        return new URL(
-                PROTOCOL,
-                TokenWebCluster.valueOf(tokenCluster.name()).getUrl(),
-                format(PATH_TEMPLATE, requestId, state));
-    }
+    public abstract URL getTokenRequestUrl();
 }
 
