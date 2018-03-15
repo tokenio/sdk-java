@@ -36,6 +36,13 @@ abstract class TokenRequestCallbackParser {
     private static final String STATE_FIELD = "state";
     private static final String SIGNATURE_FIELD = "signature";
 
+    /**
+     * Parses the token request callback URL's parameters. Extracts the state, the token ID, and
+     * the signature over (state | token ID).
+     *
+     * @param query token request callback query
+     * @return TokenRequestCallbackParser instance
+     */
     static TokenRequestCallbackParser parse(String query) {
         String[] params = query.split("&");
         Map<String, String> parameters = new HashMap<>();

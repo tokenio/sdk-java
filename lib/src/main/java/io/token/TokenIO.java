@@ -366,7 +366,8 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Generate the token request authentication url from a request ID and a state string.
+     * Generate a CSRF token containing a nonce and a token request authentication url from a
+     * request ID and a state string.
      *
      * @param requestId request id
      * @param state state
@@ -377,8 +378,9 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Verify that the state contains the nonce's hash, and that the signature of the token request
-     * payload is valid. Return the extracted original state
+     * Parse the token request callback URL to extract the state, the token ID and the signature of
+     * (state | token ID). Verify that the state contains the nonce's hash, and that the signature
+     * of the token request payload is valid. Return the extracted original state.
      *
      * @param tokenRequestCallbackUrl token request callback url
      * @param nonce nonce

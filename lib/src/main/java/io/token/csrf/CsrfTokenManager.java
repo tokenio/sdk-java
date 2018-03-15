@@ -52,8 +52,9 @@ public abstract class CsrfTokenManager {
     }
 
     /**
-     * Verify that the state contains the nonce's hash, and that the signature of the token request
-     * payload is valid. Return the extracted original state.
+     * Parse the token request callback URL to extract the state, the token ID and the signature of
+     * (state | token ID). Verify that the state contains the nonce's hash, and that the signature
+     * of the token request payload is valid. Return the extracted original state.
      *
      * @param member member
      * @param tokenRequestCallbackUrl token request callback URL
