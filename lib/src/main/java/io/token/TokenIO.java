@@ -399,11 +399,11 @@ public class TokenIO implements Closeable {
 
         private final String envUrl;
 
-        TokenCluster(String envUrl) {
-            this.envUrl = envUrl;
+        TokenCluster(String url) {
+            this.envUrl = url;
         }
 
-        public String getUrl() {
+        public String url() {
             return envUrl;
         }
     }
@@ -463,7 +463,7 @@ public class TokenIO implements Closeable {
          */
         public Builder connectTo(TokenCluster cluster) {
             this.tokenCluster = cluster;
-            this.hostName = cluster.getUrl();
+            this.hostName = cluster.url();
             return this;
         }
 
