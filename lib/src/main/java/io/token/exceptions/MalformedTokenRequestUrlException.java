@@ -20,31 +20,10 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.exceptions;
 
-import com.google.auto.value.AutoValue;
-import com.google.gson.Gson;
-
-import java.io.Serializable;
-
-@AutoValue
-public abstract class TokenRequestState implements Serializable {
-    public static TokenRequestState create(String nonceHash, String state) {
-        return new AutoValue_TokenRequestState(nonceHash, state);
-    }
-
-    public abstract String getNonceHash();
-
-    public abstract String getState();
-
-    public String toSerializedState() {
-        Gson gson  = new Gson();
-        return gson.toJson(this);
-    }
-
-    public static TokenRequestState fromSerializedState(String state) {
-        Gson gson = new Gson();
-        return gson.fromJson(state, TokenRequestState.class);
+public class MalformedTokenRequestUrlException extends RuntimeException {
+    public MalformedTokenRequestUrlException() {
+        super("Token request URL generation failed.");
     }
 }
-

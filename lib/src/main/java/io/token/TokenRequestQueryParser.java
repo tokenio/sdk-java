@@ -32,9 +32,9 @@ import java.util.Map;
 
 @AutoValue
 public abstract class TokenRequestQueryParser {
-    private static final String TOKEN_ID_HEADER = "token-id";
-    private static final String STATE_HEADER = "state";
-    private static final String SIGNATURE_HEADER = "signature";
+    private static final String TOKEN_ID_FIELD = "token-id";
+    private static final String STATE_FIELD = "state";
+    private static final String SIGNATURE_FIELD = "signature";
 
     /**
      * Create a new instance of TokenRequestQueryParser.
@@ -42,7 +42,7 @@ public abstract class TokenRequestQueryParser {
      * @param query query
      * @return instance of TokenRequestQueryParser
      */
-    public static TokenRequestQueryParser create(String query) {
+    public static TokenRequestQueryParser parse(String query) {
         String[] params = query.split("&");
         Map<String, String> map = new HashMap<>();
 
@@ -55,16 +55,16 @@ public abstract class TokenRequestQueryParser {
         verifyParameters(map);
 
         return new AutoValue_TokenRequestQueryParser(
-                map.get(TOKEN_ID_HEADER),
-                TokenRequestState.fromSerializedState(map.get(STATE_HEADER)),
-                map.get(STATE_HEADER),
-                (Signature) ProtoJson.fromJson(map.get(SIGNATURE_HEADER), Signature.newBuilder()));
+                map.get(TOKEN_ID_FIELD),
+                TokenRequestState.fromSerializedState(map.get(STATE_FIELD)),
+                map.get(STATE_FIELD),
+                (Signature) ProtoJson.fromJson(map.get(SIGNATURE_FIELD), Signature.newBuilder()));
     }
 
     private static void verifyParameters(Map<String, String> map) {
-        if (!map.containsKey(TOKEN_ID_HEADER)
-                || !map.containsKey(STATE_HEADER)
-                || !map.containsKey(SIGNATURE_HEADER)) {
+        if (!map.containsKey(TOKEN_ID_FIELD)
+                || !map.containsKey(STATE_FIELD)
+                || !map.containsKey(SIGNATURE_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
     }

@@ -23,28 +23,14 @@
 package io.token;
 
 import com.google.auto.value.AutoValue;
-import com.google.gson.Gson;
-
-import java.io.Serializable;
 
 @AutoValue
-public abstract class TokenRequestState implements Serializable {
-    public static TokenRequestState create(String nonceHash, String state) {
-        return new AutoValue_TokenRequestState(nonceHash, state);
+public abstract class TokenClusterConfig {
+    public static TokenClusterConfig create(String gatewayUrl, String webappUrl) {
+        return new AutoValue_TokenClusterConfig(gatewayUrl, webappUrl);
     }
 
-    public abstract String getNonceHash();
+    public abstract String getGatewayUrl();
 
-    public abstract String getState();
-
-    public String toSerializedState() {
-        Gson gson  = new Gson();
-        return gson.toJson(this);
-    }
-
-    public static TokenRequestState fromSerializedState(String state) {
-        Gson gson = new Gson();
-        return gson.fromJson(state, TokenRequestState.class);
-    }
+    public abstract String getWebappUrl();
 }
-

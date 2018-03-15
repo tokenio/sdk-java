@@ -36,7 +36,6 @@ import static java.util.Collections.singletonList;
 
 import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -60,7 +59,6 @@ import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 
 import java.io.Closeable;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -80,6 +78,7 @@ public class TokenIOAsync implements Closeable {
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
     private final String devKey;
+    private final TokenClusterConfig clusterConfig;
 
     /**
      * Creates an instance of a Token SDK.
@@ -88,10 +87,15 @@ public class TokenIOAsync implements Closeable {
      * @param cryptoFactory crypto factory instance
      * @param developerKey developer key
      */
-    TokenIOAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory, String developerKey) {
+    TokenIOAsync(
+            ManagedChannel channel,
+            CryptoEngineFactory cryptoFactory,
+            String developerKey,
+            TokenClusterConfig clusterConfig) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.devKey = developerKey;
+        this.clusterConfig = clusterConfig;
     }
 
     @Override
@@ -442,14 +446,15 @@ public class TokenIOAsync implements Closeable {
      * @param requestId request id
      * @param state state
      * @return token request authentication url
-     * @throws MalformedURLException malformed url exception
      */
     public Observable<TokenRequestGeneratedUrl> generateTokenRequestUrl(
             String requestId,
-            String state)
-            throws MalformedURLException {
+            String state) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.generateTokenRequestUrl(requestId, state);
+        return unauthenticated.generateTokenRequestUrl(
+                requestId,
+                state,
+                clusterConfig.getWebappUrl());
     }
 
     /**

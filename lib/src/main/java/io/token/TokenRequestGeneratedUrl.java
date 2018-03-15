@@ -27,6 +27,7 @@ import static io.token.util.Util.hashString;
 import static java.lang.String.format;
 
 import com.google.auto.value.AutoValue;
+import io.token.exceptions.MalformedTokenRequestUrlException;
 
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,7 +35,6 @@ import java.net.URL;
 @AutoValue
 public abstract class TokenRequestGeneratedUrl {
     private static final String PROTOCOL = "https";
-    private static final String DOMAIN = "web-app.token.io";
     private static final String PATH_TEMPLATE = "/authorize ?requestId=%s&state=%s";
 
     /**
@@ -42,26 +42,34 @@ public abstract class TokenRequestGeneratedUrl {
      *
      * @param requestId request id
      * @param state state
+     * @param hostName host name
      * @return instance of TokenRequestGeneratedUrl
-     * @throws MalformedURLException malformed url exception
+     * @throws MalformedTokenRequestUrlException malformed token request url exception
      */
-    public static TokenRequestGeneratedUrl create(String requestId, String state)
-            throws MalformedURLException {
-        String nonce = generateNonce();
-        String nonceHash = hashString(nonce);
-        TokenRequestState tokenRequestState = TokenRequestState.create(nonceHash, state);
+    public static TokenRequestGeneratedUrl create(String requestId, String state, String hostName) {
+        try {
+            String nonce = generateNonce();
+            String nonceHash = hashString(nonce);
+            TokenRequestState tokenRequestState = TokenRequestState.create(nonceHash, state);
 
-        return new AutoValue_TokenRequestGeneratedUrl(
-                nonce,
-                toUrl(requestId, tokenRequestState.toSerializedState()));
+            return new AutoValue_TokenRequestGeneratedUrl(
+                    nonce,
+                    toUrl(requestId, tokenRequestState.toSerializedState(), hostName));
+        } catch (MalformedURLException ex) {
+            throw new MalformedTokenRequestUrlException();
+        }
     }
 
     public abstract String getNonce();
 
     public abstract URL getUrl();
 
-    private static URL toUrl(String requestId, String state) throws MalformedURLException {
-        return new URL(PROTOCOL, DOMAIN, format(PATH_TEMPLATE, requestId, state));
+    private static URL toUrl(String requestId, String state, String hostName)
+            throws MalformedURLException {
+        return new URL(
+                PROTOCOL,
+                hostName,
+                format(PATH_TEMPLATE, requestId, state));
     }
 }
 

@@ -30,8 +30,8 @@ import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashString;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
+import static io.token.util.Util.verifySignature;
 
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
@@ -81,14 +81,9 @@ import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
-import io.token.security.KeyNotFoundException;
 import io.token.security.Signer;
-import io.token.security.crypto.Crypto;
-import io.token.security.crypto.CryptoRegistry;
 
-import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.PublicKey;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -578,16 +573,17 @@ public final class UnauthenticatedClient {
      *
      * @param requestId request id
      * @param state state
+     * @param hostName host name
      * @return token request authentication url
-     * @throws MalformedURLException malformed url exception
      */
     public Observable<TokenRequestGeneratedUrl> generateTokenRequestUrl(
             String requestId,
-            String state)
-            throws MalformedURLException {
+            String state,
+            String hostName) {
         final TokenRequestGeneratedUrl generatedUrl = TokenRequestGeneratedUrl.create(
                 requestId,
-                state);
+                state,
+                hostName);
 
         return Observable.fromCallable(new Callable<TokenRequestGeneratedUrl>() {
             @Override
@@ -605,19 +601,23 @@ public final class UnauthenticatedClient {
      * @param nonce nonce
      * @return the extracted original state
      */
-    public Observable<String> extractTokenRequestState(URL tokenRequestUrl, String nonce) {
-        final TokenRequestQueryParser parser = TokenRequestQueryParser
-                .create(tokenRequestUrl.getQuery());
-
-        verifyNonceHashInState(hashString(nonce), parser.getState());
-        verifyTokenRequestSignature(
-                parser.getTokenId(),
-                parser.getSerializedState(),
-                parser.getSignature());
-
-        return Observable.fromCallable(new Callable<String>() {
+    public Observable<String> extractTokenRequestState(
+            final URL tokenRequestUrl,
+            final String nonce) {
+        return getTokenMember().map(new Function<Member, String>() {
             @Override
-            public String call() throws Exception {
+            public String apply(Member member) throws Exception {
+                final TokenRequestQueryParser parser = TokenRequestQueryParser
+                        .parse(tokenRequestUrl.getQuery());
+
+                verifyNonceHashInState(hashString(nonce), parser.getState());
+                verifySignature(
+                        member,
+                        getRequestSignaturePayload(
+                                parser.getTokenId(),
+                                parser.getSerializedState()),
+                        parser.getSignature());
+
                 return parser.getState().getState();
             }
         });
@@ -629,37 +629,6 @@ public final class UnauthenticatedClient {
         }
     }
 
-    private void verifyTokenRequestSignature(
-            String tokenId,
-            String serializedState,
-            Signature signature) {
-        Key key = getTokenSigningKey(signature);
-        RequestSignaturePayload payload = getRequestSignaturePayload(tokenId, serializedState);
-
-        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(key.getAlgorithm());
-        PublicKey publicKey = crypto.toPublicKey(key.getPublicKey());
-        crypto.verifier(publicKey).verify(payload, signature.getSignature());
-    }
-
-    private Key getTokenSigningKey(Signature signature) {
-        Member tokenMember = getTokenMember();
-        Key key = null;
-        String keyId = signature.getKeyId();
-
-        for (Key k : tokenMember.getKeysList()) {
-            if (k.getId().equals(keyId)) {
-                key = k;
-                break;
-            }
-        }
-
-        if (key == null) {
-            throw new KeyNotFoundException(keyId);
-        }
-
-        return key;
-    }
-
     private RequestSignaturePayload getRequestSignaturePayload(
             String tokenId,
             String serializedState) {
@@ -669,9 +638,13 @@ public final class UnauthenticatedClient {
                 .build();
     }
 
-    private Member getTokenMember() {
-        String tokenMemberId = getMemberId(TOKEN).blockingSingle();
-        Member tokenMember = getMember(tokenMemberId).blockingSingle();
-        return tokenMember;
+    private Observable<Member> getTokenMember() {
+        return getMemberId(TOKEN).flatMap(
+                new Function<String, Observable<Member>>() {
+                    @Override
+                    public Observable<Member> apply(String memberId) throws Exception {
+                        return getMember(memberId);
+                    }
+                });
     }
 }
