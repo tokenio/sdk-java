@@ -34,6 +34,7 @@ import static io.token.util.Util.verifySignature;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.TokenIO;
 import io.token.TokenRequest;
 import io.token.TokenRequestGeneratedUrl;
 import io.token.TokenRequestQueryParser;
@@ -573,17 +574,17 @@ public final class UnauthenticatedClient {
      *
      * @param requestId request id
      * @param state state
-     * @param hostName host name
+     * @param tokenCluster token cluster
      * @return token request authentication url
      */
     public Observable<TokenRequestGeneratedUrl> generateTokenRequestUrl(
             String requestId,
             String state,
-            String hostName) {
+            TokenIO.TokenCluster tokenCluster) {
         final TokenRequestGeneratedUrl generatedUrl = TokenRequestGeneratedUrl.create(
                 requestId,
                 state,
-                hostName);
+                tokenCluster);
 
         return Observable.fromCallable(new Callable<TokenRequestGeneratedUrl>() {
             @Override

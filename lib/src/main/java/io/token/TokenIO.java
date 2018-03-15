@@ -391,20 +391,20 @@ public class TokenIO implements Closeable {
      * Defines Token cluster to connect to.
      */
     public enum TokenCluster {
-        PRODUCTION(TokenClusterConfig.create("api-grpc.token.io", "web-app.token.io")),
-        INTEGRATION(TokenClusterConfig.create("api-grpc.int.token.io", "web-app.int.token.io")),
-        SANDBOX(TokenClusterConfig.create("api-grpc.sandbox.token.io", "web-app.sandbox.token.io")),
-        STAGING(TokenClusterConfig.create("api-grpc.stg.token.io", "web-app.stg.token.io")),
-        DEVELOPMENT(TokenClusterConfig.create("api-grpc.dev.token.io", "web-app.dev.token.io"));
+        PRODUCTION("api-grpc.token.io"),
+        INTEGRATION("api-grpc.int.token.io"),
+        SANDBOX("api-grpc.sandbox.token.io"),
+        STAGING("api-grpc.stg.token.io"),
+        DEVELOPMENT("api-grpc.dev.token.io");
 
-        private final TokenClusterConfig clusterConfig;
+        private final String envUrl;
 
-        TokenCluster(TokenClusterConfig clusterConfig) {
-            this.clusterConfig = clusterConfig;
+        TokenCluster(String envUrl) {
+            this.envUrl = envUrl;
         }
 
-        public TokenClusterConfig getClusterConfig() {
-            return clusterConfig;
+        public String getUrl() {
+            return envUrl;
         }
     }
 
@@ -417,7 +417,8 @@ public class TokenIO implements Closeable {
 
         private int port;
         private boolean useSsl;
-        private TokenClusterConfig clusterConfig;
+        private TokenCluster tokenCluster;
+        private String hostName;
         private long timeoutMs;
         private CryptoEngineFactory cryptoEngine;
         private String devKey;
@@ -429,6 +430,17 @@ public class TokenIO implements Closeable {
             this.timeoutMs = DEFAULT_TIMEOUT_MS;
             this.port = DEFAULT_SSL_PORT;
             this.useSsl = true;
+        }
+
+        /**
+         * Sets the host name of the Token Gateway Service to connect to.
+         *
+         * @param hostName host name, e.g. 'api.token.io'
+         * @return this builder instance
+         */
+        public Builder hostName(String hostName) {
+            this.hostName = hostName;
+            return this;
         }
 
         /**
@@ -450,7 +462,8 @@ public class TokenIO implements Closeable {
          * @return this builder instance
          */
         public Builder connectTo(TokenCluster cluster) {
-            this.clusterConfig = cluster.getClusterConfig();
+            this.tokenCluster = cluster;
+            this.hostName = cluster.getUrl();
             return this;
         }
 
@@ -531,7 +544,7 @@ public class TokenIO implements Closeable {
                     devKey);
             return new TokenIOAsync(
                     RpcChannelFactory
-                            .builder(clusterConfig.getGatewayUrl(), port, useSsl)
+                            .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
                             .withMetadata(headers)
                             .build(),
@@ -539,7 +552,7 @@ public class TokenIO implements Closeable {
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
                     devKey,
-                    clusterConfig);
+                    tokenCluster);
         }
     }
 

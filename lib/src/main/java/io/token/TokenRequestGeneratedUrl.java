@@ -37,16 +37,37 @@ public abstract class TokenRequestGeneratedUrl {
     private static final String PROTOCOL = "https";
     private static final String PATH_TEMPLATE = "/authorize ?requestId=%s&state=%s";
 
+    private enum ClusterDomain {
+        PRODUCTION("web-app.token.io"),
+        INTEGRATION("web-app.int.token.io"),
+        SANDBOX("web-app.sandbox.token.io"),
+        STAGING("web-app.stg.token.io"),
+        DEVELOPMENT("web-app.dev.token.io");
+
+        private final String envUrl;
+
+        ClusterDomain(String envUrl) {
+            this.envUrl = envUrl;
+        }
+
+        public String getUrl() {
+            return envUrl;
+        }
+    }
+
     /**
      * Create an instance of TokenRequestGeneratedUrl.
      *
      * @param requestId request id
      * @param state state
-     * @param hostName host name
+     * @param tokenCluster token cluster
      * @return instance of TokenRequestGeneratedUrl
      * @throws MalformedTokenRequestUrlException malformed token request url exception
      */
-    public static TokenRequestGeneratedUrl create(String requestId, String state, String hostName) {
+    public static TokenRequestGeneratedUrl create(
+            String requestId,
+            String state,
+            TokenIO.TokenCluster tokenCluster) {
         try {
             String nonce = generateNonce();
             String nonceHash = hashString(nonce);
@@ -54,7 +75,7 @@ public abstract class TokenRequestGeneratedUrl {
 
             return new AutoValue_TokenRequestGeneratedUrl(
                     nonce,
-                    toUrl(requestId, tokenRequestState.toSerializedState(), hostName));
+                    toUrl(requestId, tokenRequestState.toSerializedState(), tokenCluster));
         } catch (MalformedURLException ex) {
             throw new MalformedTokenRequestUrlException();
         }
@@ -64,11 +85,11 @@ public abstract class TokenRequestGeneratedUrl {
 
     public abstract URL getUrl();
 
-    private static URL toUrl(String requestId, String state, String hostName)
+    private static URL toUrl(String requestId, String state, TokenIO.TokenCluster tokenCluster)
             throws MalformedURLException {
         return new URL(
                 PROTOCOL,
-                hostName,
+                ClusterDomain.valueOf(tokenCluster.name()).getUrl(),
                 format(PATH_TEMPLATE, requestId, state));
     }
 }

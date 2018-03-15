@@ -78,7 +78,7 @@ public class TokenIOAsync implements Closeable {
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
     private final String devKey;
-    private final TokenClusterConfig clusterConfig;
+    private final TokenIO.TokenCluster tokenCluster;
 
     /**
      * Creates an instance of a Token SDK.
@@ -91,11 +91,11 @@ public class TokenIOAsync implements Closeable {
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
             String developerKey,
-            TokenClusterConfig clusterConfig) {
+            TokenIO.TokenCluster tokenCluster) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.devKey = developerKey;
-        this.clusterConfig = clusterConfig;
+        this.tokenCluster = tokenCluster;
     }
 
     @Override
@@ -454,7 +454,7 @@ public class TokenIOAsync implements Closeable {
         return unauthenticated.generateTokenRequestUrl(
                 requestId,
                 state,
-                clusterConfig.getWebappUrl());
+                tokenCluster);
     }
 
     /**
