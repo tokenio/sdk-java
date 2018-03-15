@@ -25,6 +25,7 @@ package io.token.rpc;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.TokenIO.TokenCluster;
 import static io.token.util.Util.TOKEN;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashString;
@@ -34,7 +35,6 @@ import static io.token.util.Util.verifySignature;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.TokenIO;
 import io.token.TokenRequest;
 import io.token.TokenRequestGeneratedUrl;
 import io.token.TokenRequestQueryParser;
@@ -580,7 +580,7 @@ public final class UnauthenticatedClient {
     public Observable<TokenRequestGeneratedUrl> generateTokenRequestUrl(
             String requestId,
             String state,
-            TokenIO.TokenCluster tokenCluster) {
+            TokenCluster tokenCluster) {
         final TokenRequestGeneratedUrl generatedUrl = TokenRequestGeneratedUrl.create(
                 requestId,
                 state,

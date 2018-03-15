@@ -22,6 +22,7 @@
 
 package io.token;
 
+import static io.token.TokenIO.TokenCluster;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashString;
 import static java.lang.String.format;
@@ -37,7 +38,7 @@ public abstract class TokenRequestGeneratedUrl {
     private static final String PROTOCOL = "https";
     private static final String PATH_TEMPLATE = "/authorize ?requestId=%s&state=%s";
 
-    private enum ClusterDomain {
+    private enum TokenWebCluster {
         PRODUCTION("web-app.token.io"),
         INTEGRATION("web-app.int.token.io"),
         SANDBOX("web-app.sandbox.token.io"),
@@ -46,7 +47,7 @@ public abstract class TokenRequestGeneratedUrl {
 
         private final String envUrl;
 
-        ClusterDomain(String envUrl) {
+        TokenWebCluster(String envUrl) {
             this.envUrl = envUrl;
         }
 
@@ -67,7 +68,7 @@ public abstract class TokenRequestGeneratedUrl {
     public static TokenRequestGeneratedUrl create(
             String requestId,
             String state,
-            TokenIO.TokenCluster tokenCluster) {
+            TokenCluster tokenCluster) {
         try {
             String nonce = generateNonce();
             String nonceHash = hashString(nonce);
@@ -85,11 +86,11 @@ public abstract class TokenRequestGeneratedUrl {
 
     public abstract URL getUrl();
 
-    private static URL toUrl(String requestId, String state, TokenIO.TokenCluster tokenCluster)
+    private static URL toUrl(String requestId, String state, TokenCluster tokenCluster)
             throws MalformedURLException {
         return new URL(
                 PROTOCOL,
-                ClusterDomain.valueOf(tokenCluster.name()).getUrl(),
+                TokenWebCluster.valueOf(tokenCluster.name()).getUrl(),
                 format(PATH_TEMPLATE, requestId, state));
     }
 }

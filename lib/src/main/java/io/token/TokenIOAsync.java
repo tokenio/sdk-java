@@ -26,6 +26,7 @@ import static io.grpc.Status.NOT_FOUND;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.TokenIO.TokenCluster;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toAddAliasOperation;
@@ -78,7 +79,7 @@ public class TokenIOAsync implements Closeable {
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
     private final String devKey;
-    private final TokenIO.TokenCluster tokenCluster;
+    private final TokenCluster tokenCluster;
 
     /**
      * Creates an instance of a Token SDK.
@@ -91,7 +92,7 @@ public class TokenIOAsync implements Closeable {
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
             String developerKey,
-            TokenIO.TokenCluster tokenCluster) {
+            TokenCluster tokenCluster) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.devKey = developerKey;

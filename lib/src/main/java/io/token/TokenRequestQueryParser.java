@@ -44,27 +44,27 @@ public abstract class TokenRequestQueryParser {
      */
     public static TokenRequestQueryParser parse(String query) {
         String[] params = query.split("&");
-        Map<String, String> map = new HashMap<>();
+        Map<String, String> parameters = new HashMap<>();
 
         for (String param : params) {
             String name = param.split("=")[0];
             String value = param.split("=")[1];
-            map.put(name, value);
+            parameters.put(name, value);
         }
 
-        verifyParameters(map);
+        verifyParameters(parameters);
 
         return new AutoValue_TokenRequestQueryParser(
-                map.get(TOKEN_ID_FIELD),
-                TokenRequestState.fromSerializedState(map.get(STATE_FIELD)),
-                map.get(STATE_FIELD),
-                (Signature) ProtoJson.fromJson(map.get(SIGNATURE_FIELD), Signature.newBuilder()));
+                parameters.get(TOKEN_ID_FIELD),
+                TokenRequestState.fromSerializedState(parameters.get(STATE_FIELD)),
+                parameters.get(STATE_FIELD),
+                (Signature) ProtoJson.fromJson(parameters.get(SIGNATURE_FIELD), Signature.newBuilder()));
     }
 
-    private static void verifyParameters(Map<String, String> map) {
-        if (!map.containsKey(TOKEN_ID_FIELD)
-                || !map.containsKey(STATE_FIELD)
-                || !map.containsKey(SIGNATURE_FIELD)) {
+    private static void verifyParameters(Map<String, String> parameters) {
+        if (!parameters.containsKey(TOKEN_ID_FIELD)
+                || !parameters.containsKey(STATE_FIELD)
+                || !parameters.containsKey(SIGNATURE_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
     }
