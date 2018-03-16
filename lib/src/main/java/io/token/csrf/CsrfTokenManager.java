@@ -71,15 +71,6 @@ public class CsrfTokenManager {
     }
 
     /**
-     * Generate a CSRF token (a nonce).
-     *
-     * @return CSRF token
-     */
-    public String generateCsrfToken() {
-        return generateNonce();
-    }
-
-    /**
      * Generate a Token request URL from a request ID, an original state, a CSRF token and a token
      * cluster.
      *

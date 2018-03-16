@@ -445,15 +445,6 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Generate a CSRF token (a nonce).
-     *
-     * @return CSRF token
-     */
-    public Observable<String> generateCsrfToken() {
-        return Observable.just(csrfTokenManager.generateCsrfToken());
-    }
-
-    /**
      * Generate a Token request URL from a request ID, an original state, a CSRF token and a token
      * cluster.
      *

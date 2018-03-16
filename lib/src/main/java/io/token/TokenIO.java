@@ -365,15 +365,6 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Generate a CSRF token (a nonce).
-     *
-     * @return CSRF token
-     */
-    public String generateCsrfToken() {
-        return async.generateCsrfToken().blockingSingle();
-    }
-
-    /**
      * Generate a Token request URL from a request ID, an original state and a CSRF token.
      *
      * @param requestId request id
