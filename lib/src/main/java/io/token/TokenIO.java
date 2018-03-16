@@ -28,7 +28,7 @@ import static io.grpc.Status.INVALID_ARGUMENT;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
-import io.token.csrf.CsrfToken;
+import io.token.csrf.CsrfTokenManager;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -366,15 +366,25 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Generate a CSRF token containing a nonce and a token request authentication url from a
-     * request ID and a state string.
+     * Generate a CSRF token (a nonce).
+     *
+     * @return CSRF token
+     */
+    public String generateCsrfToken() {
+        return async.generateCsrfToken().blockingSingle();
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, an original state, a CSRF token and a token
+     * cluster.
      *
      * @param requestId request id
      * @param state state
-     * @return token request authentication url
+     * @param csrfToken csrf token
+     * @return token request url
      */
-    public CsrfToken generateCsrfToken(String requestId, String state) {
-        return async.generateCsrfToken(requestId, state).blockingSingle();
+    public URL generateTokenRequestUrl(String requestId, String state, String csrfToken) {
+        return async.generateTokenRequestUrl(requestId, state, csrfToken).blockingSingle();
     }
 
     /**
@@ -555,7 +565,7 @@ public class TokenIO implements Closeable {
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
                     devKey,
-                    tokenCluster);
+                    new CsrfTokenManager(tokenCluster));
         }
     }
 

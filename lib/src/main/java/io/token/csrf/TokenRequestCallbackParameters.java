@@ -31,7 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @AutoValue
-abstract class TokenRequestCallbackParser {
+abstract class TokenRequestCallbackParameters {
     private static final String TOKEN_ID_FIELD = "token-id";
     private static final String STATE_FIELD = "state";
     private static final String SIGNATURE_FIELD = "signature";
@@ -43,7 +43,7 @@ abstract class TokenRequestCallbackParser {
      * @param query token request callback query
      * @return TokenRequestCallbackParser instance
      */
-    static TokenRequestCallbackParser parse(String query) {
+    static TokenRequestCallbackParameters parseUrl(String query) {
         String[] params = query.split("&");
         Map<String, String> parameters = new HashMap<>();
 
@@ -55,7 +55,7 @@ abstract class TokenRequestCallbackParser {
 
         verifyParameters(parameters);
 
-        return new AutoValue_TokenRequestCallbackParser(
+        return new AutoValue_TokenRequestCallbackParameters(
                 parameters.get(TOKEN_ID_FIELD),
                 TokenRequestState.fromSerializedState(parameters.get(STATE_FIELD)),
                 parameters.get(STATE_FIELD),

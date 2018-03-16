@@ -33,6 +33,11 @@ abstract class TokenRequestState implements Serializable {
         return new AutoValue_TokenRequestState(nonceHash, state);
     }
 
+    static TokenRequestState fromSerializedState(String state) {
+        Gson gson = new Gson();
+        return gson.fromJson(state, AutoValue_TokenRequestState.class);
+    }
+
     abstract String getNonceHash();
 
     abstract String getState();
@@ -40,11 +45,6 @@ abstract class TokenRequestState implements Serializable {
     String toSerializedState() {
         Gson gson  = new Gson();
         return gson.toJson(this);
-    }
-
-    static TokenRequestState fromSerializedState(String state) {
-        Gson gson = new Gson();
-        return gson.fromJson(state, TokenRequestState.class);
     }
 }
 

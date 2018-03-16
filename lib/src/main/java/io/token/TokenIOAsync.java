@@ -23,7 +23,6 @@
 package io.token;
 
 import static io.grpc.Status.NOT_FOUND;
-import static io.token.TokenIO.TokenCluster;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -39,12 +38,12 @@ import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.csrf.CsrfToken;
 import io.token.csrf.CsrfTokenManager;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos;
+import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
@@ -81,7 +80,7 @@ public class TokenIOAsync implements Closeable {
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
     private final String devKey;
-    private final TokenCluster tokenCluster;
+    private final CsrfTokenManager csrfTokenManager;
 
     /**
      * Creates an instance of a Token SDK.
@@ -89,16 +88,17 @@ public class TokenIOAsync implements Closeable {
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
      * @param developerKey developer key
+     * @param csrfTokenManager CSRF token manager
      */
     TokenIOAsync(
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
             String developerKey,
-            TokenCluster tokenCluster) {
+            CsrfTokenManager csrfTokenManager) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.devKey = developerKey;
-        this.tokenCluster = tokenCluster;
+        this.csrfTokenManager = csrfTokenManager;
     }
 
     @Override
@@ -444,17 +444,31 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Generate a CSRF token containing a nonce and a token request authentication url from a
-     * request ID and a state string.
+     * Generate a CSRF token (a nonce).
+     *
+     * @return CSRF token
+     */
+    public Observable<String> generateCsrfToken() {
+        return Observable.just(csrfTokenManager.generateCsrfToken());
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, an original state, a CSRF token and a token
+     * cluster.
      *
      * @param requestId request id
      * @param state state
-     * @return CSRF token
+     * @param csrfToken csrf token
+     * @return token request url
      */
-    public Observable<CsrfToken> generateCsrfToken(
+    public Observable<URL> generateTokenRequestUrl(
             String requestId,
-            String state) {
-        return Observable.just(CsrfTokenManager.generateCsrfToken(requestId, state, tokenCluster));
+            String state,
+            String csrfToken) {
+        return Observable.just(csrfTokenManager.generateTokenRequestUrl(
+                requestId,
+                state,
+                csrfToken));
     }
 
     /**
@@ -467,9 +481,17 @@ public class TokenIOAsync implements Closeable {
      * @return the extracted original state
      */
     public Observable<String> parseTokenRequestCallbackUrl(
-            URL tokenRequestCallbackUrl,
-            String nonce) {
+            final URL tokenRequestCallbackUrl,
+            final String nonce) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, nonce);
+        return unauthenticated.getTokenMember().map(new Function<Member, String>() {
+            @Override
+            public String apply(Member member) throws Exception {
+                return csrfTokenManager.parseTokenRequestCallbackUrl(
+                        member,
+                        tokenRequestCallbackUrl,
+                        nonce);
+            }
+        });
     }
 }

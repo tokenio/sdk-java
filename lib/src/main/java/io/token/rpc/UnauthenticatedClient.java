@@ -33,7 +33,6 @@ import static io.token.util.Util.toObservable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
-import io.token.csrf.CsrfTokenManager;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -77,7 +76,6 @@ import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
-import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -545,7 +543,6 @@ public final class UnauthenticatedClient {
                 });
     }
 
-
     /**
      * Returns a list of all token enabled banks.
      *
@@ -562,30 +559,11 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Parse the token request callback URL to extract the state, the token ID and the signature of
-     * (state | token ID). Verify that the state contains the nonce's hash, and that the signature
-     * of the token request payload is valid. Return the extracted original state.
+     * Return the token member.
      *
-     * @param tokenRequestCallbackUrl token request callback url
-     * @param nonce nonce
-     * @return the extracted original state
+     * @return token member
      */
-    public Observable<String> parseTokenRequestCallbackUrl(
-            final URL tokenRequestCallbackUrl,
-            final String nonce) {
-        return getTokenMember().map(new Function<Member, String>() {
-            @Override
-            public String apply(Member member) throws Exception {
-                return CsrfTokenManager.parseTokenRequestCallbackUrl(
-                        member,
-                        tokenRequestCallbackUrl,
-                        nonce);
-            }
-        });
-    }
-
-
-    private Observable<Member> getTokenMember() {
+    public Observable<Member> getTokenMember() {
         return getMemberId(TOKEN).flatMap(
                 new Function<String, Observable<Member>>() {
                     @Override

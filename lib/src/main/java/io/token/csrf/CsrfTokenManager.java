@@ -23,32 +23,81 @@
 package io.token.csrf;
 
 import static io.token.TokenIO.TokenCluster;
+import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashString;
 import static io.token.util.Util.verifySignature;
+import static java.lang.String.format;
 
 import io.token.exceptions.InvalidStateException;
+import io.token.exceptions.MalformedTokenRequestUrlException;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 
-public abstract class CsrfTokenManager {
-    private CsrfTokenManager() {}
+public class CsrfTokenManager {
+    private static final String PROTOCOL = "https";
+    private static final String PATH_TEMPLATE = "/authorize ?requestId=%s&state=%s";
+    private final TokenCluster tokenCluster;
+
+    private enum TokenWebCluster {
+        PRODUCTION("web-app.token.io"),
+        INTEGRATION("web-app.int.token.io"),
+        SANDBOX("web-app.sandbox.token.io"),
+        STAGING("web-app.stg.token.io"),
+        DEVELOPMENT("web-app.dev.token.io");
+
+        private final String envUrl;
+
+        TokenWebCluster(String envUrl) {
+            this.envUrl = envUrl;
+        }
+
+        public String getUrl() {
+            return envUrl;
+        }
+    }
 
     /**
-     * Generate a CSRF token containing a nonce and a token request authentication url from a
-     * request ID and a state string.
+     * Construct a new instance of CsrfTokenManager.
      *
-     * @param requestId request id
-     * @param state original state
      * @param tokenCluster token cluster
-     * @return CSRF Token containing nonce and token request URL
      */
-    public static CsrfToken generateCsrfToken(
+    public CsrfTokenManager(TokenCluster tokenCluster) {
+        this.tokenCluster = tokenCluster;
+    }
+
+    /**
+     * Generate a CSRF token (a nonce).
+     *
+     * @return CSRF token
+     */
+    public String generateCsrfToken() {
+        return generateNonce();
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, an original state, a CSRF token and a token
+     * cluster.
+     *
+     * @param requestId request ID.
+     * @param state state
+     * @param csrfToken CSRF Token
+     * @return token request url
+     */
+    public URL generateTokenRequestUrl(
             String requestId,
             String state,
-            TokenCluster tokenCluster) {
-        return CsrfToken.create(requestId, state, tokenCluster);
+            String csrfToken) {
+        try {
+            String csrfTokenHash = hashString(csrfToken);
+            TokenRequestState tokenRequestState = TokenRequestState.create(csrfTokenHash, state);
+
+            return toUrl(requestId, tokenRequestState.toSerializedState(), tokenCluster);
+        } catch (MalformedURLException ex) {
+            throw new MalformedTokenRequestUrlException();
+        }
     }
 
     /**
@@ -61,32 +110,40 @@ public abstract class CsrfTokenManager {
      * @param nonce nonce
      * @return original state
      */
-    public static String parseTokenRequestCallbackUrl(
+    public String parseTokenRequestCallbackUrl(
             Member member,
             URL tokenRequestCallbackUrl,
             String nonce) {
-        final TokenRequestCallbackParser parser = TokenRequestCallbackParser
-                .parse(tokenRequestCallbackUrl.getQuery());
+        TokenRequestCallbackParameters callbackParameters = TokenRequestCallbackParameters
+                .parseUrl(tokenRequestCallbackUrl.getQuery());
 
-        verifyNonceHashInState(hashString(nonce), parser.getState());
+        verifyNonceHashInState(hashString(nonce), callbackParameters.getState());
         verifySignature(
                 member,
                 getRequestSignaturePayload(
-                        parser.getTokenId(),
-                        parser.getSerializedState()),
-                parser.getSignature());
+                        callbackParameters.getTokenId(),
+                        callbackParameters.getSerializedState()),
+                callbackParameters.getSignature());
 
-        return parser.getState().getState();
+        return callbackParameters.getState().getState();
 
     }
 
-    private static void verifyNonceHashInState(String nonceHash, TokenRequestState state) {
+    private URL toUrl(String requestId, String state, TokenCluster tokenCluster)
+            throws MalformedURLException {
+        return new URL(
+                PROTOCOL,
+                TokenWebCluster.valueOf(tokenCluster.name()).getUrl(),
+                format(PATH_TEMPLATE, requestId, state));
+    }
+
+    private void verifyNonceHashInState(String nonceHash, TokenRequestState state) {
         if (!state.getNonceHash().equals(nonceHash)) {
             throw new InvalidStateException(nonceHash);
         }
     }
 
-    private static RequestSignaturePayload getRequestSignaturePayload(
+    private RequestSignaturePayload getRequestSignaturePayload(
             String tokenId,
             String serializedState) {
         return RequestSignaturePayload.newBuilder()
