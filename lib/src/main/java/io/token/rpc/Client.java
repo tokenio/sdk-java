@@ -24,7 +24,6 @@ package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
-import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
@@ -189,10 +188,6 @@ import javax.annotation.Nullable;
  * easier to use.
  */
 public final class Client {
-    private static final Alias TOKEN = Alias.newBuilder()
-            .setType(DOMAIN)
-            .setValue("token.io")
-            .build();
     private final String memberId;
     private final CryptoEngine crypto;
     private final GatewayServiceFutureStub gateway;

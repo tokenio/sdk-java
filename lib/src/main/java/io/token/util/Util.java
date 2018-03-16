@@ -23,24 +23,34 @@
 package io.token.util;
 
 import static io.token.proto.ProtoHasher.hashAndSerializeJson;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
+import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.protobuf.Message;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAliasMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.security.KeyNotFoundException;
+import io.token.security.crypto.Crypto;
+import io.token.security.crypto.CryptoRegistry;
 
+import java.nio.charset.Charset;
+import java.security.PublicKey;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 
@@ -49,6 +59,14 @@ import javax.annotation.Nullable;
  * Utility methods.
  */
 public abstract class Util {
+    /**
+     * The token alias.
+     */
+    public static final Alias TOKEN = Alias.newBuilder()
+            .setType(DOMAIN)
+            .setValue("token.io")
+            .build();
+
     private Util() {
     }
 
@@ -210,5 +228,61 @@ public abstract class Util {
             }
         }
         return null;
+    }
+
+    /**
+     * Hashes a string.
+     *
+     * @param value value to hash
+     * @return hash
+     */
+    public static String hashString(String value) {
+        return Hashing
+                .sha256()
+                .hashString(value, Charset.forName("ASCII"))
+                .toString();
+    }
+
+    /**
+     * Verify the signature of the payload.
+     *
+     * @param member member
+     * @param payload payload
+     * @param signature signature
+     */
+    public static void verifySignature(
+            Member member,
+            Message payload,
+            Signature signature) {
+        Key key = getSigningKey(member, signature);
+
+        Crypto crypto = CryptoRegistry.getInstance().cryptoFor(key.getAlgorithm());
+        PublicKey publicKey = crypto.toPublicKey(key.getPublicKey());
+        crypto.verifier(publicKey).verify(payload, signature.getSignature());
+    }
+
+    /**
+     * Get the key corresponding to a signature.
+     *
+     * @param member member
+     * @param signature signature
+     * @return signing key if member owns it.
+     */
+    public static Key getSigningKey(Member member, Signature signature) {
+        Key key = null;
+        String keyId = signature.getKeyId();
+
+        for (Key k : member.getKeysList()) {
+            if (k.getId().equals(keyId)) {
+                key = k;
+                break;
+            }
+        }
+
+        if (key == null) {
+            throw new KeyNotFoundException(keyId);
+        }
+
+        return key;
     }
 }

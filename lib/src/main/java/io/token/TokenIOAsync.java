@@ -23,6 +23,7 @@
 package io.token;
 
 import static io.grpc.Status.NOT_FOUND;
+import static io.token.TokenIO.TokenCluster;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -38,10 +39,12 @@ import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.csrf.CsrfTokenManager;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos;
+import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
@@ -59,6 +62,7 @@ import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 
 import java.io.Closeable;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -77,6 +81,7 @@ public class TokenIOAsync implements Closeable {
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
     private final String devKey;
+    private final CsrfTokenManager csrfTokenManager;
 
     /**
      * Creates an instance of a Token SDK.
@@ -84,11 +89,17 @@ public class TokenIOAsync implements Closeable {
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
      * @param developerKey developer key
+     * @param tokenCluster token cluster
      */
-    TokenIOAsync(ManagedChannel channel, CryptoEngineFactory cryptoFactory, String developerKey) {
+    TokenIOAsync(
+            ManagedChannel channel,
+            CryptoEngineFactory cryptoFactory,
+            String developerKey,
+            TokenCluster tokenCluster) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.devKey = developerKey;
+        this.csrfTokenManager = new CsrfTokenManager(tokenCluster);
     }
 
     @Override
@@ -431,5 +442,48 @@ public class TokenIOAsync implements Closeable {
     public Observable<List<Bank>> getBanks() {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getBanks();
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, an original state, a CSRF token and a token
+     * cluster.
+     *
+     * @param requestId request id
+     * @param state state
+     * @param csrfToken csrf token
+     * @return token request url
+     */
+    public Observable<URL> generateTokenRequestUrl(
+            String requestId,
+            String state,
+            String csrfToken) {
+        return Observable.just(csrfTokenManager.generateTokenRequestUrl(
+                requestId,
+                state,
+                csrfToken));
+    }
+
+    /**
+     * Parse the token request callback URL to extract the state, the token ID and the signature of
+     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
+     * signature of the token request payload is valid. Return the extracted original state.
+     *
+     * @param tokenRequestCallbackUrl token request callback url
+     * @param csrfToken csrfToken
+     * @return the extracted original state
+     */
+    public Observable<String> parseTokenRequestCallbackUrl(
+            final URL tokenRequestCallbackUrl,
+            final String csrfToken) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getTokenMember().map(new Function<Member, String>() {
+            @Override
+            public String apply(Member member) throws Exception {
+                return csrfTokenManager.parseTokenRequestCallbackUrl(
+                        member,
+                        tokenRequestCallbackUrl,
+                        csrfToken);
+            }
+        });
     }
 }

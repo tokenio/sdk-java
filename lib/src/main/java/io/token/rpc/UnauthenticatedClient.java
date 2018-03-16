@@ -25,6 +25,7 @@ package io.token.rpc;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.util.Util.TOKEN;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
@@ -71,6 +72,7 @@ import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
@@ -127,6 +129,25 @@ public final class UnauthenticatedClient {
                 .map(new Function<ResolveAliasResponse, String>() {
                     public String apply(ResolveAliasResponse response) {
                         return response.hasMember() ? response.getMember().getId() : null;
+                    }
+                });
+    }
+
+    /**
+     * Looks up member information for the given member ID. The user is defined by
+     * the key used for authentication.
+     *
+     * @param memberId member id
+     * @return an observable of member
+     */
+    public Observable<Member> getMember(String memberId) {
+        return Converters
+                .toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetMemberResponse, Member>() {
+                    public Member apply(GetMemberResponse response) {
+                        return response.getMember();
                     }
                 });
     }
@@ -423,6 +444,17 @@ public final class UnauthenticatedClient {
                 });
     }
 
+    private List<MemberOperation> toMemberOperations(Key... keys) {
+        List<MemberOperation> operations = new LinkedList<>();
+        for (Key key : keys) {
+            operations.add(MemberOperation.newBuilder()
+                    .setAddKey(MemberAddKeyOperation.newBuilder()
+                            .setKey(key))
+                    .build());
+        }
+        return operations;
+    }
+
     /**
      * Completes account recovery if the default recovery rule was set.
      *
@@ -511,7 +543,6 @@ public final class UnauthenticatedClient {
                 });
     }
 
-
     /**
      * Returns a list of all token enabled banks.
      *
@@ -527,14 +558,18 @@ public final class UnauthenticatedClient {
                 });
     }
 
-    private List<MemberOperation> toMemberOperations(Key... keys) {
-        List<MemberOperation> operations = new LinkedList<>();
-        for (Key key : keys) {
-            operations.add(MemberOperation.newBuilder()
-                    .setAddKey(MemberAddKeyOperation.newBuilder()
-                            .setKey(key))
-                    .build());
-        }
-        return operations;
+    /**
+     * Return the token member.
+     *
+     * @return token member
+     */
+    public Observable<Member> getTokenMember() {
+        return getMemberId(TOKEN).flatMap(
+                new Function<String, Observable<Member>>() {
+                    @Override
+                    public Observable<Member> apply(String memberId) throws Exception {
+                        return getMember(memberId);
+                    }
+                });
     }
 }

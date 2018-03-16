@@ -45,6 +45,7 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
+import java.net.URL;
 import java.util.List;
 
 /**
@@ -364,6 +365,33 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Generate a Token request URL from a request ID, an original state and a CSRF token.
+     *
+     * @param requestId request id
+     * @param state state
+     * @param csrfToken csrf token
+     * @return token request url
+     */
+    public URL generateTokenRequestUrl(String requestId, String state, String csrfToken) {
+        return async.generateTokenRequestUrl(requestId, state, csrfToken).blockingSingle();
+    }
+
+    /**
+     * Parse the token request callback URL to extract the state, the token ID and the signature of
+     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
+     * signature of the token request payload is valid. Return the extracted original state.
+     *
+     * @param tokenRequestCallbackUrl token request callback url
+     * @param csrfToken csrf token
+     * @return the extracted original state
+     */
+    public String parseTokenRequestCallbackUrl(URL tokenRequestCallbackUrl, String csrfToken) {
+        return async
+                .parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, csrfToken)
+                .blockingSingle();
+    }
+
+    /**
      * Defines Token cluster to connect to.
      */
     public enum TokenCluster {
@@ -393,6 +421,7 @@ public class TokenIO implements Closeable {
 
         private int port;
         private boolean useSsl;
+        private TokenCluster tokenCluster;
         private String hostName;
         private long timeoutMs;
         private CryptoEngineFactory cryptoEngine;
@@ -437,6 +466,7 @@ public class TokenIO implements Closeable {
          * @return this builder instance
          */
         public Builder connectTo(TokenCluster cluster) {
+            this.tokenCluster = cluster;
             this.hostName = cluster.url();
             return this;
         }
@@ -525,7 +555,8 @@ public class TokenIO implements Closeable {
                     cryptoEngine != null
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
-                    devKey);
+                    devKey,
+                    tokenCluster);
         }
     }
 
