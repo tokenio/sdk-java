@@ -218,8 +218,8 @@ public final class UnauthenticatedClient {
                             RetrieveTokenRequestResponse retrieveTokenRequestResponse)
                             throws Exception {
                         return TokenRequest.create(
-                                retrieveTokenRequestResponse.getPayload(),
-                                retrieveTokenRequestResponse.getOptionsMap());
+                                retrieveTokenRequestResponse.getTokenRequest().getPayload(),
+                                retrieveTokenRequestResponse.getTokenRequest().getOptionsMap());
                     }
                 });
     }
