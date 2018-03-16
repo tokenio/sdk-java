@@ -23,6 +23,7 @@
 package io.token;
 
 import static io.grpc.Status.NOT_FOUND;
+import static io.token.TokenIO.TokenCluster;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -88,17 +89,17 @@ public class TokenIOAsync implements Closeable {
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
      * @param developerKey developer key
-     * @param csrfTokenManager CSRF token manager
+     * @param tokenCluster token cluster
      */
     TokenIOAsync(
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
             String developerKey,
-            CsrfTokenManager csrfTokenManager) {
+            TokenCluster tokenCluster) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.devKey = developerKey;
-        this.csrfTokenManager = csrfTokenManager;
+        this.csrfTokenManager = new CsrfTokenManager(tokenCluster);
     }
 
     @Override
@@ -473,16 +474,16 @@ public class TokenIOAsync implements Closeable {
 
     /**
      * Parse the token request callback URL to extract the state, the token ID and the signature of
-     * (state | token ID). Verify that the state contains the nonce's hash, and that the signature
-     * of the token request payload is valid. Return the extracted original state.
+     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
+     * signature of the token request payload is valid. Return the extracted original state.
      *
      * @param tokenRequestCallbackUrl token request callback url
-     * @param nonce nonce
+     * @param csrfToken csrfToken
      * @return the extracted original state
      */
     public Observable<String> parseTokenRequestCallbackUrl(
             final URL tokenRequestCallbackUrl,
-            final String nonce) {
+            final String csrfToken) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getTokenMember().map(new Function<Member, String>() {
             @Override
@@ -490,7 +491,7 @@ public class TokenIOAsync implements Closeable {
                 return csrfTokenManager.parseTokenRequestCallbackUrl(
                         member,
                         tokenRequestCallbackUrl,
-                        nonce);
+                        csrfToken);
             }
         });
     }

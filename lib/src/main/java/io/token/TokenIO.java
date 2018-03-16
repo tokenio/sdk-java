@@ -28,7 +28,6 @@ import static io.grpc.Status.INVALID_ARGUMENT;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
-import io.token.csrf.CsrfTokenManager;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -375,8 +374,7 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Generate a Token request URL from a request ID, an original state, a CSRF token and a token
-     * cluster.
+     * Generate a Token request URL from a request ID, an original state and a CSRF token.
      *
      * @param requestId request id
      * @param state state
@@ -389,15 +387,17 @@ public class TokenIO implements Closeable {
 
     /**
      * Parse the token request callback URL to extract the state, the token ID and the signature of
-     * (state | token ID). Verify that the state contains the nonce's hash, and that the signature
-     * of the token request payload is valid. Return the extracted original state.
+     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
+     * signature of the token request payload is valid. Return the extracted original state.
      *
      * @param tokenRequestCallbackUrl token request callback url
-     * @param nonce nonce
+     * @param csrfToken csrf token
      * @return the extracted original state
      */
-    public String parseTokenRequestCallbackUrl(URL tokenRequestCallbackUrl, String nonce) {
-        return async.parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, nonce).blockingSingle();
+    public String parseTokenRequestCallbackUrl(URL tokenRequestCallbackUrl, String csrfToken) {
+        return async
+                .parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, csrfToken)
+                .blockingSingle();
     }
 
     /**
@@ -565,7 +565,7 @@ public class TokenIO implements Closeable {
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
                     devKey,
-                    new CsrfTokenManager(tokenCluster));
+                    tokenCluster);
         }
     }
 

@@ -102,31 +102,30 @@ public class CsrfTokenManager {
 
     /**
      * Parse the token request callback URL to extract the state, the token ID and the signature of
-     * (state | token ID). Verify that the state contains the nonce's hash, and that the signature
-     * of the token request payload is valid. Return the extracted original state.
+     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
+     * signature of the token request payload is valid. Return the extracted original state.
      *
-     * @param member member
+     * @param tokenMember member
      * @param tokenRequestCallbackUrl token request callback URL
-     * @param nonce nonce
+     * @param csrfToken csrf token
      * @return original state
      */
     public String parseTokenRequestCallbackUrl(
-            Member member,
+            Member tokenMember,
             URL tokenRequestCallbackUrl,
-            String nonce) {
+            String csrfToken) {
         TokenRequestCallbackParameters callbackParameters = TokenRequestCallbackParameters
                 .parseUrl(tokenRequestCallbackUrl.getQuery());
 
-        verifyNonceHashInState(hashString(nonce), callbackParameters.getState());
+        verifyNonceHashInState(hashString(csrfToken), callbackParameters.getState());
         verifySignature(
-                member,
+                tokenMember,
                 getRequestSignaturePayload(
                         callbackParameters.getTokenId(),
                         callbackParameters.getSerializedState()),
                 callbackParameters.getSignature());
 
         return callbackParameters.getState().getState();
-
     }
 
     private URL toUrl(String requestId, String state, TokenCluster tokenCluster)

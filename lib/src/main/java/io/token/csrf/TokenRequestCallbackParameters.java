@@ -41,7 +41,7 @@ abstract class TokenRequestCallbackParameters {
      * the signature over (state | token ID).
      *
      * @param query token request callback query
-     * @return TokenRequestCallbackParser instance
+     * @return TokenRequestCallbackParameters instance
      */
     static TokenRequestCallbackParameters parseUrl(String query) {
         String[] params = query.split("&");
