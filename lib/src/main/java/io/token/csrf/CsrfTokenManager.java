@@ -33,8 +33,10 @@ import io.token.exceptions.MalformedTokenRequestUrlException;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 
+import java.io.UnsupportedEncodingException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLEncoder;
 
 public class CsrfTokenManager {
     private static final String PROTOCOL = "https";
@@ -97,6 +99,8 @@ public class CsrfTokenManager {
             return toUrl(requestId, tokenRequestState.toSerializedState(), tokenCluster);
         } catch (MalformedURLException ex) {
             throw new MalformedTokenRequestUrlException();
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex.getCause());
         }
     }
 
@@ -129,11 +133,11 @@ public class CsrfTokenManager {
     }
 
     private URL toUrl(String requestId, String state, TokenCluster tokenCluster)
-            throws MalformedURLException {
+            throws MalformedURLException, UnsupportedEncodingException {
         return new URL(
                 PROTOCOL,
                 TokenWebCluster.valueOf(tokenCluster.name()).getUrl(),
-                format(PATH_TEMPLATE, requestId, state));
+                format(PATH_TEMPLATE, requestId, URLEncoder.encode(state, "UTF-8")));
     }
 
     private void verifyNonceHashInState(String nonceHash, TokenRequestState state) {
