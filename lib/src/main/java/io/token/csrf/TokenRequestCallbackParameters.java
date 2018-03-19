@@ -27,6 +27,8 @@ import io.token.exceptions.InvalidTokenRequestQuery;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.security.SecurityProtos.Signature;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -54,14 +56,20 @@ abstract class TokenRequestCallbackParameters {
         }
 
         verifyParameters(parameters);
+        try {
+            TokenRequestState tokenRequestState = TokenRequestState.fromSerializedState(URLDecoder
+                    .decode(parameters.get(STATE_FIELD), "UTF-8"));
 
-        return new AutoValue_TokenRequestCallbackParameters(
-                parameters.get(TOKEN_ID_FIELD),
-                TokenRequestState.fromSerializedState(parameters.get(STATE_FIELD)),
-                parameters.get(STATE_FIELD),
-                (Signature) ProtoJson.fromJson(
-                        parameters.get(SIGNATURE_FIELD),
-                        Signature.newBuilder()));
+            return new AutoValue_TokenRequestCallbackParameters(
+                    parameters.get(TOKEN_ID_FIELD),
+                    tokenRequestState,
+                    parameters.get(STATE_FIELD),
+                    (Signature) ProtoJson.fromJson(
+                            parameters.get(SIGNATURE_FIELD),
+                            Signature.newBuilder()));
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex.getCause());
+        }
     }
 
     private static void verifyParameters(Map<String, String> parameters) {
