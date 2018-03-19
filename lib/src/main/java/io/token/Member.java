@@ -46,6 +46,7 @@ import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Device;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
@@ -1083,6 +1084,15 @@ public class Member {
      */
     public Signature requestSignature(String tokenId, String state) {
         return async.requestSignature(tokenId, state).blockingSingle();
+    }
+
+    /**
+     * Get list of paired devices.
+     *
+     * @return list of devices
+     */
+    public List<Device> getPairedDevices() {
+        return async.getPairedDevices().blockingSingle();
     }
 
     @Override

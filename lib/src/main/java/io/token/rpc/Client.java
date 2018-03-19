@@ -48,6 +48,7 @@ import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Device;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
@@ -119,6 +120,8 @@ import io.token.proto.gateway.Gateway.GetNotificationRequest;
 import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
 import io.token.proto.gateway.Gateway.GetNotificationsResponse;
+import io.token.proto.gateway.Gateway.GetPairedDevicesRequest;
+import io.token.proto.gateway.Gateway.GetPairedDevicesResponse;
 import io.token.proto.gateway.Gateway.GetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.GetProfileRequest;
@@ -1403,6 +1406,22 @@ public final class Client {
                 .map(new Function<RequestSignatureResponse, Signature>() {
                     public Signature apply(RequestSignatureResponse response) {
                         return response.getSignature();
+                    }
+                });
+    }
+
+    /**
+     * Get list of paired devices.
+     *
+     * @return list of devices
+     */
+    public Observable<List<Device>> getPairedDevices() {
+        return toObservable(gateway.getPairedDevices(GetPairedDevicesRequest.getDefaultInstance()))
+                .map(new Function<GetPairedDevicesResponse, List<Device>>() {
+                    @Override
+                    public List<Device> apply(GetPairedDevicesResponse response)
+                            throws Exception {
+                        return response.getDevicesList();
                     }
                 });
     }
