@@ -45,7 +45,6 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -372,22 +371,22 @@ public class TokenIO implements Closeable {
      * @param csrfToken csrf token
      * @return token request url
      */
-    public URL generateTokenRequestUrl(String requestId, String state, String csrfToken) {
+    public String generateTokenRequestUrl(String requestId, String state, String csrfToken) {
         return async.generateTokenRequestUrl(requestId, state, csrfToken).blockingSingle();
     }
 
     /**
      * Parse the token request callback URL to extract the state, the token ID and the signature of
      * (state | token ID). Verify that the state contains the csrf token's hash, and that the
-     * signature of the token request payload is valid. Return the extracted original state.
+     * signature of the token request payload is valid.
      *
-     * @param tokenRequestCallbackUrl token request callback url
+     * @param callbackUrl token request callback url
      * @param csrfToken csrf token
-     * @return the extracted original state
+     * @return TokenRequestCallback object containing the token id and the original state
      */
-    public String parseTokenRequestCallbackUrl(URL tokenRequestCallbackUrl, String csrfToken) {
+    public TokenRequestCallback parseTokenRequestCallbackUrl(String callbackUrl, String csrfToken) {
         return async
-                .parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, csrfToken)
+                .parseTokenRequestCallbackUrl(callbackUrl, csrfToken)
                 .blockingSingle();
     }
 
@@ -395,20 +394,26 @@ public class TokenIO implements Closeable {
      * Defines Token cluster to connect to.
      */
     public enum TokenCluster {
-        PRODUCTION("api-grpc.token.io"),
-        INTEGRATION("api-grpc.int.token.io"),
-        SANDBOX("api-grpc.sandbox.token.io"),
-        STAGING("api-grpc.stg.token.io"),
-        DEVELOPMENT("api-grpc.dev.token.io");
+        PRODUCTION("api-grpc.token.io", "web-app.token.io"),
+        INTEGRATION("api-grpc.int.token.io", "web-app.int.token.io"),
+        SANDBOX("api-grpc.sandbox.token.io", "web-app.sandbox.token.io"),
+        STAGING("api-grpc.stg.token.io", "web-app.stg.token.io"),
+        DEVELOPMENT("api-grpc.dev.token.io", "web-app.dev.token.io");
 
         private final String envUrl;
+        private String webAppUrl;
 
-        TokenCluster(String url) {
+        TokenCluster(String url, String webAppUrl) {
             this.envUrl = url;
+            this.webAppUrl = webAppUrl;
         }
 
         public String url() {
             return envUrl;
+        }
+
+        public String webAppUrl() {
+            return webAppUrl;
         }
     }
 
