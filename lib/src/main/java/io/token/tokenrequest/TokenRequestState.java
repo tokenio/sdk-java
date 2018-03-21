@@ -20,10 +20,28 @@
  * THE SOFTWARE.
  */
 
-package io.token.exceptions;
+package io.token.tokenrequest;
 
-public class MalformedTokenRequestUrlException extends RuntimeException {
-    public MalformedTokenRequestUrlException() {
-        super("Token request URL generation failed.");
+import com.google.auto.value.AutoValue;
+import com.google.gson.Gson;
+
+@AutoValue
+public abstract class TokenRequestState {
+    public static TokenRequestState create(String csrfTokenHash, String state) {
+        return new AutoValue_TokenRequestState(csrfTokenHash, state);
+    }
+
+    public static TokenRequestState parse(String serialized) {
+        Gson gson = new Gson();
+        return gson.fromJson(serialized, AutoValue_TokenRequestState.class);
+    }
+
+    public abstract String getCsrfTokenHash();
+
+    public abstract String getInnerState();
+
+    public String serialize() {
+        Gson gson  = new Gson();
+        return gson.toJson(this);
     }
 }

@@ -25,7 +25,6 @@ package io.token.util;
 import static io.token.proto.ProtoHasher.hashAndSerializeJson;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
-import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -48,9 +47,13 @@ import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.security.KeyNotFoundException;
 import io.token.security.crypto.Crypto;
 import io.token.security.crypto.CryptoRegistry;
+import io.token.util.codec.ByteEncoding;
 
 import java.nio.charset.Charset;
 import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
 
@@ -59,6 +62,7 @@ import javax.annotation.Nullable;
  * Utility methods.
  */
 public abstract class Util {
+
     /**
      * The token alias.
      */
@@ -66,6 +70,8 @@ public abstract class Util {
             .setType(DOMAIN)
             .setValue("token.io")
             .build();
+
+    private static final int NONCE_NUM_BYTES = 20;
 
     private Util() {
     }
@@ -76,7 +82,10 @@ public abstract class Util {
      * @return generated random string
      */
     public static String generateNonce() {
-        return randomAlphabetic(20);
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[NONCE_NUM_BYTES];
+        random.nextBytes(bytes);
+        return ByteEncoding.serializeHumanReadable(bytes);
     }
 
     /**
@@ -228,6 +237,24 @@ public abstract class Util {
             }
         }
         return null;
+    }
+
+    /**
+     * Returns map of query string parameters, given a query string.
+     *
+     * @param queryString query string
+     * @return map of parameters in query string
+     */
+    public static Map<String, String> parseQueryString(String queryString) {
+        String[] params = queryString.split("&");
+        Map<String, String> parameters = new HashMap<>();
+
+        for (String param : params) {
+            String name = param.split("=")[0];
+            String value = param.split("=")[1];
+            parameters.put(name, value);
+        }
+        return parameters;
     }
 
     /**

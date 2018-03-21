@@ -25,7 +25,7 @@ package io.token.exceptions;
 import static java.lang.String.format;
 
 public class InvalidStateException extends RuntimeException {
-    public InvalidStateException(String nonceHash) {
-        super(format("Nonce hash %s not found in state", nonceHash));
+    public InvalidStateException(String csrfToken) {
+        super(format("CSRF token %s does not match CSRF token in state (hashed)", csrfToken));
     }
 }
