@@ -129,6 +129,8 @@ import io.token.proto.gateway.Gateway.GetSubscribersRequest;
 import io.token.proto.gateway.Gateway.GetSubscribersResponse;
 import io.token.proto.gateway.Gateway.GetTokenBlobRequest;
 import io.token.proto.gateway.Gateway.GetTokenBlobResponse;
+import io.token.proto.gateway.Gateway.GetTokenIdFromRefIdRequest;
+import io.token.proto.gateway.Gateway.GetTokenIdFromRefIdResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -1403,6 +1405,50 @@ public final class Client {
                 .map(new Function<RequestSignatureResponse, Signature>() {
                     public Signature apply(RequestSignatureResponse response) {
                         return response.getSignature();
+                    }
+                });
+    }
+
+    /**
+     * Get an access token ID from its ref ID.
+     *
+     * @param refId ref id
+     * @return token id
+     */
+    public Observable<String> getAccessTokenIdFromRefId(String refId) {
+        return toObservable(gateway
+                .getTokenIdFromRefId(GetTokenIdFromRefIdRequest.newBuilder()
+                        .setRefId(refId)
+                        .setType(GetTokenIdFromRefIdRequest.Type.ACCESS)
+                        .build()))
+                .map(new Function<GetTokenIdFromRefIdResponse, String>() {
+                    @Override
+                    public String apply(GetTokenIdFromRefIdResponse response)
+                            throws Exception {
+                        return response.getTokenId();
+                    }
+                });
+    }
+
+    /**
+     * Get a transfer token ID from its ref ID.
+     *
+     * @param refId ref id
+     * @param accountId account id
+     * @return token id
+     */
+    public Observable<String> getTransferTokenIdFromRefId(String refId, String accountId) {
+        return toObservable(gateway
+                .getTokenIdFromRefId(GetTokenIdFromRefIdRequest.newBuilder()
+                        .setRefId(refId)
+                        .setType(GetTokenIdFromRefIdRequest.Type.TRANSFER)
+                        .setAccountId(accountId)
+                        .build()))
+                .map(new Function<GetTokenIdFromRefIdResponse, String>() {
+                    @Override
+                    public String apply(GetTokenIdFromRefIdResponse response)
+                            throws Exception {
+                        return response.getTokenId();
                     }
                 });
     }

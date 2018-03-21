@@ -1085,6 +1085,27 @@ public class Member {
         return async.requestSignature(tokenId, state).blockingSingle();
     }
 
+    /**
+     * Get an access token ID from its ref ID.
+     *
+     * @param refId ref id
+     * @return token id
+     */
+    public String getAccessTokenIdFromRefId(String refId) {
+        return async.getAccessTokenIdFromRefId(refId).blockingSingle();
+    }
+
+    /**
+     * Get a transfer token ID from its ref ID.
+     *
+     * @param refId ref id
+     * @param accountId account id
+     * @return token id
+     */
+    public String getTransferTokenIdFromRefId(String refId, String accountId) {
+        return async.getTransferTokenIdFromRefId(refId, accountId).blockingSingle();
+    }
+
     @Override
     public int hashCode() {
         return async.hashCode();

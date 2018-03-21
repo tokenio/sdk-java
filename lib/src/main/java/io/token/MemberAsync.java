@@ -1142,6 +1142,29 @@ public class MemberAsync {
         return client.requestSignature(tokenId, state);
     }
 
+    /**
+     * Get an access token ID from its ref ID.
+     *
+     * @param refId ref id
+     * @return token id
+     */
+    public Observable<String> getAccessTokenIdFromRefId(String refId) {
+        return client.getAccessTokenIdFromRefId(refId);
+    }
+
+    /**
+     * Get a transfer token ID from its ref ID.
+     *
+     * @param refId ref id
+     * @param accountId account id
+     * @return token id
+     */
+    public Observable<String> getTransferTokenIdFromRefId(
+            String refId,
+            String accountId) {
+        return client.getTransferTokenIdFromRefId(refId, accountId);
+    }
+
     @Override
     public int hashCode() {
         return member.getId().hashCode();
