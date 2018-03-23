@@ -25,15 +25,30 @@ package io.token.tokenrequest;
 import com.google.auto.value.AutoValue;
 import com.google.gson.Gson;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+
 @AutoValue
 public abstract class TokenRequestState {
     public static TokenRequestState create(String csrfTokenHash, String state) {
         return new AutoValue_TokenRequestState(csrfTokenHash, state);
     }
 
+    /**
+     * Parse a serialized state into a TokenRequestState instance.
+     *
+     * @param serialized serialized token request state
+     * @return TokenRequestState instance
+     */
     public static TokenRequestState parse(String serialized) {
-        Gson gson = new Gson();
-        return gson.fromJson(serialized, AutoValue_TokenRequestState.class);
+        try {
+            Gson gson = new Gson();
+            return gson.fromJson(
+                    URLDecoder.decode(serialized, "UTF-8"),
+                    AutoValue_TokenRequestState.class);
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex.getMessage());
+        }
     }
 
     public abstract String getCsrfTokenHash();
