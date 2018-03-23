@@ -35,6 +35,9 @@ import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Function;
+import io.token.Account;
+import io.token.AccountAsync;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -53,6 +56,8 @@ import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.security.SecureRandom;
 import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutionException;
 import javax.annotation.Nullable;
@@ -311,5 +316,24 @@ public abstract class Util {
         }
 
         return key;
+    }
+
+    /**
+     * Converts async account list observable to account list observable.
+     *
+     * @param asyncAccounts async accounts
+     * @return accounts
+     */
+    public static Observable<List<Account>> toAccountList(
+            Observable<List<AccountAsync>> asyncAccounts) {
+        return asyncAccounts.map(new Function<List<AccountAsync>, List<Account>>() {
+            public List<Account> apply(List<AccountAsync> asyncList) {
+                List<Account> accounts = new LinkedList<>();
+                for (AccountAsync async : asyncList) {
+                    accounts.add(async.sync());
+                }
+                return accounts;
+            }
+        });
     }
 }

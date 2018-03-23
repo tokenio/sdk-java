@@ -217,7 +217,6 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
-
         this.onBehalfOf = accessTokenId;
     }
 

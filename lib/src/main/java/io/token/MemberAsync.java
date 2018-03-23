@@ -33,6 +33,7 @@ import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.TokenIO.TokenCluster;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -94,16 +95,19 @@ public class MemberAsync {
 
     private final Client client;
     private final Builder member;
+    private final TokenCluster cluster;
 
     /**
      * Creates an instance of {@link MemberAsync}.
      *
      * @param member internal member representation, fetched from server
      * @param client RPC client used to perform operations against the server
+     * @param cluster Token cluster, e.g. sandbox, production
      */
-    MemberAsync(MemberProtos.Member member, Client client) {
+    MemberAsync(MemberProtos.Member member, Client client, TokenCluster cluster) {
         this.client = client;
         this.member = member.toBuilder();
+        this.cluster = cluster;
     }
 
     /**
@@ -1150,6 +1154,17 @@ public class MemberAsync {
      */
     public Observable<List<Device>> getPairedDevices() {
         return client.getPairedDevices();
+    }
+
+    /**
+     * Get the url pointing to web-app callback endpoint.
+     *
+     * @return web-app callback url
+     */
+    public String getWebAppCallbackUrl() {
+        return cluster == null ?
+                "http://localhost:5000/auth/callback"
+                : String.format("https://%s/auth/callback", cluster.webAppUrl());
     }
 
     @Override
