@@ -51,6 +51,7 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenType;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -61,6 +62,8 @@ import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.GetTokenIdRequest;
+import io.token.proto.gateway.Gateway.GetTokenIdResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
@@ -569,6 +572,29 @@ public final class UnauthenticatedClient {
                     @Override
                     public Observable<Member> apply(String memberId) throws Exception {
                         return getMember(memberId);
+                    }
+                });
+    }
+
+    /**
+     * Get a token ID based on a token's tokenRequestId.
+     *
+     * @param fromId member id of token grantor
+     * @param tokenRequestId token request id
+     * @param type type of the token
+     * @return token id
+     */
+    public Observable<String> getTokenId(String fromId, String tokenRequestId, TokenType type) {
+        return toObservable(gateway
+                .getTokenId(GetTokenIdRequest.newBuilder()
+                        .setFromId(fromId)
+                        .setTokenRequestId(tokenRequestId)
+                        .setType(type)
+                        .build()))
+                .map(new Function<GetTokenIdResponse, String>() {
+                    @Override
+                    public String apply(GetTokenIdResponse response) throws Exception {
+                        return response.getTokenId();
                     }
                 });
     }

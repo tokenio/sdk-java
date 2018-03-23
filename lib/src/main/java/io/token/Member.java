@@ -662,6 +662,21 @@ public class Member {
     }
 
     /**
+     * Creates a new transfer token builder.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param tokenRequestId token request id
+     * @return transfer token returned by the server
+     */
+    public TransferTokenBuilder createTransferToken(
+            double amount,
+            String currency,
+            String tokenRequestId) {
+        return new TransferTokenBuilder(async, amount, currency, tokenRequestId);
+    }
+
+    /**
      * Creates an access token built from a given {@link AccessTokenBuilder}.
      *
      * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
@@ -669,6 +684,17 @@ public class Member {
      */
     public Token createAccessToken(AccessTokenBuilder accessTokenBuilder) {
         return async.createAccessToken(accessTokenBuilder).blockingSingle();
+    }
+
+    /**
+     * Creates an access token built from a given {@link AccessTokenBuilder}.
+     *
+     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
+     * @param tokenRequestId tokn
+     * @return the access token created
+     */
+    public Token createAccessToken(AccessTokenBuilder accessTokenBuilder, String tokenRequestId) {
+        return async.createAccessToken(accessTokenBuilder, tokenRequestId).blockingSingle();
     }
 
     /**
@@ -1083,27 +1109,6 @@ public class Member {
      */
     public Signature requestSignature(String tokenId, String state) {
         return async.requestSignature(tokenId, state).blockingSingle();
-    }
-
-    /**
-     * Get an access token ID from its ref ID.
-     *
-     * @param refId ref id
-     * @return token id
-     */
-    public String getAccessTokenIdFromRefId(String refId) {
-        return async.getAccessTokenIdFromRefId(refId).blockingSingle();
-    }
-
-    /**
-     * Get a transfer token ID from its ref ID.
-     *
-     * @param refId ref id
-     * @param accountId account id
-     * @return token id
-     */
-    public String getTransferTokenIdFromRefId(String refId, String accountId) {
-        return async.getTransferTokenIdFromRefId(refId, accountId).blockingSingle();
     }
 
     @Override

@@ -37,6 +37,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenType;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
@@ -389,6 +390,18 @@ public class TokenIO implements Closeable {
         return async
                 .parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, csrfToken)
                 .blockingSingle();
+    }
+
+    /**
+     * Get a token ID based on a token's tokenRequestId.
+     *
+     * @param fromId member id of token grantor
+     * @param tokenRequestId token request id
+     * @param type type of the token
+     * @return token id
+     */
+    public String getTokenId(String fromId, String tokenRequestId, TokenType type) {
+        return async.getTokenId(fromId, tokenRequestId, type).blockingSingle();
     }
 
     /**

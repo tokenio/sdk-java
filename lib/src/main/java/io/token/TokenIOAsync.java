@@ -52,6 +52,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenType;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
@@ -485,5 +486,18 @@ public class TokenIOAsync implements Closeable {
                         csrfToken);
             }
         });
+    }
+
+    /**
+     * Get a token ID based on a token's tokenRequestId.
+     *
+     * @param fromId member id of token grantor
+     * @param tokenRequestId token request id
+     * @param type type of the token
+     * @return token id
+     */
+    public Observable<String> getTokenId(String fromId, String tokenRequestId, TokenType type) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getTokenId(fromId, tokenRequestId, type);
     }
 }
