@@ -70,7 +70,6 @@ import io.token.tokenrequest.TokenRequestState;
 import java.io.Closeable;
 import java.io.UnsupportedEncodingException;
 import java.net.URL;
-import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -467,16 +466,12 @@ public class TokenIOAsync implements Closeable {
             String requestId,
             String state,
             String csrfToken) {
-        try {
-            String csrfTokenHash = hashString(csrfToken);
-            TokenRequestState tokenRequestState = TokenRequestState.create(csrfTokenHash, state);
-            return Observable.just(format(TOKEN_REQUEST_TEMPLATE,
-                            tokenCluster.webAppUrl(),
-                            requestId,
-                            URLEncoder.encode(tokenRequestState.serialize(), "UTF-8")));
-        } catch (UnsupportedEncodingException ex) {
-            throw new RuntimeException(ex.getCause());
-        }
+        String csrfTokenHash = hashString(csrfToken);
+        TokenRequestState tokenRequestState = TokenRequestState.create(csrfTokenHash, state);
+        return Observable.just(format(TOKEN_REQUEST_TEMPLATE,
+                        tokenCluster.webAppUrl(),
+                        requestId,
+                        tokenRequestState.serialize()));
     }
 
     /**
