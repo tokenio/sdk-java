@@ -28,6 +28,8 @@ import io.token.proto.ProtoJson;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.util.Util;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
 import java.util.Map;
 
 @AutoValue
@@ -44,19 +46,23 @@ public abstract class TokenRequestCallbackParameters {
      * @return TokenRequestCallbackParameters instance
      */
     public static TokenRequestCallbackParameters create(String query) {
-        Map<String, String> parameters = Util.parseQueryString(query);
-        if (!parameters.containsKey(TOKEN_ID_FIELD)
-                || !parameters.containsKey(STATE_FIELD)
-                || !parameters.containsKey(SIGNATURE_FIELD)) {
-            throw new InvalidTokenRequestQuery();
-        }
+        try {
+            Map<String, String> parameters = Util.parseQueryString(query);
+            if (!parameters.containsKey(TOKEN_ID_FIELD)
+                    || !parameters.containsKey(STATE_FIELD)
+                    || !parameters.containsKey(SIGNATURE_FIELD)) {
+                throw new InvalidTokenRequestQuery();
+            }
 
-        return new AutoValue_TokenRequestCallbackParameters(
-                parameters.get(TOKEN_ID_FIELD),
-                parameters.get(STATE_FIELD),
-                (Signature) ProtoJson.fromJson(
-                        parameters.get(SIGNATURE_FIELD),
-                        Signature.newBuilder()));
+            return new AutoValue_TokenRequestCallbackParameters(
+                    parameters.get(TOKEN_ID_FIELD),
+                    URLDecoder.decode(parameters.get(STATE_FIELD), "UTF-8"),
+                    (Signature) ProtoJson.fromJson(
+                            parameters.get(SIGNATURE_FIELD),
+                            Signature.newBuilder()));
+        } catch (UnsupportedEncodingException ex) {
+            throw new RuntimeException(ex.getMessage());
+        }
     }
 
     public abstract String getTokenId();
