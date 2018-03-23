@@ -15,8 +15,8 @@ buildscript {
         classpath 'com.github.ben-manes:gradle-versions-plugin:0.14.0'
         classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.13.1'
         classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.4'
-//        classpath 'com.android.tools.build:gradle:3.0.1'
-//        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
+        classpath 'com.android.tools.build:gradle:3.0.1'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
         classpath 'com.google.code.gson:gson:2.8.2'
     }
 }
