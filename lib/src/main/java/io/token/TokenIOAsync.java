@@ -454,8 +454,31 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Generate a Token request URL from a request ID, an original state, a CSRF token and a token
-     * cluster.
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token
+     * or pass in a state.
+     *
+     * @param requestId request id
+     * @return token request url
+     */
+    public Observable<String> generateTokenRequestUrl(String requestId) {
+        return generateTokenRequestUrl(requestId, "", "");
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token.
+     *
+     * @param requestId request id
+     * @param state state
+     * @return token request url
+     */
+    public Observable<String> generateTokenRequestUrl(
+            String requestId,
+            String state) {
+        return generateTokenRequestUrl(requestId, state, "");
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, a state, and a CSRF token.
      *
      * @param requestId request id
      * @param state state
@@ -475,9 +498,20 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Parse the token request callback URL to extract the state, the token ID and the signature of
-     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
-     * signature of the token request payload is valid.
+     * Parse the token request callback URL to extract the state and the token ID. This assumes
+     * that no CSRF token was set.
+     *
+     * @param callbackUrl token request callback url
+     * @return TokenRequestCallback object containing the token id and the original state
+     */
+    public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(final String callbackUrl) {
+        return parseTokenRequestCallbackUrl(callbackUrl, "");
+    }
+
+    /**
+     * Parse the token request callback URL to extract the state and the token ID. Verify that the
+     * state contains the CSRF token hash and that the signature on the state and CSRF token is
+     * valid.
      *
      * @param callbackUrl token request callback url
      * @param csrfToken csrfToken

@@ -364,6 +364,28 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token
+     * or pass in a state.
+     *
+     * @param requestId request id
+     * @return token request url
+     */
+    public String generateTokenRequestUrl(String requestId) {
+        return async.generateTokenRequestUrl(requestId).blockingSingle();
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token.
+     *
+     * @param requestId request id
+     * @param state state
+     * @return token request url
+     */
+    public String generateTokenRequestUrl(String requestId, String state) {
+        return async.generateTokenRequestUrl(requestId, state).blockingSingle();
+    }
+
+    /**
      * Generate a Token request URL from a request ID, an original state and a CSRF token.
      *
      * @param requestId request id
@@ -376,9 +398,20 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Parse the token request callback URL to extract the state, the token ID and the signature of
-     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
-     * signature of the token request payload is valid.
+     * Parse the token request callback URL to extract the state and the token ID. This assumes
+     * that no CSRF token was set.
+     *
+     * @param callbackUrl token request callback url
+     * @return TokenRequestCallback object containing the token id and the original state
+     */
+    public TokenRequestCallback parseTokenRequestCallbackUrl(final String callbackUrl) {
+        return async.parseTokenRequestCallbackUrl(callbackUrl).blockingSingle();
+    }
+
+    /**
+     * Parse the token request callback URL to extract the state and the token ID. Verify that the
+     * state contains the CSRF token hash and that the signature on the state and CSRF token is
+     * valid.
      *
      * @param callbackUrl token request callback url
      * @param csrfToken csrf token
