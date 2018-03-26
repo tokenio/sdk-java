@@ -395,13 +395,12 @@ public class TokenIO implements Closeable {
     /**
      * Get a token ID based on a token's tokenRequestId.
      *
-     * @param fromId member id of token grantor
      * @param tokenRequestId token request id
      * @param type type of the token
      * @return token id
      */
-    public String getTokenId(String fromId, String tokenRequestId, TokenType type) {
-        return async.getTokenId(fromId, tokenRequestId, type).blockingSingle();
+    public String getTokenId(String tokenRequestId, TokenType type) {
+        return async.getTokenId(tokenRequestId, type).blockingSingle();
     }
 
     /**

@@ -579,15 +579,13 @@ public final class UnauthenticatedClient {
     /**
      * Get a token ID based on a token's tokenRequestId.
      *
-     * @param fromId member id of token grantor
      * @param tokenRequestId token request id
      * @param type type of the token
      * @return token id
      */
-    public Observable<String> getTokenId(String fromId, String tokenRequestId, TokenType type) {
+    public Observable<String> getTokenId(String tokenRequestId, TokenType type) {
         return toObservable(gateway
                 .getTokenId(GetTokenIdRequest.newBuilder()
-                        .setFromId(fromId)
                         .setTokenRequestId(tokenRequestId)
                         .setType(type)
                         .build()))
