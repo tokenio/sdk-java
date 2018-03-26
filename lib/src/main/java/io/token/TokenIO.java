@@ -45,7 +45,6 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -365,6 +364,28 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token
+     * or pass in a state.
+     *
+     * @param requestId request id
+     * @return token request url
+     */
+    public String generateTokenRequestUrl(String requestId) {
+        return async.generateTokenRequestUrl(requestId).blockingSingle();
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token.
+     *
+     * @param requestId request id
+     * @param state state
+     * @return token request url
+     */
+    public String generateTokenRequestUrl(String requestId, String state) {
+        return async.generateTokenRequestUrl(requestId, state).blockingSingle();
+    }
+
+    /**
      * Generate a Token request URL from a request ID, an original state and a CSRF token.
      *
      * @param requestId request id
@@ -372,22 +393,33 @@ public class TokenIO implements Closeable {
      * @param csrfToken csrf token
      * @return token request url
      */
-    public URL generateTokenRequestUrl(String requestId, String state, String csrfToken) {
+    public String generateTokenRequestUrl(String requestId, String state, String csrfToken) {
         return async.generateTokenRequestUrl(requestId, state, csrfToken).blockingSingle();
     }
 
     /**
-     * Parse the token request callback URL to extract the state, the token ID and the signature of
-     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
-     * signature of the token request payload is valid. Return the extracted original state.
+     * Parse the token request callback URL to extract the state and the token ID. This assumes
+     * that no CSRF token was set.
      *
-     * @param tokenRequestCallbackUrl token request callback url
-     * @param csrfToken csrf token
-     * @return the extracted original state
+     * @param callbackUrl token request callback url
+     * @return TokenRequestCallback object containing the token id and the original state
      */
-    public String parseTokenRequestCallbackUrl(URL tokenRequestCallbackUrl, String csrfToken) {
+    public TokenRequestCallback parseTokenRequestCallbackUrl(final String callbackUrl) {
+        return async.parseTokenRequestCallbackUrl(callbackUrl).blockingSingle();
+    }
+
+    /**
+     * Parse the token request callback URL to extract the state and the token ID. Verify that the
+     * state contains the CSRF token hash and that the signature on the state and CSRF token is
+     * valid.
+     *
+     * @param callbackUrl token request callback url
+     * @param csrfToken csrf token
+     * @return TokenRequestCallback object containing the token id and the original state
+     */
+    public TokenRequestCallback parseTokenRequestCallbackUrl(String callbackUrl, String csrfToken) {
         return async
-                .parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, csrfToken)
+                .parseTokenRequestCallbackUrl(callbackUrl, csrfToken)
                 .blockingSingle();
     }
 
@@ -395,20 +427,26 @@ public class TokenIO implements Closeable {
      * Defines Token cluster to connect to.
      */
     public enum TokenCluster {
-        PRODUCTION("api-grpc.token.io"),
-        INTEGRATION("api-grpc.int.token.io"),
-        SANDBOX("api-grpc.sandbox.token.io"),
-        STAGING("api-grpc.stg.token.io"),
-        DEVELOPMENT("api-grpc.dev.token.io");
+        PRODUCTION("api-grpc.token.io", "web-app.token.io"),
+        INTEGRATION("api-grpc.int.token.io", "web-app.int.token.io"),
+        SANDBOX("api-grpc.sandbox.token.io", "web-app.sandbox.token.io"),
+        STAGING("api-grpc.stg.token.io", "web-app.stg.token.io"),
+        DEVELOPMENT("api-grpc.dev.token.io", "web-app.dev.token.io");
 
         private final String envUrl;
+        private String webAppUrl;
 
-        TokenCluster(String url) {
+        TokenCluster(String url, String webAppUrl) {
             this.envUrl = url;
+            this.webAppUrl = webAppUrl;
         }
 
         public String url() {
             return envUrl;
+        }
+
+        public String webAppUrl() {
+            return webAppUrl;
         }
     }
 

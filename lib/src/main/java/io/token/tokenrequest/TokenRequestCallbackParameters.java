@@ -20,18 +20,18 @@
  * THE SOFTWARE.
  */
 
-package io.token.csrf;
+package io.token.tokenrequest;
 
 import com.google.auto.value.AutoValue;
 import io.token.exceptions.InvalidTokenRequestQuery;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.util.Util;
 
-import java.util.HashMap;
 import java.util.Map;
 
 @AutoValue
-abstract class TokenRequestCallbackParameters {
+public abstract class TokenRequestCallbackParameters {
     private static final String TOKEN_ID_FIELD = "token-id";
     private static final String STATE_FIELD = "state";
     private static final String SIGNATURE_FIELD = "signature";
@@ -43,40 +43,25 @@ abstract class TokenRequestCallbackParameters {
      * @param query token request callback query
      * @return TokenRequestCallbackParameters instance
      */
-    static TokenRequestCallbackParameters parseUrl(String query) {
-        String[] params = query.split("&");
-        Map<String, String> parameters = new HashMap<>();
-
-        for (String param : params) {
-            String name = param.split("=")[0];
-            String value = param.split("=")[1];
-            parameters.put(name, value);
+    public static TokenRequestCallbackParameters create(String query) {
+        Map<String, String> parameters = Util.parseQueryString(query);
+        if (!parameters.containsKey(TOKEN_ID_FIELD)
+                || !parameters.containsKey(STATE_FIELD)
+                || !parameters.containsKey(SIGNATURE_FIELD)) {
+            throw new InvalidTokenRequestQuery();
         }
-
-        verifyParameters(parameters);
 
         return new AutoValue_TokenRequestCallbackParameters(
                 parameters.get(TOKEN_ID_FIELD),
-                TokenRequestState.fromSerializedState(parameters.get(STATE_FIELD)),
                 parameters.get(STATE_FIELD),
                 (Signature) ProtoJson.fromJson(
                         parameters.get(SIGNATURE_FIELD),
                         Signature.newBuilder()));
     }
 
-    private static void verifyParameters(Map<String, String> parameters) {
-        if (!parameters.containsKey(TOKEN_ID_FIELD)
-                || !parameters.containsKey(STATE_FIELD)
-                || !parameters.containsKey(SIGNATURE_FIELD)) {
-            throw new InvalidTokenRequestQuery();
-        }
-    }
+    public abstract String getTokenId();
 
-    abstract String getTokenId();
+    public abstract String getSerializedState();
 
-    abstract TokenRequestState getState();
-
-    abstract String getSerializedState();
-
-    abstract Signature getSignature();
+    public abstract Signature getSignature();
 }

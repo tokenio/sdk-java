@@ -28,10 +28,13 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.hashString;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toAddAliasOperation;
 import static io.token.util.Util.toAddAliasOperationMetadata;
 import static io.token.util.Util.toAddKeyOperation;
+import static io.token.util.Util.verifySignature;
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
@@ -39,7 +42,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.csrf.CsrfTokenManager;
+import io.token.exceptions.InvalidStateException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -51,6 +54,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
@@ -60,8 +64,11 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
+import io.token.tokenrequest.TokenRequestCallbackParameters;
+import io.token.tokenrequest.TokenRequestState;
 
 import java.io.Closeable;
+import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -76,12 +83,14 @@ import java.util.concurrent.TimeUnit;
  * method.</p>
  */
 public class TokenIOAsync implements Closeable {
+    private static final String TOKEN_REQUEST_TEMPLATE =
+            "https://%s/authorize?requestId=%s&state=%s";
     private static final long SHUTDOWN_DURATION_MS = 10000L;
 
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
     private final String devKey;
-    private final CsrfTokenManager csrfTokenManager;
+    private TokenCluster tokenCluster;
 
     /**
      * Creates an instance of a Token SDK.
@@ -99,7 +108,7 @@ public class TokenIOAsync implements Closeable {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.devKey = developerKey;
-        this.csrfTokenManager = new CsrfTokenManager(tokenCluster);
+        this.tokenCluster = tokenCluster;
     }
 
     @Override
@@ -445,44 +454,94 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Generate a Token request URL from a request ID, an original state, a CSRF token and a token
-     * cluster.
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token
+     * or pass in a state.
+     *
+     * @param requestId request id
+     * @return token request url
+     */
+    public Observable<String> generateTokenRequestUrl(String requestId) {
+        return generateTokenRequestUrl(requestId, "", "");
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token.
+     *
+     * @param requestId request id
+     * @param state state
+     * @return token request url
+     */
+    public Observable<String> generateTokenRequestUrl(
+            String requestId,
+            String state) {
+        return generateTokenRequestUrl(requestId, state, "");
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, a state, and a CSRF token.
      *
      * @param requestId request id
      * @param state state
      * @param csrfToken csrf token
      * @return token request url
      */
-    public Observable<URL> generateTokenRequestUrl(
+    public Observable<String> generateTokenRequestUrl(
             String requestId,
             String state,
             String csrfToken) {
-        return Observable.just(csrfTokenManager.generateTokenRequestUrl(
-                requestId,
-                state,
-                csrfToken));
+        String csrfTokenHash = hashString(csrfToken);
+        TokenRequestState tokenRequestState = TokenRequestState.create(csrfTokenHash, state);
+        return Observable.just(format(TOKEN_REQUEST_TEMPLATE,
+                        tokenCluster.webAppUrl(),
+                        requestId,
+                        tokenRequestState.serialize()));
     }
 
     /**
-     * Parse the token request callback URL to extract the state, the token ID and the signature of
-     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
-     * signature of the token request payload is valid. Return the extracted original state.
+     * Parse the token request callback URL to extract the state and the token ID. This assumes
+     * that no CSRF token was set.
      *
-     * @param tokenRequestCallbackUrl token request callback url
-     * @param csrfToken csrfToken
-     * @return the extracted original state
+     * @param callbackUrl token request callback url
+     * @return TokenRequestCallback object containing the token id and the original state
      */
-    public Observable<String> parseTokenRequestCallbackUrl(
-            final URL tokenRequestCallbackUrl,
+    public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(final String callbackUrl) {
+        return parseTokenRequestCallbackUrl(callbackUrl, "");
+    }
+
+    /**
+     * Parse the token request callback URL to extract the state and the token ID. Verify that the
+     * state contains the CSRF token hash and that the signature on the state and CSRF token is
+     * valid.
+     *
+     * @param callbackUrl token request callback url
+     * @param csrfToken csrfToken
+     * @return TokenRequestCallback object containing the token id and the original state
+     */
+    public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(
+            final String callbackUrl,
             final String csrfToken) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenMember().map(new Function<Member, String>() {
+        return unauthenticated.getTokenMember().map(new Function<Member, TokenRequestCallback>() {
             @Override
-            public String apply(Member member) throws Exception {
-                return csrfTokenManager.parseTokenRequestCallbackUrl(
-                        member,
-                        tokenRequestCallbackUrl,
-                        csrfToken);
+            public TokenRequestCallback apply(Member tokenMember) throws Exception {
+                TokenRequestCallbackParameters params = TokenRequestCallbackParameters
+                        .create(new URL(callbackUrl).getQuery());
+
+                // check that csrf token hashes match
+                TokenRequestState state = TokenRequestState.parse(params.getSerializedState());
+                if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
+                    throw new InvalidStateException(csrfToken);
+                }
+
+                verifySignature(
+                        tokenMember,
+                        TokenProtos.RequestSignaturePayload.newBuilder()
+                                .setTokenId(params.getTokenId())
+                                .setState(params.getSerializedState())
+                                .build(),
+                        params.getSignature());
+
+                return TokenRequestCallback.create(params.getTokenId(), state.getInnerState());
             }
         });
     }
