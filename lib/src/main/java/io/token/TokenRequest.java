@@ -31,7 +31,7 @@ import java.util.Map;
 @AutoValue
 public abstract class TokenRequest {
     public enum TokenRequestOptions {
-        BANKID("bankId"),
+        BANK_ID("bankId"),
         ALIAS("alias"),
         REDIRECT_URL("redirectUrl");
 

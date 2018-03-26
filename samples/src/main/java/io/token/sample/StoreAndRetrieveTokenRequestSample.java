@@ -1,7 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenRequest.TokenRequestOptions.ALIAS;
-import static io.token.TokenRequest.TokenRequestOptions.BANKID;
+import static io.token.TokenRequest.TokenRequestOptions.BANK_ID;
 import static io.token.TokenRequest.TokenRequestOptions.REDIRECT_URL;
 
 import io.token.AccessTokenBuilder;
@@ -30,7 +30,7 @@ public final class StoreAndRetrieveTokenRequestSample {
         // Create a TokenRequest to be stored
         TokenRequest request = TokenRequest.create(tokenBuilder)
                 .setOption(ALIAS, "payer-alias@token.io") // user alias
-                .setOption(BANKID, "iron") // bank id
+                .setOption(BANK_ID, "iron") // bank id
                 .setOption(REDIRECT_URL, "https://token.io/callback"); // callback url
 
         // Store token request
@@ -51,7 +51,7 @@ public final class StoreAndRetrieveTokenRequestSample {
         TokenRequest request = TokenRequest.create(tokenBuilder)
                 // Configure options for the TokenRequest
                 .setOption(ALIAS, "user-alias@token.io")
-                .setOption(BANKID, "iron")
+                .setOption(BANK_ID, "iron")
                 .setOption(REDIRECT_URL, "https://token.io/callback");
 
         return grantee.storeTokenRequest(request);
