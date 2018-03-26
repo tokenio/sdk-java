@@ -662,21 +662,6 @@ public class Member {
     }
 
     /**
-     * Creates a new transfer token builder.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @param tokenRequestId token request id
-     * @return transfer token returned by the server
-     */
-    public TransferTokenBuilder createTransferToken(
-            double amount,
-            String currency,
-            String tokenRequestId) {
-        return new TransferTokenBuilder(async, amount, currency, tokenRequestId);
-    }
-
-    /**
      * Creates an access token built from a given {@link AccessTokenBuilder}.
      *
      * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from

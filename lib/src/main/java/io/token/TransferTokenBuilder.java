@@ -70,7 +70,7 @@ public final class TransferTokenBuilder {
     private final List<Payload> blobPayloads;
 
     //Token request ID
-    private final String tokenRequestId;
+    private String tokenRequestId;
 
     /**
      * Creates the builder object.
@@ -78,14 +78,11 @@ public final class TransferTokenBuilder {
      * @param member payer of the token
      * @param amount lifetime amount of the token
      * @param currency currency of the token
-     * @param tokenRequestId token request id
      */
     public TransferTokenBuilder(
             MemberAsync member,
             double amount,
-            String currency,
-            String tokenRequestId) {
-        this.tokenRequestId = tokenRequestId;
+            String currency) {
         this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
@@ -106,17 +103,6 @@ public final class TransferTokenBuilder {
         }
 
         blobPayloads = new ArrayList<>();
-    }
-
-    /**
-     * Creates the builder object.
-     *
-     * @param member payer of the token
-     * @param amount lifetime amount of the token
-     * @param currency currency of the token
-     */
-    public TransferTokenBuilder(MemberAsync member, double amount, String currency) {
-        this(member, amount, currency, null);
     }
 
     /**
@@ -365,6 +351,17 @@ public final class TransferTokenBuilder {
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setTransferPurpose(purposeOfPayment);
+        return this;
+    }
+
+    /**
+     * Sets the token request ID.
+     *
+     * @param tokenRequestId token request id
+     * @return builder
+     */
+    public TransferTokenBuilder setTokenRequestId(String tokenRequestId) {
+        this.tokenRequestId = tokenRequestId;
         return this;
     }
 
