@@ -24,6 +24,8 @@ package io.token;
 
 import static io.grpc.Status.NOT_FOUND;
 import static io.token.TokenIO.TokenCluster;
+import static io.token.proto.common.member.MemberProtos.MemberType.BUSINESS;
+import static io.token.proto.common.member.MemberProtos.MemberType.PERSONAL;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -52,6 +54,7 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.MemberType;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos;
@@ -68,7 +71,6 @@ import io.token.tokenrequest.TokenRequestCallbackParameters;
 import io.token.tokenrequest.TokenRequestState;
 
 import java.io.Closeable;
-import java.io.UnsupportedEncodingException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -154,16 +156,17 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a set of auto-generated keys and a alias.
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
      *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
+     * @param memberType the type of member to register
      * @return newly created member
      */
-    public Observable<MemberAsync> createMember(final Alias alias) {
+    public Observable<MemberAsync> createMember(final Alias alias, final MemberType memberType) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .createMemberId()
+                .createMemberId(memberType)
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
                     public Observable<MemberProtos.Member> apply(String memberId) {
                         CryptoEngine crypto = cryptoFactory.create(memberId);
@@ -194,12 +197,32 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a set of auto-generated keys and no alias.
+     * Creates a new personal-use Token member with a set of auto-generated keys and no alias.
      *
      * @return newly created member
      */
     public Observable<MemberAsync> createMember() {
-        return createMember(null);
+        return createMember(null, PERSONAL);
+    }
+
+    /**
+     * Creates a new personal-use Token member with a set of auto-generated keys and and an alias.
+     *
+     * @param alias alias to associate with member
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createMember(Alias alias) {
+        return createMember(alias, PERSONAL);
+    }
+
+    /**
+     * Creates a new business-use Token member with a set of auto-generated keys and alias.
+     *
+     * @param alias alias to associated with member
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createBusinessMember(Alias alias) {
+        return createMember(alias, BUSINESS);
     }
 
     /**

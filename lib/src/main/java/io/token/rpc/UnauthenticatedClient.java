@@ -42,6 +42,7 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.MemberType;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
@@ -155,12 +156,14 @@ public final class UnauthenticatedClient {
     /**
      * Creates new member ID. After the method returns the ID is reserved on the server.
      *
+     * @param memberType the type of member to register
      * @return newly created member id
      */
-    public Observable<String> createMemberId() {
+    public Observable<String> createMemberId(MemberType memberType) {
         return
                 toObservable(gateway.createMember(CreateMemberRequest.newBuilder()
                         .setNonce(generateNonce())
+                        .setMemberType(memberType)
                         .build()))
                         .map(new Function<CreateMemberResponse, String>() {
                             public String apply(CreateMemberResponse response) {

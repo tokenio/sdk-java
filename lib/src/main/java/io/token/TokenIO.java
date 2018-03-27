@@ -145,7 +145,19 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a set of auto generated keys and the
+     * Creates a new business-use Token member with a set of auto-generated keys and alias.
+     *
+     * @param alias alias to associated with member
+     * @return newly created member
+     */
+    public Member createBusinessMember(Alias alias) {
+        return async.createBusinessMember(alias)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Creates a new personal-use Token member with a set of auto generated keys and the
      * given alias.
      *
      * @param alias member alias to use, must be unique
@@ -158,7 +170,7 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a set of auto generated keys and no alias.
+     * Creates a new personal-use Token member with a set of auto generated keys and no alias.
      *
      * @return newly created member
      */
