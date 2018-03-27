@@ -421,7 +421,7 @@ public class Member {
                                 if (accessToken == null) {
                                     throw new IllegalArgumentException("No access token found");
                                 }
-                                return linkAccounts(bankId, accessToken);
+                                return toAccountList(async.linkAccounts(bankId, accessToken));
                             }
                         })
                         .subscribe(
@@ -463,16 +463,12 @@ public class Member {
      *
      * @param bankId bank id
      * @param accessToken OAuth access token
-     * @return observable list of linked accounts
+     * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                               is required to link accounts
      */
-    public Observable<List<Account>> linkAccounts(String bankId, String accessToken) {
-        OauthBankAuthorization authorization = OauthBankAuthorization.newBuilder()
-                .setBankId(bankId)
-                .setAccessToken(accessToken)
-                .build();
-        return toAccountList(async.linkAccounts(authorization));
+    public List<Account> linkAccounts(String bankId, String accessToken) {
+        return toAccountList(async.linkAccounts(bankId, accessToken)).blockingSingle();
     }
 
     /**

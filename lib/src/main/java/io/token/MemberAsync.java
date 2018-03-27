@@ -505,16 +505,16 @@ public class MemberAsync {
     /**
      * Links funding bank accounts to Token and returns them to the caller.
      *
-     * @param authorization an authorization to accounts, from the bank
+     * @param bankId bank id
+     * @param accessToken OAuth access token
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                               is required to link accounts
      */
-    public Observable<List<AccountAsync>> linkAccounts(OauthBankAuthorization authorization)
+    public Observable<List<AccountAsync>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
-        return toAccountAsyncList(client.linkAccounts(authorization));
+        return toAccountAsyncList(client.linkAccounts(bankId, accessToken));
     }
-
 
     /**
      * Unlinks bank accounts previously linked via linkAccounts call.
@@ -1162,8 +1162,8 @@ public class MemberAsync {
      * @return web-app callback url
      */
     public String getWebAppCallbackUrl() {
-        return cluster == null ?
-                "http://localhost:5000/auth/callback"
+        return cluster == null
+                ? "http://localhost:5000/auth/callback"
                 : String.format("https://%s/auth/callback", cluster.webAppUrl());
     }
 
