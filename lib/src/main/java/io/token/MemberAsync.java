@@ -1162,9 +1162,7 @@ public class MemberAsync {
      * @return web-app callback url
      */
     public String getWebAppCallbackUrl() {
-        return cluster == null
-                ? "http://localhost:5000/auth/callback"
-                : String.format("https://%s/auth/callback", cluster.webAppUrl());
+        return String.format("https://%s/auth/callback", cluster.webAppUrl());
     }
 
     @Override
