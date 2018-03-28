@@ -24,6 +24,7 @@ package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
 import static io.token.util.Util.parseOauthAccessToken;
+import static io.token.util.Util.toAccountList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import io.reactivex.Observable;
@@ -38,7 +39,6 @@ import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -67,6 +67,7 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.security.keystore.SecretKeyPair;
 
 import java.net.URL;
+import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -387,13 +388,16 @@ public class Member {
      * @param browserFactory the browser factory
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                               is required to link accounts
+     *                                              is required to link accounts
      */
     public Observable<List<Account>> linkAccounts(
             final String bankId,
             final BankInfo bankInfo,
             final BrowserFactory browserFactory)
             throws BankAuthorizationRequiredException {
+        final String callbackUrl = String.format(
+                "https://%s/auth/callback",
+                async.getTokenCluster().webAppUrl());
         return Single.create(new SingleOnSubscribe<List<Account>>() {
             @Override
             public void subscribe(final SingleEmitter<List<Account>> emitter) throws Exception {
@@ -404,7 +408,8 @@ public class Member {
                             public boolean test(URL url) {
                                 if (url
                                         .toExternalForm()
-                                        .matches(".*token.io([/?]?.*#).*access_token=.+")) {
+                                        .matches(callbackUrl
+                                                + "([/?]?.*#).*access_token=.+")) {
                                     return true;
                                 }
                                 browser.goTo(url);
@@ -418,19 +423,7 @@ public class Member {
                                 if (accessToken == null) {
                                     throw new IllegalArgumentException("No access token found");
                                 }
-                                return async.linkAccounts(OauthBankAuthorization.newBuilder()
-                                        .setBankId(bankId)
-                                        .setAccessToken(accessToken)
-                                        .build())
-                                .map(new Function<List<AccountAsync>, List<Account>>() {
-                                    public List<Account> apply(List<AccountAsync> asyncList) {
-                                        List<Account> accounts = new LinkedList<>();
-                                        for (AccountAsync async : asyncList) {
-                                            accounts.add(async.sync());
-                                        }
-                                        return accounts;
-                                    }
-                                });
+                                return toAccountList(async.linkAccounts(bankId, accessToken));
                             }
                         })
                         .subscribe(
@@ -448,7 +441,10 @@ public class Member {
                                         browser.close();
                                     }
                                 });
-                String url = bankInfo.getBankLinkingUri() + "&redirect_uri=https%3A%2F%2Ftoken.io";
+                String url = String.format(
+                        "%s&redirect_uri=%s",
+                        bankInfo.getBankLinkingUri(),
+                        URLEncoder.encode(callbackUrl, "UTF-8"));
                 browser.goTo(new URL(url));
             }
         }).toObservable();
@@ -461,17 +457,20 @@ public class Member {
      * @return list of linked accounts
      */
     public List<Account> linkAccounts(BankAuthorization authorization) {
-        return async.linkAccounts(authorization)
-                .map(new Function<List<AccountAsync>, List<Account>>() {
-                    public List<Account> apply(List<AccountAsync> asyncList) {
-                        List<Account> accounts = new LinkedList<>();
-                        for (AccountAsync async : asyncList) {
-                            accounts.add(async.sync());
-                        }
-                        return accounts;
-                    }
-                })
-                .blockingSingle();
+        return toAccountList(async.linkAccounts(authorization)).blockingSingle();
+    }
+
+    /**
+     * Links funding bank accounts to Token and returns them to the caller.
+     *
+     * @param bankId bank id
+     * @param accessToken OAuth access token
+     * @return list of linked accounts
+     * @throws BankAuthorizationRequiredException if bank authorization payload
+     *                                               is required to link accounts
+     */
+    public List<Account> linkAccounts(String bankId, String accessToken) {
+        return toAccountList(async.linkAccounts(bankId, accessToken)).blockingSingle();
     }
 
     /**
@@ -644,7 +643,6 @@ public class Member {
      * Stores a token request to be retrieved later (possibly by another member).
      *
      * @param tokenRequest token request
-     *
      * @return ID to reference the stored token request
      */
     public String storeTokenRequest(TokenRequest tokenRequest) {

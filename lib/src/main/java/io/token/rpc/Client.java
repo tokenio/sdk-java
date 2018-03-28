@@ -217,7 +217,6 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
-
         this.onBehalfOf = accessTokenId;
     }
 
@@ -484,13 +483,18 @@ public final class Client {
     /**
      * Links a funding bank account to Token.
      *
-     * @param authorization an authorization to accounts, from the bank.
+     * @param bankId bank id
+     * @param accessToken OAuth access token
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                               is required to link accounts
      */
-    public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
+    public Observable<List<Account>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
+        OauthBankAuthorization authorization = OauthBankAuthorization.newBuilder()
+                .setBankId(bankId)
+                .setAccessToken(accessToken)
+                .build();
         return toObservable(gateway
                 .linkAccountsOauth(LinkAccountsOauthRequest
                         .newBuilder()

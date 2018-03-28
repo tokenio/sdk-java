@@ -24,6 +24,7 @@ package io.token;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.grpc.Status.INVALID_ARGUMENT;
+import static io.token.TokenIO.TokenCluster.SANDBOX;
 
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
@@ -606,7 +607,7 @@ public class TokenIO implements Closeable {
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
                     devKey,
-                    tokenCluster);
+                    tokenCluster == null ? SANDBOX : tokenCluster);
         }
     }
 

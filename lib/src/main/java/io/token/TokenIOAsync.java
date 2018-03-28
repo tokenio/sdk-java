@@ -191,7 +191,7 @@ public class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 crypto);
-                        return Observable.just(new MemberAsync(member, client));
+                        return Observable.just(new MemberAsync(member, client, tokenCluster));
                     }
                 });
     }
@@ -266,7 +266,7 @@ public class TokenIOAsync implements Closeable {
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client);
+                        return new MemberAsync(member, client, tokenCluster);
                     }
                 });
     }
@@ -297,7 +297,7 @@ public class TokenIOAsync implements Closeable {
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client);
+                        return new MemberAsync(member, client, tokenCluster);
                     }
                 });
     }
@@ -433,7 +433,7 @@ public class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new MemberAsync(member, client);
+                        return new MemberAsync(member, client, tokenCluster);
                     }
                 });
     }
@@ -460,7 +460,7 @@ public class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new MemberAsync(member, client);
+                        return new MemberAsync(member, client, tokenCluster);
                     }
                 });
     }
