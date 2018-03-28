@@ -23,7 +23,6 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
-import static io.token.util.Util.getWebAppCallbackUrl;
 import static io.token.util.Util.parseOauthAccessToken;
 import static io.token.util.Util.toAccountList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
@@ -396,6 +395,9 @@ public class Member {
             final BankInfo bankInfo,
             final BrowserFactory browserFactory)
             throws BankAuthorizationRequiredException {
+        final String callbackUrl = String.format(
+                "https://%s/auth/callback",
+                async.getTokenCluster().webAppUrl());
         return Single.create(new SingleOnSubscribe<List<Account>>() {
             @Override
             public void subscribe(final SingleEmitter<List<Account>> emitter) throws Exception {
@@ -406,7 +408,7 @@ public class Member {
                             public boolean test(URL url) {
                                 if (url
                                         .toExternalForm()
-                                        .matches(getWebAppCallbackUrl(async.getTokenCluster())
+                                        .matches(callbackUrl
                                                 + "([/?]?.*#).*access_token=.+")) {
                                     return true;
                                 }
@@ -442,7 +444,7 @@ public class Member {
                 String url = String.format(
                         "%s&redirect_uri=%s",
                         bankInfo.getBankLinkingUri(),
-                        URLEncoder.encode(getWebAppCallbackUrl(async.getTokenCluster()), "UTF-8"));
+                        URLEncoder.encode(callbackUrl, "UTF-8"));
                 browser.goTo(new URL(url));
             }
         }).toObservable();

@@ -337,14 +337,4 @@ public abstract class Util {
             }
         });
     }
-
-    /**
-     * Get the url to web-app's callback endpoint.
-     *
-     * @param cluster Token cluster
-     * @return web-app callback url
-     */
-    public static String getWebAppCallbackUrl(TokenCluster cluster) {
-        return String.format("https://%s/auth/callback", cluster.webAppUrl());
-    }
 }
