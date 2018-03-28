@@ -30,6 +30,7 @@ import com.google.protobuf.Message;
 import io.grpc.Metadata;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.gateway.Auth.GrpcAuthPayload;
+import io.token.rpc.interceptor.MetadataInterceptor;
 import io.token.rpc.interceptor.SimpleInterceptor;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
@@ -68,6 +69,13 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 Metadata.Key.of("token-created-at-ms", ASCII_STRING_MARSHALLER),
                 Long.toString(now));
         metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
+
+
+        if (AuthenticationContext.clearUserInitiatedRequest()) {
+            metadata.put(
+                    Metadata.Key.of("user-initiated-request", ASCII_STRING_MARSHALLER),
+                    Boolean.toString(true));
+        }
 
         String onBehalfOf = AuthenticationContext.clearOnBehalfOf();
         if (!Strings.isNullOrEmpty(onBehalfOf)) {

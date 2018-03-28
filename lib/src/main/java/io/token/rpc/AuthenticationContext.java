@@ -35,6 +35,7 @@ public class AuthenticationContext {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationContext.class);
     private static final ThreadLocal<String> onBehalfOf = new ThreadLocal<>();
     private static final ThreadLocal<Key.Level> keyLevel = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> userInitiatedRequest = new ThreadLocal<>();
 
     /**
      * Retrieves the On-Behalf-Of value.
@@ -59,6 +60,20 @@ public class AuthenticationContext {
     }
 
     /**
+     * Get the user initiated request flag.
+     *
+     * @return flag
+     */
+    public static boolean getUserInitiatedRequest() {
+        Boolean flag = userInitiatedRequest.get();
+        if (flag == null) {
+            return false;
+        }
+
+        return flag;
+    }
+
+    /**
      * Sets the On-Behalf-Of value.
      *
      * @param tokenId the value of the On-Behalf-Of
@@ -75,6 +90,15 @@ public class AuthenticationContext {
      */
     public static void setKeyLevel(Key.Level level) {
         keyLevel.set(level);
+    }
+
+    /**
+     * Set the user initiated request flag.
+     *
+     * @param flag flag
+     */
+    public static void setUserInitiatedRequest(boolean flag) {
+        userInitiatedRequest.set(flag);
     }
 
     /**
@@ -100,10 +124,22 @@ public class AuthenticationContext {
     }
 
     /**
+     * Retrieves and clears the user initiated request flag.
+     *
+     * @return flag
+     */
+    public static boolean clearUserInitiatedRequest() {
+        boolean flag = getUserInitiatedRequest();
+        userInitiatedRequest.set(false);
+        return flag;
+    }
+
+    /**
      * Resets the authenticator.
      */
     public static void clear() {
         onBehalfOf.remove();
         keyLevel.set(Key.Level.LOW);
+        userInitiatedRequest.remove();
     }
 }
