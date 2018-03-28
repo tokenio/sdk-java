@@ -197,6 +197,14 @@ public class MemberAsync {
     }
 
     /**
+     * Specify a user initiated request. The next gateway call will contain a flag informing that
+     * the request is initiated by a user.
+     */
+    public void specifyUserInitiatedrequest() {
+        this.client.specifyUserInitiatedRequest();
+    }
+
+    /**
      * Adds a new alias for the member.
      *
      * @param alias alias, e.g. 'john', must be unique
