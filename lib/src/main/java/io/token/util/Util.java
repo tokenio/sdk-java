@@ -38,6 +38,7 @@ import io.reactivex.SingleOnSubscribe;
 import io.reactivex.functions.Function;
 import io.token.Account;
 import io.token.AccountAsync;
+import io.token.TokenIO.TokenCluster;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -335,5 +336,15 @@ public abstract class Util {
                 return accounts;
             }
         });
+    }
+
+    /**
+     * Get the url to web-app's callback endpoint.
+     *
+     * @param cluster Token cluster
+     * @return web-app callback url
+     */
+    public static String getWebAppCallbackUrl(TokenCluster cluster) {
+        return String.format("https://%s/auth/callback", cluster.webAppUrl());
     }
 }

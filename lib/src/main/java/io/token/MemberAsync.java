@@ -37,7 +37,6 @@ import io.token.TokenIO.TokenCluster;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -1157,12 +1156,12 @@ public class MemberAsync {
     }
 
     /**
-     * Get the url pointing to web-app callback endpoint.
+     * Get the Token cluster, e.g. sandbox, production.
      *
-     * @return web-app callback url
+     * @return Token cluster
      */
-    public String getWebAppCallbackUrl() {
-        return String.format("https://%s/auth/callback", cluster.webAppUrl());
+    public TokenCluster getTokenCluster() {
+        return cluster;
     }
 
     @Override

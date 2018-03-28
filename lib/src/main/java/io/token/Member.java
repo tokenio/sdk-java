@@ -23,6 +23,7 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
+import static io.token.util.Util.getWebAppCallbackUrl;
 import static io.token.util.Util.parseOauthAccessToken;
 import static io.token.util.Util.toAccountList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
@@ -39,7 +40,6 @@ import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -406,7 +406,7 @@ public class Member {
                             public boolean test(URL url) {
                                 if (url
                                         .toExternalForm()
-                                        .matches(async.getWebAppCallbackUrl()
+                                        .matches(getWebAppCallbackUrl(async.getTokenCluster())
                                                 + "([/?]?.*#).*access_token=.+")) {
                                     return true;
                                 }
@@ -442,7 +442,7 @@ public class Member {
                 String url = String.format(
                         "%s&redirect_uri=%s",
                         bankInfo.getBankLinkingUri(),
-                        URLEncoder.encode(async.getWebAppCallbackUrl(), "UTF-8"));
+                        URLEncoder.encode(getWebAppCallbackUrl(async.getTokenCluster()), "UTF-8"));
                 browser.goTo(new URL(url));
             }
         }).toObservable();
