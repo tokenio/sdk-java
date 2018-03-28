@@ -26,14 +26,24 @@ import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
+import static io.token.util.Util.parseOauthAccessToken;
+import static io.token.util.Util.toAccountList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
 import io.token.TokenIO.TokenCluster;
+import io.token.browser.Browser;
+import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -77,6 +87,8 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -95,6 +107,7 @@ public class MemberAsync {
     private final Client client;
     private final Builder member;
     private final TokenCluster cluster;
+    private final BrowserFactory browserFactory;
 
     /**
      * Creates an instance of {@link MemberAsync}.
@@ -103,10 +116,15 @@ public class MemberAsync {
      * @param client RPC client used to perform operations against the server
      * @param cluster Token cluster, e.g. sandbox, production
      */
-    MemberAsync(MemberProtos.Member member, Client client, TokenCluster cluster) {
+    MemberAsync(
+            MemberProtos.Member member,
+            Client client,
+            TokenCluster cluster,
+            BrowserFactory browserFactory) {
         this.client = client;
         this.member = member.toBuilder();
         this.cluster = cluster;
+        this.browserFactory = browserFactory;
     }
 
     /**
@@ -496,6 +514,79 @@ public class MemberAsync {
      */
     public Observable<Notification> getNotification(String notificationId) {
         return client.getNotification(notificationId);
+    }
+
+    /**
+     * Links accounts by navigating browser through bank authorization pages.
+     *
+     * @param bankId the bank id
+     * @return observable list of linked accounts
+     * @throws BankAuthorizationRequiredException if bank authorization payload
+     *                                              is required to link accounts
+     */
+    public Observable<List<Account>> linkAccounts(final String bankId)
+            throws BankAuthorizationRequiredException {
+        final String callbackUrl = String.format(
+                "https://%s/auth/callback",
+                getTokenCluster().webAppUrl());
+        final Browser browser = browserFactory.create();
+        final Observable<List<Account>> accountLinkingObservable = browser.url()
+                .filter(new Predicate<URL>() {
+                    @Override
+                    public boolean test(URL url) {
+                        if (url.toExternalForm().matches(
+                                callbackUrl + "([/?]?.*#).*access_token=.+")) {
+                            return true;
+                        }
+                        browser.goTo(url);
+                        return false;
+                    }
+                })
+                .flatMap(new Function<URL, Observable<List<Account>>>() {
+                    @Override
+                    public Observable<List<Account>> apply(URL url) {
+                        String accessToken = parseOauthAccessToken(url.toExternalForm());
+                        if (accessToken == null) {
+                            throw new IllegalArgumentException("No access token found");
+                        }
+                        return toAccountList(linkAccounts(bankId, accessToken));
+                    }
+                });
+
+        return getBankInfo(bankId)
+                .flatMap(new Function<BankInfo, ObservableSource<List<Account>>>() {
+                    @Override
+                    public ObservableSource<List<Account>> apply(final BankInfo bankInfo) {
+                        return Single.create(new SingleOnSubscribe<List<Account>>() {
+                            @Override
+                            public void subscribe(final SingleEmitter<List<Account>> emitter)
+                                    throws Exception {
+                                accountLinkingObservable
+                                        .subscribe(
+                                                new Consumer<List<Account>>() {
+                                                    @Override
+                                                    public void accept(List<Account> accounts) {
+                                                        emitter.onSuccess(accounts);
+                                                        browser.close();
+                                                    }
+                                                },
+                                                new Consumer<Throwable>() {
+                                                    @Override
+                                                    public void accept(Throwable ex) {
+                                                        emitter.onError(ex);
+                                                        browser.close();
+                                                    }
+                                                });
+                                String linkingUrl = bankInfo.getBankLinkingUri();
+                                String url = String.format(
+                                        "%s&redirect_uri=%s",
+                                        linkingUrl,
+                                        URLEncoder.encode(callbackUrl, "UTF-8"));
+                                browser.goTo(new URL(url));
+                            }
+                        }).toObservable();
+                    }
+                });
     }
 
     /**

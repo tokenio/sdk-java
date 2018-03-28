@@ -23,19 +23,10 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
-import static io.token.util.Util.parseOauthAccessToken;
 import static io.token.util.Util.toAccountList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
-import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleOnSubscribe;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
-import io.token.browser.Browser;
-import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -66,8 +57,6 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.security.keystore.SecretKeyPair;
 
-import java.net.URL;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -389,73 +378,15 @@ public class Member {
     }
 
     /**
-     * Links accounts given bank info and browser factory.
+     * Links accounts by navigating browser through bank authorization pages.
      *
      * @param bankId the bank id
-     * @param bankInfo the bank info
-     * @param browserFactory the browser factory
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                              is required to link accounts
      */
-    public Observable<List<Account>> linkAccounts(
-            final String bankId,
-            final BankInfo bankInfo,
-            final BrowserFactory browserFactory)
-            throws BankAuthorizationRequiredException {
-        final String callbackUrl = String.format(
-                "https://%s/auth/callback",
-                async.getTokenCluster().webAppUrl());
-        return Single.create(new SingleOnSubscribe<List<Account>>() {
-            @Override
-            public void subscribe(final SingleEmitter<List<Account>> emitter) throws Exception {
-                final Browser browser = browserFactory.create();
-                browser.url()
-                        .filter(new Predicate<URL>() {
-                            @Override
-                            public boolean test(URL url) {
-                                if (url
-                                        .toExternalForm()
-                                        .matches(callbackUrl
-                                                + "([/?]?.*#).*access_token=.+")) {
-                                    return true;
-                                }
-                                browser.goTo(url);
-                                return false;
-                            }
-                        })
-                        .flatMap(new Function<URL, Observable<List<Account>>>() {
-                            @Override
-                            public Observable<List<Account>> apply(URL url) {
-                                String accessToken = parseOauthAccessToken(url.toExternalForm());
-                                if (accessToken == null) {
-                                    throw new IllegalArgumentException("No access token found");
-                                }
-                                return toAccountList(async.linkAccounts(bankId, accessToken));
-                            }
-                        })
-                        .subscribe(
-                                new Consumer<List<Account>>() {
-                                    @Override
-                                    public void accept(List<Account> accounts) {
-                                        emitter.onSuccess(accounts);
-                                        browser.close();
-                                    }
-                                },
-                                new Consumer<Throwable>() {
-                                    @Override
-                                    public void accept(Throwable ex) {
-                                        emitter.onError(ex);
-                                        browser.close();
-                                    }
-                                });
-                String url = String.format(
-                        "%s&redirect_uri=%s",
-                        bankInfo.getBankLinkingUri(),
-                        URLEncoder.encode(callbackUrl, "UTF-8"));
-                browser.goTo(new URL(url));
-            }
-        }).toObservable();
+    public List<Account> linkAccounts(String bankId) {
+        return async.linkAccounts(bankId).blockingSingle();
     }
 
     /**

@@ -44,6 +44,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.browser.BrowserFactory;
 import io.token.exceptions.InvalidStateException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -92,7 +93,8 @@ public class TokenIOAsync implements Closeable {
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
     private final String devKey;
-    private TokenCluster tokenCluster;
+    private final TokenCluster tokenCluster;
+    private final BrowserFactory browserFactory;
 
     /**
      * Creates an instance of a Token SDK.
@@ -106,11 +108,13 @@ public class TokenIOAsync implements Closeable {
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
             String developerKey,
-            TokenCluster tokenCluster) {
+            TokenCluster tokenCluster,
+            BrowserFactory browserFactory) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.devKey = developerKey;
         this.tokenCluster = tokenCluster;
+        this.browserFactory = browserFactory;
     }
 
     @Override
@@ -191,7 +195,11 @@ public class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 crypto);
-                        return Observable.just(new MemberAsync(member, client, tokenCluster));
+                        return Observable.just(new MemberAsync(
+                                member,
+                                client,
+                                tokenCluster,
+                                browserFactory));
                     }
                 });
     }
@@ -266,7 +274,7 @@ public class TokenIOAsync implements Closeable {
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client, tokenCluster);
+                        return new MemberAsync(member, client, tokenCluster, browserFactory);
                     }
                 });
     }
@@ -297,7 +305,7 @@ public class TokenIOAsync implements Closeable {
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client, tokenCluster);
+                        return new MemberAsync(member, client, tokenCluster, browserFactory);
                     }
                 });
     }
@@ -433,7 +441,7 @@ public class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new MemberAsync(member, client, tokenCluster);
+                        return new MemberAsync(member, client, tokenCluster, browserFactory);
                     }
                 });
     }
@@ -460,7 +468,7 @@ public class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new MemberAsync(member, client, tokenCluster);
+                        return new MemberAsync(member, client, tokenCluster, browserFactory);
                     }
                 });
     }
