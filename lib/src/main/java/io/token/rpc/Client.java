@@ -180,6 +180,7 @@ import io.token.util.Util;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -413,6 +414,27 @@ public final class Client {
                         .newBuilder()
                         .setSubscriberId(subscriberId)
                         .build()));
+    }
+
+    /**
+     * Removes all subscribers.
+     *
+     * @return completable
+     */
+    public Completable unsubscribeFromAllNotifications() {
+        return Completable.fromObservable(getSubscribers()
+                .map(new Function<List<Subscriber>, Completable>() {
+                    public Completable apply(List<Subscriber> subscribers) {
+                        List<Completable> unsubscribeCompletables = new LinkedList<>();
+
+                        for (Subscriber subscriber : subscribers) {
+                            unsubscribeCompletables
+                                    .add(unsubscribeFromNotifications(subscriber.getId()));
+                        }
+
+                        return Completable.merge(unsubscribeCompletables);
+                    }
+                }));
     }
 
     /**

@@ -468,6 +468,15 @@ public class MemberAsync {
     }
 
     /**
+     * Removes all subscribers.
+     *
+     * @return completable
+     */
+    public Completable unsubscribeFromAllNotifications() {
+        return client.unsubscribeFromAllNotifications();
+    }
+
+    /**
      * Gets a list of the member's notifications.
      *
      * @param offset offset to start
