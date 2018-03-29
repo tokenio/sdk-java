@@ -168,6 +168,7 @@ import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
+import io.token.proto.gateway.Gateway.UnsubscribeFromAllNotificationsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
@@ -180,7 +181,6 @@ import io.token.util.Util;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -422,19 +422,8 @@ public final class Client {
      * @return completable
      */
     public Completable unsubscribeFromAllNotifications() {
-        return Completable.fromObservable(getSubscribers()
-                .map(new Function<List<Subscriber>, Completable>() {
-                    public Completable apply(List<Subscriber> subscribers) {
-                        List<Completable> unsubscribeCompletables = new LinkedList<>();
-
-                        for (Subscriber subscriber : subscribers) {
-                            unsubscribeCompletables
-                                    .add(unsubscribeFromNotifications(subscriber.getId()));
-                        }
-
-                        return Completable.merge(unsubscribeCompletables);
-                    }
-                }));
+        return toCompletable(gateway.unsubscribeFromAllNotifications(
+                UnsubscribeFromAllNotificationsRequest.getDefaultInstance()));
     }
 
     /**
