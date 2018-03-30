@@ -24,7 +24,6 @@ package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
-import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
@@ -45,11 +44,11 @@ import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Device;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
@@ -67,6 +66,7 @@ import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -111,8 +111,6 @@ import io.token.proto.gateway.Gateway.GetBalancesRequest;
 import io.token.proto.gateway.Gateway.GetBalancesResponse;
 import io.token.proto.gateway.Gateway.GetBankInfoRequest;
 import io.token.proto.gateway.Gateway.GetBankInfoResponse;
-import io.token.proto.gateway.Gateway.GetBanksRequest;
-import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAccountResponse;
@@ -124,6 +122,8 @@ import io.token.proto.gateway.Gateway.GetNotificationRequest;
 import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
 import io.token.proto.gateway.Gateway.GetNotificationsResponse;
+import io.token.proto.gateway.Gateway.GetPairedDevicesRequest;
+import io.token.proto.gateway.Gateway.GetPairedDevicesResponse;
 import io.token.proto.gateway.Gateway.GetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.GetProfileRequest;
@@ -155,12 +155,16 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.RequestSignatureRequest;
+import io.token.proto.gateway.Gateway.RequestSignatureResponse;
 import io.token.proto.gateway.Gateway.RetryVerificationRequest;
 import io.token.proto.gateway.Gateway.RetryVerificationResponse;
 import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
+import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
+import io.token.proto.gateway.Gateway.StoreTokenRequestResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
@@ -189,10 +193,6 @@ import javax.annotation.Nullable;
  * easier to use.
  */
 public final class Client {
-    private static final Alias TOKEN = Alias.newBuilder()
-            .setType(DOMAIN)
-            .setValue("token.io")
-            .build();
     private final String memberId;
     private final CryptoEngine crypto;
     private final GatewayServiceFutureStub gateway;
@@ -219,7 +219,6 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
-
         this.onBehalfOf = accessTokenId;
     }
 
@@ -486,13 +485,18 @@ public final class Client {
     /**
      * Links a funding bank account to Token.
      *
-     * @param authorization an authorization to accounts, from the bank.
+     * @param bankId bank id
+     * @param accessToken OAuth access token
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                               is required to link accounts
      */
-    public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
+    public Observable<List<Account>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
+        OauthBankAuthorization authorization = OauthBankAuthorization.newBuilder()
+                .setBankId(bankId)
+                .setAccessToken(accessToken)
+                .build();
         return toObservable(gateway
                 .linkAccountsOauth(LinkAccountsOauthRequest
                         .newBuilder()
@@ -555,6 +559,30 @@ public final class Client {
                 .map(new Function<GetAccountsResponse, List<Account>>() {
                     public List<Account> apply(GetAccountsResponse response) {
                         return response.getAccountsList();
+                    }
+                });
+    }
+
+    /**
+     * Stores a transfer token request.
+     *
+     * @param payload transfer token payload
+     * @param options map of options
+     *
+     * @return id to reference token request
+     */
+    public Observable<String> storeTokenRequest(
+            TokenPayload payload,
+            Map<String, String> options) {
+        return toObservable(gateway.storeTokenRequest(StoreTokenRequestRequest.newBuilder()
+                .setPayload(payload)
+                .putAllOptions(options)
+                .build()))
+                .map(new Function<StoreTokenRequestResponse, String>() {
+                    @Override
+                    public String apply(StoreTokenRequestResponse storeTokenRequestResponse)
+                            throws Exception {
+                        return storeTokenRequestResponse.getTokenRequest().getId();
                     }
                 });
     }
@@ -1381,6 +1409,42 @@ public final class Client {
                 .newBuilder()
                 .addAllAccountId(accountIds)
                 .build()));
+    }
+
+    /**
+     * Request a signature for a (tokenID | state) payload.
+     *
+     * @param tokenId token id
+     * @param state state
+     * @return signature
+     */
+    public Observable<Signature> requestSignature(String tokenId, String state) {
+        return toObservable(gateway.requestSignature(RequestSignatureRequest.newBuilder()
+                .setPayload(RequestSignaturePayload.newBuilder()
+                        .setTokenId(tokenId)
+                        .setState(state))
+                .build()))
+                .map(new Function<RequestSignatureResponse, Signature>() {
+                    public Signature apply(RequestSignatureResponse response) {
+                        return response.getSignature();
+                    }
+                });
+    }
+
+    /**
+     * Get list of paired devices.
+     *
+     * @return list of devices
+     */
+    public Observable<List<Device>> getPairedDevices() {
+        return toObservable(gateway.getPairedDevices(GetPairedDevicesRequest.getDefaultInstance()))
+                .map(new Function<GetPairedDevicesResponse, List<Device>>() {
+                    @Override
+                    public List<Device> apply(GetPairedDevicesResponse response)
+                            throws Exception {
+                        return response.getDevicesList();
+                    }
+                });
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(

@@ -80,20 +80,33 @@ public final class TransferTokenBuilder {
         this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
-                .setFrom(TokenProtos.TokenMember.newBuilder()
-                        .setId(member.memberId())
-                        .build())
                 .setTransfer(TransferBody.newBuilder()
                         .setCurrency(currency)
                         .setLifetimeAmount(Double.toString(amount)));
 
-        Alias alias = member.firstAlias().blockingSingle();
-        if (alias != null) {
-            payload.getFromBuilder()
-                    .setAlias(alias);
+        if (member != null) {
+            payload.setFrom(TokenProtos.TokenMember.newBuilder()
+                    .setId(member.memberId())
+                    .build());
+
+            Alias alias = member.firstAlias().blockingSingle();
+            if (alias != null) {
+                payload.getFromBuilder()
+                        .setAlias(alias);
+            }
         }
 
         blobPayloads = new ArrayList<>();
+    }
+
+    /**
+     * Creates the builder object.
+     *
+     * @param amount lifetime amount of the token
+     * @param currency currency of the token
+     */
+    public TransferTokenBuilder(double amount, String currency) {
+        this(null, amount, currency);
     }
 
     /**
@@ -333,6 +346,19 @@ public final class TransferTokenBuilder {
                 .getMetadataBuilder()
                 .setTransferPurpose(purposeOfPayment);
         return this;
+    }
+
+    /**
+     * Builds a token payload, without uploading blobs or attachments.
+     *
+     * @return token payload
+     */
+    public TokenPayload buildPayload() {
+        if (!payload.hasTo()) {
+            throw new TokenArgumentsException("No payee on token request");
+        }
+
+        return payload.build();
     }
 
     /**

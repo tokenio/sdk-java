@@ -24,6 +24,7 @@ package io.token;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.grpc.Status.INVALID_ARGUMENT;
+import static io.token.TokenIO.TokenCluster.SANDBOX;
 
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
@@ -145,7 +146,19 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a set of auto generated keys and the
+     * Creates a new business-use Token member with a set of auto-generated keys and alias.
+     *
+     * @param alias alias to associated with member
+     * @return newly created member
+     */
+    public Member createBusinessMember(Alias alias) {
+        return async.createBusinessMember(alias)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Creates a new personal-use Token member with a set of auto generated keys and the
      * given alias.
      *
      * @param alias member alias to use, must be unique
@@ -158,7 +171,7 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a set of auto generated keys and no alias.
+     * Creates a new personal-use Token member with a set of auto generated keys and no alias.
      *
      * @return newly created member
      */
@@ -191,6 +204,16 @@ public class TokenIO implements Closeable {
         return async.getMember(memberId)
                 .map(new MemberFunction())
                 .blockingSingle();
+    }
+
+    /**
+     * Returns a token request for a specified token request id.
+     *
+     * @param requestId request id
+     * @return token request
+     */
+    public TokenRequest retrieveTokenRequest(String requestId) {
+        return async.retrieveTokenRequest(requestId).blockingSingle();
     }
 
     /**
@@ -354,23 +377,89 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token
+     * or pass in a state.
+     *
+     * @param requestId request id
+     * @return token request url
+     */
+    public String generateTokenRequestUrl(String requestId) {
+        return async.generateTokenRequestUrl(requestId).blockingSingle();
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token.
+     *
+     * @param requestId request id
+     * @param state state
+     * @return token request url
+     */
+    public String generateTokenRequestUrl(String requestId, String state) {
+        return async.generateTokenRequestUrl(requestId, state).blockingSingle();
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, an original state and a CSRF token.
+     *
+     * @param requestId request id
+     * @param state state
+     * @param csrfToken csrf token
+     * @return token request url
+     */
+    public String generateTokenRequestUrl(String requestId, String state, String csrfToken) {
+        return async.generateTokenRequestUrl(requestId, state, csrfToken).blockingSingle();
+    }
+
+    /**
+     * Parse the token request callback URL to extract the state and the token ID. This assumes
+     * that no CSRF token was set.
+     *
+     * @param callbackUrl token request callback url
+     * @return TokenRequestCallback object containing the token id and the original state
+     */
+    public TokenRequestCallback parseTokenRequestCallbackUrl(final String callbackUrl) {
+        return async.parseTokenRequestCallbackUrl(callbackUrl).blockingSingle();
+    }
+
+    /**
+     * Parse the token request callback URL to extract the state and the token ID. Verify that the
+     * state contains the CSRF token hash and that the signature on the state and CSRF token is
+     * valid.
+     *
+     * @param callbackUrl token request callback url
+     * @param csrfToken csrf token
+     * @return TokenRequestCallback object containing the token id and the original state
+     */
+    public TokenRequestCallback parseTokenRequestCallbackUrl(String callbackUrl, String csrfToken) {
+        return async
+                .parseTokenRequestCallbackUrl(callbackUrl, csrfToken)
+                .blockingSingle();
+    }
+
+    /**
      * Defines Token cluster to connect to.
      */
     public enum TokenCluster {
-        PRODUCTION("api-grpc.token.io"),
-        INTEGRATION("api-grpc.int.token.io"),
-        SANDBOX("api-grpc.sandbox.token.io"),
-        STAGING("api-grpc.stg.token.io"),
-        DEVELOPMENT("api-grpc.dev.token.io");
+        PRODUCTION("api-grpc.token.io", "web-app.token.io"),
+        INTEGRATION("api-grpc.int.token.io", "web-app.int.token.io"),
+        SANDBOX("api-grpc.sandbox.token.io", "web-app.sandbox.token.io"),
+        STAGING("api-grpc.stg.token.io", "web-app.stg.token.io"),
+        DEVELOPMENT("api-grpc.dev.token.io", "web-app.dev.token.io");
 
         private final String envUrl;
+        private String webAppUrl;
 
-        TokenCluster(String url) {
+        TokenCluster(String url, String webAppUrl) {
             this.envUrl = url;
+            this.webAppUrl = webAppUrl;
         }
 
         public String url() {
             return envUrl;
+        }
+
+        public String webAppUrl() {
+            return webAppUrl;
         }
     }
 
@@ -383,6 +472,7 @@ public class TokenIO implements Closeable {
 
         private int port;
         private boolean useSsl;
+        private TokenCluster tokenCluster;
         private String hostName;
         private long timeoutMs;
         private CryptoEngineFactory cryptoEngine;
@@ -427,6 +517,7 @@ public class TokenIO implements Closeable {
          * @return this builder instance
          */
         public Builder connectTo(TokenCluster cluster) {
+            this.tokenCluster = cluster;
             this.hostName = cluster.url();
             return this;
         }
@@ -515,7 +606,8 @@ public class TokenIO implements Closeable {
                     cryptoEngine != null
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
-                    devKey);
+                    devKey,
+                    tokenCluster == null ? SANDBOX : tokenCluster);
         }
     }
 

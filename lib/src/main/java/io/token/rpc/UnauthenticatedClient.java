@@ -25,12 +25,14 @@ package io.token.rpc;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.util.Util.TOKEN;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.TokenRequest;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -40,6 +42,7 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.MemberType;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
@@ -49,7 +52,6 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -66,9 +68,12 @@ import io.token.proto.gateway.Gateway.RequestTransferRequest;
 import io.token.proto.gateway.Gateway.RequestTransferResponse;
 import io.token.proto.gateway.Gateway.ResolveAliasRequest;
 import io.token.proto.gateway.Gateway.ResolveAliasResponse;
+import io.token.proto.gateway.Gateway.RetrieveTokenRequestRequest;
+import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
@@ -130,14 +135,35 @@ public final class UnauthenticatedClient {
     }
 
     /**
+     * Looks up member information for the given member ID. The user is defined by
+     * the key used for authentication.
+     *
+     * @param memberId member id
+     * @return an observable of member
+     */
+    public Observable<Member> getMember(String memberId) {
+        return Converters
+                .toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetMemberResponse, Member>() {
+                    public Member apply(GetMemberResponse response) {
+                        return response.getMember();
+                    }
+                });
+    }
+
+    /**
      * Creates new member ID. After the method returns the ID is reserved on the server.
      *
+     * @param memberType the type of member to register
      * @return newly created member id
      */
-    public Observable<String> createMemberId() {
+    public Observable<String> createMemberId(MemberType memberType) {
         return
                 toObservable(gateway.createMember(CreateMemberRequest.newBuilder()
                         .setNonce(generateNonce())
+                        .setMemberType(memberType)
                         .build()))
                         .map(new Function<CreateMemberResponse, String>() {
                             public String apply(CreateMemberResponse response) {
@@ -174,6 +200,29 @@ public final class UnauthenticatedClient {
                 .map(new Function<UpdateMemberResponse, Member>() {
                     public Member apply(UpdateMemberResponse response) {
                         return response.getMember();
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a transfer token request.
+     *
+     * @param tokenRequestId token request id
+     *
+     * @return TokenRequest representing the request that was stored with the request id
+     */
+    public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
+        return toObservable(gateway.retrieveTokenRequest(RetrieveTokenRequestRequest.newBuilder()
+                .setRequestId(tokenRequestId)
+                .build()))
+                .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
+                    @Override
+                    public TokenRequest apply(
+                            RetrieveTokenRequestResponse retrieveTokenRequestResponse)
+                            throws Exception {
+                        return TokenRequest.create(
+                                retrieveTokenRequestResponse.getTokenRequest().getPayload(),
+                                retrieveTokenRequestResponse.getTokenRequest().getOptionsMap());
                     }
                 });
     }
@@ -398,6 +447,17 @@ public final class UnauthenticatedClient {
                 });
     }
 
+    private List<MemberOperation> toMemberOperations(Key... keys) {
+        List<MemberOperation> operations = new LinkedList<>();
+        for (Key key : keys) {
+            operations.add(MemberOperation.newBuilder()
+                    .setAddKey(MemberAddKeyOperation.newBuilder()
+                            .setKey(key))
+                    .build());
+        }
+        return operations;
+    }
+
     /**
      * Completes account recovery if the default recovery rule was set.
      *
@@ -486,7 +546,6 @@ public final class UnauthenticatedClient {
                 });
     }
 
-
     /**
      * Returns a list of all token enabled banks.
      *
@@ -502,14 +561,18 @@ public final class UnauthenticatedClient {
                 });
     }
 
-    private List<MemberOperation> toMemberOperations(Key... keys) {
-        List<MemberOperation> operations = new LinkedList<>();
-        for (Key key : keys) {
-            operations.add(MemberOperation.newBuilder()
-                    .setAddKey(MemberAddKeyOperation.newBuilder()
-                            .setKey(key))
-                    .build());
-        }
-        return operations;
+    /**
+     * Return the token member.
+     *
+     * @return token member
+     */
+    public Observable<Member> getTokenMember() {
+        return getMemberId(TOKEN).flatMap(
+                new Function<String, Observable<Member>>() {
+                    @Override
+                    public Observable<Member> apply(String memberId) throws Exception {
+                        return getMember(memberId);
+                    }
+                });
     }
 }

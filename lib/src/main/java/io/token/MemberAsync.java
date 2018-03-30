@@ -33,14 +33,13 @@ import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.TokenIO.TokenCluster;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
@@ -48,6 +47,7 @@ import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Device;
 import io.token.proto.common.member.MemberProtos.Member.Builder;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -94,16 +94,19 @@ public class MemberAsync {
 
     private final Client client;
     private final Builder member;
+    private final TokenCluster cluster;
 
     /**
      * Creates an instance of {@link MemberAsync}.
      *
      * @param member internal member representation, fetched from server
      * @param client RPC client used to perform operations against the server
+     * @param cluster Token cluster, e.g. sandbox, production
      */
-    MemberAsync(MemberProtos.Member member, Client client) {
+    MemberAsync(MemberProtos.Member member, Client client, TokenCluster cluster) {
         this.client = client;
         this.member = member.toBuilder();
+        this.cluster = cluster;
     }
 
     /**
@@ -501,16 +504,16 @@ public class MemberAsync {
     /**
      * Links funding bank accounts to Token and returns them to the caller.
      *
-     * @param authorization an authorization to accounts, from the bank
+     * @param bankId bank id
+     * @param accessToken OAuth access token
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                               is required to link accounts
      */
-    public Observable<List<AccountAsync>> linkAccounts(OauthBankAuthorization authorization)
+    public Observable<List<AccountAsync>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
-        return toAccountAsyncList(client.linkAccounts(authorization));
+        return toAccountAsyncList(client.linkAccounts(bankId, accessToken));
     }
-
 
     /**
      * Unlinks bank accounts previously linked via linkAccounts call.
@@ -744,6 +747,16 @@ public class MemberAsync {
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
         return client.getProfilePicture(memberId, size);
+    }
+
+    /**
+     * Stores an token request. This can be retrieved later by the token request id.
+     *
+     * @param tokenRequest token request
+     * @return token request id
+     */
+    public Observable<String> storeTokenRequest(TokenRequest tokenRequest) {
+        return client.storeTokenRequest(tokenRequest.getTokenPayload(), tokenRequest.getOptions());
     }
 
     /**
@@ -1130,6 +1143,34 @@ public class MemberAsync {
      */
     public Completable applySca(List<String> accountIds) {
         return client.applySca(accountIds);
+    }
+    /**
+     * Request a signature for a (tokenID | state) payload.
+     *
+     * @param tokenId token id
+     * @param state state
+     * @return signature
+     */
+    public Observable<Signature> requestSignature(String tokenId, String state) {
+        return client.requestSignature(tokenId, state);
+    }
+
+    /**
+     * Get list of paired devices.
+     *
+     * @return list of devices
+     */
+    public Observable<List<Device>> getPairedDevices() {
+        return client.getPairedDevices();
+    }
+
+    /**
+     * Get the Token cluster, e.g. sandbox, production.
+     *
+     * @return Token cluster
+     */
+    public TokenCluster getTokenCluster() {
+        return cluster;
     }
 
     @Override
