@@ -1082,7 +1082,7 @@ public class Member {
         async.applySca(accountIds).blockingAwait();
     }
 
-     /**
+    /**
      * Request a signature for a (tokenID | state) payload.
      *
      * @param tokenId token id
