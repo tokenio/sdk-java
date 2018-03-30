@@ -1074,6 +1074,15 @@ public class Member {
     }
 
     /**
+     * Apply SCA for the given list of account IDs.
+     *
+     * @param accountIds list of account ids
+     */
+    public void applySca(List<String> accountIds) {
+        async.applySca(accountIds).blockingAwait();
+    }
+
+     /**
      * Request a signature for a (tokenID | state) payload.
      *
      * @param tokenId token id
