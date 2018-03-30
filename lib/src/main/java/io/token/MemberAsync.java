@@ -197,11 +197,11 @@ public class MemberAsync {
     }
 
     /**
-     * Specify a user initiated request. The next gateway call will contain a flag informing that
-     * the request is initiated by a user.
+     * Specify a customer initiated request. The next gateway call will contain a flag informing
+     * that the request is initiated by a customer.
      */
-    public void specifyUserInitiatedrequest() {
-        this.client.specifyUserInitiatedRequest();
+    public void setCustomerInitiated() {
+        this.client.setCustomerInitiated();
     }
 
     /**

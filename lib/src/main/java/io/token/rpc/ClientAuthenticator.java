@@ -70,7 +70,7 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 Long.toString(now));
         metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
 
-        if (AuthenticationContext.clearUserInitiatedRequest()) {
+        if (AuthenticationContext.clearCustomerInitiated()) {
             metadata.put(
                     Metadata.Key.of("user-initiated-request", ASCII_STRING_MARSHALLER),
                     Boolean.toString(true));

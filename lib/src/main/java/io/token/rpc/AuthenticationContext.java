@@ -35,7 +35,7 @@ public class AuthenticationContext {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationContext.class);
     private static final ThreadLocal<String> onBehalfOf = new ThreadLocal<>();
     private static final ThreadLocal<Key.Level> keyLevel = new ThreadLocal<>();
-    private static final ThreadLocal<Boolean> userInitiatedRequest = new ThreadLocal<>();
+    private static final ThreadLocal<Boolean> customerInitiated = new ThreadLocal<>();
 
     /**
      * Retrieves the On-Behalf-Of value.
@@ -60,12 +60,12 @@ public class AuthenticationContext {
     }
 
     /**
-     * Get the user initiated request flag.
+     * Get the customer initiated request flag.
      *
      * @return flag
      */
-    public static boolean getUserInitiatedRequest() {
-        Boolean flag = userInitiatedRequest.get();
+    public static boolean getCustomerInitiated() {
+        Boolean flag = customerInitiated.get();
         if (flag == null) {
             return false;
         }
@@ -93,12 +93,12 @@ public class AuthenticationContext {
     }
 
     /**
-     * Set the user initiated request flag.
+     * Set the customer initiated request flag.
      *
      * @param flag flag
      */
-    public static void setUserInitiatedRequest(boolean flag) {
-        userInitiatedRequest.set(flag);
+    public static void setCustomerInitiated(boolean flag) {
+        customerInitiated.set(flag);
     }
 
     /**
@@ -124,13 +124,13 @@ public class AuthenticationContext {
     }
 
     /**
-     * Retrieves and clears the user initiated request flag.
+     * Retrieves and clears the customer initiated request flag.
      *
      * @return flag
      */
-    public static boolean clearUserInitiatedRequest() {
-        boolean flag = getUserInitiatedRequest();
-        userInitiatedRequest.set(false);
+    public static boolean clearCustomerInitiated() {
+        boolean flag = getCustomerInitiated();
+        customerInitiated.set(false);
         return flag;
     }
 
@@ -140,6 +140,6 @@ public class AuthenticationContext {
     public static void clear() {
         onBehalfOf.remove();
         keyLevel.set(Key.Level.LOW);
-        userInitiatedRequest.remove();
+        customerInitiated.remove();
     }
 }

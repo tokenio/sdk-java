@@ -164,11 +164,11 @@ public class Member {
     }
 
     /**
-     * Specify a user initiated request. The next gateway call will contain a flag informing that
-     * the request is initiated by a user.
+     * Specify a customer initiated request. The next gateway call will contain a flag informing
+     * that the request is initiated by a customer.
      */
-    public void specifyUserInitiatedRequest() {
-        this.async.specifyUserInitiatedrequest();
+    public void setCustomerInitiated() {
+        this.async.setCustomerInitiated();
     }
 
     /**

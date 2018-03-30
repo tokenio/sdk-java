@@ -228,11 +228,11 @@ public final class Client {
     }
 
     /**
-     * Specify a user initiated request. The next gateway call will contain a flag informing that
-     * the request is initiated by a user.
+     * Specify a customer initiated request. The next gateway call will contain a flag informing
+     * that the request is initiated by a customer.
      */
-    public void specifyUserInitiatedRequest() {
-        AuthenticationContext.setUserInitiatedRequest(true);
+    public void setCustomerInitiated() {
+        AuthenticationContext.setCustomerInitiated(true);
     }
 
     /**
