@@ -358,6 +358,13 @@ public class Member {
     }
 
     /**
+     * Removes all subscribers.
+     */
+    public void unsubscribeFromAllNotifications() {
+        async.unsubscribeFromAllNotifications().blockingAwait();
+    }
+
+    /**
      * Gets a list of the member's notifications.
      *
      * @param offset offset to start

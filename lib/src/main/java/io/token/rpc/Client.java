@@ -170,6 +170,7 @@ import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
+import io.token.proto.gateway.Gateway.UnsubscribeFromAllNotificationsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
@@ -415,6 +416,16 @@ public final class Client {
                         .newBuilder()
                         .setSubscriberId(subscriberId)
                         .build()));
+    }
+
+    /**
+     * Removes all subscribers.
+     *
+     * @return completable
+     */
+    public Completable unsubscribeFromAllNotifications() {
+        return toCompletable(gateway.unsubscribeFromAllNotifications(
+                UnsubscribeFromAllNotificationsRequest.getDefaultInstance()));
     }
 
     /**
