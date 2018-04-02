@@ -164,6 +164,14 @@ public class Member {
     }
 
     /**
+     * Specify a customer initiated request. The next gateway call will contain a flag informing
+     * that the request is initiated by a customer.
+     */
+    public void setCustomerInitiated() {
+        this.async.setCustomerInitiated();
+    }
+
+    /**
      * Adds a new alias for the member.
      *
      * @param alias alias, e.g. 'john', must be unique

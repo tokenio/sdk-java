@@ -230,6 +230,14 @@ public final class Client {
     }
 
     /**
+     * Specify a customer initiated request. The next gateway call will contain a flag informing
+     * that the request is initiated by a customer.
+     */
+    public void setCustomerInitiated() {
+        AuthenticationContext.setCustomerInitiated(true);
+    }
+
+    /**
      * Looks up member information for the current user. The user is defined by
      * the key used for authentication.
      *
