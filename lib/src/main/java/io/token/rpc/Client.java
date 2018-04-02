@@ -79,6 +79,8 @@ import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
+import io.token.proto.gateway.Gateway.ApplyScaRequest;
+import io.token.proto.gateway.Gateway.ApplyScaResponse;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
@@ -1400,6 +1402,21 @@ public final class Client {
                         return response.getStatus();
                     }
                 });
+    }
+
+    /**
+     * Apply SCA for the given list of account IDs.
+     *
+     * @param accountIds list of account ids
+     * @return completable
+     */
+    public Completable applySca(List<String> accountIds) {
+        setRequestSignerKeyLevel(STANDARD);
+
+        return toCompletable(gateway.applySca(ApplyScaRequest
+                .newBuilder()
+                .addAllAccountId(accountIds)
+                .build()));
     }
 
     /**

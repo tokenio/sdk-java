@@ -1144,6 +1144,16 @@ public class MemberAsync {
     }
 
     /**
+     * Apply SCA for the given list of account IDs.
+     *
+     * @param accountIds list of account ids
+     * @return completable
+     */
+    public Completable applySca(List<String> accountIds) {
+        return client.applySca(accountIds);
+    }
+
+    /**
      * Request a signature for a (tokenID | state) payload.
      *
      * @param tokenId token id
