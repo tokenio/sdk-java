@@ -51,7 +51,6 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.proto.common.token.TokenProtos.TokenType;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -580,14 +579,12 @@ public final class UnauthenticatedClient {
      * Get a token ID based on a token's tokenRequestId.
      *
      * @param tokenRequestId token request id
-     * @param type type of the token
      * @return token id
      */
-    public Observable<String> getTokenId(String tokenRequestId, TokenType type) {
+    public Observable<String> getTokenId(String tokenRequestId) {
         return toObservable(gateway
                 .getTokenId(GetTokenIdRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
-                        .setType(type)
                         .build()))
                 .map(new Function<GetTokenIdResponse, String>() {
                     @Override
