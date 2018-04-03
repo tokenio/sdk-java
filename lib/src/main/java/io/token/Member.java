@@ -385,8 +385,8 @@ public class Member {
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                              is required to link accounts
      */
-    public List<Account> linkAccounts(String bankId) {
-        return async.linkAccounts(bankId).blockingSingle();
+    public List<Account> initiateAccountLinking(String bankId) {
+        return async.initiateAccountLinking(bankId).blockingSingle();
     }
 
     /**

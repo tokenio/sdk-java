@@ -524,7 +524,7 @@ public class MemberAsync {
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *                                              is required to link accounts
      */
-    public Observable<List<Account>> linkAccounts(final String bankId)
+    public Observable<List<Account>> initiateAccountLinking(final String bankId)
             throws BankAuthorizationRequiredException {
         final String callbackUrl = String.format(
                 "https://%s/auth/callback",
