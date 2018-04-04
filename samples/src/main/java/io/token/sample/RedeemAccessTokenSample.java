@@ -27,13 +27,15 @@ public final class RedeemAccessTokenSample {
      * @return balance of one of grantor's acounts
      */
     public static Money redeemAccessToken(Member grantee, String tokenId) {
+        // Specifies whether the request originated from a customer
+        boolean customerInitiated = true;
+
         // Access grantor's account list by applying
         // access token to the grantee client.
-        grantee.useAccessToken(tokenId);
+        grantee.useAccessToken(tokenId, customerInitiated);
         List<Account> grantorAccounts = grantee.getAccounts();
 
         // Get the data we want
-        grantee.setCustomerInitiated();
         Money balance0 = grantorAccounts.get(0).getCurrentBalance(STANDARD);
         // When done using access, clear token from grantee client.
         grantee.clearAccessToken();
@@ -48,6 +50,9 @@ public final class RedeemAccessTokenSample {
      * @return balance of one of grantor's accounts (or empty Money proto if no account found)
      */
     public static Money carefullyUseAccessToken(Member grantee, String tokenId) {
+        // Specifies whether the request originated from a customer
+        boolean customerInitiated = true;
+
         Token accessToken = grantee.getToken(tokenId);
         while (!accessToken.getReplacedByTokenId().isEmpty()) {
             accessToken = grantee.getToken(accessToken.getReplacedByTokenId());
@@ -72,7 +77,7 @@ public final class RedeemAccessTokenSample {
                     break;
             }
         }
-        grantee.useAccessToken(accessToken.getId());
+        grantee.useAccessToken(accessToken.getId(), customerInitiated);
         if (haveAllAccountsAccess && haveAllBalancesAccess) {
             List<Account> grantorAccounts = grantee.getAccounts();
             for (int i = 0; i < grantorAccounts.size(); i++) {
@@ -85,7 +90,6 @@ public final class RedeemAccessTokenSample {
         }
         for (String accountId : accountIds) {
             try {
-                grantee.setCustomerInitiated();
                 Money balance = grantee.getAvailableBalance(accountId, LOW);
                 grantee.clearAccessToken(); // stop using access token
                 return balance;

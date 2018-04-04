@@ -124,17 +124,6 @@ public class AuthenticationContext {
     }
 
     /**
-     * Retrieves and clears the customer initiated request flag.
-     *
-     * @return flag
-     */
-    public static boolean clearCustomerInitiated() {
-        boolean flag = getCustomerInitiated();
-        customerInitiated.set(false);
-        return flag;
-    }
-
-    /**
      * Resets the authenticator.
      */
     public static void clear() {
