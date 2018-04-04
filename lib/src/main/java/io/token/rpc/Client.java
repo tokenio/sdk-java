@@ -80,7 +80,6 @@ import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
 import io.token.proto.gateway.Gateway.ApplyScaRequest;
-import io.token.proto.gateway.Gateway.ApplyScaResponse;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
@@ -214,12 +213,27 @@ public final class Client {
     /**
      * Sets the On-Behalf-Of authentication value to be used
      * with this client.  The value must correspond to an existing
-     * Access Token ID issued for the client member.
+     * Access Token ID issued for the client member. Sets customer initiated
+     * to false.
      *
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
+        useAccessToken(accessTokenId, false);
+    }
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member. Uses the given customer
+     * initiated flag.
+     *
+     * @param accessTokenId the access token id to be used
+     * @param customerInitiated whether the customer initiated the calls
+     */
+    public void useAccessToken(String accessTokenId, boolean customerInitiated) {
         this.onBehalfOf = accessTokenId;
+        AuthenticationContext.setCustomerInitiated(customerInitiated);
     }
 
     /**
@@ -227,14 +241,7 @@ public final class Client {
      */
     public void clearAccessToken() {
         this.onBehalfOf = null;
-    }
-
-    /**
-     * Specify a customer initiated request. The next gateway call will contain a flag informing
-     * that the request is initiated by a customer.
-     */
-    public void setCustomerInitiated() {
-        AuthenticationContext.setCustomerInitiated(true);
+        AuthenticationContext.setCustomerInitiated(false);
     }
 
     /**

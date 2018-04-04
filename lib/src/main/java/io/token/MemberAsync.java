@@ -207,19 +207,24 @@ public class MemberAsync {
         this.client.useAccessToken(accessTokenId);
     }
 
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member.
+     *
+     * @param accessTokenId the access token id
+     * @param customerInitiated whether the request is customer initiated
+     */
+    public void useAccessToken(String accessTokenId, boolean customerInitiated) {
+        this.client.useAccessToken(accessTokenId, customerInitiated);
+    }
+
     /**
      * Clears the access token id from the authentication context used with this client.
      */
     public void clearAccessToken() {
         this.client.clearAccessToken();
-    }
-
-    /**
-     * Specify a customer initiated request. The next gateway call will contain a flag informing
-     * that the request is initiated by a customer.
-     */
-    public void setCustomerInitiated() {
-        this.client.setCustomerInitiated();
     }
 
     /**
