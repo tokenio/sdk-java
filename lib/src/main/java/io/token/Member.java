@@ -383,7 +383,7 @@ public class Member {
      * @param bankId the bank id
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                              is required to link accounts
+     *     is required to link accounts
      */
     public List<Account> initiateAccountLinking(String bankId) {
         return async.initiateAccountLinking(bankId).blockingSingle();
@@ -406,7 +406,7 @@ public class Member {
      * @param accessToken OAuth access token
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                               is required to link accounts
+     *     is required to link accounts
      */
     public List<Account> linkAccounts(String bankId, String accessToken) {
         return toAccountList(async.linkAccounts(bankId, accessToken)).blockingSingle();

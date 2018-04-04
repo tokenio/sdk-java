@@ -522,7 +522,7 @@ public class MemberAsync {
      * @param bankId the bank id
      * @return observable list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                              is required to link accounts
+     *     is required to link accounts
      */
     public Observable<List<Account>> initiateAccountLinking(final String bankId)
             throws BankAuthorizationRequiredException {
@@ -607,7 +607,7 @@ public class MemberAsync {
      * @param accessToken OAuth access token
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                               is required to link accounts
+     *     is required to link accounts
      */
     public Observable<List<AccountAsync>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
