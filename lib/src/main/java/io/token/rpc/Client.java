@@ -472,7 +472,6 @@ public final class Client {
     /**
      * Links a funding bank account to Token.
      *
-     *
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
@@ -497,7 +496,7 @@ public final class Client {
      * @param accessToken OAuth access token
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                               is required to link accounts
+     *     is required to link accounts
      */
     public Observable<List<Account>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
@@ -576,7 +575,6 @@ public final class Client {
      *
      * @param payload transfer token payload
      * @param options map of options
-     *
      * @return id to reference token request
      */
     public Observable<String> storeTokenRequest(

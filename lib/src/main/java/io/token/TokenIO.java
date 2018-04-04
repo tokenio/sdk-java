@@ -29,6 +29,7 @@ import static io.token.TokenIO.TokenCluster.SANDBOX;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
+import io.token.browser.BrowserFactory;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -477,6 +478,7 @@ public class TokenIO implements Closeable {
         private long timeoutMs;
         private CryptoEngineFactory cryptoEngine;
         private String devKey;
+        private BrowserFactory browserFactory;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -567,6 +569,17 @@ public class TokenIO implements Closeable {
         }
 
         /**
+         * Sets the browser factory to be used with the SDK.
+         *
+         * @param browserFactory browser factory
+         * @return this builder instance
+         */
+        public Builder withBrowserFactory(BrowserFactory browserFactory) {
+            this.browserFactory = browserFactory;
+            return this;
+        }
+
+        /**
          * Builds and returns a new {@link TokenIO} instance.
          *
          * @return {@link TokenIO} instance
@@ -607,7 +620,8 @@ public class TokenIO implements Closeable {
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
                     devKey,
-                    tokenCluster == null ? SANDBOX : tokenCluster);
+                    tokenCluster == null ? SANDBOX : tokenCluster,
+                    browserFactory);
         }
     }
 
