@@ -885,6 +885,17 @@ public class MemberAsync {
     }
 
     /**
+     * Creates a new transfer token from a token payload.
+     *
+     * @param payload transfer token payload
+     * @param tokenRequestId token request id
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
+        return client.createTransferToken(payload, tokenRequestId);
+    }
+
+    /**
      * Creates an access token built from a given {@link AccessTokenBuilder}.
      *
      * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
@@ -892,6 +903,21 @@ public class MemberAsync {
      */
     public Observable<Token> createAccessToken(AccessTokenBuilder accessTokenBuilder) {
         return client.createAccessToken(accessTokenBuilder.from(memberId()).build());
+    }
+
+    /**
+     * Creates an access token built from a given {@link AccessTokenBuilder}.
+     *
+     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
+     * @param tokenRequestId token request id
+     * @return the access token created
+     */
+    public Observable<Token> createAccessToken(
+            AccessTokenBuilder accessTokenBuilder,
+            String tokenRequestId) {
+        return client.createAccessToken(
+                accessTokenBuilder.from(memberId()).build(),
+                tokenRequestId);
     }
 
     /**

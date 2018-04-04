@@ -62,6 +62,8 @@ import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.GetTokenIdRequest;
+import io.token.proto.gateway.Gateway.GetTokenIdResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
@@ -572,6 +574,25 @@ public final class UnauthenticatedClient {
                     @Override
                     public Observable<Member> apply(String memberId) throws Exception {
                         return getMember(memberId);
+                    }
+                });
+    }
+
+    /**
+     * Get a token ID based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token id
+     */
+    public Observable<String> getTokenId(String tokenRequestId) {
+        return toObservable(gateway
+                .getTokenId(GetTokenIdRequest.newBuilder()
+                        .setTokenRequestId(tokenRequestId)
+                        .build()))
+                .map(new Function<GetTokenIdResponse, String>() {
+                    @Override
+                    public String apply(GetTokenIdResponse response) throws Exception {
+                        return response.getTokenId();
                     }
                 });
     }

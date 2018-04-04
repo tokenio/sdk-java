@@ -69,6 +69,9 @@ public final class TransferTokenBuilder {
     // Used for attaching files / data to tokens
     private final List<Payload> blobPayloads;
 
+    //Token request ID
+    private String tokenRequestId;
+
     /**
      * Creates the builder object.
      *
@@ -76,7 +79,10 @@ public final class TransferTokenBuilder {
      * @param amount lifetime amount of the token
      * @param currency currency of the token
      */
-    public TransferTokenBuilder(MemberAsync member, double amount, String currency) {
+    public TransferTokenBuilder(
+            MemberAsync member,
+            double amount,
+            String currency) {
         this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
@@ -349,6 +355,17 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the token request ID.
+     *
+     * @param tokenRequestId token request id
+     * @return builder
+     */
+    public TransferTokenBuilder setTokenRequestId(String tokenRequestId) {
+        this.tokenRequestId = tokenRequestId;
+        return this;
+    }
+
+    /**
      * Builds a token payload, without uploading blobs or attachments.
      *
      * @return token payload
@@ -406,7 +423,9 @@ public final class TransferTokenBuilder {
                 .flatMapObservable(new Function<List<Attachment>, Observable<Token>>() {
                     public Observable<Token> apply(List<Attachment> attachments) {
                         payload.getTransferBuilder().addAllAttachments(attachments);
-                        return member.createTransferToken(payload.build());
+                        return member.createTransferToken(
+                                payload.build(),
+                                tokenRequestId != null ? tokenRequestId : "");
                     }
                 });
     }

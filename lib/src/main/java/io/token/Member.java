@@ -614,6 +614,17 @@ public class Member {
     }
 
     /**
+     * Creates an access token built from a given {@link AccessTokenBuilder}.
+     *
+     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
+     * @param tokenRequestId tokn
+     * @return the access token created
+     */
+    public Token createAccessToken(AccessTokenBuilder accessTokenBuilder, String tokenRequestId) {
+        return async.createAccessToken(accessTokenBuilder, tokenRequestId).blockingSingle();
+    }
+
+    /**
      * Looks up an existing token.
      *
      * @param tokenId token id

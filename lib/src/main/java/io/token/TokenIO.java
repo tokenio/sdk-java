@@ -438,6 +438,16 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Get a token ID based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token id
+     */
+    public String getTokenId(String tokenRequestId) {
+        return async.getTokenId(tokenRequestId).blockingSingle();
+    }
+
+    /**
      * Defines Token cluster to connect to.
      */
     public enum TokenCluster {

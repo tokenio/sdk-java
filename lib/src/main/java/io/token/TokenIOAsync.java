@@ -576,4 +576,15 @@ public class TokenIOAsync implements Closeable {
             }
         });
     }
+
+    /**
+     * Get a token ID based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token id
+     */
+    public Observable<String> getTokenId(String tokenRequestId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getTokenId(tokenRequestId);
+    }
 }

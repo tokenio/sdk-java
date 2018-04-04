@@ -35,6 +35,7 @@ import static io.token.util.Util.toObservable;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.TokenRequest;
 import io.token.TransferTokenException;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.exceptions.StepUpRequiredException;
@@ -66,6 +67,7 @@ import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -623,10 +625,34 @@ public final class Client {
     }
 
     /**
+     * Creates a new transfer token.
+     *
+     * @param payload transfer token payload
+     * @param tokenRequestId token request id
+     * @return transfer token returned by the server
+     */
+    public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
+        return toObservable(gateway
+                .createTransferToken(CreateTransferTokenRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .setTokenRequestId(tokenRequestId)
+                        .build()))
+                .map(new Function<CreateTransferTokenResponse, Token>() {
+                    public Token apply(CreateTransferTokenResponse response) {
+                        if (response.getStatus() != TransferTokenStatus.SUCCESS) {
+                            throw new TransferTokenException(response.getStatus());
+                        }
+                        return response.getToken();
+                    }
+                });
+    }
+
+    /**
      * Creates a new access token.
      *
      * @param payload transfer token payload
-     * @return transfer token returned by the server
+     * @return access token returned by the server
      */
     public Observable<Token> createAccessToken(TokenPayload payload) {
         return toObservable(gateway
@@ -636,6 +662,28 @@ public final class Client {
                         .build()))
                 .map(new Function<CreateAccessTokenResponse, Token>() {
                     public Token apply(CreateAccessTokenResponse response) {
+                        return response.getToken();
+                    }
+                });
+    }
+
+    /**
+     * Creates a new access token.
+     *
+     * @param tokenPayload token payload
+     * @param tokenRequestId token request id
+     * @return token returned by server
+     */
+    public Observable<Token> createAccessToken(TokenPayload tokenPayload, String tokenRequestId) {
+        return toObservable(gateway
+                .createAccessToken(CreateAccessTokenRequest.newBuilder()
+                        .setPayload(tokenPayload)
+                        .setTokenRequestId(tokenRequestId)
+                        .build()))
+                .map(new Function<CreateAccessTokenResponse, Token>() {
+                    @Override
+                    public Token apply(CreateAccessTokenResponse response)
+                            throws Exception {
                         return response.getToken();
                     }
                 });
