@@ -49,6 +49,7 @@ import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Device;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
@@ -80,6 +81,8 @@ import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
+import io.token.proto.gateway.Gateway.ApplyScaRequest;
+import io.token.proto.gateway.Gateway.ApplyScaResponse;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
@@ -121,6 +124,8 @@ import io.token.proto.gateway.Gateway.GetNotificationRequest;
 import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
 import io.token.proto.gateway.Gateway.GetNotificationsResponse;
+import io.token.proto.gateway.Gateway.GetPairedDevicesRequest;
+import io.token.proto.gateway.Gateway.GetPairedDevicesResponse;
 import io.token.proto.gateway.Gateway.GetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.GetProfileRequest;
@@ -216,7 +221,6 @@ public final class Client {
      * @param accessTokenId the access token id to be used
      */
     public void useAccessToken(String accessTokenId) {
-
         this.onBehalfOf = accessTokenId;
     }
 
@@ -225,6 +229,14 @@ public final class Client {
      */
     public void clearAccessToken() {
         this.onBehalfOf = null;
+    }
+
+    /**
+     * Specify a customer initiated request. The next gateway call will contain a flag informing
+     * that the request is initiated by a customer.
+     */
+    public void setCustomerInitiated() {
+        AuthenticationContext.setCustomerInitiated(true);
     }
 
     /**
@@ -462,7 +474,6 @@ public final class Client {
     /**
      * Links a funding bank account to Token.
      *
-     *
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
@@ -483,13 +494,18 @@ public final class Client {
     /**
      * Links a funding bank account to Token.
      *
-     * @param authorization an authorization to accounts, from the bank.
+     * @param bankId bank id
+     * @param accessToken OAuth access token
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                               is required to link accounts
+     *     is required to link accounts
      */
-    public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
+    public Observable<List<Account>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
+        OauthBankAuthorization authorization = OauthBankAuthorization.newBuilder()
+                .setBankId(bankId)
+                .setAccessToken(accessToken)
+                .build();
         return toObservable(gateway
                 .linkAccountsOauth(LinkAccountsOauthRequest
                         .newBuilder()
@@ -561,7 +577,6 @@ public final class Client {
      *
      * @param payload transfer token payload
      * @param options map of options
-     *
      * @return id to reference token request
      */
     public Observable<String> storeTokenRequest(
@@ -1436,6 +1451,21 @@ public final class Client {
     }
 
     /**
+     * Apply SCA for the given list of account IDs.
+     *
+     * @param accountIds list of account ids
+     * @return completable
+     */
+    public Completable applySca(List<String> accountIds) {
+        setRequestSignerKeyLevel(STANDARD);
+
+        return toCompletable(gateway.applySca(ApplyScaRequest
+                .newBuilder()
+                .addAllAccountId(accountIds)
+                .build()));
+    }
+
+    /**
      * Request a signature for a (tokenID | state) payload.
      *
      * @param tokenId token id
@@ -1451,6 +1481,22 @@ public final class Client {
                 .map(new Function<RequestSignatureResponse, Signature>() {
                     public Signature apply(RequestSignatureResponse response) {
                         return response.getSignature();
+                    }
+                });
+    }
+
+    /**
+     * Get list of paired devices.
+     *
+     * @return list of devices
+     */
+    public Observable<List<Device>> getPairedDevices() {
+        return toObservable(gateway.getPairedDevices(GetPairedDevicesRequest.getDefaultInstance()))
+                .map(new Function<GetPairedDevicesResponse, List<Device>>() {
+                    @Override
+                    public List<Device> apply(GetPairedDevicesResponse response)
+                            throws Exception {
+                        return response.getDevicesList();
                     }
                 });
     }

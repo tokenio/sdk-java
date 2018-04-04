@@ -23,22 +23,13 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
-import static io.token.util.Util.parseOauthAccessToken;
+import static io.token.util.Util.toAccountList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
-import io.reactivex.Observable;
-import io.reactivex.Single;
-import io.reactivex.SingleEmitter;
-import io.reactivex.SingleOnSubscribe;
-import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
-import io.token.browser.Browser;
-import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -46,6 +37,7 @@ import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Device;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
@@ -65,7 +57,6 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.security.keystore.SecretKeyPair;
 
-import java.net.URL;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -159,6 +150,14 @@ public class Member {
      */
     public void clearAccessToken() {
         this.async.clearAccessToken();
+    }
+
+    /**
+     * Specify a customer initiated request. The next gateway call will contain a flag informing
+     * that the request is initiated by a customer.
+     */
+    public void setCustomerInitiated() {
+        this.async.setCustomerInitiated();
     }
 
     /**
@@ -379,78 +378,15 @@ public class Member {
     }
 
     /**
-     * Links accounts given bank info and browser factory.
+     * Links accounts by navigating browser through bank authorization pages.
      *
      * @param bankId the bank id
-     * @param bankInfo the bank info
-     * @param browserFactory the browser factory
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                               is required to link accounts
+     *     is required to link accounts
      */
-    public Observable<List<Account>> linkAccounts(
-            final String bankId,
-            final BankInfo bankInfo,
-            final BrowserFactory browserFactory)
-            throws BankAuthorizationRequiredException {
-        return Single.create(new SingleOnSubscribe<List<Account>>() {
-            @Override
-            public void subscribe(final SingleEmitter<List<Account>> emitter) throws Exception {
-                final Browser browser = browserFactory.create();
-                browser.url()
-                        .filter(new Predicate<URL>() {
-                            @Override
-                            public boolean test(URL url) {
-                                if (url
-                                        .toExternalForm()
-                                        .matches(".*token.io([/?]?.*#).*access_token=.+")) {
-                                    return true;
-                                }
-                                browser.goTo(url);
-                                return false;
-                            }
-                        })
-                        .flatMap(new Function<URL, Observable<List<Account>>>() {
-                            @Override
-                            public Observable<List<Account>> apply(URL url) {
-                                String accessToken = parseOauthAccessToken(url.toExternalForm());
-                                if (accessToken == null) {
-                                    throw new IllegalArgumentException("No access token found");
-                                }
-                                return async.linkAccounts(OauthBankAuthorization.newBuilder()
-                                        .setBankId(bankId)
-                                        .setAccessToken(accessToken)
-                                        .build())
-                                .map(new Function<List<AccountAsync>, List<Account>>() {
-                                    public List<Account> apply(List<AccountAsync> asyncList) {
-                                        List<Account> accounts = new LinkedList<>();
-                                        for (AccountAsync async : asyncList) {
-                                            accounts.add(async.sync());
-                                        }
-                                        return accounts;
-                                    }
-                                });
-                            }
-                        })
-                        .subscribe(
-                                new Consumer<List<Account>>() {
-                                    @Override
-                                    public void accept(List<Account> accounts) {
-                                        emitter.onSuccess(accounts);
-                                        browser.close();
-                                    }
-                                },
-                                new Consumer<Throwable>() {
-                                    @Override
-                                    public void accept(Throwable ex) {
-                                        emitter.onError(ex);
-                                        browser.close();
-                                    }
-                                });
-                String url = bankInfo.getBankLinkingUri() + "&redirect_uri=https%3A%2F%2Ftoken.io";
-                browser.goTo(new URL(url));
-            }
-        }).toObservable();
+    public List<Account> initiateAccountLinking(String bankId) {
+        return async.initiateAccountLinking(bankId).blockingSingle();
     }
 
     /**
@@ -460,17 +396,20 @@ public class Member {
      * @return list of linked accounts
      */
     public List<Account> linkAccounts(BankAuthorization authorization) {
-        return async.linkAccounts(authorization)
-                .map(new Function<List<AccountAsync>, List<Account>>() {
-                    public List<Account> apply(List<AccountAsync> asyncList) {
-                        List<Account> accounts = new LinkedList<>();
-                        for (AccountAsync async : asyncList) {
-                            accounts.add(async.sync());
-                        }
-                        return accounts;
-                    }
-                })
-                .blockingSingle();
+        return toAccountList(async.linkAccounts(authorization)).blockingSingle();
+    }
+
+    /**
+     * Links funding bank accounts to Token and returns them to the caller.
+     *
+     * @param bankId bank id
+     * @param accessToken OAuth access token
+     * @return list of linked accounts
+     * @throws BankAuthorizationRequiredException if bank authorization payload
+     *     is required to link accounts
+     */
+    public List<Account> linkAccounts(String bankId, String accessToken) {
+        return toAccountList(async.linkAccounts(bankId, accessToken)).blockingSingle();
     }
 
     /**
@@ -643,7 +582,6 @@ public class Member {
      * Stores a token request to be retrieved later (possibly by another member).
      *
      * @param tokenRequest token request
-     *
      * @return ID to reference the stored token request
      */
     public String storeTokenRequest(TokenRequest tokenRequest) {
@@ -1086,6 +1024,15 @@ public class Member {
     }
 
     /**
+     * Apply SCA for the given list of account IDs.
+     *
+     * @param accountIds list of account ids
+     */
+    public void applySca(List<String> accountIds) {
+        async.applySca(accountIds).blockingAwait();
+    }
+
+    /**
      * Request a signature for a (tokenID | state) payload.
      *
      * @param tokenId token id
@@ -1094,6 +1041,15 @@ public class Member {
      */
     public Signature requestSignature(String tokenId, String state) {
         return async.requestSignature(tokenId, state).blockingSingle();
+    }
+
+    /**
+     * Get list of paired devices.
+     *
+     * @return list of devices
+     */
+    public List<Device> getPairedDevices() {
+        return async.getPairedDevices().blockingSingle();
     }
 
     @Override

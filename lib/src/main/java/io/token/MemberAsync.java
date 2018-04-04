@@ -26,17 +26,27 @@ import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
+import static io.token.util.Util.parseOauthAccessToken;
+import static io.token.util.Util.toAccountList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.ObservableSource;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
+import io.reactivex.functions.Predicate;
+import io.token.TokenIO.TokenCluster;
+import io.token.browser.Browser;
+import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -47,6 +57,7 @@ import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.member.MemberProtos.Device;
 import io.token.proto.common.member.MemberProtos.Member.Builder;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -76,6 +87,8 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
+import java.net.URL;
+import java.net.URLEncoder;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -93,16 +106,25 @@ public class MemberAsync {
 
     private final Client client;
     private final Builder member;
+    private final TokenCluster cluster;
+    private final BrowserFactory browserFactory;
 
     /**
      * Creates an instance of {@link MemberAsync}.
      *
      * @param member internal member representation, fetched from server
      * @param client RPC client used to perform operations against the server
+     * @param cluster Token cluster, e.g. sandbox, production
      */
-    MemberAsync(MemberProtos.Member member, Client client) {
+    MemberAsync(
+            MemberProtos.Member member,
+            Client client,
+            TokenCluster cluster,
+            BrowserFactory browserFactory) {
         this.client = client;
         this.member = member.toBuilder();
+        this.cluster = cluster;
+        this.browserFactory = browserFactory;
     }
 
     /**
@@ -190,6 +212,14 @@ public class MemberAsync {
      */
     public void clearAccessToken() {
         this.client.clearAccessToken();
+    }
+
+    /**
+     * Specify a customer initiated request. The next gateway call will contain a flag informing
+     * that the request is initiated by a customer.
+     */
+    public void setCustomerInitiated() {
+        this.client.setCustomerInitiated();
     }
 
     /**
@@ -487,6 +517,79 @@ public class MemberAsync {
     }
 
     /**
+     * Links accounts by navigating browser through bank authorization pages.
+     *
+     * @param bankId the bank id
+     * @return observable list of linked accounts
+     * @throws BankAuthorizationRequiredException if bank authorization payload
+     *     is required to link accounts
+     */
+    public Observable<List<Account>> initiateAccountLinking(final String bankId)
+            throws BankAuthorizationRequiredException {
+        final String callbackUrl = String.format(
+                "https://%s/auth/callback",
+                getTokenCluster().webAppUrl());
+        final Browser browser = browserFactory.create();
+        final Observable<List<Account>> accountLinkingObservable = browser.url()
+                .filter(new Predicate<URL>() {
+                    @Override
+                    public boolean test(URL url) {
+                        if (url.toExternalForm().matches(
+                                callbackUrl + "([/?]?.*#).*access_token=.+")) {
+                            return true;
+                        }
+                        browser.goTo(url);
+                        return false;
+                    }
+                })
+                .flatMap(new Function<URL, Observable<List<Account>>>() {
+                    @Override
+                    public Observable<List<Account>> apply(URL url) {
+                        String accessToken = parseOauthAccessToken(url.toExternalForm());
+                        if (accessToken == null) {
+                            throw new IllegalArgumentException("No access token found");
+                        }
+                        return toAccountList(linkAccounts(bankId, accessToken));
+                    }
+                });
+
+        return getBankInfo(bankId)
+                .flatMap(new Function<BankInfo, ObservableSource<List<Account>>>() {
+                    @Override
+                    public ObservableSource<List<Account>> apply(final BankInfo bankInfo) {
+                        return Single.create(new SingleOnSubscribe<List<Account>>() {
+                            @Override
+                            public void subscribe(final SingleEmitter<List<Account>> emitter)
+                                    throws Exception {
+                                accountLinkingObservable
+                                        .subscribe(
+                                                new Consumer<List<Account>>() {
+                                                    @Override
+                                                    public void accept(List<Account> accounts) {
+                                                        emitter.onSuccess(accounts);
+                                                        browser.close();
+                                                    }
+                                                },
+                                                new Consumer<Throwable>() {
+                                                    @Override
+                                                    public void accept(Throwable ex) {
+                                                        emitter.onError(ex);
+                                                        browser.close();
+                                                    }
+                                                });
+                                String linkingUrl = bankInfo.getBankLinkingUri();
+                                String url = String.format(
+                                        "%s&redirect_uri=%s",
+                                        linkingUrl,
+                                        URLEncoder.encode(callbackUrl, "UTF-8"));
+                                browser.goTo(new URL(url));
+                            }
+                        }).toObservable();
+                    }
+                });
+    }
+
+    /**
      * Links a funding bank accounts to Token and returns it to the caller.
      *
      * @param authorization an authorization to accounts, from the bank
@@ -500,16 +603,16 @@ public class MemberAsync {
     /**
      * Links funding bank accounts to Token and returns them to the caller.
      *
-     * @param authorization an authorization to accounts, from the bank
+     * @param bankId bank id
+     * @param accessToken OAuth access token
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                               is required to link accounts
+     *     is required to link accounts
      */
-    public Observable<List<AccountAsync>> linkAccounts(OauthBankAuthorization authorization)
+    public Observable<List<AccountAsync>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
-        return toAccountAsyncList(client.linkAccounts(authorization));
+        return toAccountAsyncList(client.linkAccounts(bankId, accessToken));
     }
-
 
     /**
      * Unlinks bank accounts previously linked via linkAccounts call.
@@ -1158,6 +1261,16 @@ public class MemberAsync {
     }
 
     /**
+     * Apply SCA for the given list of account IDs.
+     *
+     * @param accountIds list of account ids
+     * @return completable
+     */
+    public Completable applySca(List<String> accountIds) {
+        return client.applySca(accountIds);
+    }
+
+    /**
      * Request a signature for a (tokenID | state) payload.
      *
      * @param tokenId token id
@@ -1166,6 +1279,24 @@ public class MemberAsync {
      */
     public Observable<Signature> requestSignature(String tokenId, String state) {
         return client.requestSignature(tokenId, state);
+    }
+
+    /**
+     * Get list of paired devices.
+     *
+     * @return list of devices
+     */
+    public Observable<List<Device>> getPairedDevices() {
+        return client.getPairedDevices();
+    }
+
+    /**
+     * Get the Token cluster, e.g. sandbox, production.
+     *
+     * @return Token cluster
+     */
+    public TokenCluster getTokenCluster() {
+        return cluster;
     }
 
     @Override

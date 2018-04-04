@@ -24,10 +24,12 @@ package io.token;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.grpc.Status.INVALID_ARGUMENT;
+import static io.token.TokenIO.TokenCluster.SANDBOX;
 
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
+import io.token.browser.BrowserFactory;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -45,7 +47,6 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
-import java.net.URL;
 import java.util.List;
 
 /**
@@ -146,7 +147,19 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a set of auto generated keys and the
+     * Creates a new business-use Token member with a set of auto-generated keys and alias.
+     *
+     * @param alias alias to associated with member
+     * @return newly created member
+     */
+    public Member createBusinessMember(Alias alias) {
+        return async.createBusinessMember(alias)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Creates a new personal-use Token member with a set of auto generated keys and the
      * given alias.
      *
      * @param alias member alias to use, must be unique
@@ -159,7 +172,7 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new Token member with a set of auto generated keys and no alias.
+     * Creates a new personal-use Token member with a set of auto generated keys and no alias.
      *
      * @return newly created member
      */
@@ -365,6 +378,28 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token
+     * or pass in a state.
+     *
+     * @param requestId request id
+     * @return token request url
+     */
+    public String generateTokenRequestUrl(String requestId) {
+        return async.generateTokenRequestUrl(requestId).blockingSingle();
+    }
+
+    /**
+     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token.
+     *
+     * @param requestId request id
+     * @param state state
+     * @return token request url
+     */
+    public String generateTokenRequestUrl(String requestId, String state) {
+        return async.generateTokenRequestUrl(requestId, state).blockingSingle();
+    }
+
+    /**
      * Generate a Token request URL from a request ID, an original state and a CSRF token.
      *
      * @param requestId request id
@@ -372,22 +407,33 @@ public class TokenIO implements Closeable {
      * @param csrfToken csrf token
      * @return token request url
      */
-    public URL generateTokenRequestUrl(String requestId, String state, String csrfToken) {
+    public String generateTokenRequestUrl(String requestId, String state, String csrfToken) {
         return async.generateTokenRequestUrl(requestId, state, csrfToken).blockingSingle();
     }
 
     /**
-     * Parse the token request callback URL to extract the state, the token ID and the signature of
-     * (state | token ID). Verify that the state contains the csrf token's hash, and that the
-     * signature of the token request payload is valid. Return the extracted original state.
+     * Parse the token request callback URL to extract the state and the token ID. This assumes
+     * that no CSRF token was set.
      *
-     * @param tokenRequestCallbackUrl token request callback url
-     * @param csrfToken csrf token
-     * @return the extracted original state
+     * @param callbackUrl token request callback url
+     * @return TokenRequestCallback object containing the token id and the original state
      */
-    public String parseTokenRequestCallbackUrl(URL tokenRequestCallbackUrl, String csrfToken) {
+    public TokenRequestCallback parseTokenRequestCallbackUrl(final String callbackUrl) {
+        return async.parseTokenRequestCallbackUrl(callbackUrl).blockingSingle();
+    }
+
+    /**
+     * Parse the token request callback URL to extract the state and the token ID. Verify that the
+     * state contains the CSRF token hash and that the signature on the state and CSRF token is
+     * valid.
+     *
+     * @param callbackUrl token request callback url
+     * @param csrfToken csrf token
+     * @return TokenRequestCallback object containing the token id and the original state
+     */
+    public TokenRequestCallback parseTokenRequestCallbackUrl(String callbackUrl, String csrfToken) {
         return async
-                .parseTokenRequestCallbackUrl(tokenRequestCallbackUrl, csrfToken)
+                .parseTokenRequestCallbackUrl(callbackUrl, csrfToken)
                 .blockingSingle();
     }
 
@@ -405,20 +451,26 @@ public class TokenIO implements Closeable {
      * Defines Token cluster to connect to.
      */
     public enum TokenCluster {
-        PRODUCTION("api-grpc.token.io"),
-        INTEGRATION("api-grpc.int.token.io"),
-        SANDBOX("api-grpc.sandbox.token.io"),
-        STAGING("api-grpc.stg.token.io"),
-        DEVELOPMENT("api-grpc.dev.token.io");
+        PRODUCTION("api-grpc.token.io", "web-app.token.io"),
+        INTEGRATION("api-grpc.int.token.io", "web-app.int.token.io"),
+        SANDBOX("api-grpc.sandbox.token.io", "web-app.sandbox.token.io"),
+        STAGING("api-grpc.stg.token.io", "web-app.stg.token.io"),
+        DEVELOPMENT("api-grpc.dev.token.io", "web-app.dev.token.io");
 
         private final String envUrl;
+        private String webAppUrl;
 
-        TokenCluster(String url) {
+        TokenCluster(String url, String webAppUrl) {
             this.envUrl = url;
+            this.webAppUrl = webAppUrl;
         }
 
         public String url() {
             return envUrl;
+        }
+
+        public String webAppUrl() {
+            return webAppUrl;
         }
     }
 
@@ -436,6 +488,7 @@ public class TokenIO implements Closeable {
         private long timeoutMs;
         private CryptoEngineFactory cryptoEngine;
         private String devKey;
+        private BrowserFactory browserFactory;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -526,6 +579,17 @@ public class TokenIO implements Closeable {
         }
 
         /**
+         * Sets the browser factory to be used with the SDK.
+         *
+         * @param browserFactory browser factory
+         * @return this builder instance
+         */
+        public Builder withBrowserFactory(BrowserFactory browserFactory) {
+            this.browserFactory = browserFactory;
+            return this;
+        }
+
+        /**
          * Builds and returns a new {@link TokenIO} instance.
          *
          * @return {@link TokenIO} instance
@@ -566,7 +630,8 @@ public class TokenIO implements Closeable {
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
                     devKey,
-                    tokenCluster);
+                    tokenCluster == null ? SANDBOX : tokenCluster,
+                    browserFactory);
         }
     }
 

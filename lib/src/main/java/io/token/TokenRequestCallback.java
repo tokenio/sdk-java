@@ -20,31 +20,32 @@
  * THE SOFTWARE.
  */
 
-package io.token.csrf;
+package io.token;
 
 import com.google.auto.value.AutoValue;
-import com.google.gson.Gson;
 
-import java.io.Serializable;
+/**
+ * Represents callback in Token Request Flow. Contains tokenID and state.
+ */
 
 @AutoValue
-abstract class TokenRequestState implements Serializable {
-    static TokenRequestState create(String nonceHash, String state) {
-        return new AutoValue_TokenRequestState(nonceHash, state);
+public abstract class TokenRequestCallback {
+    public static TokenRequestCallback create(String tokenId, String state) {
+        return new AutoValue_TokenRequestCallback(tokenId, state);
     }
 
-    static TokenRequestState fromSerializedState(String state) {
-        Gson gson = new Gson();
-        return gson.fromJson(state, AutoValue_TokenRequestState.class);
-    }
+    /**
+     * Get the token ID returned at the end of the Token Request Flow.
+     *
+     * @return token id
+     */
+    public abstract String getTokenId();
 
-    abstract String getNonceHash();
-
-    abstract String getState();
-
-    String toSerializedState() {
-        Gson gson  = new Gson();
-        return gson.toJson(this);
-    }
+    /**
+     * Get the state returned at the end of the Token Request Flow. This corresponds to the state
+     * set at the beginning of the flow.
+     *
+     * @return state
+     */
+    public abstract String getState();
 }
-
