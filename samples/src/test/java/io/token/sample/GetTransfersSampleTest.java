@@ -29,13 +29,13 @@ public class GetTransfersSampleTest {
             Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
 
-            List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
+            Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
             Token token = createTransferToken(payer, payeeAlias);
 
             Transfer transfer = redeemTransferToken(
                     payee,
-                    payeeAccounts.get(0).id(),
+                    payeeAccount.id(),
                     token.getId());
 
             getTransfersSample(payer);
@@ -49,13 +49,13 @@ public class GetTransfersSampleTest {
             Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
 
-            List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
+            Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
             Token token = createTransferToken(payer, payeeAlias);
 
             Transfer transfer = redeemTransferToken(
                     payee,
-                    payeeAccounts.get(0).id(),
+                    payeeAccount.id(),
                     token.getId());
 
             getTransferTokensSample(payer);
@@ -69,13 +69,13 @@ public class GetTransfersSampleTest {
             Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
 
-            List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
+            Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
             Token token = createTransferToken(payer, payeeAlias);
 
             Transfer redeemedTransfer = redeemTransferToken(
                     payee,
-                    payeeAccounts.get(0).id(),
+                    payeeAccount.id(),
                     token.getId());
 
             Transfer gotTransfer = getTransferSample(

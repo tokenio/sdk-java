@@ -47,6 +47,7 @@ import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -616,7 +617,10 @@ public class MemberAsync {
      */
     public Observable<List<AccountAsync>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
-        return toAccountAsyncList(client.linkAccounts(bankId, accessToken));
+        return toAccountAsyncList(client.linkAccounts(OauthBankAuthorization.newBuilder()
+                .setBankId(bankId)
+                .setAccessToken(accessToken)
+                .build()));
     }
 
     /**
@@ -1220,15 +1224,31 @@ public class MemberAsync {
     }
 
     /**
+     * Creates a test bank account in a fake bank and links the account.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return the linked account
+     */
+    public Observable<AccountAsync> createAndLinkTestBankAccount(
+            double balance, String currency) {
+        return toAccountAsync(client.createAndLinkTestBankAccount(
+                Money.newBuilder()
+                        .setValue(Double.toString(balance))
+                        .setCurrency(currency)
+                        .build()
+        ));
+    }
+
+    /**
      * Creates a test bank account in a fake bank.
      *
      * @param balance account balance to set
-     * @param currency currency code, i.e. "EUR"
-     * @return bank authorization
+     * @param currency currency code, e.g. "EUR"
+     * @return OAuth bank authorization
      */
-    public Observable<BankAuthorization> createTestBankAccount(
-            double balance,
-            String currency) {
+    public Observable<OauthBankAuthorization> createTestBankAccount(
+            double balance, String currency) {
         return client.createTestBankAccount(Money.newBuilder()
                 .setCurrency(currency)
                 .setValue(Double.toString(balance))
@@ -1354,5 +1374,15 @@ public class MemberAsync {
                 return result;
             }
         });
+    }
+
+    private Observable<AccountAsync> toAccountAsync(Observable<AccountProtos.Account> account) {
+        return account
+                .map(new Function<AccountProtos.Account, AccountAsync>() {
+                    @Override
+                    public AccountAsync apply(AccountProtos.Account account) throws Exception {
+                        return new AccountAsync(MemberAsync.this, account, client);
+                    }
+                });
     }
 }

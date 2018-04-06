@@ -2,11 +2,6 @@ package io.token.sample;
 
 import io.token.Account;
 import io.token.Member;
-import io.token.proto.banklink.Banklink;
-import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.common.security.SecurityProtos.SealedMessage;
-
-import java.util.List;
 
 /**
  * Links a Token member and a bank.
@@ -23,10 +18,7 @@ public final class LinkMemberAndBankSample {
      * @param member Token member to link to a bank
      * @return linked token accounts
      */
-    public static List<Account> linkBankAccounts(Member member) {
-        BankAuthorization encryptedBankAuthorization =
-                member.createTestBankAccount(1000.0, "EUR");
-
-        return member.linkAccounts(encryptedBankAuthorization);
+    public static Account linkBankAccounts(Member member) {
+        return member.createAndLinkTestBankAccount(1000.0, "EUR");
     }
 }

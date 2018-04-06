@@ -31,13 +31,13 @@ public class GetTransactionsSampleTest {
             Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
 
-            List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
+            Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
             Token token = createTransferToken(payer, payeeAlias);
 
             Transfer transfer = redeemTransferToken(
                     payee,
-                    payeeAccounts.get(0).id(),
+                    payeeAccount.id(),
                     token.getId());
 
             getTransactionsSample(payer);
@@ -54,13 +54,13 @@ public class GetTransactionsSampleTest {
             Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
 
-            List<Account> payeeAccounts = LinkMemberAndBankSample.linkBankAccounts(payee);
+            Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
             Token token = createTransferToken(payer, payeeAlias);
 
             Transfer transfer = redeemTransferToken(
                     payee,
-                    payeeAccounts.get(0).id(),
+                    payeeAccount.id(),
                     token.getId());
 
             accountGetTransactionsSample(payer);

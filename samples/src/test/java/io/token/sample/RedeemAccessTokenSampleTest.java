@@ -44,9 +44,9 @@ public class RedeemAccessTokenSampleTest {
     public void useAccessTokenTest() {
         try (TokenIO tokenIO = createClient()) {
             Member grantor = tokenIO.createMember(randomAlias());
-            final String account1Id = LinkMemberAndBankSample.linkBankAccounts(grantor).get(0).id();
-            final String account2Id = LinkMemberAndBankSample.linkBankAccounts(grantor).get(0).id();
-            LinkMemberAndBankSample.linkBankAccounts(grantor).get(0); // a third account
+            final String account1Id = LinkMemberAndBankSample.linkBankAccounts(grantor).id();
+            final String account2Id = LinkMemberAndBankSample.linkBankAccounts(grantor).id();
+            LinkMemberAndBankSample.linkBankAccounts(grantor); // a third account
 
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);

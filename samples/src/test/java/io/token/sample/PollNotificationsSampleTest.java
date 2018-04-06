@@ -29,11 +29,11 @@ public class PollNotificationsSampleTest {
             Member payee = PollNotificationsSample.createMember(tokenIO);
 
             Alias payeeAlias = payee.firstAlias();
-            List<Account> accounts = LinkMemberAndBankSample.linkBankAccounts(payer);
+            Account account = LinkMemberAndBankSample.linkBankAccounts(payer);
             LinkMemberAndBankSample.linkBankAccounts(payee);
 
             TokenProtos.Token token = payer.createTransferToken(100.00, "EUR")
-                    .setAccountId(accounts.get(0).id())
+                    .setAccountId(account.id())
                     .setToAlias(payeeAlias)
                     .addDestination(Destinations.token(payee.memberId()))
                     .setRedeemerMemberId(payer.memberId())

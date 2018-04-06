@@ -30,6 +30,7 @@ import io.reactivex.functions.Function;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -987,13 +988,30 @@ public class Member {
     }
 
     /**
+     * Creates a test bank account in a fake bank and links the account.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return the linked account
+     */
+    public Account createAndLinkTestBankAccount(double balance, String currency) {
+        return async.createAndLinkTestBankAccount(balance, currency)
+                .map(new Function<AccountAsync, Account>() {
+                    @Override
+                    public Account apply(AccountAsync accountAsync) {
+                        return accountAsync.sync();
+                    }
+                }).blockingSingle();
+    }
+
+    /**
      * Creates a test bank account in a fake bank.
      *
      * @param balance account balance to set
-     * @param currency currency code, i.e. "EUR"
-     * @return bank authorization
+     * @param currency currency code, e.g. "EUR"
+     * @return OAuth bank authorization
      */
-    public BankAuthorization createTestBankAccount(double balance, String currency) {
+    public OauthBankAuthorization createTestBankAccount(double balance, String currency) {
         return async.createTestBankAccount(balance, currency).blockingSingle();
     }
 

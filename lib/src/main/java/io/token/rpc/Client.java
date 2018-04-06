@@ -501,18 +501,13 @@ public final class Client {
     /**
      * Links a funding bank account to Token.
      *
-     * @param bankId bank id
-     * @param accessToken OAuth access token
+     * @param authorization OAuth authorization for linking
      * @return list of linked accounts
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *     is required to link accounts
      */
-    public Observable<List<Account>> linkAccounts(String bankId, String accessToken)
+    public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
             throws BankAuthorizationRequiredException {
-        OauthBankAuthorization authorization = OauthBankAuthorization.newBuilder()
-                .setBankId(bankId)
-                .setAccessToken(accessToken)
-                .build();
         return toObservable(gateway
                 .linkAccountsOauth(LinkAccountsOauthRequest
                         .newBuilder()
@@ -1299,20 +1294,46 @@ public final class Client {
     }
 
     /**
-     * Creates a test bank account and generates bank authorization.
+     * Creates a test bank account and links it.
      *
      * @param balance account balance to set
-     * @return bank authorization
+     * @return linked account
      */
-    public Observable<BankAuthorization> createTestBankAccount(Money balance) {
+    public Observable<Account> createAndLinkTestBankAccount(Money balance) {
+        return createTestBankAccount(balance)
+                .flatMap(new Function<OauthBankAuthorization, Observable<Account>>() {
+                    @Override
+                    public Observable<Account> apply(OauthBankAuthorization authorization) {
+                        return linkAccounts(authorization)
+                                .map(new Function<List<Account>, Account>() {
+                                    @Override
+                                    public Account apply(List<Account> accounts) {
+                                        if (accounts.size() != 1) {
+                                            throw new RuntimeException(
+                                                    "Expected 1 account; found "
+                                                            + accounts.size());
+                                        }
+                                        return accounts.get(0);
+                                    }
+                                });
+                    }
+                });
+    }
+
+    /**
+     * Creates a test bank account and returns the authorization for it.
+     *
+     * @param balance account balance to set
+     * @return OAuth bank authorization
+     */
+    public Observable<OauthBankAuthorization> createTestBankAccount(Money balance) {
         return toObservable(gateway
-                .createTestBankAccount(CreateTestBankAccountRequest
-                        .newBuilder()
+                .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
                         .setBalance(balance)
                         .build()))
-                .map(new Function<CreateTestBankAccountResponse, BankAuthorization>() {
-                    public BankAuthorization apply(CreateTestBankAccountResponse response) {
-                        return response.getBankAuthorization();
+                .map(new Function<CreateTestBankAccountResponse, OauthBankAuthorization>() {
+                    public OauthBankAuthorization apply(CreateTestBankAccountResponse response) {
+                        return response.getAuthorization();
                     }
                 });
     }
