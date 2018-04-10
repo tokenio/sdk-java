@@ -87,7 +87,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class TokenIOAsync implements Closeable {
     private static final String TOKEN_REQUEST_TEMPLATE =
-            "https://%s/authorize?requestId=%s&state=%s";
+            "https://%s/request-token/%s?state=%s";
     private static final long SHUTDOWN_DURATION_MS = 10000L;
 
     private final ManagedChannel channel;
