@@ -455,6 +455,7 @@ public class TokenIO implements Closeable {
         INTEGRATION("api-grpc.int.token.io", "web-app.int.token.io"),
         SANDBOX("api-grpc.sandbox.token.io", "web-app.sandbox.token.io"),
         STAGING("api-grpc.stg.token.io", "web-app.stg.token.io"),
+        PERFORMANCE("api-grpc.perf.token.io", "web-app.perf.token.io"),
         DEVELOPMENT("api-grpc.dev.token.io", "web-app.dev.token.io");
 
         private final String envUrl;
