@@ -162,24 +162,6 @@ public class MemberAsync {
     }
 
     /**
-     * Gets the first alias owner by the user.
-     *
-     * @return first alias owned by the user
-     */
-    public Observable<Alias> firstAlias() {
-        return client.getAliases()
-                .map(new Function<List<Alias>, Alias>() {
-                    public Alias apply(List<Alias> aliases) throws Exception {
-                        if (aliases.isEmpty()) {
-                            return null;
-                        } else {
-                            return aliases.get(0);
-                        }
-                    }
-                });
-    }
-
-    /**
      * Gets all aliases owned by the member.
      *
      * @return list of aliases owned by the member
