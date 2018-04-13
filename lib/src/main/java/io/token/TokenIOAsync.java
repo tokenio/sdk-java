@@ -74,6 +74,7 @@ import io.token.tokenrequest.TokenRequestState;
 import java.io.Closeable;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -473,6 +474,42 @@ public class TokenIOAsync implements Closeable {
                 });
     }
 
+    /**
+     * Returns a list of token enabled banks.
+     *
+     * @param bankIds If specified, return banks whose 'id' matches any one of the given ids
+     *     (case-insensitive). Can be at most 1000.
+     * @param page Result page to retrieve. Default to 1 if not specified.
+     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
+     *     if not specified.
+     * @return a list of banks
+     */
+    public Observable<List<Bank>> getBanks(List<String> bankIds, int page, int perPage)  {
+        return getBanks(bankIds, "", "", page, perPage, "");
+    }
+
+    /**
+     * Returns a list of token enabled banks.
+     *
+     * @param search If specified, return banks whose 'name' or 'identifier' contains the given
+     *     search string (case-insensitive)
+     * @param country If specified, return banks whose 'country' matches the given ISO 3166-1
+     *     alpha-2 country code (case-insensitive)
+     * @param page Result page to retrieve. Default to 1 if not specified.
+     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
+     *     if not specified.
+     * @param sort The key to sort the results. Could be one of: name, provider and country.
+     *     Defaults to name if not specified.
+     * @return a list of banks
+     */
+    public Observable<List<Bank>> getBanks(
+            String search,
+            String country,
+            int page,
+            int perPage,
+            String sort)  {
+        return getBanks(new ArrayList<String>(), search, country, page, perPage, sort);
+    }
 
     /**
      * Returns a list of token enabled banks.
