@@ -78,6 +78,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
+import javax.annotation.Nullable;
 
 /**
  * An SDK Client that interacts with TokenOS.
@@ -484,8 +485,11 @@ public class TokenIOAsync implements Closeable {
      *     if not specified.
      * @return a list of banks
      */
-    public Observable<List<Bank>> getBanks(List<String> bankIds, int page, int perPage)  {
-        return getBanks(bankIds, "", "", page, perPage, "");
+    public Observable<List<Bank>> getBanks(
+            @Nullable List<String> bankIds,
+            @Nullable Integer page,
+            @Nullable Integer perPage)  {
+        return getBanks(bankIds, null, null, page, perPage, null);
     }
 
     /**
@@ -503,12 +507,12 @@ public class TokenIOAsync implements Closeable {
      * @return a list of banks
      */
     public Observable<List<Bank>> getBanks(
-            String search,
-            String country,
-            int page,
-            int perPage,
-            String sort)  {
-        return getBanks(new ArrayList<String>(), search, country, page, perPage, sort);
+            @Nullable String search,
+            @Nullable String country,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort) {
+        return getBanks(null, search, country, page, perPage, sort);
     }
 
     /**
@@ -528,12 +532,12 @@ public class TokenIOAsync implements Closeable {
      * @return a list of banks
      */
     public Observable<List<Bank>> getBanks(
-            List<String> bankIds,
-            String search,
-            String country,
-            int page,
-            int perPage,
-            String sort)  {
+            @Nullable List<String> bankIds,
+            @Nullable String search,
+            @Nullable String country,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort)  {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getBanks(bankIds, search, country, page, perPage, sort);
     }

@@ -49,6 +49,7 @@ import io.token.security.TokenCryptoEngineFactory;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Main entry point to the Token SDK. Use {@link TokenIO.Builder}
@@ -380,10 +381,10 @@ public class TokenIO implements Closeable {
      * @return a list of banks
      */
     public List<Bank> getBanks(
-            List<String> bankIds,
-            int page,
-            int perPage) {
-        return getBanks(bankIds, "", "", page, perPage, "");
+            @Nullable List<String> bankIds,
+            @Nullable Integer page,
+            @Nullable Integer perPage) {
+        return getBanks(bankIds, null, null, page, perPage, null);
     }
 
     /**
@@ -401,12 +402,12 @@ public class TokenIO implements Closeable {
      * @return a list of banks
      */
     public List<Bank> getBanks(
-            String search,
-            String country,
-            int page,
-            int perPage,
-            String sort) {
-        return getBanks(new ArrayList<String>(), search, country, page, perPage, sort);
+            @Nullable String search,
+            @Nullable String country,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort) {
+        return getBanks(null, search, country, page, perPage, sort);
     }
 
     /**
@@ -426,12 +427,12 @@ public class TokenIO implements Closeable {
      * @return a list of banks
      */
     public List<Bank> getBanks(
-            List<String> bankIds,
-            String search,
-            String country,
-            int page,
-            int perPage,
-            String sort) {
+            @Nullable List<String> bankIds,
+            @Nullable String search,
+            @Nullable String country,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort) {
         return async.getBanks(bankIds, search, country, page, perPage, sort).blockingSingle();
     }
 

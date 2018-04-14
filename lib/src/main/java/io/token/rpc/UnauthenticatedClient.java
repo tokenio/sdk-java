@@ -81,6 +81,7 @@ import io.token.security.Signer;
 
 import java.util.LinkedList;
 import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Similar to {@link Client} but is only used for a handful of requests that
@@ -565,21 +566,34 @@ public final class UnauthenticatedClient {
      * @return a list of banks
      */
     public Observable<List<Bank>> getBanks(
-            List<String> bankIds,
-            String search,
-            String country,
-            int page,
-            int perPage,
-            String sort) {
-        return toObservable(gateway
-                .getBanks(GetBanksRequest.newBuilder()
-                        .addAllIds(bankIds)
-                        .setSearch(search)
-                        .setCountry(country)
-                        .setPage(page)
-                        .setPerPage(perPage)
-                        .setSort(sort)
-                        .build()))
+            @Nullable List<String> bankIds,
+            @Nullable String search,
+            @Nullable String country,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort) {
+        GetBanksRequest.Builder request = GetBanksRequest.newBuilder();
+
+        if (bankIds != null) {
+            request.addAllIds(bankIds);
+        }
+        if (search != null) {
+            request.setSearch(search);
+        }
+        if (country != null) {
+            request.setCountry(country);
+        }
+        if (page != null) {
+            request.setPage(page);
+        }
+        if (perPage != null) {
+            request.setPerPage(perPage);
+        }
+        if (sort != null) {
+            request.setSort(sort);
+        }
+
+        return toObservable(gateway.getBanks(request.build()))
                 .map(new Function<GetBanksResponse, List<Bank>>() {
                     public List<Bank> apply(GetBanksResponse response) {
                         return response.getBanksList();
