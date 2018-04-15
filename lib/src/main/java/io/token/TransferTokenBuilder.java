@@ -23,6 +23,7 @@
 package io.token;
 
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.BANK;
+import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.CUSTOM;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN_AUTHORIZATION;
 import static io.token.util.Util.generateNonce;
@@ -129,6 +130,25 @@ public final class TransferTokenBuilder {
                         .setToken(BankAccount.Token.newBuilder()
                                 .setAccountId(accountId)
                                 .setMemberId(member.memberId()))
+                        .build());
+        return this;
+    }
+
+    /**
+     * Sets source account using custom authorization.
+     *
+     * @param bankId bank id
+     * @param customPayload the custom payload
+     * @return builder
+     */
+    public TransferTokenBuilder setCustomAuthorization(String bankId, String customPayload) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .getSourceBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setCustom(BankAccount.Custom.newBuilder()
+                                .setBankId(bankId)
+                                .setPayload(customPayload))
                         .build());
         return this;
     }
@@ -417,7 +437,7 @@ public final class TransferTokenBuilder {
     public Observable<Token> executeAsync() {
         AccountCase sourceCase =
                 payload.getTransfer().getInstructions().getSource().getAccount().getAccountCase();
-        if (!Arrays.asList(TOKEN_AUTHORIZATION, TOKEN, BANK).contains(sourceCase)) {
+        if (!Arrays.asList(TOKEN_AUTHORIZATION, TOKEN, BANK, CUSTOM).contains(sourceCase)) {
             throw new TokenArgumentsException("No source on token");
         }
         if (Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getId())
