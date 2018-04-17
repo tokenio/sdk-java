@@ -1296,14 +1296,14 @@ public class MemberAsync {
     }
 
     /**
-     * Request a signature for a (tokenID | state) payload.
+     * Sign with a Token signature a token request state payload.
      *
      * @param tokenId token id
      * @param state state
      * @return signature
      */
-    public Observable<Signature> requestSignature(String tokenId, String state) {
-        return client.requestSignature(tokenId, state);
+    public Observable<Signature> signTokenRequestState(String tokenId, String state) {
+        return client.signTokenRequestState(tokenId, state);
     }
 
     /**

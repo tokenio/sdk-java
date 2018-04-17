@@ -1055,14 +1055,14 @@ public class Member {
     }
 
     /**
-     * Request a signature for a (tokenID | state) payload.
+     * Sign with a Token signature a token request state payload.
      *
      * @param tokenId token id
      * @param state state
      * @return signature
      */
-    public Signature requestSignature(String tokenId, String state) {
-        return async.requestSignature(tokenId, state).blockingSingle();
+    public Signature signTokenRequestState(String tokenId, String state) {
+        return async.signTokenRequestState(tokenId, state).blockingSingle();
     }
 
     /**
