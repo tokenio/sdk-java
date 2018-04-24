@@ -74,7 +74,6 @@ import io.token.tokenrequest.TokenRequestState;
 import java.io.Closeable;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -626,7 +625,7 @@ public class TokenIOAsync implements Closeable {
 
                 verifySignature(
                         tokenMember,
-                        TokenProtos.RequestSignaturePayload.newBuilder()
+                        TokenProtos.TokenRequestStatePayload.newBuilder()
                                 .setTokenId(params.getTokenId())
                                 .setState(params.getSerializedState())
                                 .build(),
