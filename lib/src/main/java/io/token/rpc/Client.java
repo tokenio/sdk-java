@@ -35,7 +35,6 @@ import static io.token.util.Util.toObservable;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.TokenRequest;
 import io.token.TransferTokenException;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.exceptions.StepUpRequiredException;
@@ -67,11 +66,10 @@ import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos;
-import io.token.proto.common.token.TokenProtos.RequestSignaturePayload;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestStatePayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
@@ -156,14 +154,14 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
-import io.token.proto.gateway.Gateway.RequestSignatureRequest;
-import io.token.proto.gateway.Gateway.RequestSignatureResponse;
 import io.token.proto.gateway.Gateway.RetryVerificationRequest;
 import io.token.proto.gateway.Gateway.RetryVerificationResponse;
 import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
+import io.token.proto.gateway.Gateway.SignTokenRequestStateRequest;
+import io.token.proto.gateway.Gateway.SignTokenRequestStateResponse;
 import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
 import io.token.proto.gateway.Gateway.StoreTokenRequestResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
@@ -1494,20 +1492,20 @@ public final class Client {
     }
 
     /**
-     * Request a signature for a (tokenID | state) payload.
+     * Sign with a Token signature a token request state payload.
      *
      * @param tokenId token id
      * @param state state
      * @return signature
      */
-    public Observable<Signature> requestSignature(String tokenId, String state) {
-        return toObservable(gateway.requestSignature(RequestSignatureRequest.newBuilder()
-                .setPayload(RequestSignaturePayload.newBuilder()
+    public Observable<Signature> signTokenRequestState(String tokenId, String state) {
+        return toObservable(gateway.signTokenRequestState(SignTokenRequestStateRequest.newBuilder()
+                .setPayload(TokenRequestStatePayload.newBuilder()
                         .setTokenId(tokenId)
                         .setState(state))
                 .build()))
-                .map(new Function<RequestSignatureResponse, Signature>() {
-                    public Signature apply(RequestSignatureResponse response) {
+                .map(new Function<SignTokenRequestStateResponse, Signature>() {
+                    public Signature apply(SignTokenRequestStateResponse response) {
                         return response.getSignature();
                     }
                 });
