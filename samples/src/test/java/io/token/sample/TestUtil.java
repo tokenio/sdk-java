@@ -16,7 +16,6 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class TestUtil {
     private static String DEV_KEY = "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI";
-    public static String TEST_REALM = "token-test";
 
     private TestUtil() {
     }

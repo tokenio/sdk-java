@@ -58,6 +58,17 @@ public final class AccessTokenBuilder {
      * Creates an instance of {@link AccessTokenBuilder}.
      *
      * @param redeemerAlias redeemer alias
+     * @return instance of {@link AccessTokenBuilder}
+     */
+    @Deprecated
+    public static AccessTokenBuilder create(Alias redeemerAlias) {
+        return new AccessTokenBuilder().to(redeemerAlias);
+    }
+
+    /**
+     * Creates an instance of {@link AccessTokenBuilder}.
+     *
+     * @param redeemerAlias redeemer alias
      * @param realm realm
      * @return instance of {@link AccessTokenBuilder}
      */
@@ -213,6 +224,19 @@ public final class AccessTokenBuilder {
      */
     AccessTokenBuilder from(String memberId) {
         payload.setFrom(TokenMember.newBuilder().setId(memberId));
+        return this;
+    }
+
+    /**
+     * Sets "to" field on the payload.
+     *
+     * @param redeemerAlias redeemer alias
+     * @return {@link AccessTokenBuilder}
+     */
+    @Deprecated
+    AccessTokenBuilder to(Alias redeemerAlias) {
+        payload.setTo(TokenMember.newBuilder()
+                .setAlias(redeemerAlias));
         return this;
     }
 

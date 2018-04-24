@@ -9,7 +9,6 @@ import io.token.proto.common.token.TokenProtos;
 import org.junit.Test;
 
 public class AccessTokenBuilderTest {
-    private static String TEST_REALM = "token-test";
     private static Alias alias = Alias.newBuilder()
             .setValue("alias@token.io")
             .setType(EMAIL)
@@ -17,13 +16,13 @@ public class AccessTokenBuilderTest {
 
     @Test(expected = IllegalArgumentException.class)
     public void throwsOnMissingFrom() {
-        AccessTokenBuilder.create(alias, TEST_REALM).build();
+        AccessTokenBuilder.create(alias).build();
     }
 
     @Test(expected = IllegalArgumentException.class)
     public void throwsOnMissingResource() {
         AccessTokenBuilder
-                .create(alias, TEST_REALM)
+                .create(alias)
                 .from("member")
                 .build();
     }
@@ -31,7 +30,7 @@ public class AccessTokenBuilderTest {
     @Test
     public void allValidationsPass() {
         TokenProtos.TokenPayload payload = AccessTokenBuilder
-                .create(alias, TEST_REALM)
+                .create(alias)
                 .from("member")
                 .forAllAccounts()
                 .build();

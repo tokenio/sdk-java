@@ -248,6 +248,20 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the alias and realm of the redeemer.
+     *
+     * @param redeemerAlias alias
+     * @return builder
+     */
+    @Deprecated
+    public TransferTokenBuilder setRedeemerAlias(Alias redeemerAlias) {
+        payload.getTransferBuilder()
+                .getRedeemerBuilder()
+                .setAlias(redeemerAlias);
+        return this;
+    }
+
+    /**
      * Sets the memberId of the redeemer.
      *
      * @param redeemerMemberId memberId
@@ -307,6 +321,18 @@ public final class TransferTokenBuilder {
         payload.getToBuilder()
                 .setAlias(toAlias)
                 .setRealm(realm);
+        return this;
+    }
+
+    /**
+     * Sets the alias and realm of the payee.
+     *
+     * @param toAlias alias
+     * @return builder
+     */
+    @Deprecated
+    public TransferTokenBuilder setToAlias(Alias toAlias) {
+        payload.getToBuilder().setAlias(toAlias);
         return this;
     }
 
