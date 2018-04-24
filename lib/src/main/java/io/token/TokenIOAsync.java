@@ -94,29 +94,28 @@ public class TokenIOAsync implements Closeable {
 
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
-    private final String devKey;
     private final TokenCluster tokenCluster;
     private final BrowserFactory browserFactory;
+    private final String realm;
 
     /**
      * Creates an instance of a Token SDK.
      *
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
-     * @param developerKey developer key
      * @param tokenCluster token cluster
      */
     TokenIOAsync(
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
-            String developerKey,
             TokenCluster tokenCluster,
-            BrowserFactory browserFactory) {
+            BrowserFactory browserFactory,
+            String realm) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
-        this.devKey = developerKey;
         this.tokenCluster = tokenCluster;
         this.browserFactory = browserFactory;
+        this.realm = realm;
     }
 
     @Override
@@ -136,7 +135,7 @@ public class TokenIOAsync implements Closeable {
      * @return synchronous version of the account API
      */
     public TokenIO sync() {
-        return new TokenIO(this, devKey);
+        return new TokenIO(this);
     }
 
     /**
@@ -146,7 +145,7 @@ public class TokenIOAsync implements Closeable {
      * @return {@code true} if alias exists, {@code false} otherwise
      */
     public Observable<Boolean> aliasExists(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.aliasExists(alias);
     }
 
@@ -157,7 +156,7 @@ public class TokenIOAsync implements Closeable {
      * @return member id if alias already exists, null otherwise
      */
     public Observable<String> getMemberId(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.getMemberId(alias);
     }
 
@@ -170,7 +169,7 @@ public class TokenIOAsync implements Closeable {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(final Alias alias, final MemberType memberType) {
-        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated
                 .createMemberId(memberType)
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
@@ -181,11 +180,13 @@ public class TokenIOAsync implements Closeable {
                         operations.add(toAddKeyOperation(crypto.generateKey(STANDARD)));
                         operations.add(toAddKeyOperation(crypto.generateKey(LOW)));
                         if (alias != null) {
-                            operations.add(toAddAliasOperation(normalizeAlias(alias)));
+                            operations.add(toAddAliasOperation(normalizeAlias(alias), realm));
                         }
                         List<MemberOperationMetadata> metadata = alias == null
                                 ? Collections.<MemberOperationMetadata>emptyList()
-                                : singletonList(toAddAliasOperationMetadata(normalizeAlias(alias)));
+                                : singletonList(toAddAliasOperationMetadata(
+                                        normalizeAlias(alias),
+                                        realm));
                         Signer signer = crypto.createSigner(PRIVILEGED);
                         return unauthenticated.createMember(memberId, operations, metadata, signer);
                     }
@@ -201,7 +202,8 @@ public class TokenIOAsync implements Closeable {
                                 member,
                                 client,
                                 tokenCluster,
-                                browserFactory));
+                                browserFactory,
+                                realm));
                     }
                 });
     }
@@ -244,7 +246,7 @@ public class TokenIOAsync implements Closeable {
      * @return device information
      */
     public Observable<DeviceInfo> provisionDevice(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated
                 .getMemberId(alias)
                 .map(new Function<String, DeviceInfo>() {
@@ -276,7 +278,7 @@ public class TokenIOAsync implements Closeable {
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client, tokenCluster, browserFactory);
+                        return new MemberAsync(member, client, tokenCluster, browserFactory, realm);
                     }
                 });
     }
@@ -288,7 +290,7 @@ public class TokenIOAsync implements Closeable {
      * @return token request
      */
     public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.retrieveTokenRequest(requestId);
     }
 
@@ -307,7 +309,7 @@ public class TokenIOAsync implements Closeable {
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
                     public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client, tokenCluster, browserFactory);
+                        return new MemberAsync(member, client, tokenCluster, browserFactory, realm);
                     }
                 });
     }
@@ -322,7 +324,7 @@ public class TokenIOAsync implements Closeable {
     public Observable<NotifyStatus> notifyLinkAccounts(
             Alias alias,
             BankAuthorization authorization) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated
                 .notifyLinkAccounts(alias, authorization);
     }
@@ -339,7 +341,7 @@ public class TokenIOAsync implements Closeable {
             Alias alias,
             String name,
             Key key) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.notifyAddKey(alias, name, key);
     }
 
@@ -357,7 +359,7 @@ public class TokenIOAsync implements Closeable {
             BankAuthorization authorization,
             String name,
             Key key) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.notifyLinkAccountsAndAddKey(
                 alias,
                 authorization,
@@ -372,7 +374,7 @@ public class TokenIOAsync implements Closeable {
      * @return status of the notification request
      */
     public Observable<NotifyStatus> notifyPaymentRequest(TokenPayload tokenPayload) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         if (tokenPayload.getRefId().isEmpty()) {
             tokenPayload = tokenPayload.toBuilder().setRefId(generateNonce()).build();
         }
@@ -386,7 +388,7 @@ public class TokenIOAsync implements Closeable {
      * @return the verification id
      */
     public Observable<String> beginRecovery(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.beginRecovery(alias);
     }
 
@@ -400,7 +402,7 @@ public class TokenIOAsync implements Closeable {
     public Observable<Authorization> createRecoveryAuthorization(
             String memberId,
             Key privilegedKey) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.createRecoveryAuthorization(memberId, privilegedKey);
     }
 
@@ -416,7 +418,7 @@ public class TokenIOAsync implements Closeable {
             String verificationId,
             String code,
             Key key) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.getRecoveryAuthorization(verificationId, code, key);
     }
 
@@ -434,7 +436,7 @@ public class TokenIOAsync implements Closeable {
             List<MemberRecoveryOperation> recoveryOperations,
             Key privilegedKey,
             final CryptoEngine cryptoEngine) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated
                 .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
                 .map(new Function<MemberProtos.Member, MemberAsync>() {
@@ -443,7 +445,7 @@ public class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new MemberAsync(member, client, tokenCluster, browserFactory);
+                        return new MemberAsync(member, client, tokenCluster, browserFactory, realm);
                     }
                 });
     }
@@ -460,7 +462,7 @@ public class TokenIOAsync implements Closeable {
             String memberId,
             String verificationId,
             String code) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
         return unauthenticated
                 .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
@@ -470,7 +472,7 @@ public class TokenIOAsync implements Closeable {
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new MemberAsync(member, client, tokenCluster, browserFactory);
+                        return new MemberAsync(member, client, tokenCluster, browserFactory, realm);
                     }
                 });
     }
@@ -538,7 +540,7 @@ public class TokenIOAsync implements Closeable {
             @Nullable Integer page,
             @Nullable Integer perPage,
             @Nullable String sort)  {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.getBanks(bankIds, search, country, page, perPage, sort);
     }
 
@@ -609,7 +611,7 @@ public class TokenIOAsync implements Closeable {
     public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(
             final String callbackUrl,
             final String csrfToken) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.getTokenMember().map(new Function<Member, TokenRequestCallback>() {
             @Override
             public TokenRequestCallback apply(Member tokenMember) throws Exception {
@@ -642,7 +644,7 @@ public class TokenIOAsync implements Closeable {
      * @return token id
      */
     public Observable<String> getTokenId(String tokenRequestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel, realm);
         return unauthenticated.getTokenId(tokenRequestId);
     }
 }

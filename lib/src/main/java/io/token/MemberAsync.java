@@ -109,6 +109,7 @@ public class MemberAsync {
     private final Builder member;
     private final TokenCluster cluster;
     private final BrowserFactory browserFactory;
+    private final String realm;
 
     /**
      * Creates an instance of {@link MemberAsync}.
@@ -116,16 +117,19 @@ public class MemberAsync {
      * @param member internal member representation, fetched from server
      * @param client RPC client used to perform operations against the server
      * @param cluster Token cluster, e.g. sandbox, production
+     * @param realm realm
      */
     MemberAsync(
             MemberProtos.Member member,
             Client client,
             TokenCluster cluster,
-            BrowserFactory browserFactory) {
+            BrowserFactory browserFactory,
+            String realm) {
         this.client = client;
         this.member = member.toBuilder();
         this.cluster = cluster;
         this.browserFactory = browserFactory;
+        this.realm = realm;
     }
 
     /**
@@ -248,8 +252,8 @@ public class MemberAsync {
         final List<MemberOperation> operations = new LinkedList<>();
         final List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliasList) {
-            operations.add(Util.toAddAliasOperation(normalizeAlias(alias)));
-            metadata.add(Util.toMemberOperationMetadata(normalizeAlias(alias)));
+            operations.add(Util.toAddAliasOperation(normalizeAlias(alias), realm));
+            metadata.add(Util.toAddAliasOperationMetadata(normalizeAlias(alias), realm));
         }
         return Completable.fromObservable(client
                 .getMember(memberId())

@@ -39,13 +39,16 @@ public abstract class ClientFactory {
      * Creates new unauthenticated client backed by the specified channel.
      *
      * @param channel RPC channel to use
+     * @param realm realm
      * @return newly created client
      */
-    public static UnauthenticatedClient unauthenticated(ManagedChannel channel) {
-        return new UnauthenticatedClient(GatewayServiceGrpc.newFutureStub(
-                RpcChannelFactory.intercept(
-                        channel,
-                        new ErrorHandlerFactory())));
+    public static UnauthenticatedClient unauthenticated(ManagedChannel channel, String realm) {
+        return new UnauthenticatedClient(
+                GatewayServiceGrpc.newFutureStub(
+                        RpcChannelFactory.intercept(
+                                channel,
+                                new ErrorHandlerFactory())),
+                realm);
     }
 
     /**

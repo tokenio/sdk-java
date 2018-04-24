@@ -23,17 +23,19 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
      *
      * @param payer Payer member token
      * @param payeeAlias Token member alias of payee
+     * @param realm realm
      * @return Token
      */
     public static Token createTransferTokenWithNewAttachment(
             Member payer,
-            Alias payeeAlias) {
+            Alias payeeAlias,
+            String realm) {
 
         // Create a transfer token.
         Token transferToken =
                 payer.createTransferToken(100.0, "EUR")
                         .setAccountId(payer.getAccounts().get(0).id())
-                        .setRedeemerAlias(payeeAlias)
+                        .setRedeemerAlias(payeeAlias, realm)
                         .setDescription("Invoice payment")
                         .addAttachment(
                                 payer.memberId(),

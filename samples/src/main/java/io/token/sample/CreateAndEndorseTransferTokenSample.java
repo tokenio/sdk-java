@@ -20,11 +20,13 @@ public final class CreateAndEndorseTransferTokenSample {
      *
      * @param payer payer Token member
      * @param payeeAlias payee Token member alias
+     * @param realm realm
      * @return a transfer Token
      */
     public static Token createTransferToken(
             Member payer,
-            Alias payeeAlias) {
+            Alias payeeAlias,
+            String realm) {
         // We'll use this as a reference ID. Normally, a payer who
         // explicitly sets a reference ID would use an ID from a db.
         // E.g., a bill-paying service might use ID of a "purchase".
@@ -38,7 +40,7 @@ public final class CreateAndEndorseTransferTokenSample {
                 // source account:
                 .setAccountId(payer.getAccounts().get(0).id())
                 // payee token alias:
-                .setRedeemerAlias(payeeAlias)
+                .setRedeemerAlias(payeeAlias, realm)
                 // optional description:
                 .setDescription("Book purchase")
                 // ref id (if not set, will get random ID)
@@ -115,11 +117,13 @@ public final class CreateAndEndorseTransferTokenSample {
      *
      * @param payer Payer who has no linked bank accounts
      * @param payeeAlias Alias of payee member
+     * @param realm realm
      * @return a transfer Token
      */
     public static Token createTransferTokenToDestination(
             Member payer,
-            Alias payeeAlias) {
+            Alias payeeAlias,
+            String realm) {
 
         // Create a transfer token.
         Token transferToken =
@@ -127,7 +131,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         100.0, // amount
                         "EUR")  // currency
                         .setAccountId(payer.getAccounts().get(0).id())
-                        .setRedeemerAlias(payeeAlias)
+                        .setRedeemerAlias(payeeAlias, realm)
                         .addDestination(Destinations.sepa(
                                 "XUIWC2489",
                                 "DE89 3704 0044 0532 0130 00"))

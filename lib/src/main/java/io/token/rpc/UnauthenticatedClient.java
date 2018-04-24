@@ -90,14 +90,17 @@ import javax.annotation.Nullable;
  */
 public final class UnauthenticatedClient {
     private final GatewayServiceFutureStub gateway;
+    private final String realm;
 
     /**
      * Creates an instance.
      *
      * @param gateway gateway gRPC stub
+     * @param realm realm
      */
-    public UnauthenticatedClient(GatewayServiceFutureStub gateway) {
+    public UnauthenticatedClient(GatewayServiceFutureStub gateway, String realm) {
         this.gateway = gateway;
+        this.realm = realm;
     }
 
     /**
@@ -111,6 +114,7 @@ public final class UnauthenticatedClient {
                 .resolveAlias(ResolveAliasRequest
                         .newBuilder()
                         .setAlias(alias)
+                        .setRealm(realm)
                         .build()))
                 .map(new Function<ResolveAliasResponse, Boolean>() {
                     public Boolean apply(ResolveAliasResponse response) {
@@ -129,6 +133,7 @@ public final class UnauthenticatedClient {
         return toObservable(
                 gateway.resolveAlias(ResolveAliasRequest.newBuilder()
                         .setAlias(alias)
+                        .setRealm(realm)
                         .build()))
                 .map(new Function<ResolveAliasResponse, String>() {
                     public String apply(ResolveAliasResponse response) {
@@ -243,6 +248,7 @@ public final class UnauthenticatedClient {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
+                        .setRealm(realm)
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccounts(LinkAccounts.newBuilder()
                                         .setBankAuthorization(authorization)
@@ -272,6 +278,7 @@ public final class UnauthenticatedClient {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
+                        .setRealm(realm)
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(AddKey.newBuilder()
                                         .setName(name)
@@ -303,6 +310,7 @@ public final class UnauthenticatedClient {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
+                        .setRealm(realm)
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccountsAndAddKey(LinkAccountsAndAddKey.newBuilder()
                                         .setLinkAccounts(LinkAccounts.newBuilder()
@@ -363,6 +371,7 @@ public final class UnauthenticatedClient {
         return toObservable(gateway
                 .beginRecovery(BeginRecoveryRequest.newBuilder()
                         .setAlias(normalizeAlias(alias))
+                        .setRealm(realm)
                         .build()))
                 .map(new Function<BeginRecoveryResponse, String>() {
                     public String apply(BeginRecoveryResponse response) {

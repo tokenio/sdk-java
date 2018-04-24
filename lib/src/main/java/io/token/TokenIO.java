@@ -61,17 +61,14 @@ import javax.annotation.Nullable;
  */
 public class TokenIO implements Closeable {
     private final TokenIOAsync async;
-    private final String devKey;
 
     /**
      * Creates an instance of Token SDK.
      *
      * @param async real implementation that the calls are delegated to
-     * @param developerKey developer key
      */
-    TokenIO(TokenIOAsync async, String developerKey) {
+    TokenIO(TokenIOAsync async) {
         this.async = async;
-        this.devKey = developerKey;
     }
 
     /**
@@ -549,6 +546,7 @@ public class TokenIO implements Closeable {
         private CryptoEngineFactory cryptoEngine;
         private String devKey;
         private BrowserFactory browserFactory;
+        private String realm;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -650,6 +648,17 @@ public class TokenIO implements Closeable {
         }
 
         /**
+         * Sets the realm to be used with the SDK.
+         *
+         * @param realm realm
+         * @return this builder instance
+         */
+        public Builder withRealm(String realm) {
+            this.realm = realm;
+            return this;
+        }
+
+        /**
          * Builds and returns a new {@link TokenIO} instance.
          *
          * @return {@link TokenIO} instance
@@ -689,9 +698,9 @@ public class TokenIO implements Closeable {
                     cryptoEngine != null
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
-                    devKey,
                     tokenCluster == null ? SANDBOX : tokenCluster,
-                    browserFactory);
+                    browserFactory,
+                    realm == null ? "" : realm);
         }
     }
 

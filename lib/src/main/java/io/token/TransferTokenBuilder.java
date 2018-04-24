@@ -233,15 +233,17 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the alias of the redeemer.
+     * Sets the alias and realm of the redeemer.
      *
      * @param redeemerAlias alias
+     * @param realm realm
      * @return builder
      */
-    public TransferTokenBuilder setRedeemerAlias(Alias redeemerAlias) {
+    public TransferTokenBuilder setRedeemerAlias(Alias redeemerAlias, String realm) {
         payload.getTransferBuilder()
                 .getRedeemerBuilder()
-                .setAlias(redeemerAlias);
+                .setAlias(redeemerAlias)
+                .setRealm(realm);
         return this;
     }
 
@@ -295,14 +297,16 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the alias of the payee.
+     * Sets the alias and realm of the payee.
      *
      * @param toAlias alias
+     * @param realm realm
      * @return builder
      */
-    public TransferTokenBuilder setToAlias(Alias toAlias) {
+    public TransferTokenBuilder setToAlias(Alias toAlias, String realm) {
         payload.getToBuilder()
-                .setAlias(toAlias);
+                .setAlias(toAlias)
+                .setRealm(realm);
         return this;
     }
 
