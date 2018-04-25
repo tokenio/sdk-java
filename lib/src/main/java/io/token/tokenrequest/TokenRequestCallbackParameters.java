@@ -22,9 +22,10 @@
 
 package io.token.tokenrequest;
 
+import static io.token.util.Util.urlDecode;
+
 import com.google.auto.value.AutoValue;
 import io.token.exceptions.InvalidTokenRequestQuery;
-import io.token.proto.ProtoJson;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.util.Util;
 
@@ -32,7 +33,7 @@ import java.util.Map;
 
 @AutoValue
 public abstract class TokenRequestCallbackParameters {
-    private static final String TOKEN_ID_FIELD = "token-id";
+    private static final String TOKEN_ID_FIELD = "tokenId";
     private static final String STATE_FIELD = "state";
     private static final String SIGNATURE_FIELD = "signature";
 
@@ -46,17 +47,17 @@ public abstract class TokenRequestCallbackParameters {
     public static TokenRequestCallbackParameters create(String query) {
         Map<String, String> parameters = Util.parseQueryString(query);
         if (!parameters.containsKey(TOKEN_ID_FIELD)
-                || !parameters.containsKey(STATE_FIELD)
-                || !parameters.containsKey(SIGNATURE_FIELD)) {
+                || !parameters.containsKey(STATE_FIELD)) {
+            //TODO: Re-enable when CSRF signature functionality is live
+            // || !parameters.containsKey(SIGNATURE_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
 
         return new AutoValue_TokenRequestCallbackParameters(
-                parameters.get(TOKEN_ID_FIELD),
-                parameters.get(STATE_FIELD),
-                (Signature) ProtoJson.fromJson(
-                        parameters.get(SIGNATURE_FIELD),
-                        Signature.newBuilder()));
+                urlDecode(parameters.get(TOKEN_ID_FIELD)),
+                urlDecode(parameters.get(STATE_FIELD)),
+                //TODO: use real signature when CSRF signature functionality is live
+                Signature.getDefaultInstance());
     }
 
     public abstract String getTokenId();
