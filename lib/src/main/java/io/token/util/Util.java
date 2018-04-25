@@ -25,6 +25,7 @@ package io.token.util;
 import static io.token.proto.ProtoHasher.hashAndSerializeJson;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -38,7 +39,6 @@ import io.reactivex.SingleOnSubscribe;
 import io.reactivex.functions.Function;
 import io.token.Account;
 import io.token.AccountAsync;
-import io.token.TokenIO.TokenCluster;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -53,6 +53,9 @@ import io.token.security.crypto.Crypto;
 import io.token.security.crypto.CryptoRegistry;
 import io.token.util.codec.ByteEncoding;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.security.SecureRandom;
@@ -274,6 +277,35 @@ public abstract class Util {
                 .sha256()
                 .hashString(value, Charset.forName("ASCII"))
                 .toString();
+    }
+
+    /**
+     * URL encodes a string.
+     *
+     * @param string to encode
+     * @return encoded string
+     */
+    public static String urlEncode(String string) {
+        try {
+            return URLEncoder.encode(string, UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e.getMessage());
+        }
+    }
+
+
+    /**
+     * URL decodes a string.
+     *
+     * @param string to decode
+     * @return decoded string
+     */
+    public static String urlDecode(String string) {
+        try {
+            return URLDecoder.decode(string, UTF_8.name());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e.getMessage());
+        }
     }
 
     /**
