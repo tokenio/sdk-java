@@ -1279,7 +1279,7 @@ public final class Client {
     /**
      * Replaces member's receipt contact.
      *
-     * @param memberId member ID of member whose email we will set
+     * @param memberId member ID of member whose receipt contact we will set
      * @param contact receipt contact to set
      * @return completable that indicates whether the operation finished or had an error
      */
