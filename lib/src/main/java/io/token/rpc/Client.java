@@ -92,6 +92,7 @@ import io.token.proto.gateway.Gateway.CreateTransferResponse;
 import io.token.proto.gateway.Gateway.CreateTransferTokenRequest;
 import io.token.proto.gateway.Gateway.CreateTransferTokenResponse;
 import io.token.proto.gateway.Gateway.DeleteAddressRequest;
+import io.token.proto.gateway.Gateway.DeleteMemberRequest;
 import io.token.proto.gateway.Gateway.EndorseTokenRequest;
 import io.token.proto.gateway.Gateway.EndorseTokenResponse;
 import io.token.proto.gateway.Gateway.GetAccountRequest;
@@ -1525,6 +1526,15 @@ public final class Client {
                         return response.getDevicesList();
                     }
                 });
+    }
+
+    /**
+     * Delete the member.
+     *
+     * @return completable
+     */
+    public Completable deleteMember() {
+        return toCompletable(gateway.deleteMember(DeleteMemberRequest.getDefaultInstance()));
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(
