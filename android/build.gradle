@@ -104,9 +104,7 @@ publishing {
             version version
             artifactId archivesBaseName
             artifact(sourceJar)
-            artifact("$buildDir/outputs/aar/${artifactId}-release.aar") {
-                builtBy tasks.getByPath("assembleRelease")
-            }
+            artifact("$buildDir/outputs/aar/${artifactId}-release.aar")
 
             //generate pom nodes for dependencies
             pom.withXml {
