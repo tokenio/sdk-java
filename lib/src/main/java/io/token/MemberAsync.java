@@ -1338,6 +1338,15 @@ public class MemberAsync {
     }
 
     /**
+     * Delete the member.
+     *
+     * @return completable
+     */
+    public Completable deleteMember() {
+        return client.deleteMember();
+    }
+
+    /**
      * Get the Token cluster, e.g. sandbox, production.
      *
      * @return Token cluster
