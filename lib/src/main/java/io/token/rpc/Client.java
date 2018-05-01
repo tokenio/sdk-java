@@ -57,6 +57,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos;
@@ -127,6 +128,8 @@ import io.token.proto.gateway.Gateway.GetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.GetProfileRequest;
 import io.token.proto.gateway.Gateway.GetProfileResponse;
+import io.token.proto.gateway.Gateway.GetReceiptContactRequest;
+import io.token.proto.gateway.Gateway.GetReceiptContactResponse;
 import io.token.proto.gateway.Gateway.GetSubscriberRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberResponse;
 import io.token.proto.gateway.Gateway.GetSubscribersRequest;
@@ -160,6 +163,7 @@ import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
+import io.token.proto.gateway.Gateway.SetReceiptContactRequest;
 import io.token.proto.gateway.Gateway.SignTokenRequestStateRequest;
 import io.token.proto.gateway.Gateway.SignTokenRequestStateResponse;
 import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
@@ -1268,6 +1272,41 @@ public final class Client {
                 .map(new Function<GetProfilePictureResponse, Blob>() {
                     public Blob apply(GetProfilePictureResponse response) {
                         return response.getBlob();
+                    }
+                });
+    }
+
+    /**
+     * Replaces member's receipt contact.
+     *
+     * @param memberId member ID of member whose receipt contact we will set
+     * @param contact receipt contact to set
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable setReceiptContact(String memberId, ReceiptContact contact) {
+        return toCompletable(gateway
+                .setReceiptContact(SetReceiptContactRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .setContact(contact)
+                        .build()));
+    }
+
+    /**
+     * Gets a member's receipt contact.
+     *
+     * @param memberId member ID of member whose receipt contact we want
+     * @return receipt contact
+     */
+    public Observable<ReceiptContact> getReceiptContact(String memberId) {
+        return Util
+                .toObservable(gateway.getReceiptContact(GetReceiptContactRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetReceiptContactResponse, ReceiptContact>() {
+                    @Override
+                    public ReceiptContact apply(
+                            GetReceiptContactResponse getReceiptContactResponse) {
+                        return getReceiptContactResponse.getContact();
                     }
                 });
     }

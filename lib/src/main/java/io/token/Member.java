@@ -42,6 +42,7 @@ import io.token.proto.common.member.MemberProtos.Device;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
@@ -581,6 +582,26 @@ public class Member {
      */
     public Blob getProfilePicture(String memberId, ProfilePictureSize size) {
         return async.getProfilePicture(memberId, size).blockingSingle();
+    }
+
+    /**
+     * Replaces member's receipt contact.
+     *
+     * @param memberId member ID of member whose contact we will set
+     * @param receiptContact receipt contact to set
+     */
+    public void setReceiptContact(String memberId, ReceiptContact receiptContact) {
+        async.setReceiptContact(memberId, receiptContact).blockingAwait();
+    }
+
+    /**
+     * Gets a member's receipt contact.
+     *
+     * @param memberId member ID of member whose receipt contact we want
+     * @return receipt contact
+     */
+    public ReceiptContact getReceiptContact(String memberId) {
+        return async.getReceiptContact(memberId).blockingSingle();
     }
 
     /**

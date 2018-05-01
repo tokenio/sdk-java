@@ -378,6 +378,17 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the flag indicating whether a receipt is requested.
+     *
+     * @param receiptRequested receipt requested flag
+     * @return builder
+     */
+    public TransferTokenBuilder setReceiptRequested(boolean receiptRequested) {
+        payload.setReceiptRequested(receiptRequested);
+        return this;
+    }
+
+    /**
      * Builds a token payload, without uploading blobs or attachments.
      *
      * @return token payload
