@@ -36,6 +36,7 @@ import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccounts;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAddresses;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenPayload.ActingAs;
 
 /**
  * Helps building an access token payload.
@@ -263,6 +264,17 @@ public final class AccessTokenBuilder {
     AccessTokenBuilder to(String redeemerMemberId) {
         payload.setTo(TokenMember.newBuilder()
                 .setId(redeemerMemberId));
+        return this;
+    }
+
+    /**
+     * Sets "acting as" field on the payload.
+     *
+     * @param actingAs entity the redeemer is acting on behalf of
+     * @return {@link AccessTokenBuilder}
+     */
+    AccessTokenBuilder actingAs(ActingAs actingAs) {
+        payload.setActingAs(actingAs);
         return this;
     }
 

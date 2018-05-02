@@ -43,6 +43,7 @@ import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenPayload.ActingAs;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -385,6 +386,17 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets acting as on the token.
+     *
+     * @param actingAs entity the redeemer is acting on behalf of
+     * @return builder
+     */
+    public TransferTokenBuilder setActingAs(ActingAs actingAs) {
+        payload.setActingAs(actingAs);
+        return this;
+    }
+
+    /**
      * Sets the token request ID.
      *
      * @param tokenRequestId token request id
@@ -392,6 +404,17 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder setTokenRequestId(String tokenRequestId) {
         this.tokenRequestId = tokenRequestId;
+        return this;
+    }
+
+    /**
+     * Sets the flag indicating whether a receipt is requested.
+     *
+     * @param receiptRequested receipt requested flag
+     * @return builder
+     */
+    public TransferTokenBuilder setReceiptRequested(boolean receiptRequested) {
+        payload.setReceiptRequested(receiptRequested);
         return this;
     }
 

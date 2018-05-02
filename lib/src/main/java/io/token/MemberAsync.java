@@ -68,6 +68,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
@@ -859,6 +860,27 @@ public class MemberAsync {
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
         return client.getProfilePicture(memberId, size);
+    }
+
+    /**
+     * Replaces member's receipt contact.
+     *
+     * @param memberId member ID of member whose contact we will set
+     * @param contact receipt contact to set
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable setReceiptContact(String memberId, ReceiptContact contact) {
+        return client.setReceiptContact(memberId, contact);
+    }
+
+    /**
+     * Gets a member's receipt email address.
+     *
+     * @param memberId member ID of member whose receipt email we want
+     * @return receipt email address
+     */
+    public Observable<ReceiptContact> getReceiptContact(String memberId) {
+        return client.getReceiptContact(memberId);
     }
 
     /**
