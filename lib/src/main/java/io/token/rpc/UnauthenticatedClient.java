@@ -124,7 +124,7 @@ public final class UnauthenticatedClient {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @return member id if alias already exists, null otherwise
+     * @return member id, or throws exception if member not found
      */
     public Observable<String> getMemberId(final Alias alias) {
         return toObservable(

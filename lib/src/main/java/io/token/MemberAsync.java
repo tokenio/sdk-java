@@ -165,7 +165,7 @@ public class MemberAsync {
     /**
      * Gets the first alias owner by the user.
      *
-     * @return first alias owned by the user
+     * @return first alias owned by the user, or throws exception if no aliases are found
      */
     public Observable<Alias> firstAlias() {
         return client.getAliases()

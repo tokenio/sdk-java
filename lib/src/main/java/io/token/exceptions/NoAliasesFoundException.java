@@ -2,9 +2,13 @@ package io.token.exceptions;
 
 import static java.lang.String.format;
 
-public class NoAliasesFoundException extends RuntimeException {
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+
+public class NoAliasesFoundException extends StatusRuntimeException {
     public NoAliasesFoundException(String memberId) {
-        super(format("Member could not be resolved for alias %s", memberId));
+        super(Status.NOT_FOUND.withDescription(
+                format("No aliases found for member : %s", memberId)));
     }
 }
 

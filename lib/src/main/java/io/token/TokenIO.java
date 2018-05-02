@@ -141,7 +141,7 @@ public class TokenIO implements Closeable {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @return member id
+     * @return member id, or throws exception if member not found
      */
     public String getMemberId(Alias alias) {
         return async.getMemberId(alias).blockingSingle();
