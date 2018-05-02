@@ -47,7 +47,6 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
-import java.util.ArrayList;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -142,11 +141,10 @@ public class TokenIO implements Closeable {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @return member id if alias already exists, null otherwise
+     * @return member id
      */
     public String getMemberId(Alias alias) {
-        String memberId = async.getMemberId(alias).blockingSingle();
-        return memberId.isEmpty() ? null : memberId;
+        return async.getMemberId(alias).blockingSingle();
     }
 
     /**

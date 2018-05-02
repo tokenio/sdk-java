@@ -45,6 +45,7 @@ import io.token.TokenIO.TokenCluster;
 import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
+import io.token.exceptions.NoAliasesFoundException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
@@ -171,7 +172,7 @@ public class MemberAsync {
                 .map(new Function<List<Alias>, Alias>() {
                     public Alias apply(List<Alias> aliases) throws Exception {
                         if (aliases.isEmpty()) {
-                            return Alias.getDefaultInstance();
+                            throw new NoAliasesFoundException(memberId());
                         } else {
                             return aliases.get(0);
                         }

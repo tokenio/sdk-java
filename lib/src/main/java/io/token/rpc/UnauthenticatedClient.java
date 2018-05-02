@@ -30,11 +30,10 @@ import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
+import io.token.exceptions.MemberNotFoundException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -127,14 +126,18 @@ public final class UnauthenticatedClient {
      * @param alias alias to check
      * @return member id if alias already exists, null otherwise
      */
-    public Observable<String> getMemberId(Alias alias) {
+    public Observable<String> getMemberId(final Alias alias) {
         return toObservable(
                 gateway.resolveAlias(ResolveAliasRequest.newBuilder()
                         .setAlias(alias)
                         .build()))
                 .map(new Function<ResolveAliasResponse, String>() {
                     public String apply(ResolveAliasResponse response) {
-                        return response.hasMember() ? response.getMember().getId() : "";
+                        if (response.hasMember()) {
+                            return response.getMember().getId();
+                        } else {
+                            throw new MemberNotFoundException(alias);
+                        }
                     }
                 });
     }
@@ -613,10 +616,6 @@ public final class UnauthenticatedClient {
                 new Function<String, Observable<Member>>() {
                     @Override
                     public Observable<Member> apply(String memberId) throws Exception {
-                        if (memberId.isEmpty()) {
-                            throw new StatusRuntimeException(Status.NOT_FOUND);
-                        }
-
                         return getMember(memberId);
                     }
                 });
