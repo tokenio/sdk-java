@@ -145,7 +145,8 @@ public class TokenIO implements Closeable {
      * @return member id if alias already exists, null otherwise
      */
     public String getMemberId(Alias alias) {
-        return async.getMemberId(alias).blockingSingle();
+        String memberId = async.getMemberId(alias).blockingSingle();
+        return memberId.isEmpty() ? null : memberId;
     }
 
     /**

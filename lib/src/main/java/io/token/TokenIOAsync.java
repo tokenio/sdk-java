@@ -247,7 +247,7 @@ public class TokenIOAsync implements Closeable {
                 .getMemberId(alias)
                 .map(new Function<String, DeviceInfo>() {
                     public DeviceInfo apply(String memberId) {
-                        if (memberId == null) {
+                        if (memberId.isEmpty()) {
                             throw new StatusRuntimeException(NOT_FOUND);
                         }
                         CryptoEngine crypto = cryptoFactory.create(memberId);

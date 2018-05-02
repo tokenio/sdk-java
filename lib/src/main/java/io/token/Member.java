@@ -114,7 +114,8 @@ public class Member {
      */
     @Nullable
     public Alias firstAlias() {
-        return async.firstAlias().blockingSingle();
+        Alias alias = async.firstAlias().blockingSingle();
+        return alias.equals(Alias.getDefaultInstance()) ? null : alias;
     }
 
     /**

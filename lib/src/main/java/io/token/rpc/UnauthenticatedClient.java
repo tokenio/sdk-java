@@ -30,6 +30,9 @@ import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
@@ -132,7 +135,7 @@ public final class UnauthenticatedClient {
                         .build()))
                 .map(new Function<ResolveAliasResponse, String>() {
                     public String apply(ResolveAliasResponse response) {
-                        return response.hasMember() ? response.getMember().getId() : null;
+                        return response.hasMember() ? response.getMember().getId() : "";
                     }
                 });
     }
@@ -611,6 +614,10 @@ public final class UnauthenticatedClient {
                 new Function<String, Observable<Member>>() {
                     @Override
                     public Observable<Member> apply(String memberId) throws Exception {
+                        if (memberId.isEmpty()) {
+                            throw new StatusRuntimeException(Status.NOT_FOUND);
+                        }
+
                         return getMember(memberId);
                     }
                 });

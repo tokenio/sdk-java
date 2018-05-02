@@ -171,7 +171,7 @@ public class MemberAsync {
                 .map(new Function<List<Alias>, Alias>() {
                     public Alias apply(List<Alias> aliases) throws Exception {
                         if (aliases.isEmpty()) {
-                            return null;
+                            return Alias.getDefaultInstance();
                         } else {
                             return aliases.get(0);
                         }
