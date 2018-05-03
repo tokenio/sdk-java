@@ -154,11 +154,12 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the Bank Authorization.
+     * Sets the Bank Authorization. Deprecated, use setCustomAuthorization instead.
      *
      * @param bankAuthorization BankAuthorization
      * @return builder
      */
+    @Deprecated
     public TransferTokenBuilder setBankAuthorization(BankAuthorization bankAuthorization) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
