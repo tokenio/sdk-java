@@ -37,6 +37,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TransferTokenException;
 import io.token.exceptions.BankAuthorizationRequiredException;
+import io.token.exceptions.ExternalAuthorizationRequiredException;
 import io.token.exceptions.StepUpRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -67,6 +68,7 @@ import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -627,8 +629,10 @@ public final class Client {
      * @param payload transfer token payload
      * @param tokenRequestId token request id
      * @return transfer token returned by the server
+     * @throws TransferTokenException if the transfer was not successful
      */
-    public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
+    public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId)
+            throws TransferTokenException {
         return toObservable(gateway
                 .createTransferToken(CreateTransferTokenRequest
                         .newBuilder()
@@ -637,10 +641,15 @@ public final class Client {
                         .build()))
                 .map(new Function<CreateTransferTokenResponse, Token>() {
                     public Token apply(CreateTransferTokenResponse response) {
-                        if (response.getStatus() != TransferTokenStatus.SUCCESS) {
-                            throw new TransferTokenException(response.getStatus());
+                        switch (response.getStatus()) {
+                            case SUCCESS:
+                                return response.getToken();
+                            case FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED:
+                                throw new ExternalAuthorizationRequiredException(
+                                        response.getAuthorizationDetails().getAuthorizationUrl());
+                            default:
+                                throw new TransferTokenException(response.getStatus());
                         }
-                        return response.getToken();
                     }
                 });
     }

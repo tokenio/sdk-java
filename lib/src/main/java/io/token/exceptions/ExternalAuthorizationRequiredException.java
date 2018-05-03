@@ -20,22 +20,28 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.exceptions;
 
+import io.token.TransferTokenException;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 
 /**
- * Thrown when a transfer token creation fails.
+ * Thrown when external authorization is required to complete the transaction.
  */
-public class TransferTokenException extends RuntimeException {
-    private final TransferTokenStatus status;
+public class ExternalAuthorizationRequiredException extends TransferTokenException {
+    private final String authorizationUrl;
 
-    public TransferTokenException(TransferTokenStatus status) {
-        super("Failed to create token: " + status);
-        this.status = status;
+    /**
+     * Creates an instance of ExternalAuthorizationRequiredException.
+     *
+     * @param authorizationUrl external authorization url
+     */
+    public ExternalAuthorizationRequiredException(String authorizationUrl) {
+        super(TransferTokenStatus.FAILURE_EXTERNAL_AUTHORIZATION_REQUIRED);
+        this.authorizationUrl = authorizationUrl;
     }
 
-    public TransferTokenStatus getStatus() {
-        return status;
+    public String getAuthorizationUrl() {
+        return authorizationUrl;
     }
 }

@@ -22,8 +22,10 @@
 
 package io.token;
 
+import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.getWebAppCallbackUrl;
 import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.parseOauthAccessToken;
@@ -45,11 +47,13 @@ import io.token.TokenIO.TokenCluster;
 import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
+import io.token.exceptions.ExternalAuthorizationRequiredException;
 import io.token.exceptions.NoAliasesFoundException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.account.AccountProtos.BankAccount.Custom;
 import io.token.proto.common.address.AddressProtos.Address;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
@@ -90,6 +94,7 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.LinkedList;
@@ -534,9 +539,7 @@ public class MemberAsync {
      */
     public Observable<List<Account>> initiateAccountLinking(final String bankId)
             throws BankAuthorizationRequiredException {
-        final String callbackUrl = String.format(
-                "https://%s/auth/callback",
-                getTokenCluster().webAppUrl());
+        final String callbackUrl = getWebAppCallbackUrl(getTokenCluster());
         final Browser browser = browserFactory.create();
         final Observable<List<Account>> accountLinkingObservable = browser.url()
                 .filter(new Predicate<URL>() {
@@ -918,8 +921,39 @@ public class MemberAsync {
      * @param tokenRequestId token request id
      * @return transfer token returned by the server
      */
-    public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
-        return client.createTransferToken(payload, tokenRequestId);
+    public Observable<Token> createTransferToken(
+            final TokenPayload payload,
+            final String tokenRequestId) {
+        return client.createTransferToken(payload, tokenRequestId)
+                .onErrorResumeNext(new Function<Throwable, ObservableSource<Token>>() {
+                    @Override
+                    public ObservableSource<Token> apply(Throwable throwable) {
+                        AccountProtos.BankAccount bankAccount = payload.getTransfer()
+                                .getInstructions()
+                                .getSource()
+                                .getAccount();
+                        // if provided, use browser to complete external authorization
+                        if (throwable instanceof ExternalAuthorizationRequiredException
+                                && browserFactory != null
+                                && bankAccount.getAccountCase() == TOKEN) {
+                            final ExternalAuthorizationRequiredException ex =
+                                    (ExternalAuthorizationRequiredException) throwable;
+                            return getAccount(bankAccount.getToken().getAccountId())
+                                    .flatMap(new Function<AccountAsync, ObservableSource<Token>>() {
+                                        @Override
+                                        public ObservableSource<Token> apply(AccountAsync account) {
+                                            return transferTokenExternalAuthorization(
+                                                    payload,
+                                                    tokenRequestId,
+                                                    account.bankId(),
+                                                    ex.getAuthorizationUrl());
+                                        }
+                                    });
+                        } else {
+                            return Observable.error(throwable);
+                        }
+                    }
+                });
     }
 
     /**
@@ -1405,6 +1439,78 @@ public class MemberAsync {
                     @Override
                     public AccountAsync apply(AccountProtos.Account account) throws Exception {
                         return new AccountAsync(MemberAsync.this, account, client);
+                    }
+                });
+    }
+
+    private Observable<Token> transferTokenExternalAuthorization(
+            final TokenPayload payload,
+            final String tokenRequestId,
+            final String bankId,
+            final String authorizationUrl) {
+        return Single.create(new SingleOnSubscribe<String>() {
+            @Override
+            public void subscribe(final SingleEmitter<String> emitter) throws Exception {
+                final Browser browser = browserFactory.create();
+                final String callbackUrl = getWebAppCallbackUrl(getTokenCluster());
+                browser.url()
+                        .filter(new Predicate<URL>() {
+                            @Override
+                            public boolean test(URL url) {
+                                if (url.toExternalForm().matches(
+                                        callbackUrl + "([/?]?.*#).*access_token=.+")) {
+                                    return true;
+                                }
+                                browser.goTo(url);
+                                return false;
+                            }
+                        })
+                        .map(new Function<URL, String>() {
+                            @Override
+                            public String apply(URL url) {
+                                String accessToken = parseOauthAccessToken(url.toExternalForm());
+                                if (accessToken == null) {
+                                    throw new IllegalArgumentException("No access token found");
+                                }
+                                return accessToken;
+                            }
+                        })
+                        .subscribe(
+                                new Consumer<String>() {
+                                    @Override
+                                    public void accept(String accessToken) {
+                                        emitter.onSuccess(accessToken);
+                                        browser.close();
+                                    }
+                                },
+                                new Consumer<Throwable>() {
+                                    @Override
+                                    public void accept(Throwable ex) {
+                                        emitter.onError(ex);
+                                        browser.close();
+                                    }
+                                });
+                String url = String.format(
+                        "%s&redirect_uri=%s",
+                        authorizationUrl,
+                        URLEncoder.encode(callbackUrl, "UTF-8"));
+                browser.goTo(new URL(url));
+            }
+        }).toObservable()
+                .flatMap(new Function<String, ObservableSource<Token>>() {
+                    @Override
+                    public ObservableSource<Token> apply(String accessToken) {
+                        TokenPayload.Builder authorizedPayload = payload.toBuilder();
+                        authorizedPayload.getTransferBuilder()
+                                .getInstructionsBuilder()
+                                .getSourceBuilder()
+                                .setAccount(AccountProtos.BankAccount.newBuilder()
+                                        .setCustom(Custom.newBuilder()
+                                                .setBankId(bankId)
+                                                .setPayload(accessToken)
+                                                .build())
+                                        .build());
+                        return createTransferToken(authorizedPayload.build(), tokenRequestId);
                     }
                 });
     }
