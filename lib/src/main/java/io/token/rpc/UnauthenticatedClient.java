@@ -33,6 +33,7 @@ import static io.token.util.Util.toObservable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
+import io.token.exceptions.MemberNotFoundException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -123,16 +124,20 @@ public final class UnauthenticatedClient {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @return member id if alias already exists, null otherwise
+     * @return member id, or throws exception if member not found
      */
-    public Observable<String> getMemberId(Alias alias) {
+    public Observable<String> getMemberId(final Alias alias) {
         return toObservable(
                 gateway.resolveAlias(ResolveAliasRequest.newBuilder()
                         .setAlias(alias)
                         .build()))
                 .map(new Function<ResolveAliasResponse, String>() {
                     public String apply(ResolveAliasResponse response) {
-                        return response.hasMember() ? response.getMember().getId() : null;
+                        if (response.hasMember()) {
+                            return response.getMember().getId();
+                        } else {
+                            throw new MemberNotFoundException(alias);
+                        }
                     }
                 });
     }

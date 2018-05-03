@@ -111,9 +111,8 @@ public class Member {
     /**
      * Gets user first alias.
      *
-     * @return first alias owned by the user
+     * @return first alias owned by the user, or throws exception if not aliases are found
      */
-    @Nullable
     public Alias firstAlias() {
         return async.firstAlias().blockingSingle();
     }

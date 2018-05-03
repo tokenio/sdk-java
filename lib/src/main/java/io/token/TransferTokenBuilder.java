@@ -96,10 +96,9 @@ public final class TransferTokenBuilder {
                     .setId(member.memberId())
                     .build());
 
-            Alias alias = member.firstAlias().blockingSingle();
-            if (alias != null) {
-                payload.getFromBuilder()
-                        .setAlias(alias);
+            List<Alias> aliases = member.aliases().blockingSingle();
+            if (!aliases.isEmpty()) {
+                payload.getFromBuilder().setAlias(aliases.get(0));
             }
         }
 
