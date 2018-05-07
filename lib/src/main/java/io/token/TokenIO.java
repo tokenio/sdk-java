@@ -34,6 +34,7 @@ import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -148,13 +149,26 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new business-use Token member with a set of auto-generated keys and alias.
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
      *
-     * @param alias alias to associated with member
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param memberType the type of member to register
      * @return newly created member
      */
-    public Member createBusinessMember(Alias alias) {
-        return async.createBusinessMember(alias)
+    public Member createMember(Alias alias, CreateMemberType memberType) {
+        return async.createMember(alias, memberType)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Creates a new personal-use Token member with a set of auto generated keys and no alias.
+     *
+     * @return newly created member
+     */
+    public Member createMember() {
+        return async.createMember()
                 .map(new MemberFunction())
                 .blockingSingle();
     }
@@ -173,12 +187,13 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new personal-use Token member with a set of auto generated keys and no alias.
+     * Creates a new business-use Token member with a set of auto-generated keys and alias.
      *
+     * @param alias alias to associated with member
      * @return newly created member
      */
-    public Member createMember() {
-        return async.createMember()
+    public Member createBusinessMember(Alias alias) {
+        return async.createBusinessMember(alias)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
