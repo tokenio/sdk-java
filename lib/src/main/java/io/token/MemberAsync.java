@@ -237,7 +237,19 @@ public class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable addAlias(Alias alias) {
-        return addAliases(singletonList(alias));
+        return addAlias(alias, "");
+    }
+
+    /**
+     * Adds a new alias for the member.
+     *
+     * @param alias alias, e.g. 'john', must be unique within the realm
+     * @param realm realm the alias is to be added to
+     *
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable addAlias(Alias alias, String realm) {
+        return addAliases(singletonList(alias), realm);
     }
 
     /**
@@ -246,12 +258,23 @@ public class MemberAsync {
      * @param aliasList aliases, e.g. 'john', must be unique
      * @return completable that indicates whether the operation finished or had an error
      */
-    public Completable addAliases(final List<Alias> aliasList) {
+    public Completable addAliases(List<Alias> aliasList) {
+        return addAliases(aliasList, "");
+    }
+
+    /**
+     * Adds new aliases for the member.
+     *
+     * @param aliasList aliases, e.g. 'john', must be unique within the realm
+     * @param realm realm the aliases are to be added to
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable addAliases(final List<Alias> aliasList, String realm) {
         final List<MemberOperation> operations = new LinkedList<>();
         final List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliasList) {
-            operations.add(Util.toAddAliasOperation(normalizeAlias(alias)));
-            metadata.add(Util.toMemberOperationMetadata(normalizeAlias(alias)));
+            operations.add(Util.toAddAliasOperation(normalizeAlias(alias), realm));
+            metadata.add(Util.toAddAliasOperationMetadata(normalizeAlias(alias), realm));
         }
         return Completable.fromObservable(client
                 .getMember(memberId())

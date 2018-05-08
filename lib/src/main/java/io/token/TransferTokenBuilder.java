@@ -307,6 +307,18 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the realm of the payee.
+     *
+     * @param realm realm
+     * @return builder
+     */
+    public TransferTokenBuilder setToRealm(String realm ) {
+        payload.getToBuilder()
+                .setRealm(realm);
+        return this;
+    }
+
+    /**
      * Sets the memberId of the payee.
      *
      * @param toMemberId memberId
