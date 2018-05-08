@@ -96,10 +96,9 @@ public final class TransferTokenBuilder {
                     .setId(member.memberId())
                     .build());
 
-            Alias alias = member.firstAlias().blockingSingle();
-            if (alias != null) {
-                payload.getFromBuilder()
-                        .setAlias(alias);
+            List<Alias> aliases = member.aliases().blockingSingle();
+            if (!aliases.isEmpty()) {
+                payload.getFromBuilder().setAlias(aliases.get(0));
             }
         }
 
@@ -374,6 +373,17 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder setTokenRequestId(String tokenRequestId) {
         this.tokenRequestId = tokenRequestId;
+        return this;
+    }
+
+    /**
+     * Sets the flag indicating whether a receipt is requested.
+     *
+     * @param receiptRequested receipt requested flag
+     * @return builder
+     */
+    public TransferTokenBuilder setReceiptRequested(boolean receiptRequested) {
+        payload.setReceiptRequested(receiptRequested);
         return this;
     }
 

@@ -22,7 +22,6 @@
 
 package io.token;
 
-import static io.grpc.Status.NOT_FOUND;
 import static io.token.TokenIO.TokenCluster;
 import static io.token.proto.common.member.MemberProtos.MemberType.BUSINESS;
 import static io.token.proto.common.member.MemberProtos.MemberType.PERSONAL;
@@ -41,7 +40,6 @@ import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 import io.grpc.ManagedChannel;
-import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
@@ -152,7 +150,7 @@ public class TokenIOAsync implements Closeable {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @return member id if alias already exists, null otherwise
+     * @return member id, or throws exception if member not found
      */
     public Observable<String> getMemberId(Alias alias) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
@@ -247,9 +245,6 @@ public class TokenIOAsync implements Closeable {
                 .getMemberId(alias)
                 .map(new Function<String, DeviceInfo>() {
                     public DeviceInfo apply(String memberId) {
-                        if (memberId == null) {
-                            throw new StatusRuntimeException(NOT_FOUND);
-                        }
                         CryptoEngine crypto = cryptoFactory.create(memberId);
                         return new DeviceInfo(
                                 memberId,

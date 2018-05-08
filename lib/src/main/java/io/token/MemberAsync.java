@@ -45,6 +45,7 @@ import io.token.TokenIO.TokenCluster;
 import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
+import io.token.exceptions.NoAliasesFoundException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
@@ -68,6 +69,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
@@ -164,14 +166,14 @@ public class MemberAsync {
     /**
      * Gets the first alias owner by the user.
      *
-     * @return first alias owned by the user
+     * @return first alias owned by the user, or throws exception if no aliases are found
      */
     public Observable<Alias> firstAlias() {
         return client.getAliases()
                 .map(new Function<List<Alias>, Alias>() {
                     public Alias apply(List<Alias> aliases) throws Exception {
                         if (aliases.isEmpty()) {
-                            return null;
+                            throw new NoAliasesFoundException(memberId());
                         } else {
                             return aliases.get(0);
                         }
@@ -855,6 +857,27 @@ public class MemberAsync {
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
         return client.getProfilePicture(memberId, size);
+    }
+
+    /**
+     * Replaces member's receipt contact.
+     *
+     * @param memberId member ID of member whose contact we will set
+     * @param contact receipt contact to set
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable setReceiptContact(String memberId, ReceiptContact contact) {
+        return client.setReceiptContact(memberId, contact);
+    }
+
+    /**
+     * Gets a member's receipt email address.
+     *
+     * @param memberId member ID of member whose receipt email we want
+     * @return receipt email address
+     */
+    public Observable<ReceiptContact> getReceiptContact(String memberId) {
+        return client.getReceiptContact(memberId);
     }
 
     /**
