@@ -141,7 +141,7 @@ public abstract class Util {
      * Converts alias to AddAlias operation.
      *
      * @param alias alias to add
-     * @param realm realm
+     * @param realm realm of the alias
      * @return member operation
      */
     public static MemberOperation toAddAliasOperation(Alias alias, String realm) {
@@ -158,7 +158,7 @@ public abstract class Util {
      * Converts alias to MemberOperationMetadata.
      *
      * @param alias alias to add
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return member operation metadata
      */
     public static MemberOperationMetadata toAddAliasOperationMetadata(Alias alias, String realm ) {

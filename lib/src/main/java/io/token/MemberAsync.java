@@ -244,7 +244,7 @@ public class MemberAsync {
      * Adds a new alias for the member.
      *
      * @param alias alias, e.g. 'john', must be unique within the realm
-     * @param realm realm the alias is to be added to
+     * @param realm realm of the alias
      *
      * @return completable that indicates whether the operation finished or had an error
      */
@@ -266,7 +266,7 @@ public class MemberAsync {
      * Adds new aliases for the member.
      *
      * @param aliasList aliases, e.g. 'john', must be unique within the realm
-     * @param realm realm the aliases are to be added to
+     * @param realm realm of the aliases
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable addAliases(final List<Alias> aliasList, String realm) {

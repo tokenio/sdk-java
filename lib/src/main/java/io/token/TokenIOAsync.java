@@ -23,8 +23,8 @@
 package io.token;
 
 import static io.token.TokenIO.TokenCluster;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
+import static io.token.proto.common.member.MemberProtos.MemberType.BUSINESS;
+import static io.token.proto.common.member.MemberProtos.MemberType.PERSONAL;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -48,12 +48,12 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.MemberType;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -149,7 +149,7 @@ public class TokenIOAsync implements Closeable {
      * Checks if a given alias already exists.
      *
      * @param alias alias to check
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return {@code true} if alias exists, {@code false} otherwise
      */
     public Observable<Boolean> aliasExists(Alias alias, String realm) {
@@ -171,7 +171,7 @@ public class TokenIOAsync implements Closeable {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return member id, or throws exception if member not found
      */
     public Observable<String> getMemberId(Alias alias, String realm) {
@@ -184,14 +184,14 @@ public class TokenIOAsync implements Closeable {
      *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @param memberType the type of member to register
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(
             final Alias alias,
             final String realm,
-            final CreateMemberType memberType) {
+            final MemberType memberType) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType)
@@ -301,7 +301,7 @@ public class TokenIOAsync implements Closeable {
      * existing device/keys.
      *
      * @param alias member id to provision the device for
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return device information
      */
     public Observable<DeviceInfo> provisionDevice(Alias alias, String realm) {
@@ -387,7 +387,7 @@ public class TokenIOAsync implements Closeable {
      * Notifies to link an account.
      *
      * @param alias alias to notify
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @return status of the notification
      */
@@ -418,7 +418,7 @@ public class TokenIOAsync implements Closeable {
      * Notifies to add a key.
      *
      * @param alias alias to notify
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
      * @return status of the notification
@@ -453,7 +453,7 @@ public class TokenIOAsync implements Closeable {
      * Notifies to link accounts and add a key.
      *
      * @param alias alias to notify
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
@@ -502,7 +502,7 @@ public class TokenIOAsync implements Closeable {
      * Begins account recovery.
      *
      * @param alias the alias used to recover
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return the verification id
      */
     public Observable<String> beginRecovery(Alias alias, String realm) {

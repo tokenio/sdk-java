@@ -141,7 +141,7 @@ public class TokenIO implements Closeable {
      * Checks if a given alias already exists.
      *
      * @param alias alias to check
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return {@code true} if alias exists, {@code false} otherwise
      */
     public boolean aliasExists(Alias alias, String realm) {
@@ -162,7 +162,7 @@ public class TokenIO implements Closeable {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return member id, or throws exception if member not found
      */
     public String getMemberId(Alias alias, String realm) {
@@ -252,7 +252,7 @@ public class TokenIO implements Closeable {
      * existing device/keys.
      *
      * @param alias member id to provision the device for
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return device information
      */
     public DeviceInfo provisionDevice(Alias alias, String realm) {
@@ -312,7 +312,7 @@ public class TokenIO implements Closeable {
      * Notifies to link accounts.
      *
      * @param alias alias to notify
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @return status of the notification request
      */
@@ -343,7 +343,7 @@ public class TokenIO implements Closeable {
      * Notifies to add a key.
      *
      * @param alias alias to notify
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
      * @return status of the notification request
@@ -385,7 +385,7 @@ public class TokenIO implements Closeable {
      * Notifies to link accounts and add a key.
      *
      * @param alias alias to notify
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key key that needs an approval
@@ -431,7 +431,7 @@ public class TokenIO implements Closeable {
      * Begins account recovery.
      *
      * @param alias the alias used to recover
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return the verification id
      */
     public String beginRecovery(Alias alias, String realm ) {

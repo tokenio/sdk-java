@@ -38,13 +38,13 @@ import io.token.exceptions.MemberNotFoundException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
-import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.MemberType;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
@@ -106,7 +106,7 @@ public final class UnauthenticatedClient {
      * Checks if a given alias already exists.
      *
      * @param alias alias to check
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return {@code true} if alias already exists, {@code false} otherwise
      */
     public Observable<Boolean> aliasExists(Alias alias, String realm) {
@@ -127,7 +127,7 @@ public final class UnauthenticatedClient {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return member id, or throws exception if member not found
      */
     public Observable<String> getMemberId(final Alias alias, final String realm) {
@@ -172,7 +172,7 @@ public final class UnauthenticatedClient {
      * @param memberType the type of member to register
      * @return newly created member id
      */
-    public Observable<String> createMemberId(CreateMemberType memberType) {
+    public Observable<String> createMemberId(MemberType memberType) {
         return
                 toObservable(gateway.createMember(CreateMemberRequest.newBuilder()
                         .setNonce(generateNonce())
@@ -244,7 +244,7 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that accounts should be linked.
      *
      * @param alias alias of the member
-     * @param realm realm of the member
+     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @return status status of the notification
      */
@@ -305,7 +305,7 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that a key should be added.
      *
      * @param alias alias of the member
-     * @param realm realm of the member
+     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
@@ -375,7 +375,7 @@ public final class UnauthenticatedClient {
      * Begins account recovery.
      *
      * @param alias the alias used to recover
-     * @param realm realm the alias belongs to
+     * @param realm realm of the alias
      * @return the verification id
      */
     public Observable<String> beginRecovery(Alias alias, String realm) {
