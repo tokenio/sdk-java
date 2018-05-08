@@ -911,7 +911,7 @@ public class MemberAsync {
      * @return transfer token returned by the server
      */
     public Observable<Token> createTransferToken(TokenPayload payload) {
-        return client.createTransferToken(payload);
+        return createTransferToken(payload, "");
     }
 
     /**

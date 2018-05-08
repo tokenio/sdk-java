@@ -466,9 +466,9 @@ public final class TransferTokenBuilder {
                 .flatMapObservable(new Function<List<Attachment>, Observable<Token>>() {
                     public Observable<Token> apply(List<Attachment> attachments) {
                         payload.getTransferBuilder().addAllAttachments(attachments);
-                        return member.createTransferToken(
-                                payload.build(),
-                                tokenRequestId != null ? tokenRequestId : "");
+                        return tokenRequestId == null
+                                ? member.createTransferToken(payload.build())
+                                : member.createTransferToken(payload.build(), tokenRequestId);
                     }
                 });
     }

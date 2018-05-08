@@ -605,28 +605,6 @@ public final class Client {
      * Creates a new transfer token.
      *
      * @param payload transfer token payload
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createTransferToken(TokenPayload payload) {
-        return toObservable(gateway
-                .createTransferToken(CreateTransferTokenRequest
-                        .newBuilder()
-                        .setPayload(payload)
-                        .build()))
-                .map(new Function<CreateTransferTokenResponse, Token>() {
-                    public Token apply(CreateTransferTokenResponse response) {
-                        if (response.getStatus() != TransferTokenStatus.SUCCESS) {
-                            throw new TransferTokenException(response.getStatus());
-                        }
-                        return response.getToken();
-                    }
-                });
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param payload transfer token payload
      * @param tokenRequestId token request id
      * @return transfer token returned by the server
      * @throws TransferTokenException if the transfer was not successful
