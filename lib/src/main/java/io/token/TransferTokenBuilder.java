@@ -312,7 +312,7 @@ public final class TransferTokenBuilder {
      * @param realm realm
      * @return builder
      */
-    public TransferTokenBuilder setToRealm(String realm ) {
+    public TransferTokenBuilder setToRealm(String realm) {
         payload.getToBuilder()
                 .setRealm(realm);
         return this;

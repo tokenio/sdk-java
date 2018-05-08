@@ -434,7 +434,7 @@ public class TokenIO implements Closeable {
      * @param realm realm of the alias
      * @return the verification id
      */
-    public String beginRecovery(Alias alias, String realm ) {
+    public String beginRecovery(Alias alias, String realm) {
         return async.beginRecovery(alias, realm).blockingSingle();
     }
 
