@@ -1114,6 +1114,13 @@ public class Member {
         return async.getPairedDevices().blockingSingle();
     }
 
+    /**
+     * Delete the member.
+     */
+    public void deleteMember()  {
+        async.deleteMember().blockingAwait();
+    }
+
     @Override
     public int hashCode() {
         return async.hashCode();

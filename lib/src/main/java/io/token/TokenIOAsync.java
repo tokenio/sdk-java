@@ -23,8 +23,8 @@
 package io.token;
 
 import static io.token.TokenIO.TokenCluster;
-import static io.token.proto.common.member.MemberProtos.MemberType.BUSINESS;
-import static io.token.proto.common.member.MemberProtos.MemberType.PERSONAL;
+import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
+import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -48,12 +48,12 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos;
+import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
-import io.token.proto.common.member.MemberProtos.MemberType;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -191,7 +191,7 @@ public class TokenIOAsync implements Closeable {
     public Observable<MemberAsync> createMember(
             final Alias alias,
             final String realm,
-            final MemberType memberType) {
+            final CreateMemberType memberType) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType)
