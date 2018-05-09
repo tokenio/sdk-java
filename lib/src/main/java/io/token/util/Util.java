@@ -80,6 +80,11 @@ public abstract class Util {
             .setValue("token.io")
             .build();
 
+    /**
+     * The token realm.
+     */
+    public static final String TOKEN_REALM = "token";
+
     private static final int NONCE_NUM_BYTES = 20;
 
     private Util() {
@@ -136,14 +141,16 @@ public abstract class Util {
      * Converts alias to AddAlias operation.
      *
      * @param alias alias to add
+     * @param realm realm of the alias
      * @return member operation
      */
-    public static MemberOperation toAddAliasOperation(Alias alias) {
+    public static MemberOperation toAddAliasOperation(Alias alias, String realm) {
         return MemberOperation
                 .newBuilder()
                 .setAddAlias(MemberAliasOperation
                         .newBuilder()
-                        .setAliasHash(hashAlias(alias)))
+                        .setAliasHash(hashAlias(alias))
+                        .setRealm(realm))
                 .build();
     }
 
@@ -151,29 +158,15 @@ public abstract class Util {
      * Converts alias to MemberOperationMetadata.
      *
      * @param alias alias to add
+     * @param realm realm of the alias
      * @return member operation metadata
      */
-    public static MemberOperationMetadata toAddAliasOperationMetadata(Alias alias) {
+    public static MemberOperationMetadata toAddAliasOperationMetadata(Alias alias, String realm ) {
         return MemberOperationMetadata.newBuilder()
                 .setAddAliasMetadata(AddAliasMetadata.newBuilder()
                         .setAlias(alias)
-                        .setAliasHash(hashAlias(alias)))
-                .build();
-    }
-
-    /**
-     * Converts alias to MemberOperationMetadata.
-     *
-     * @param alias alias to add
-     * @return MemberOperation metadata
-     */
-    public static MemberOperationMetadata toMemberOperationMetadata(Alias alias) {
-        return MemberOperationMetadata
-                .newBuilder()
-                .setAddAliasMetadata(AddAliasMetadata
-                        .newBuilder()
                         .setAliasHash(hashAlias(alias))
-                        .setAlias(alias))
+                        .setRealm(realm))
                 .build();
     }
 
