@@ -179,7 +179,23 @@ public class TokenIO implements Closeable {
      * @return newly created member
      */
     public Member createMember(Alias alias, CreateMemberType memberType) {
-        return async.createMember(alias, memberType)
+        return async.createMember(alias, "", memberType)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, a realm and
+     * a member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param realm realm of the alias
+     * @param memberType the type of member to register
+     * @return newly created member
+     */
+    public Member createMember(Alias alias, String realm, CreateMemberType memberType) {
+        return async.createMember(alias, realm, memberType)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
@@ -191,20 +207,6 @@ public class TokenIO implements Closeable {
      */
     public Member createMember() {
         return async.createMember()
-                .map(new MemberFunction())
-                .blockingSingle();
-    }
-
-    /**
-     * Creates a new business-use Token member with a set of auto-generated keys, an alias
-     * and a realm.
-     *
-     * @param alias alias to associated with member
-     * @param realm realm
-     * @return newly created member
-     */
-    public Member createBusinessMember(Alias alias, String realm) {
-        return async.createBusinessMember(alias, realm)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
@@ -244,6 +246,20 @@ public class TokenIO implements Closeable {
      */
     public Member createBusinessMember(Alias alias) {
         return async.createBusinessMember(alias)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Creates a new business-use Token member with a set of auto-generated keys, an alias
+     * and a realm.
+     *
+     * @param alias alias to associated with member
+     * @param realm realm
+     * @return newly created member
+     */
+    public Member createBusinessMember(Alias alias, String realm) {
+        return async.createBusinessMember(alias, realm)
                 .map(new MemberFunction())
                 .blockingSingle();
     }

@@ -257,7 +257,7 @@ public class TokenIOAsync implements Closeable {
      * @param realm realm
      * @return newly created member
      */
-    public Observable<MemberAsync> createMember(Alias alias, String realm ) {
+    public Observable<MemberAsync> createMember(Alias alias, String realm) {
         return createMember(alias, realm, PERSONAL);
     }
 
@@ -279,7 +279,7 @@ public class TokenIOAsync implements Closeable {
      * @param realm realm
      * @return newly created member
      */
-    public Observable<MemberAsync> createBusinessMember(Alias alias, String realm ) {
+    public Observable<MemberAsync> createBusinessMember(Alias alias, String realm) {
         return createMember(alias, realm, BUSINESS);
     }
 
