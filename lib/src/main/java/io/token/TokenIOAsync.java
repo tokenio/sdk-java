@@ -184,6 +184,20 @@ public class TokenIOAsync implements Closeable {
      *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
+     * @param memberType the type of member to register
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createMember(
+            final Alias alias,
+            final CreateMemberType memberType) {
+        return createMember(alias, "", memberType);
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
      * @param realm realm of the alias
      * @param memberType the type of member to register
      * @return newly created member

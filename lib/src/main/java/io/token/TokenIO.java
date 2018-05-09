@@ -179,7 +179,7 @@ public class TokenIO implements Closeable {
      * @return newly created member
      */
     public Member createMember(Alias alias, CreateMemberType memberType) {
-        return async.createMember(alias, "", memberType)
+        return async.createMember(alias, memberType)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
