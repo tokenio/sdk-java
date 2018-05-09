@@ -246,6 +246,19 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the realm of the redeemer.
+     *
+     * @param redeemerRealm realm
+     * @return builder
+     */
+    public TransferTokenBuilder setRedeemerRealm(String redeemerRealm) {
+        payload.getTransferBuilder()
+                .getRedeemerBuilder()
+                .setRealm(redeemerRealm);
+        return this;
+    }
+
+    /**
      * Sets the memberId of the redeemer.
      *
      * @param redeemerMemberId memberId
