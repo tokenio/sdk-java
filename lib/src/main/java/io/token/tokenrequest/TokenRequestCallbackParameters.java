@@ -26,6 +26,7 @@ import static io.token.util.Util.urlDecode;
 
 import com.google.auto.value.AutoValue;
 import io.token.exceptions.InvalidTokenRequestQuery;
+import io.token.proto.ProtoJson;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.util.Util;
 
@@ -47,17 +48,17 @@ public abstract class TokenRequestCallbackParameters {
     public static TokenRequestCallbackParameters create(String query) {
         Map<String, String> parameters = Util.parseQueryString(query);
         if (!parameters.containsKey(TOKEN_ID_FIELD)
-                || !parameters.containsKey(STATE_FIELD)) {
-            //TODO: Re-enable when CSRF signature functionality is live
-            // || !parameters.containsKey(SIGNATURE_FIELD)) {
+                || !parameters.containsKey(STATE_FIELD)
+                || !parameters.containsKey(SIGNATURE_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
 
         return new AutoValue_TokenRequestCallbackParameters(
                 urlDecode(parameters.get(TOKEN_ID_FIELD)),
                 urlDecode(parameters.get(STATE_FIELD)),
-                //TODO: use real signature when CSRF signature functionality is live
-                Signature.getDefaultInstance());
+                (Signature) ProtoJson.fromJson(
+                        urlDecode(parameters.get(SIGNATURE_FIELD)),
+                        Signature.newBuilder()));
     }
 
     public abstract String getTokenId();
