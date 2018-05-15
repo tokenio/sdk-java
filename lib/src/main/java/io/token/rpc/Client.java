@@ -1280,14 +1280,12 @@ public final class Client {
     /**
      * Replaces member's receipt contact.
      *
-     * @param memberId member ID of member whose receipt contact we will set
      * @param contact receipt contact to set
      * @return completable that indicates whether the operation finished or had an error
      */
-    public Completable setReceiptContact(String memberId, ReceiptContact contact) {
+    public Completable setReceiptContact(ReceiptContact contact) {
         return toCompletable(gateway
                 .setReceiptContact(SetReceiptContactRequest.newBuilder()
-                        .setMemberId(memberId)
                         .setContact(contact)
                         .build()));
     }
@@ -1295,14 +1293,12 @@ public final class Client {
     /**
      * Gets a member's receipt contact.
      *
-     * @param memberId member ID of member whose receipt contact we want
      * @return receipt contact
      */
-    public Observable<ReceiptContact> getReceiptContact(String memberId) {
+    public Observable<ReceiptContact> getReceiptContact() {
         return Util
-                .toObservable(gateway.getReceiptContact(GetReceiptContactRequest.newBuilder()
-                        .setMemberId(memberId)
-                        .build()))
+                .toObservable(gateway.getReceiptContact(
+                        GetReceiptContactRequest.getDefaultInstance()))
                 .map(new Function<GetReceiptContactResponse, ReceiptContact>() {
                     @Override
                     public ReceiptContact apply(
