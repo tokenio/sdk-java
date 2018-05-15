@@ -35,6 +35,7 @@ import static io.token.util.Util.toAddAliasOperation;
 import static io.token.util.Util.toAddAliasOperationMetadata;
 import static io.token.util.Util.toAddKeyOperation;
 import static io.token.util.Util.urlEncode;
+import static io.token.util.Util.verifySignature;
 import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
@@ -56,6 +57,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
@@ -755,14 +757,14 @@ public class TokenIOAsync implements Closeable {
                 if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
                     throw new InvalidStateException(csrfToken);
                 }
-                //TODO: Re-enable when csrf signature functionality is complete
-                //                verifySignature(
-                //                        tokenMember,
-                //                        TokenProtos.TokenRequestStatePayload.newBuilder()
-                //                                .setTokenId(params.getTokenId())
-                //                                .setState(params.getSerializedState())
-                //                                .build(),
-                //                        params.getSignature());
+
+                verifySignature(
+                        tokenMember,
+                        TokenProtos.TokenRequestStatePayload.newBuilder()
+                                .setTokenId(params.getTokenId())
+                                .setState(urlEncode(params.getSerializedState()))
+                                .build(),
+                        params.getSignature());
 
                 return TokenRequestCallback.create(params.getTokenId(), state.getInnerState());
             }
