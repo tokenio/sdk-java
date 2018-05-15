@@ -883,24 +883,22 @@ public class MemberAsync {
     }
 
     /**
-     * Replaces member's receipt contact.
+     * Replaces the member's receipt contact.
      *
-     * @param memberId member ID of member whose contact we will set
      * @param contact receipt contact to set
      * @return completable that indicates whether the operation finished or had an error
      */
-    public Completable setReceiptContact(String memberId, ReceiptContact contact) {
-        return client.setReceiptContact(memberId, contact);
+    public Completable setReceiptContact(ReceiptContact contact) {
+        return client.setReceiptContact(contact);
     }
 
     /**
-     * Gets a member's receipt email address.
+     * Gets the member's receipt email address.
      *
-     * @param memberId member ID of member whose receipt email we want
-     * @return receipt email address
+     * @return receipt contact
      */
-    public Observable<ReceiptContact> getReceiptContact(String memberId) {
-        return client.getReceiptContact(memberId);
+    public Observable<ReceiptContact> getReceiptContact() {
+        return client.getReceiptContact();
     }
 
     /**

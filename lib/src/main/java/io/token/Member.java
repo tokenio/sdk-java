@@ -604,23 +604,21 @@ public class Member {
     }
 
     /**
-     * Replaces member's receipt contact.
+     * Replaces the member's receipt contact.
      *
-     * @param memberId member ID of member whose contact we will set
      * @param receiptContact receipt contact to set
      */
-    public void setReceiptContact(String memberId, ReceiptContact receiptContact) {
-        async.setReceiptContact(memberId, receiptContact).blockingAwait();
+    public void setReceiptContact(ReceiptContact receiptContact) {
+        async.setReceiptContact(receiptContact).blockingAwait();
     }
 
     /**
-     * Gets a member's receipt contact.
+     * Gets the member's receipt contact.
      *
-     * @param memberId member ID of member whose receipt contact we want
      * @return receipt contact
      */
-    public ReceiptContact getReceiptContact(String memberId) {
-        return async.getReceiptContact(memberId).blockingSingle();
+    public ReceiptContact getReceiptContact() {
+        return async.getReceiptContact().blockingSingle();
     }
 
     /**
