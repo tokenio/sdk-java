@@ -1569,6 +1569,8 @@ public final class Client {
      * @return completable
      */
     public Completable deleteMember() {
+        setOnBehalfOf();
+        setRequestSignerKeyLevel(PRIVILEGED);
         return toCompletable(gateway.deleteMember(DeleteMemberRequest.getDefaultInstance()));
     }
 
