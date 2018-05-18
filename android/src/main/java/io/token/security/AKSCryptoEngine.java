@@ -44,6 +44,8 @@ import java.security.NoSuchProviderException;
 import java.security.spec.ECGenParameterSpec;
 import java.util.Calendar;
 import java.util.Enumeration;
+import java.util.LinkedList;
+import java.util.List;
 import javax.security.auth.x500.X500Principal;
 
 /**
@@ -172,6 +174,41 @@ public final class AKSCryptoEngine implements CryptoEngine {
     }
 
     /**
+     * Enumerates keystore and returns all public keys.
+     *
+     * @return list of public keys
+     */
+    @Override
+    public List<Key> getPublicKeys() {
+        try {
+            List<Key> keys = new LinkedList<>();
+            keyStore.load(null);
+            Enumeration<String> aliases = keyStore.aliases();
+            while(aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                byte[] publicKey = keyStore.getCertificate(alias).getPublicKey().getEncoded();
+                String serializedPk = ByteEncoding.serialize(publicKey);
+                Key.Level keyLevel = getKeyLevel(alias);
+                String memberId = getMemberId(alias);
+                if (keyLevel == null || this.memberId != memberId) {
+                    // skip if the key in the keystore is not a AKSCryptoEngine-managed key
+                    // or if the member id does not match
+                    continue;
+                }
+                keys.add(Key.newBuilder()
+                        .setId(keyIdFor(serializedPk))
+                        .setAlgorithm(KEY_ALGORITHM)
+                        .setLevel(keyLevel)
+                        .setPublicKey(serializedPk)
+                        .build());
+            }
+            return keys;
+        } catch (GeneralSecurityException | IOException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    /**
      * Creates a verifier object that verifies signatures made by the key in the KeyStore.
      *
      * @param keyId key id
@@ -232,6 +269,34 @@ public final class AKSCryptoEngine implements CryptoEngine {
      */
     private String getAlias(Key.Level keyLevel) {
         return KEY_NAME + "-" + memberId + "-" + keyLevel.toString();
+    }
+
+    /**
+     * Gets the key level for a particular key store alias.
+     *
+     * @param alias key store alias
+     * @return keyLevel
+     */
+    private static Key.Level getKeyLevel(String alias) {
+        String[] aliasParts = alias.split("-");
+        if (aliasParts.length != 3) {
+            return null;
+        }
+        return Key.Level.valueOf(aliasParts[2]);
+    }
+
+    /**
+     * Gets the member id for a particular key store alias.
+     *
+     * @param alias key store alias
+     * @return member id
+     */
+    private static String getMemberId(String alias) {
+        String[] aliasParts = alias.split("-");
+        if (aliasParts.length != 3) {
+            return null;
+        }
+        return aliasParts[1];
     }
 
     /**

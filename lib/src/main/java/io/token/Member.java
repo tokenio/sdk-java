@@ -327,6 +327,14 @@ public class Member {
     }
 
     /**
+     * Removes all public keys that do not have a corresponding private key stored on
+     * the current device from tke member.
+     */
+    public void removeNonStoredKeys() {
+        async.removeNonStoredKeys().blockingAwait();
+    }
+
+    /**
      * Subscribes a device to receive push notifications.
      *
      * @param handler specify the handler of the notifications

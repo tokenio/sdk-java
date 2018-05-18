@@ -22,6 +22,7 @@
 
 package io.token;
 
+import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
@@ -276,7 +277,7 @@ public class MemberAsync {
             operations.add(Util.toAddAliasOperation(normalizeAlias(alias), realm));
             metadata.add(Util.toAddAliasOperationMetadata(normalizeAlias(alias), realm));
         }
-        return Completable.fromObservable(client
+        return fromObservable(client
                 .getMember(memberId())
                 .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
                     public Observable<Boolean> apply(MemberProtos.Member latest) {
@@ -391,7 +392,7 @@ public class MemberAsync {
                             .setAliasHash(hashAlias(alias)))
                     .build());
         }
-        return Completable.fromObservable(client
+        return fromObservable(client
                 .getMember(memberId())
                 .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
                     public Observable<Boolean> apply(MemberProtos.Member latest) {
@@ -449,7 +450,7 @@ public class MemberAsync {
         for (Key key : keys) {
             operations.add(Util.toAddKeyOperation(key));
         }
-        return Completable.fromObservable(updateKeys(operations));
+        return fromObservable(updateKeys(operations));
     }
 
     /**
@@ -478,7 +479,30 @@ public class MemberAsync {
                             .setKeyId(keyId))
                     .build());
         }
-        return Completable.fromObservable(updateKeys(operations));
+        return fromObservable(updateKeys(operations));
+    }
+
+    /**
+     * Removes all public keys that do not have a corresponding private key stored on
+     * the current device from tke member.
+     *
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable removeNonStoredKeys() {
+        final List<Key> storedKeys = client.getCryptoEngine().getPublicKeys();
+        return fromObservable(client.getMember(memberId())
+                .flatMap(new Function<MemberProtos.Member, ObservableSource<?>>() {
+                    @Override
+                    public ObservableSource<?> apply(MemberProtos.Member m) throws Exception {
+                        List<String> toRemoveIds = new LinkedList<>();
+                        for (Key key : m.getKeysList()) {
+                            if (!storedKeys.contains(key)) {
+                                toRemoveIds.add(key.getId());
+                            }
+                        }
+                        return MemberAsync.this.removeKeys(toRemoveIds).toObservable();
+                    }
+                }));
     }
 
     /**

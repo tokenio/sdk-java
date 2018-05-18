@@ -29,6 +29,8 @@ import io.token.security.crypto.CryptoType;
 import io.token.security.keystore.SecretKeyPair;
 
 import java.security.KeyPair;
+import java.util.LinkedList;
+import java.util.List;
 
 /**
  * Token implementation of the {@link CryptoEngine}. The keys are persisted
@@ -64,12 +66,7 @@ public final class TokenCryptoEngine implements CryptoEngine {
                 keyLevel,
                 new KeyPair(keyPair.publicKey(), keyPair.privateKey()));
         keyStore.put(memberId, key);
-        return Key.newBuilder()
-                .setId(key.getId())
-                .setAlgorithm(KEY_ALGORITHM)
-                .setLevel(keyLevel)
-                .setPublicKey(crypto.serialize(key.getPublicKey()))
-                .build();
+        return toPublicKey(key);
     }
 
     @Override
@@ -82,5 +79,24 @@ public final class TokenCryptoEngine implements CryptoEngine {
     public Verifier createVerifier(String keyId) {
         SecretKey key = keyStore.getById(memberId, keyId);
         return crypto.verifier(key.getPublicKey());
+    }
+
+    @Override
+    public List<Key> getPublicKeys() {
+        List<Key> publicKeys = new LinkedList<>();
+        List<SecretKey> secretKeys = keyStore.listKeys(memberId);
+        for (SecretKey secretKey : secretKeys) {
+            publicKeys.add(toPublicKey(secretKey));
+        }
+        return publicKeys;
+    }
+
+    private Key toPublicKey(SecretKey secretKey) {
+        return Key.newBuilder()
+                .setId(secretKey.getId())
+                .setAlgorithm(KEY_ALGORITHM)
+                .setLevel(secretKey.getLevel())
+                .setPublicKey(crypto.serialize(secretKey.getPublicKey()))
+                .build();
     }
 }

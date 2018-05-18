@@ -24,6 +24,8 @@ package io.token.security;
 
 import io.token.proto.common.security.SecurityProtos.Key;
 
+import java.util.List;
+
 /**
  * Provides cryptographic support for secret management.
  */
@@ -53,4 +55,11 @@ public interface CryptoEngine {
      * @return signature verifier
      */
     Verifier createVerifier(String keyId);
+
+    /**
+     * Returns public keys that the CryptoEngine can use to sign.
+     *
+     * @return list of public keys
+     */
+    List<Key> getPublicKeys();
 }
