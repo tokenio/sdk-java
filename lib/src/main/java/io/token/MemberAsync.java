@@ -493,9 +493,9 @@ public class MemberAsync {
         return fromObservable(client.getMember(memberId())
                 .flatMap(new Function<MemberProtos.Member, ObservableSource<?>>() {
                     @Override
-                    public ObservableSource<?> apply(MemberProtos.Member m) throws Exception {
+                    public ObservableSource<?> apply(MemberProtos.Member member) throws Exception {
                         List<String> toRemoveIds = new LinkedList<>();
-                        for (Key key : m.getKeysList()) {
+                        for (Key key : member.getKeysList()) {
                             if (!storedKeys.contains(key)) {
                                 toRemoveIds.add(key.getId());
                             }
