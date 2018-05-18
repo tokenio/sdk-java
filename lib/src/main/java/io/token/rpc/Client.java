@@ -182,6 +182,7 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.security.crypto.Crypto;
 import io.token.util.Util;
 
 import java.util.ArrayList;
@@ -1597,6 +1598,10 @@ public final class Client {
                         return response.getResult();
                     }
                 });
+    }
+
+    public CryptoEngine getCryptoEngine() {
+        return crypto;
     }
 
     private void setOnBehalfOf() {
