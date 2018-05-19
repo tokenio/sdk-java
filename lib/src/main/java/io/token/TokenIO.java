@@ -40,6 +40,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.rpc.SslConfig;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
@@ -710,6 +711,7 @@ public class TokenIO implements Closeable {
         private CryptoEngineFactory cryptoEngine;
         private String devKey;
         private BrowserFactory browserFactory;
+        private SslConfig sslConfig;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -789,6 +791,18 @@ public class TokenIO implements Closeable {
         }
 
         /**
+         * Sets configuration parameters for tls client. Can be used to specify specific
+         * trusted certificates.
+         *
+         * @param sslConfig tls configuration to use
+         * @return this builder instance
+         */
+        public Builder withSslConfig(SslConfig sslConfig) {
+            this.sslConfig = sslConfig;
+            return this;
+        }
+
+        /**
          * Sets the developer key to be used with the SDK.
          *
          * @param devKey developer key
@@ -846,6 +860,7 @@ public class TokenIO implements Closeable {
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
                             .withMetadata(headers)
+                            .withClientSsl(sslConfig)
                             .build(),
                     cryptoEngine != null
                             ? cryptoEngine
