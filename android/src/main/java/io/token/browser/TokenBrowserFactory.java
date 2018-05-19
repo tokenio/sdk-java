@@ -29,13 +29,13 @@ import static io.token.browser.TokenBrowserService.MSG_ON_URL;
 import static io.token.browser.TokenBrowserService.MSG_REGISTER_CLIENT;
 
 public class TokenBrowserFactory implements BrowserFactory {
+    private Context parent;
     private final Map<String, TokenBrowser> browsers;
-    private final Context parent;
     private final MessengerClient messenger;
 
     public TokenBrowserFactory(Context parent) {
-        this.browsers = new HashMap<>();
         this.parent = parent;
+        this.browsers = new HashMap<>();
         this.messenger = new MessengerClient(parent, new IncomingHandler(), null);
     }
 
@@ -54,6 +54,10 @@ public class TokenBrowserFactory implements BrowserFactory {
         parent.startActivity(intent);
 
         return browser;
+    }
+
+    public void setParentContext(Context parent) {
+        this.parent = parent;
     }
 
     private class TokenBrowser implements Browser {
