@@ -190,7 +190,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
                 String serializedPk = ByteEncoding.serialize(publicKey);
                 Key.Level keyLevel = getKeyLevel(alias);
                 String memberId = getMemberId(alias);
-                if (keyLevel == null || this.memberId != memberId) {
+                if (keyLevel == null || !this.memberId.equals(memberId)) {
                     // skip if the key in the keystore is not a AKSCryptoEngine-managed key
                     // or if the member id does not match
                     continue;
