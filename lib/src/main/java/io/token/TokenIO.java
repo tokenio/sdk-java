@@ -612,6 +612,33 @@ public class TokenIO implements Closeable {
      *     if not specified.
      * @param sort The key to sort the results. Could be one of: name, provider and country.
      *     Defaults to name if not specified.
+     * @return a list of banks
+     */
+    @Deprecated
+    public List<Bank> getBanks(
+            @Nullable List<String> bankIds,
+            @Nullable String search,
+            @Nullable String country,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort) {
+        return getBanks(bankIds, search, country, page, perPage, sort, null);
+    }
+
+    /**
+     * Returns a list of token enabled banks.
+     *
+     * @param bankIds If specified, return banks whose 'id' matches any one of the given ids
+     *     (case-insensitive). Can be at most 1000.
+     * @param search If specified, return banks whose 'name' or 'identifier' contains the given
+     *     search string (case-insensitive)
+     * @param country If specified, return banks whose 'country' matches the given ISO 3166-1
+     *     alpha-2 country code (case-insensitive)
+     * @param page Result page to retrieve. Default to 1 if not specified.
+     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
+     *     if not specified.
+     * @param sort The key to sort the results. Could be one of: name, provider and country.
+     *     Defaults to name if not specified.
      * @param provider If specified, return banks whose 'provider' matches the given provider
      *     (case insensitive).
      * @return a list of banks
