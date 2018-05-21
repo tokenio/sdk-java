@@ -545,7 +545,7 @@ public class TokenIO implements Closeable {
             @Nullable List<String> bankIds,
             @Nullable Integer page,
             @Nullable Integer perPage) {
-        return getBanks(bankIds, null, null, page, perPage, null);
+        return getBanks(bankIds, null, null, page, perPage, null, null);
     }
 
     /**
@@ -562,13 +562,40 @@ public class TokenIO implements Closeable {
      *     Defaults to name if not specified.
      * @return a list of banks
      */
+    @Deprecated
     public List<Bank> getBanks(
             @Nullable String search,
             @Nullable String country,
             @Nullable Integer page,
             @Nullable Integer perPage,
             @Nullable String sort) {
-        return getBanks(null, search, country, page, perPage, sort);
+        return getBanks(null, search, country, page, perPage, sort, null);
+    }
+
+    /**
+     * Returns a list of token enabled banks.
+     *
+     * @param search If specified, return banks whose 'name' or 'identifier' contains the given
+     *     search string (case-insensitive)
+     * @param country If specified, return banks whose 'country' matches the given ISO 3166-1
+     *     alpha-2 country code (case-insensitive)
+     * @param page Result page to retrieve. Default to 1 if not specified.
+     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
+     *     if not specified.
+     * @param sort The key to sort the results. Could be one of: name, provider and country.
+     *     Defaults to name if not specified.
+     * @param provider If specified, return banks whose 'provider' matches the given provider
+     *     (case insensitive).
+     * @return a list of banks
+     */
+    public List<Bank> getBanks(
+            @Nullable String search,
+            @Nullable String country,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort,
+            @Nullable String provider) {
+        return getBanks(null, search, country, page, perPage, sort, provider);
     }
 
     /**
@@ -585,6 +612,8 @@ public class TokenIO implements Closeable {
      *     if not specified.
      * @param sort The key to sort the results. Could be one of: name, provider and country.
      *     Defaults to name if not specified.
+     * @param provider If specified, return banks whose 'provider' matches the given provider
+     *     (case insensitive).
      * @return a list of banks
      */
     public List<Bank> getBanks(
@@ -593,8 +622,11 @@ public class TokenIO implements Closeable {
             @Nullable String country,
             @Nullable Integer page,
             @Nullable Integer perPage,
-            @Nullable String sort) {
-        return async.getBanks(bankIds, search, country, page, perPage, sort).blockingSingle();
+            @Nullable String sort,
+            @Nullable String provider) {
+        return async
+                .getBanks(bankIds, search, country, page, perPage, sort, provider)
+                .blockingSingle();
     }
 
     /**

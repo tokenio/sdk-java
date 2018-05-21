@@ -583,6 +583,8 @@ public final class UnauthenticatedClient {
      *     if not specified.
      * @param sort The key to sort the results. Could be one of: name, provider and country.
      *     Defaults to name if not specified.
+     * @param provider If specified, return banks whose 'provider' matches the given provider
+     *     (case insensitive).
      * @return a list of banks
      */
     public Observable<List<Bank>> getBanks(
@@ -591,7 +593,8 @@ public final class UnauthenticatedClient {
             @Nullable String country,
             @Nullable Integer page,
             @Nullable Integer perPage,
-            @Nullable String sort) {
+            @Nullable String sort,
+            @Nullable String provider) {
         GetBanksRequest.Builder request = GetBanksRequest.newBuilder();
 
         if (bankIds != null) {
@@ -611,6 +614,9 @@ public final class UnauthenticatedClient {
         }
         if (sort != null) {
             request.setSort(sort);
+        }
+        if (provider != null) {
+            request.setProvider(provider);
         }
 
         return toObservable(gateway.getBanks(request.build()))
