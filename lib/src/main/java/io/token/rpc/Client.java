@@ -182,7 +182,6 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
-import io.token.security.crypto.Crypto;
 import io.token.util.Util;
 
 import java.util.ArrayList;
@@ -281,8 +280,10 @@ public final class Client {
             Member member,
             List<MemberOperation> operations,
             List<MemberOperationMetadata> metadata) {
+        if (operations.isEmpty()) {
+            return Observable.just(member);
+        }
         Signer signer = crypto.createSigner(PRIVILEGED);
-
         MemberUpdate update = MemberUpdate
                 .newBuilder()
                 .setMemberId(member.getId())
