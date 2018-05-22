@@ -1,12 +1,13 @@
 package io.token.browser;
 
-import android.annotation.TargetApi;
+
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.support.annotation.RequiresApi;
 import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -39,7 +40,16 @@ public class TokenBrowserActivity extends Activity {
         webSettings.setJavaScriptEnabled(true);
 
         webview.setWebViewClient(new WebViewClient() {
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
+            @Override
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
+                Bundle data = new Bundle(2);
+                data.putString(MSG_KEY_SID, sessionId);
+                data.putString(MSG_KEY_URL, url);
+                messenger.send(MSG_ON_URL, data);
+                return true;
+            }
+
+            @RequiresApi(api = Build.VERSION_CODES.LOLLIPOP)
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
                 Bundle data = new Bundle(2);
