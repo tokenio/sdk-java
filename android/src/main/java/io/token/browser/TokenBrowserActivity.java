@@ -39,12 +39,11 @@ public class TokenBrowserActivity extends Activity {
         webSettings.setJavaScriptEnabled(true);
 
         webview.setWebViewClient(new WebViewClient() {
-            @TargetApi(Build.VERSION_CODES.LOLLIPOP)
             @Override
-            public boolean shouldOverrideUrlLoading(WebView view, WebResourceRequest request) {
+            public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 Bundle data = new Bundle(2);
                 data.putString(MSG_KEY_SID, sessionId);
-                data.putString(MSG_KEY_URL, request.getUrl().toString());
+                data.putString(MSG_KEY_URL, url);
                 messenger.send(MSG_ON_URL, data);
                 return true;
             }
