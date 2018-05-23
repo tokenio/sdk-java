@@ -460,17 +460,6 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Begins account recovery.
-     *
-     * @param alias the alias used to recover
-     * @param realm realm of the alias
-     * @return the verification id
-     */
-    public String beginRecovery(Alias alias, String realm) {
-        return async.beginRecovery(alias, realm).blockingSingle();
-    }
-
-    /**
      * Create a recovery authorization for some agent to sign.
      *
      * @param memberId Id of member we claim to be.
