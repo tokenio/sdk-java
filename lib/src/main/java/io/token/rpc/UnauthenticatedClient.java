@@ -375,14 +375,12 @@ public final class UnauthenticatedClient {
      * Begins account recovery.
      *
      * @param alias the alias used to recover
-     * @param realm realm of the alias
      * @return the verification id
      */
-    public Observable<String> beginRecovery(Alias alias, String realm) {
+    public Observable<String> beginRecovery(Alias alias) {
         return toObservable(gateway
                 .beginRecovery(BeginRecoveryRequest.newBuilder()
                         .setAlias(normalizeAlias(alias))
-                        .setRealm(realm)
                         .build()))
                 .map(new Function<BeginRecoveryResponse, String>() {
                     public String apply(BeginRecoveryResponse response) {

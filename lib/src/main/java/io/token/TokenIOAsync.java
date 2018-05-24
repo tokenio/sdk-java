@@ -511,19 +511,8 @@ public class TokenIOAsync implements Closeable {
      * @return the verification id
      */
     public Observable<String> beginRecovery(Alias alias) {
-        return beginRecovery(alias, "");
-    }
-
-    /**
-     * Begins account recovery.
-     *
-     * @param alias the alias used to recover
-     * @param realm realm of the alias
-     * @return the verification id
-     */
-    public Observable<String> beginRecovery(Alias alias, String realm) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.beginRecovery(alias, realm);
+        return unauthenticated.beginRecovery(alias);
     }
 
     /**
