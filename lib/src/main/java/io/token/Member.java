@@ -289,6 +289,18 @@ public class Member {
     }
 
     /**
+     * Approves a secret key owned by this member. The key will be included in
+     * the list of valid keys for the member until the expiration date.
+     *
+     * @param key key to add to the approved list
+     * @param level key privilege level
+     * @param expirationMs expiration date of the key in milliseconds
+     */
+    public void approveKey(SecretKeyPair key, Level level, long expirationMs) {
+        async.approveKey(key, level, expirationMs).blockingAwait();
+    }
+
+    /**
      * Approves a public key owned by this member. The key is added to the list
      * of valid keys for the member.
      *
@@ -296,6 +308,17 @@ public class Member {
      */
     public void approveKey(Key key) {
         async.approveKey(key).blockingAwait();
+    }
+
+    /**
+     * Approves a public key owned by this member. The key will be included in
+     * the list of valid keys for the member until the expiration date.
+     *
+     * @param key key to add to the approved list
+     * @param expirationMs expiration date of the key in milliseconds
+     */
+    public void approveKey(Key key, long expirationMs) {
+        async.approveKey(key, expirationMs).blockingAwait();
     }
 
     /**

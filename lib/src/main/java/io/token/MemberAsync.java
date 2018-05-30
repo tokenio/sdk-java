@@ -29,6 +29,7 @@ import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.parseOauthAccessToken;
 import static io.token.util.Util.toAccountList;
+import static io.token.util.Util.toAddKeyOperation;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
@@ -93,6 +94,8 @@ import io.token.util.Util;
 
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -428,6 +431,25 @@ public class MemberAsync {
     }
 
     /**
+     * Approves a secret key owned by this member. The key will be included in
+     * the list of valid keys for the member until the expiration date.
+     *
+     * @param key key to add to the approved list
+     * @param level key privilege level
+     * @param expirationMs expiration date of the key in milliseconds
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable approveKey(SecretKeyPair key, Key.Level level, long expirationMs) {
+        return approveKey(Key.newBuilder()
+                .setId(key.id())
+                .setAlgorithm(key.cryptoType().getKeyAlgorithm())
+                .setLevel(level)
+                .setPublicKey(key.publicKeyString())
+                .build(),
+                expirationMs);
+    }
+
+    /**
      * Approves a public key owned by this member. The key is added to the list
      * of valid keys for the member.
      *
@@ -436,6 +458,19 @@ public class MemberAsync {
      */
     public Completable approveKey(Key key) {
         return approveKeys(singletonList(key));
+    }
+
+    /**
+     * Approves a public key owned by this member. The key will be included in
+     * the list of valid keys for the member until the expiration date.
+     *
+     * @param key key to add to the approved list
+     * @param expirationMs expiration date of the key in milliseconds
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable approveKey(Key key, long expirationMs) {
+        List<MemberOperation> operation = singletonList(toAddKeyOperation(key, expirationMs));
+        return fromObservable(updateKeys(operation));
     }
 
     /**
