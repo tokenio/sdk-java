@@ -118,6 +118,22 @@ public abstract class Util {
     }
 
     /**
+     * Converts Key to AddKey operation
+     *
+     * @param key key to add
+     * @param expirationMs expiration date of the key in milliseconds
+     * @return member operation
+     */
+    public static MemberOperation toAddKeyOperation(Key key, long expirationMs) {
+        return MemberOperation.newBuilder()
+                .setAddKey(MemberAddKeyOperation.newBuilder()
+                        .setKey(key)
+                        .setExpirationMs(expirationMs)
+                        .build())
+                .build();
+    }
+
+    /**
      * Get alias with normalized value. E.g. "Captain@gmail.com" to "captain@gmail.com".
      *
      * @param rawAlias { EMAIL, "Captain@gmail.com" }
