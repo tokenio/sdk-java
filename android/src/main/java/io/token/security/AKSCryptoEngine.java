@@ -91,69 +91,33 @@ public final class AKSCryptoEngine implements CryptoEngine {
      */
     @Override
     public Key generateKey(Key.Level keyLevel) {
-        KeyPairGenerator kpg;
-
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                // API 23 and higher, uses new API. This allows for the use of EC keys.
-                // Trusted hardware is used if it's available.
-                KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(
-                        getAlias(keyLevel),
-                        KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
-                        .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
-                        .setDigests(KeyProperties.DIGEST_SHA256);
-
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-                    // On Android N and above, make sure user authentication is required for the key
-                    // Android M has a bug where authentication loops, so require N instead. For any
-                    // key that is not low privilege, user authentication is required.
-                    // Authentication is checked by the KeyStore, and trusted hardware, if it's
-                    // available.
-                    //
-                    // We can also invalidate the key if the user changes their biometrics
-                    builder = builder
-                            .setInvalidatedByBiometricEnrollment(true)
-                            .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
-                            .setUserAuthenticationValidityDurationSeconds(
-                                    userAuthenticationStore.authenticationDurationSeconds());
-                }
-
-                kpg = KeyPairGenerator.getInstance(
-                        KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
-
-                kpg.initialize(builder.build());
-            } else {
-                // Uses old method of generating keys.
-                Calendar start = Calendar.getInstance();
-                Calendar end = Calendar.getInstance();
-                end.add(Calendar.YEAR, 256);
-                KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
-                        .setAlias(getAlias(keyLevel))
-                        .setKeyType("EC")
-                        .setKeySize(256)
-                        .setSubject(new X500Principal("CN=myKey"))
-                        .setStartDate(start.getTime())
-                        .setEndDate(end.getTime())
-                        .setSerialNumber(BigInteger.ONE)
-                        .build();
-                kpg = KeyPairGenerator.getInstance(
-                        "RSA",
-                        "AndroidKeyStore");
-                kpg.initialize(spec);
-            }
-        } catch (NoSuchAlgorithmException | NoSuchProviderException |
-                InvalidAlgorithmParameterException e) {
-            throw new RuntimeException(e);
-        }
-
-        KeyPair kp = kpg.generateKeyPair();
-        String serializedPk = ByteEncoding.serialize(kp.getPublic().getEncoded());
-
+        String serializedPk = generatePublicKey(keyLevel);
         return Key.newBuilder()
                 .setId(keyIdFor(serializedPk))
                 .setAlgorithm(KEY_ALGORITHM)
                 .setLevel(keyLevel)
                 .setPublicKey(serializedPk)
+                .build();
+    }
+
+    /**
+     * Generates an ECDSA private key and returns the public key. The private key is stored in the
+     * Android KeyStore, and will never leave the secure hardware, on phones that support it. Two
+     * different classes are used to create the key, based on phone version.
+     *
+     * @param keyLevel key privilege level
+     * @param expirationMs key expiration date in milliseconds
+     * @return public key
+     */
+    @Override
+    public Key generateKey(Key.Level keyLevel, long expirationMs) {
+        String serializedPk = generatePublicKey(keyLevel);
+        return Key.newBuilder()
+                .setId(keyIdFor(serializedPk))
+                .setAlgorithm(KEY_ALGORITHM)
+                .setLevel(keyLevel)
+                .setPublicKey(serializedPk)
+                .setExpiresAtMs(expirationMs)
                 .build();
     }
 
@@ -297,6 +261,66 @@ public final class AKSCryptoEngine implements CryptoEngine {
             return null;
         }
         return aliasParts[1];
+    }
+
+    private String generatePublicKey(Key.Level keyLevel) {
+        KeyPairGenerator kpg;
+
+        try {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                // API 23 and higher, uses new API. This allows for the use of EC keys.
+                // Trusted hardware is used if it's available.
+                KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(
+                        getAlias(keyLevel),
+                        KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
+                        .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
+                        .setDigests(KeyProperties.DIGEST_SHA256);
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+                    // On Android N and above, make sure user authentication is required for the key
+                    // Android M has a bug where authentication loops, so require N instead. For any
+                    // key that is not low privilege, user authentication is required.
+                    // Authentication is checked by the KeyStore, and trusted hardware, if it's
+                    // available.
+                    //
+                    // We can also invalidate the key if the user changes their biometrics
+                    builder = builder
+                            .setInvalidatedByBiometricEnrollment(true)
+                            .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
+                            .setUserAuthenticationValidityDurationSeconds(
+                                    userAuthenticationStore.authenticationDurationSeconds());
+                }
+
+                kpg = KeyPairGenerator.getInstance(
+                        KeyProperties.KEY_ALGORITHM_EC, "AndroidKeyStore");
+
+                kpg.initialize(builder.build());
+            } else {
+                // Uses old method of generating keys.
+                Calendar start = Calendar.getInstance();
+                Calendar end = Calendar.getInstance();
+                end.add(Calendar.YEAR, 256);
+                KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
+                        .setAlias(getAlias(keyLevel))
+                        .setKeyType("EC")
+                        .setKeySize(256)
+                        .setSubject(new X500Principal("CN=myKey"))
+                        .setStartDate(start.getTime())
+                        .setEndDate(end.getTime())
+                        .setSerialNumber(BigInteger.ONE)
+                        .build();
+                kpg = KeyPairGenerator.getInstance(
+                        "RSA",
+                        "AndroidKeyStore");
+                kpg.initialize(spec);
+            }
+        } catch (NoSuchAlgorithmException | NoSuchProviderException |
+                InvalidAlgorithmParameterException e) {
+            throw new RuntimeException(e);
+        }
+
+        KeyPair kp = kpg.generateKeyPair();
+        return ByteEncoding.serialize(kp.getPublic().getEncoded());
     }
 
     /**

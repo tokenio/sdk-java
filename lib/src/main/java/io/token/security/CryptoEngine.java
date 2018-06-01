@@ -41,6 +41,18 @@ public interface CryptoEngine {
     Key generateKey(Key.Level keyLevel);
 
     /**
+     * Generates a key of the specified level with the provided expiration date.
+     * If the key with the specified level already exists, it is replaced.
+     * The old key is still kept around because it could be used for signature
+     * verification later.
+     *
+     * @param keyLevel key privilege level
+     * @param expirationMs expiration date in milliseconds
+     * @return newly generated key information
+     */
+    Key generateKey(Key.Level keyLevel, long expirationMs);
+
+    /**
      * Signs the data with the identified by the supplied key id.
      *
      * @param keyLevel level of the key to use

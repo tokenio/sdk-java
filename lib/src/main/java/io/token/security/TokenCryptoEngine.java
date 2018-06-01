@@ -70,6 +70,17 @@ public final class TokenCryptoEngine implements CryptoEngine {
     }
 
     @Override
+    public Key generateKey(Key.Level keyLevel, long expirationMs) {
+        SecretKeyPair keyPair = SecretKeyPair.create(CRYPTO_TYPE);
+        SecretKey key = SecretKey.create(
+                keyPair.id(),
+                keyLevel,
+                new KeyPair(keyPair.publicKey(), keyPair.privateKey()));
+        keyStore.put(memberId, key);
+        return toPublicKey(key, expirationMs);
+    }
+
+    @Override
     public Signer createSigner(Key.Level keyLevel) {
         SecretKey key = keyStore.getByLevel(memberId, keyLevel);
         return crypto.signer(key.getId(), key.getPrivateKey());
@@ -97,6 +108,13 @@ public final class TokenCryptoEngine implements CryptoEngine {
                 .setAlgorithm(KEY_ALGORITHM)
                 .setLevel(secretKey.getLevel())
                 .setPublicKey(crypto.serialize(secretKey.getPublicKey()))
+                .build();
+    }
+
+    private Key toPublicKey(SecretKey secretKey, long expirationMs) {
+        return toPublicKey(secretKey)
+                .toBuilder()
+                .setExpiresAtMs(expirationMs)
                 .build();
     }
 }
