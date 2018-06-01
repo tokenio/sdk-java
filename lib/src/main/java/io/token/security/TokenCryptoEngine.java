@@ -112,11 +112,8 @@ public final class TokenCryptoEngine implements CryptoEngine {
     }
 
     private Key toPublicKey(SecretKey secretKey, long expirationMs) {
-        return Key.newBuilder()
-                .setId(secretKey.getId())
-                .setAlgorithm(KEY_ALGORITHM)
-                .setLevel(secretKey.getLevel())
-                .setPublicKey(crypto.serialize(secretKey.getPublicKey()))
+        return toPublicKey(secretKey)
+                .toBuilder()
                 .setExpiresAtMs(expirationMs)
                 .build();
     }
