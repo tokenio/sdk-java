@@ -51,8 +51,10 @@ artifactory {
             } else {
                 repoKey = 'public-libs-release-local'
             }
-            username = "${artifactory_user}"     // The publisher user name
-            password = "${artifactory_password}" // The publisher password
+            if (System.getenv("artifactory_user") != null && System.getenv("artifactory_password") != null) {
+                username = "${artifactory_user}"     // The publisher user name
+                password = "${artifactory_password}" // The publisher password
+            }
         }
         defaults {
             publications('aar')
