@@ -24,10 +24,13 @@ package io.token.security;
 
 import android.content.Context;
 import android.os.Build;
+import android.security.KeyChain;
 import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
+import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
 import com.google.common.hash.Hashing;
+import io.token.exceptions.SecureHardwareKeystoreRequiredException;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.util.codec.ByteEncoding;
 
@@ -35,6 +38,7 @@ import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
 import java.security.InvalidAlgorithmParameterException;
+import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
@@ -42,6 +46,7 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.spec.ECGenParameterSpec;
+import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.LinkedList;
@@ -58,22 +63,28 @@ public final class AKSCryptoEngine implements CryptoEngine {
 
     private final String memberId;
     private final Context context;
-    private final UserAuthenticationStore userAuthenticationStore;
     private final KeyStore keyStore;
+    private final UserAuthenticationStore userAuthenticationStore;
+    private final boolean useSecureHardwareKeystoreOnly;
 
     /**
-     * Creates an instance.
+     * Creates an instance. If useSecureHardwareKeystoreOnly is true and insecure keystore is
+     * detected, a SecureHardwareKeystoreRequiredException error will be thrown.
      *
      * @param memberId member ID
      * @param context context, to draw UI
+     * @param userAuthenticationStore stores the last time the user authenticated
+     * @param useSecureHardwareKeystoreOnly true if use secure hardware keystore only
      */
     public AKSCryptoEngine(
             String memberId,
             Context context,
-            UserAuthenticationStore userAuthenticationStore) {
+            UserAuthenticationStore userAuthenticationStore,
+            boolean useSecureHardwareKeystoreOnly) {
         this.memberId = memberId;
         this.context = context;
         this.userAuthenticationStore = userAuthenticationStore;
+        this.useSecureHardwareKeystoreOnly = useSecureHardwareKeystoreOnly;
         try {
             this.keyStore = KeyStore.getInstance("AndroidKeyStore");
         } catch (KeyStoreException ex) {
@@ -265,6 +276,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
 
     private String generatePublicKey(Key.Level keyLevel) {
         KeyPairGenerator kpg;
+        KeyPair kp;
 
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
@@ -302,7 +314,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
                 end.add(Calendar.YEAR, 256);
                 KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
                         .setAlias(getAlias(keyLevel))
-                        .setKeyType("EC")
+                        .setKeyType(KeyProperties.KEY_ALGORITHM_EC)
                         .setKeySize(256)
                         .setSubject(new X500Principal("CN=myKey"))
                         .setStartDate(start.getTime())
@@ -313,13 +325,33 @@ public final class AKSCryptoEngine implements CryptoEngine {
                         "RSA",
                         "AndroidKeyStore");
                 kpg.initialize(spec);
+
+            }
+
+            kp = kpg.generateKeyPair();
+
+            if (useSecureHardwareKeystoreOnly) {
+                boolean isSecureHardwareKeystoreSupported;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    KeyFactory keyFactory = KeyFactory.getInstance(
+                            kp.getPrivate().getAlgorithm(),
+                            "AndroidKeyStore");
+                    KeyInfo keyInfo = keyFactory.getKeySpec(kp.getPrivate(), KeyInfo.class);
+                    isSecureHardwareKeystoreSupported = keyInfo.isInsideSecureHardware();
+                } else {
+                    isSecureHardwareKeystoreSupported =
+                            KeyChain.isBoundKeyAlgorithm(KeyProperties.KEY_ALGORITHM_RSA);
+                }
+
+                if (!isSecureHardwareKeystoreSupported)  {
+                    throw new SecureHardwareKeystoreRequiredException();
+                }
             }
         } catch (NoSuchAlgorithmException | NoSuchProviderException |
-                InvalidAlgorithmParameterException e) {
+                InvalidAlgorithmParameterException | InvalidKeySpecException e) {
             throw new RuntimeException(e);
         }
 
-        KeyPair kp = kpg.generateKeyPair();
         return ByteEncoding.serialize(kp.getPublic().getEncoded());
     }
 

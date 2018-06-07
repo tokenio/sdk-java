@@ -30,16 +30,34 @@ import android.content.Context;
  */
 public class AKSCryptoEngineFactory implements io.token.security.CryptoEngineFactory {
     private final Context context;
-    private final UserAuthenticationStore store;
+    private final UserAuthenticationStore userAuthenticationStore;
+    private final boolean useSecureHardwareKeystoreOnly;
 
     /**
-     * Creates a new instance of the factory.
+     * Creates a new instance of the factory. If useSecureHardwareKeystoreOnly is true and insecure
+     * keystore is detected, a SecureHardwareKeystoreRequiredException error will be thrown.
      *
      * @param context context
+     * @param userAuthenticationStore stores the last time the user authenticated
+     * @param useSecureHardwareKeystoreOnly true if use secure hardware keystore only
      */
-    public AKSCryptoEngineFactory(Context context, UserAuthenticationStore store) {
+    public AKSCryptoEngineFactory(Context context,
+                                  UserAuthenticationStore userAuthenticationStore,
+                                  boolean useSecureHardwareKeystoreOnly) {
         this.context = context;
-        this.store = store;
+        this.userAuthenticationStore = userAuthenticationStore;
+        this.useSecureHardwareKeystoreOnly = useSecureHardwareKeystoreOnly;
+    }
+
+    /**
+     * Creates a new instance of the factory. Supports secure hardware keystore only.
+     *
+     * @param context context
+     * @param userAuthenticationStore stores the last time the user authenticated
+     */
+    public AKSCryptoEngineFactory(Context context,
+                                  UserAuthenticationStore userAuthenticationStore) {
+        this(context, userAuthenticationStore, true);
     }
 
     /**
@@ -50,6 +68,10 @@ public class AKSCryptoEngineFactory implements io.token.security.CryptoEngineFac
      */
     @Override
     public io.token.security.CryptoEngine create(String memberId) {
-        return new AKSCryptoEngine(memberId, context, store);
+        return new AKSCryptoEngine(
+                memberId,
+                context,
+                userAuthenticationStore,
+                useSecureHardwareKeystoreOnly);
     }
 }
