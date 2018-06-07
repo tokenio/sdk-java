@@ -83,7 +83,7 @@ public class Account {
     /**
      * Checks if this account is default.
      *
-     * @return true is the account is default; otherwise false
+     * @return true if the account is default; otherwise false
      */
     public boolean isDefault() {
         return async.isDefault().blockingSingle();
