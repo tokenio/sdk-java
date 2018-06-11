@@ -45,6 +45,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.InvalidStateException;
+import io.token.exceptions.VerificationException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
@@ -536,11 +537,12 @@ public class TokenIOAsync implements Closeable {
      * @param code the code
      * @param key the privileged key
      * @return the member recovery operation
+     * @throws VerificationException if the code verification fails
      */
     public Observable<MemberRecoveryOperation> getRecoveryAuthorization(
             String verificationId,
             String code,
-            Key key) {
+            Key key) throws VerificationException {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getRecoveryAuthorization(verificationId, code, key);
     }
