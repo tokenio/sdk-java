@@ -29,6 +29,9 @@ public class ReplaceAccessTokenSampleTest {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
             Token createdToken = createAccessToken(grantor, granteeAlias);
             waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 1, () -> {
                 Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
@@ -44,6 +47,9 @@ public class ReplaceAccessTokenSampleTest {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
             Token createdToken = createAccessToken(grantor, granteeAlias);
             ArrayList<Token> foundList = new ArrayList();
             waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
@@ -63,6 +69,9 @@ public class ReplaceAccessTokenSampleTest {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
             Token createdToken = createAccessToken(grantor, granteeAlias);
             ArrayList<Token> foundList = new ArrayList();
             waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {

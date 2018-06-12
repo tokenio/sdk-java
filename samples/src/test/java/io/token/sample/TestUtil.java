@@ -53,6 +53,15 @@ public abstract class TestUtil {
     }
 
     /**
+     * Poll until function doesn't assert (once in 0.5 sec with timeout of 1 minute).
+     *
+     * @param function function
+     */
+    public static void waitUntil(Runnable function) {
+        waitUntil(60000, 500, 1, function);
+    }
+
+    /**
      * Poll until function doesn't assert
      * @param timeoutMs give up
      * @param waitTimeMs base wait time

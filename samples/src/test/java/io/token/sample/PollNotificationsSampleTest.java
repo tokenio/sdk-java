@@ -2,6 +2,7 @@ package io.token.sample;
 
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
+import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Account;
@@ -14,7 +15,6 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 
-import java.util.List;
 import java.util.Optional;
 
 import org.junit.Test;
@@ -27,7 +27,9 @@ public class PollNotificationsSampleTest {
             Member payer = createMemberAndLinkAccounts(tokenIO);
 
             Member payee = PollNotificationsSample.createMember(tokenIO);
-
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(payee.aliases()).isNotEmpty());
             Alias payeeAlias = payee.firstAlias();
             Account account = LinkMemberAndBankSample.linkBankAccounts(payer);
             LinkMemberAndBankSample.linkBankAccounts(payee);

@@ -8,6 +8,7 @@ import static io.token.sample.RedeemTransferTokenSample.redeemTransferToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
 import static io.token.sample.TestUtil.randomAlias;
+import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Account;
@@ -28,6 +29,9 @@ public class GetTransfersSampleTest {
             Member payer = createMemberAndLinkAccounts(tokenIO);
             Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(payee.aliases()).contains(payeeAlias));
 
             Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
@@ -48,6 +52,9 @@ public class GetTransfersSampleTest {
             Member payer = createMemberAndLinkAccounts(tokenIO);
             Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(payee.aliases()).contains(payeeAlias));
 
             Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
@@ -68,6 +75,9 @@ public class GetTransfersSampleTest {
             Member payer = createMemberAndLinkAccounts(tokenIO);
             Alias payeeAlias = randomAlias();
             Member payee = tokenIO.createMember(payeeAlias);
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(payee.aliases()).contains(payeeAlias));
 
             Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 

@@ -4,6 +4,7 @@ import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToke
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
 import static io.token.sample.TestUtil.randomAlias;
+import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.collect.ImmutableList;
@@ -21,6 +22,9 @@ public class NotifySampleTest {
         try (TokenIO tokenIO = createClient()) {
             Alias payerAlias = randomAlias();
             Member payer = tokenIO.createMember(payerAlias);
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(payer.aliases()).contains(payerAlias));
             Member payee = createMemberAndLinkAccounts(tokenIO);
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
@@ -39,6 +43,9 @@ public class NotifySampleTest {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
 
             Token token = createAccessToken(grantor, granteeAlias);
             NotifyStatus status = grantor.triggerTokenStepUpNotification(token.getId());
