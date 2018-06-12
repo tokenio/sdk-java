@@ -1,5 +1,6 @@
 package io.token.sample;
 
+import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -15,6 +16,9 @@ public class ProvisionDeviceSampleTest {
         try (TokenIO remoteDevice = TestUtil.createClient()) {
             Alias alias = TestUtil.randomAlias();
             Member remoteMember = remoteDevice.createMember(alias);
+            // wait until alias is processed by the asynchronous verification job (this is needed
+            // only for +noverify aliases)
+            waitUntil(() -> assertThat(remoteMember.aliases()).contains(alias));
             remoteMember.subscribeToNotifications("iron");
 
             TokenIO localDeviceClient = TestUtil.createClient();
