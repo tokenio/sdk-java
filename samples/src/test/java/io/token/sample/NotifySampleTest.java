@@ -27,7 +27,7 @@ public class NotifySampleTest {
             // only for +noverify aliases)
             waitUntil(() ->  {
                 assertThat(payer.aliases()).contains(payerAlias);
-                assertThat(payee.aliases()).contains(payerAlias);
+                assertThat(payee.aliases()).isNotEmpty();
             });
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
