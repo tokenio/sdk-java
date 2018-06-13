@@ -22,10 +22,13 @@ public class NotifySampleTest {
         try (TokenIO tokenIO = createClient()) {
             Alias payerAlias = randomAlias();
             Member payer = tokenIO.createMember(payerAlias);
+            Member payee = createMemberAndLinkAccounts(tokenIO);
             // wait until alias is processed by the asynchronous verification job (this is needed
             // only for +noverify aliases)
-            waitUntil(() -> assertThat(payer.aliases()).contains(payerAlias));
-            Member payee = createMemberAndLinkAccounts(tokenIO);
+            waitUntil(() ->  {
+                assertThat(payer.aliases()).contains(payerAlias);
+                assertThat(payee.aliases()).isNotEmpty();
+            });
 
             LinkMemberAndBankSample.linkBankAccounts(payer);
 
