@@ -30,6 +30,7 @@ import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
+import io.token.exceptions.VerificationException;
 import io.token.gradle.TokenVersion;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -477,11 +478,12 @@ public class TokenIO implements Closeable {
      * @param code the code
      * @param key the privileged key
      * @return the member recovery operation
+     * @throws VerificationException if the code verification fails
      */
     public MemberRecoveryOperation getRecoveryAuthorization(
             String verificationId,
             String code,
-            Key key) {
+            Key key) throws VerificationException {
         return async.getRecoveryAuthorization(verificationId, code, key).blockingSingle();
     }
 

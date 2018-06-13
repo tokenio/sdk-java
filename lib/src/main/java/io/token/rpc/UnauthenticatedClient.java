@@ -22,6 +22,7 @@
 
 package io.token.rpc;
 
+import static io.token.proto.common.alias.AliasProtos.VerificationStatus.SUCCESS;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -35,7 +36,9 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenRequest;
 import io.token.exceptions.MemberNotFoundException;
+import io.token.exceptions.VerificationException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
+import io.token.proto.common.alias.AliasProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
@@ -550,11 +553,12 @@ public final class UnauthenticatedClient {
      * @param code the code
      * @param privilegedKey the privileged key
      * @return the recovery entry
+     * @throws VerificationException if the code verification fails
      */
     public Observable<MemberRecoveryOperation> getRecoveryAuthorization(
             String verificationId,
             String code,
-            Key privilegedKey) {
+            Key privilegedKey) throws VerificationException {
         return toObservable(gateway.completeRecovery(CompleteRecoveryRequest.newBuilder()
                 .setVerificationId(verificationId)
                 .setCode(code)
@@ -562,6 +566,9 @@ public final class UnauthenticatedClient {
                 .build()))
                 .map(new Function<CompleteRecoveryResponse, MemberRecoveryOperation>() {
                     public MemberRecoveryOperation apply(CompleteRecoveryResponse response) {
+                        if (response.getStatus() != SUCCESS) {
+                            throw new VerificationException(response.getStatus());
+                        }
                         return response.getRecoveryEntry();
                     }
                 });
