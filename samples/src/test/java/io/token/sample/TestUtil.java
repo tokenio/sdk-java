@@ -16,7 +16,7 @@ import java.util.concurrent.TimeUnit;
  * A set of helper methods used for testing.
  */
 public abstract class TestUtil {
-    private static String DEV_KEY = "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI";
+    private static String DEV_KEY = "f3982819-5d8d-4123-9601-886df2780f42";
 
     private TestUtil() {
     }
