@@ -29,7 +29,9 @@ import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
+
 import com.google.common.hash.Hashing;
+
 import io.token.exceptions.SecureHardwareKeystoreRequiredException;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.util.codec.ByteEncoding;
@@ -51,6 +53,9 @@ import java.util.Calendar;
 import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.UUID;
+
+import javax.annotation.Nullable;
 import javax.security.auth.x500.X500Principal;
 
 /**
@@ -71,9 +76,9 @@ public final class AKSCryptoEngine implements CryptoEngine {
      * Creates an instance. If useSecureHardwareKeystoreOnly is true and insecure keystore is
      * detected, a SecureHardwareKeystoreRequiredException error will be thrown.
      *
-     * @param memberId member ID
-     * @param context context, to draw UI
-     * @param userAuthenticationStore stores the last time the user authenticated
+     * @param memberId                      member ID
+     * @param context                       context, to draw UI
+     * @param userAuthenticationStore       stores the last time the user authenticated
      * @param useSecureHardwareKeystoreOnly true if use secure hardware keystore only
      */
     public AKSCryptoEngine(
@@ -102,7 +107,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
      */
     @Override
     public Key generateKey(Key.Level keyLevel) {
-        String serializedPk = generatePublicKey(keyLevel);
+        String serializedPk = generatePublicKey(keyLevel, null);
         return Key.newBuilder()
                 .setId(keyIdFor(serializedPk))
                 .setAlgorithm(KEY_ALGORITHM)
@@ -116,19 +121,19 @@ public final class AKSCryptoEngine implements CryptoEngine {
      * Android KeyStore, and will never leave the secure hardware, on phones that support it. Two
      * different classes are used to create the key, based on phone version.
      *
-     * @param keyLevel key privilege level
-     * @param expirationMs key expiration date in milliseconds
+     * @param keyLevel    key privilege level
+     * @param expiresAtMs key expiration date in milliseconds
      * @return public key
      */
     @Override
-    public Key generateKey(Key.Level keyLevel, long expirationMs) {
-        String serializedPk = generatePublicKey(keyLevel);
+    public Key generateKey(Key.Level keyLevel, long expiresAtMs) {
+        String serializedPk = generatePublicKey(keyLevel, expiresAtMs);
         return Key.newBuilder()
                 .setId(keyIdFor(serializedPk))
                 .setAlgorithm(KEY_ALGORITHM)
                 .setLevel(keyLevel)
                 .setPublicKey(serializedPk)
-                .setExpiresAtMs(expirationMs)
+                .setExpiresAtMs(expiresAtMs)
                 .build();
     }
 
@@ -159,7 +164,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
             List<Key> keys = new LinkedList<>();
             keyStore.load(null);
             Enumeration<String> aliases = keyStore.aliases();
-            while(aliases.hasMoreElements()) {
+            while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 byte[] publicKey = keyStore.getCertificate(alias).getPublicKey().getEncoded();
                 String serializedPk = ByteEncoding.serialize(publicKey);
@@ -203,11 +208,18 @@ public final class AKSCryptoEngine implements CryptoEngine {
     private KeyStore.Entry getKeyFromKeyStore(Key.Level keyLevel) {
         try {
             keyStore.load(null);
-            KeyStore.Entry entry = keyStore.getEntry(getAlias(keyLevel), null);
-            if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
-                throw new RuntimeException("Invalid private key");
+            Enumeration<String> aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                KeyStore.Entry entry = keyStore.getEntry(alias, null);
+                if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
+                    throw new RuntimeException("Invalid private key");
+                }
+                if (alias.startsWith(getAliasPrefix(keyLevel)) && !isExpired(alias)) {
+                    return entry;
+                }
             }
-            return entry;
+            return null;
         } catch (GeneralSecurityException | IOException exception) {
             throw new RuntimeException(exception);
         }
@@ -223,11 +235,19 @@ public final class AKSCryptoEngine implements CryptoEngine {
         try {
             keyStore.load(null);
             Enumeration<String> aliases = keyStore.aliases();
-            while(aliases.hasMoreElements()) {
+            while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 byte[] publicKey = keyStore.getCertificate(alias).getPublicKey().getEncoded();
                 if (keyIdFor(ByteEncoding.serialize(publicKey)).equals(keyId)) {
-                    return keyStore.getEntry(alias, null);
+                    KeyStore.Entry entry = keyStore.getEntry(alias, null);
+                    if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
+                        throw new RuntimeException("Invalid private key");
+                    }
+                    if (isExpired(alias)) {
+                        throw new IllegalArgumentException(
+                                "Key with id: " + keyId + " has expired");
+                    }
+                    return entry;
                 }
             }
         } catch (GeneralSecurityException | IOException exception) {
@@ -237,13 +257,26 @@ public final class AKSCryptoEngine implements CryptoEngine {
     }
 
     /**
-     * Gets the alias for a key of a certain level.
+     * Generate an alias for a key of a certain level.
      *
-     * @param keyLevel keyLevel
+     * @param keyLevel    keyLevel
+     * @param expiresAtMs expiration date in milliseconds
      * @return alias
      */
-    private String getAlias(Key.Level keyLevel) {
-        return KEY_NAME + "-" + memberId + "-" + keyLevel.toString();
+    private String createAlias(Key.Level keyLevel, @Nullable Long expiresAtMs) {
+        String alias = String.format("%s-%s-%s-%s",
+                KEY_NAME, memberId, keyLevel.toString(),
+                UUID.randomUUID().toString().replace("-", ""));
+        // TODO(Luke) when API level < 23 does not need to be supported anymore,
+        // can set keyValidityEnd and fetch it from KeyInfo instead of encoding it here.
+        if (expiresAtMs != null) {
+            alias = alias + "-" + expiresAtMs;
+        }
+        return alias;
+    }
+
+    private String getAliasPrefix(Key.Level keyLevel) {
+        return String.format("%s-%s-%s", KEY_NAME, memberId, keyLevel.toString());
     }
 
     /**
@@ -254,10 +287,24 @@ public final class AKSCryptoEngine implements CryptoEngine {
      */
     private static Key.Level getKeyLevel(String alias) {
         String[] aliasParts = alias.split("-");
-        if (aliasParts.length != 3) {
+        if (aliasParts.length < 3) {
             return null;
         }
         return Key.Level.valueOf(aliasParts[2]);
+    }
+
+    /**
+     * Gets the expiration date of the key associated with the alias.
+     *
+     * @param alias key store alias
+     * @return expiration date in milliseconds
+     */
+    private static Long getExpiration(String alias) {
+        String[] aliasParts = alias.split("-");
+        if (aliasParts.length < 5) {
+            return null;
+        }
+        return Long.parseLong(aliasParts[4]);
     }
 
     /**
@@ -268,22 +315,23 @@ public final class AKSCryptoEngine implements CryptoEngine {
      */
     private static String getMemberId(String alias) {
         String[] aliasParts = alias.split("-");
-        if (aliasParts.length != 3) {
+        if (aliasParts.length < 3) {
             return null;
         }
         return aliasParts[1];
     }
 
-    private String generatePublicKey(Key.Level keyLevel) {
+    private String generatePublicKey(Key.Level keyLevel, @Nullable Long expiresAtMs) {
         KeyPairGenerator kpg;
         KeyPair kp;
 
+        String alias = createAlias(keyLevel, expiresAtMs);
         try {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
                 // API 23 and higher, uses new API. This allows for the use of EC keys.
                 // Trusted hardware is used if it's available.
                 KeyGenParameterSpec.Builder builder = new KeyGenParameterSpec.Builder(
-                        getAlias(keyLevel),
+                        alias,
                         KeyProperties.PURPOSE_SIGN | KeyProperties.PURPOSE_VERIFY)
                         .setAlgorithmParameterSpec(new ECGenParameterSpec("secp256r1"))
                         .setDigests(KeyProperties.DIGEST_SHA256);
@@ -301,6 +349,11 @@ public final class AKSCryptoEngine implements CryptoEngine {
                             .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
                             .setUserAuthenticationValidityDurationSeconds(
                                     userAuthenticationStore.authenticationDurationSeconds());
+                    if (expiresAtMs != null) {
+                        Calendar time = Calendar.getInstance();
+                        time.setTimeInMillis(expiresAtMs);
+                        builder = builder.setKeyValidityEnd(time.getTime());
+                    }
                 }
 
                 kpg = KeyPairGenerator.getInstance(
@@ -311,9 +364,13 @@ public final class AKSCryptoEngine implements CryptoEngine {
                 // Uses old method of generating keys.
                 Calendar start = Calendar.getInstance();
                 Calendar end = Calendar.getInstance();
-                end.add(Calendar.YEAR, 256);
+                if (expiresAtMs == null) {
+                    end.add(Calendar.YEAR, 256);
+                } else {
+                    end.setTimeInMillis(expiresAtMs);
+                }
                 KeyPairGeneratorSpec spec = new KeyPairGeneratorSpec.Builder(context)
-                        .setAlias(getAlias(keyLevel))
+                        .setAlias(alias)
                         .setKeyType(KeyProperties.KEY_ALGORITHM_EC)
                         .setKeySize(256)
                         .setSubject(new X500Principal("CN=myKey"))
@@ -325,7 +382,6 @@ public final class AKSCryptoEngine implements CryptoEngine {
                         "RSA",
                         "AndroidKeyStore");
                 kpg.initialize(spec);
-
             }
 
             kp = kpg.generateKeyPair();
@@ -343,7 +399,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
                             KeyChain.isBoundKeyAlgorithm(KeyProperties.KEY_ALGORITHM_RSA);
                 }
 
-                if (!isSecureHardwareKeystoreSupported)  {
+                if (!isSecureHardwareKeystoreSupported) {
                     throw new SecureHardwareKeystoreRequiredException();
                 }
             }
@@ -353,6 +409,11 @@ public final class AKSCryptoEngine implements CryptoEngine {
         }
 
         return ByteEncoding.serialize(kp.getPublic().getEncoded());
+    }
+
+    private boolean isExpired(String alias) {
+        Long expiration = getExpiration(alias);
+        return expiration != null && expiration < Calendar.getInstance().getTimeInMillis();
     }
 
     /**
