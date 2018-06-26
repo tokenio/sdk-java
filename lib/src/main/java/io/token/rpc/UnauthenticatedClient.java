@@ -673,11 +673,18 @@ public final class UnauthenticatedClient {
      * @return the default recovery agent id.
      */
     public Observable<String> getDefaultAgent() {
-        return toObservable(gateway.getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
-                .map(new Function<GetDefaultAgentResponse, String>() {
+        // TODO(sibin): Use GetDefaultAgentRequest instead after the call is available.
+        return toObservable(gateway.resolveAlias(
+                ResolveAliasRequest.newBuilder()
+                        .setAlias(Alias.newBuilder()
+                                .setType(Alias.Type.DOMAIN)
+                                .setValue("token.io")
+                                .build())
+                        .build()))
+                .map(new Function<ResolveAliasResponse, String>() {
                     @Override
-                    public String apply(GetDefaultAgentResponse response) throws Exception {
-                        return response.getMemberId();
+                    public String apply(ResolveAliasResponse response) throws Exception {
+                        return response.getMember().getId();
                     }
                 });
     }
