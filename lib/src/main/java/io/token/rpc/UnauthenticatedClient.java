@@ -38,7 +38,6 @@ import io.token.TokenRequest;
 import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.common.alias.AliasProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
@@ -65,6 +64,8 @@ import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
+import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
+import io.token.proto.gateway.Gateway.GetDefaultAgentResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetTokenIdRequest;
@@ -662,6 +663,21 @@ public final class UnauthenticatedClient {
                     @Override
                     public String apply(GetTokenIdResponse response) throws Exception {
                         return response.getTokenId();
+                    }
+                });
+    }
+
+    /**
+     * Get the default recovery agent id.
+     *
+     * @return the default recovery agent id.
+     */
+    public Observable<String> getDefaultAgent() {
+        return toObservable(gateway.getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
+                .map(new Function<GetDefaultAgentResponse, String>() {
+                    @Override
+                    public String apply(GetDefaultAgentResponse response) throws Exception {
+                        return response.getMemberId();
                     }
                 });
     }

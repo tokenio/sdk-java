@@ -34,6 +34,7 @@ import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toAddAliasOperation;
 import static io.token.util.Util.toAddAliasOperationMetadata;
 import static io.token.util.Util.toAddKeyOperation;
+import static io.token.util.Util.toRecoveryAgentOperation;
 import static io.token.util.Util.urlEncode;
 import static io.token.util.Util.verifySignature;
 import static java.lang.String.format;
@@ -213,22 +214,39 @@ public class TokenIOAsync implements Closeable {
         return unauthenticated
                 .createMemberId(memberType)
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
-                    public Observable<MemberProtos.Member> apply(String memberId) {
-                        CryptoEngine crypto = cryptoFactory.create(memberId);
-                        List<MemberOperation> operations = new ArrayList<>();
-                        operations.add(toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
-                        operations.add(toAddKeyOperation(crypto.generateKey(STANDARD)));
-                        operations.add(toAddKeyOperation(crypto.generateKey(LOW)));
-                        if (alias != null) {
-                            operations.add(toAddAliasOperation(normalizeAlias(alias), realm));
-                        }
-                        List<MemberOperationMetadata> metadata = alias == null
-                                ? Collections.<MemberOperationMetadata>emptyList()
-                                : singletonList(toAddAliasOperationMetadata(
-                                        normalizeAlias(alias),
-                                        realm));
-                        Signer signer = crypto.createSigner(PRIVILEGED);
-                        return unauthenticated.createMember(memberId, operations, metadata, signer);
+                    public Observable<MemberProtos.Member> apply(final String memberId) {
+                        return unauthenticated.getDefaultAgent()
+                                .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
+                                    public Observable<MemberProtos.Member> apply(String agentId) {
+                                        CryptoEngine crypto = cryptoFactory.create(memberId);
+                                        List<MemberOperation> operations = new ArrayList<>();
+                                        operations.add(
+                                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
+                                        operations.add(
+                                                toAddKeyOperation(crypto.generateKey(STANDARD)));
+                                        operations.add(
+                                                toAddKeyOperation(crypto.generateKey(LOW)));
+                                        operations.add(toRecoveryAgentOperation(agentId));
+
+                                        if (alias != null) {
+                                            operations.add(toAddAliasOperation(
+                                                    normalizeAlias(alias),
+                                                    realm));
+                                        }
+                                        List<MemberOperationMetadata> metadata = alias == null
+                                                ? Collections.<MemberOperationMetadata>emptyList()
+                                                : singletonList(toAddAliasOperationMetadata(
+                                                        normalizeAlias(alias),
+                                                        realm));
+                                        Signer signer = crypto.createSigner(PRIVILEGED);
+                                        return unauthenticated.createMember(
+                                                memberId,
+                                                operations,
+                                                metadata,
+                                                signer);
+                                    }
+                                });
+
                     }
                 })
                 .flatMap(new Function<MemberProtos.Member, Observable<MemberAsync>>() {
