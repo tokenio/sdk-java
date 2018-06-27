@@ -231,20 +231,6 @@ public final class AccessTokenBuilder {
     /**
      * Sets "to" field on the payload.
      *
-     * @param redeemerAlias redeemer alias
-     * @param realm realm
-     * @return {@link AccessTokenBuilder}
-     */
-    AccessTokenBuilder to(Alias redeemerAlias, String realm) {
-        payload.setTo(TokenMember.newBuilder()
-                .setAlias(redeemerAlias)
-                .setRealm(realm));
-        return this;
-    }
-
-    /**
-     * Sets "to" field on the payload.
-     *
      * @param redeemerMemberId redeemer member id
      * @return {@link AccessTokenBuilder}
      */

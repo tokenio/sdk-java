@@ -34,12 +34,9 @@ public class MemberNotFoundException extends StatusRuntimeException {
      * Member not found exception.
      *
      * @param alias alias
-     * @param realm realm
      */
-    public MemberNotFoundException(Alias alias, String realm) {
-        super(Status.NOT_FOUND.withDescription(format(
-                "Member could not be resolved for alias %s in realm %s",
-                ProtoJson.toJson(alias),
-                realm)));
+    public MemberNotFoundException(Alias alias) {
+        super(Status.NOT_FOUND.withDescription(
+                format("Member could not be resolved for alias %s", ProtoJson.toJson(alias))));
     }
 }
