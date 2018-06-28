@@ -177,11 +177,7 @@ public abstract class Util {
             return alias.getValue();
         }
 
-        if (alias.getRealm().equals(TOKEN_REALM)) {
-            return hashAndSerializeJson(alias.toBuilder().clearRealm().build());
-        } else {
-            return hashAndSerializeJson(alias);
-        }
+        return hashAndSerializeJson(alias.toBuilder().clearRealm().build());
     }
 
     /**
