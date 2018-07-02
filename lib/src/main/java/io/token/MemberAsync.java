@@ -996,10 +996,21 @@ public class MemberAsync {
      * Looks up a existing token.
      *
      * @param tokenId token id
-     * @return transfer token returned by the server
+     * @return token returned by the server
      */
     public Observable<Token> getToken(String tokenId) {
         return client.getToken(tokenId);
+    }
+
+    /**
+     * Looks up a existing access token where the calling member is the grantor and given member is
+     * the grantee.
+     *
+     * @param toMemberId beneficiary of the active access token
+     * @return access token returned by the server
+     */
+    public Observable<Token> getActiveAccessToken(String toMemberId) {
+        return client.getActiveAccessToken(toMemberId);
     }
 
     /**
