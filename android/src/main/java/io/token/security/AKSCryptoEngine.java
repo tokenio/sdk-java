@@ -147,8 +147,12 @@ public final class AKSCryptoEngine implements CryptoEngine {
      */
     @Override
     public Signer createSigner(Key.Level keyLevel) {
+        KeyStore.Entry entry = getKeyFromKeyStore(keyLevel);
+        if (entry == null) {
+            throw new IllegalArgumentException("No key found at level: " + keyLevel);
+        }
         return new AKSSigner(
-                getKeyFromKeyStore(keyLevel),
+                entry,
                 keyLevel,
                 userAuthenticationStore);
     }
