@@ -24,10 +24,12 @@ package io.token.security;
 
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.util.Clock;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
 import java.security.PublicKey;
+import javax.annotation.Nullable;
 
 /**
  * Encapsulates secret key data.
@@ -38,7 +40,29 @@ public abstract class SecretKey {
             String id,
             Key.Level level,
             KeyPair keyPair) {
-        return new AutoValue_SecretKey(id, level, keyPair.getPublic(), keyPair.getPrivate());
+        return new AutoValue_SecretKey(id, level, keyPair.getPublic(), keyPair.getPrivate(), null);
+    }
+
+    /**
+     * Creates an instance of SecretKey.
+     *
+     * @param id key id
+     * @param level key level
+     * @param keyPair key pair
+     * @param expiresAtMs expiration date of the key in milliseconds
+     * @return SecretKey instance
+     */
+    public static SecretKey create(
+            String id,
+            Key.Level level,
+            KeyPair keyPair,
+            @Nullable Long expiresAtMs) {
+        return new AutoValue_SecretKey(
+                id,
+                level,
+                keyPair.getPublic(),
+                keyPair.getPrivate(),
+                expiresAtMs);
     }
 
     public abstract String getId();
@@ -48,4 +72,16 @@ public abstract class SecretKey {
     public abstract PublicKey getPublicKey();
 
     public abstract PrivateKey getPrivateKey();
+
+    @Nullable public abstract Long getExpiresAtMs();
+
+    /**
+     * Checks whether a key has expired against the provided clock.
+     *
+     * @param clock clock
+     * @return true if key has expired
+     */
+    public boolean isExpired(Clock clock) {
+        return getExpiresAtMs() != null && getExpiresAtMs() < clock.getTime();
+    }
 }

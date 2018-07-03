@@ -11,7 +11,6 @@ import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.AccessTokenBuilder;
-import io.token.Account;
 import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.MoneyUtil;
