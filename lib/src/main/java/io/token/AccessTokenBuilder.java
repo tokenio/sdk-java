@@ -33,6 +33,7 @@ import io.token.proto.common.token.TokenProtos.AccessBody.Resource.Address;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccountBalances;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccountTransactions;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccounts;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccountsAtBank;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAddresses;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllBalancesAtBank;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllTransactionsAtBank;
@@ -140,7 +141,7 @@ public final class AccessTokenBuilder {
         payload
                 .getAccessBuilder()
                 .addResources(Resource.newBuilder()
-                        .setAllAccountsAtBank(Resource.AllAccountsAtBank.newBuilder()
+                        .setAllAccountsAtBank(AllAccountsAtBank.newBuilder()
                                 .setBankId(bankId)));
         return this;
     }
