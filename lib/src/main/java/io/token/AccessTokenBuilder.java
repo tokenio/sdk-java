@@ -34,6 +34,8 @@ import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccountBal
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccountTransactions;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccounts;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAddresses;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllBalancesAtBank;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllTransactionsAtBank;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenPayload.ActingAs;
@@ -129,6 +131,21 @@ public final class AccessTokenBuilder {
     }
 
     /**
+     * Grants access to all accounts at a given bank.
+     *
+     * @param  bankId the bank id
+     * @return {@link AccessTokenBuilder}
+     */
+    public AccessTokenBuilder forAllAccountsAtBank(String bankId) {
+        payload
+                .getAccessBuilder()
+                .addResources(Resource.newBuilder()
+                        .setAllAccountsAtBank(Resource.AllAccountsAtBank.newBuilder()
+                                .setBankId(bankId)));
+        return this;
+    }
+
+    /**
      * Grants access to a given {@code accountId}.
      *
      * @param accountId account ID to grant access to
@@ -156,6 +173,21 @@ public final class AccessTokenBuilder {
     }
 
     /**
+     * Grants access to all transactions at a given bank.
+     *
+     * @param  bankId the bank id
+     * @return {@link AccessTokenBuilder}
+     */
+    public AccessTokenBuilder forAllTransactionsAtBank(String bankId) {
+        payload
+                .getAccessBuilder()
+                .addResources(Resource.newBuilder()
+                        .setAllTransactionsAtBank(AllTransactionsAtBank.newBuilder()
+                                .setBankId(bankId)));
+        return this;
+    }
+
+    /**
      * Grants access to a given account transactions.
      *
      * @param accountId account ID to grant access to transactions
@@ -179,6 +211,21 @@ public final class AccessTokenBuilder {
                 .getAccessBuilder()
                 .addResources(Resource.newBuilder()
                         .setAllBalances(AllAccountBalances.getDefaultInstance()));
+        return this;
+    }
+
+    /**
+     * Grants access to all balances at a given bank.
+     *
+     * @param  bankId the bank id
+     * @return {@link AccessTokenBuilder}
+     */
+    public AccessTokenBuilder forAllBalancesAtBank(String bankId) {
+        payload
+                .getAccessBuilder()
+                .addResources(Resource.newBuilder()
+                        .setAllBalancesAtBank(AllBalancesAtBank.newBuilder()
+                                .setBankId(bankId)));
         return this;
     }
 
