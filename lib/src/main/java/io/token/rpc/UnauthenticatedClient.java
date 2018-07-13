@@ -110,15 +110,13 @@ public final class UnauthenticatedClient {
      * Checks if a given alias already exists.
      *
      * @param alias alias to check
-     * @param realm realm of the alias
      * @return {@code true} if alias already exists, {@code false} otherwise
      */
-    public Observable<Boolean> aliasExists(Alias alias, String realm) {
+    public Observable<Boolean> aliasExists(Alias alias) {
         return toObservable(gateway
                 .resolveAlias(ResolveAliasRequest
                         .newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .build()))
                 .map(new Function<ResolveAliasResponse, Boolean>() {
                     public Boolean apply(ResolveAliasResponse response) {
@@ -131,21 +129,19 @@ public final class UnauthenticatedClient {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @param realm realm of the alias
      * @return member id, or throws exception if member not found
      */
-    public Observable<String> getMemberId(final Alias alias, final String realm) {
+    public Observable<String> getMemberId(final Alias alias) {
         return toObservable(
                 gateway.resolveAlias(ResolveAliasRequest.newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .build()))
                 .map(new Function<ResolveAliasResponse, String>() {
                     public String apply(ResolveAliasResponse response) {
                         if (response.hasMember()) {
                             return response.getMember().getId();
                         } else {
-                            throw new MemberNotFoundException(alias, realm);
+                            throw new MemberNotFoundException(alias);
                         }
                     }
                 });
@@ -248,18 +244,15 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that accounts should be linked.
      *
      * @param alias alias of the member
-     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccounts(
             Alias alias,
-            String realm,
             BankAuthorization authorization) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccounts(LinkAccounts.newBuilder()
                                         .setBankAuthorization(authorization)
@@ -277,20 +270,17 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that a key should be added.
      *
      * @param alias alias of the member
-     * @param realm  realm of the member
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyAddKey(
             Alias alias,
-            String realm,
             String name,
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(AddKey.newBuilder()
                                         .setName(name)
@@ -309,7 +299,6 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that a key should be added.
      *
      * @param alias alias of the member
-     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
@@ -317,14 +306,12 @@ public final class UnauthenticatedClient {
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
             Alias alias,
-            String realm,
             BankAuthorization authorization,
             String name,
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccountsAndAddKey(LinkAccountsAndAddKey.newBuilder()
                                         .setLinkAccounts(LinkAccounts.newBuilder()
@@ -639,7 +626,7 @@ public final class UnauthenticatedClient {
      * @return token member
      */
     public Observable<Member> getTokenMember() {
-        return getMemberId(TOKEN, TOKEN_REALM).flatMap(
+        return getMemberId(TOKEN).flatMap(
                 new Function<String, Observable<Member>>() {
                     @Override
                     public Observable<Member> apply(String memberId) throws Exception {
