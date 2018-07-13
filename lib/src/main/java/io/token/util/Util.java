@@ -46,6 +46,8 @@ import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAliasMetadata;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
+import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.security.KeyNotFoundException;
@@ -114,6 +116,21 @@ public abstract class Util {
                 .setAddKey(MemberAddKeyOperation
                         .newBuilder()
                         .setKey(key))
+                .build();
+    }
+
+    /**
+     * Converts agent id to AddKey operation.
+     *
+     * @param agentId agentId to add
+     * @return member operation
+     */
+    public static MemberOperation toRecoveryAgentOperation(String agentId) {
+        return MemberOperation
+                .newBuilder()
+                .setRecoveryRules(MemberRecoveryRulesOperation
+                        .newBuilder()
+                        .setRecoveryRule(RecoveryRule.newBuilder().setPrimaryAgent(agentId)))
                 .build();
     }
 

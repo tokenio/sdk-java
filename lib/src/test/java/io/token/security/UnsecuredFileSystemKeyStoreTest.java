@@ -3,6 +3,7 @@ package io.token.security;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.util.Clock;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -15,8 +16,8 @@ public class UnsecuredFileSystemKeyStoreTest extends KeyStoreTest {
     @Rule public TemporaryFolder tempDir = new TemporaryFolder();
 
     @Override
-    KeyStore createKeyStore() {
-        return new UnsecuredFileSystemKeyStore(tempDir.getRoot());
+    KeyStore createKeyStore(Clock clock) {
+        return new UnsecuredFileSystemKeyStore(tempDir.getRoot(), clock);
     }
 
     @Test

@@ -34,7 +34,7 @@ import java.util.List;
 
 /**
  * Token implementation of the {@link CryptoEngine}. The keys are persisted
- * in the provided storage
+ * in the provided storage.
  */
 public final class TokenCryptoEngine implements CryptoEngine {
     private static final CryptoType CRYPTO_TYPE = CryptoType.EDDSA;
@@ -70,14 +70,15 @@ public final class TokenCryptoEngine implements CryptoEngine {
     }
 
     @Override
-    public Key generateKey(Key.Level keyLevel, long expirationMs) {
+    public Key generateKey(Key.Level keyLevel, long expiresAtMs) {
         SecretKeyPair keyPair = SecretKeyPair.create(CRYPTO_TYPE);
         SecretKey key = SecretKey.create(
                 keyPair.id(),
                 keyLevel,
-                new KeyPair(keyPair.publicKey(), keyPair.privateKey()));
+                new KeyPair(keyPair.publicKey(), keyPair.privateKey()),
+                expiresAtMs);
         keyStore.put(memberId, key);
-        return toPublicKey(key, expirationMs);
+        return toPublicKey(key);
     }
 
     @Override
@@ -103,18 +104,15 @@ public final class TokenCryptoEngine implements CryptoEngine {
     }
 
     private Key toPublicKey(SecretKey secretKey) {
+        long expiresAtMs = secretKey.getExpiresAtMs() == null
+                ? 0
+                : secretKey.getExpiresAtMs();
         return Key.newBuilder()
                 .setId(secretKey.getId())
                 .setAlgorithm(KEY_ALGORITHM)
                 .setLevel(secretKey.getLevel())
                 .setPublicKey(crypto.serialize(secretKey.getPublicKey()))
-                .build();
-    }
-
-    private Key toPublicKey(SecretKey secretKey, long expirationMs) {
-        return toPublicKey(secretKey)
-                .toBuilder()
-                .setExpiresAtMs(expirationMs)
+                .setExpiresAtMs(expiresAtMs)
                 .build();
     }
 }
