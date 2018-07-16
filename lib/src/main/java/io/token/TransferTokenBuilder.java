@@ -63,6 +63,7 @@ import org.slf4j.LoggerFactory;
  */
 public final class TransferTokenBuilder {
     private static final Logger logger = LoggerFactory.getLogger(TransferTokenBuilder.class);
+    private static final int REF_ID_MAX_LENGTH = 18;
 
     private final MemberAsync member;
     private final TokenPayload.Builder payload;
@@ -349,6 +350,12 @@ public final class TransferTokenBuilder {
      * @return builder
      */
     public TransferTokenBuilder setRefId(String refId) {
+        if (refId.length() > REF_ID_MAX_LENGTH) {
+            throw new IllegalArgumentException(String.format(
+                    "The length of the refId is at most %s, got: %s",
+                    REF_ID_MAX_LENGTH,
+                    refId.length()));
+        }
         payload.setRefId(refId);
         return this;
     }

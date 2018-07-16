@@ -87,7 +87,7 @@ public abstract class Util {
      */
     public static final String TOKEN_REALM = "token";
 
-    private static final int NONCE_NUM_BYTES = 20;
+    private static final int NONCE_NUM_BYTES = 12;
 
     private Util() {
     }
