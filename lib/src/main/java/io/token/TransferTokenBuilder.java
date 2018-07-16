@@ -346,7 +346,7 @@ public final class TransferTokenBuilder {
     /**
      * Sets the referenceId of the token.
      *
-     * @param refId referenceId
+     * @param refId the reference Id, at most 18 characters long
      * @return builder
      */
     public TransferTokenBuilder setRefId(String refId) {
