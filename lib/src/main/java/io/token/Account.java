@@ -23,6 +23,7 @@
 package io.token;
 
 import io.token.proto.PagedList;
+import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
@@ -114,6 +115,15 @@ public class Account {
      */
     public boolean isLocked() {
         return async.isLocked();
+    }
+
+    /**
+     * Fetches the original {@link AccountProtos.Account} object.
+     *
+     * @return the account.
+     */
+    public AccountProtos.Account protoAccount() {
+        return async.protoAccount();
     }
 
     /**
