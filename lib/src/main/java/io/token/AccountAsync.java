@@ -40,7 +40,7 @@ import javax.annotation.Nullable;
  */
 public class AccountAsync {
     private final MemberAsync member;
-    private final AccountProtos.Account.Builder account;
+    private final AccountProtos.Account account;
     private final Client client;
 
     /**
@@ -52,7 +52,7 @@ public class AccountAsync {
      */
     AccountAsync(MemberAsync member, AccountProtos.Account account, Client client) {
         this.member = member;
-        this.account = account.toBuilder();
+        this.account = account;
         this.client = client;
     }
 
@@ -126,6 +126,15 @@ public class AccountAsync {
      */
     public String bankId() {
         return account.getBankId();
+    }
+
+    /**
+     * Fetches the original {@link AccountProtos.Account} object.
+     *
+     * @return the account.
+     */
+    public AccountProtos.Account protoAccount() {
+        return account;
     }
 
     /**
@@ -208,6 +217,6 @@ public class AccountAsync {
         }
 
         AccountAsync other = (AccountAsync) obj;
-        return account.build().equals(other.account.build());
+        return account.equals(other.account);
     }
 }
