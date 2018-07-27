@@ -166,7 +166,8 @@ public abstract class Util {
                 .newBuilder()
                 .setAddAlias(MemberAliasOperation
                         .newBuilder()
-                        .setAliasHash(hashAlias(alias)))
+                        .setAliasHash(hashAlias(alias))
+                        .setRealm(alias.getRealm()))
                 .build();
     }
 
