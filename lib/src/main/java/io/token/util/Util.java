@@ -75,17 +75,18 @@ import javax.annotation.Nullable;
 public abstract class Util {
 
     /**
+     * The token realm.
+     */
+    public static final String TOKEN_REALM = "token";
+
+    /**
      * The token alias.
      */
     public static final Alias TOKEN = Alias.newBuilder()
             .setType(DOMAIN)
             .setValue("token.io")
+            .setRealm(TOKEN_REALM)
             .build();
-
-    /**
-     * The token realm.
-     */
-    public static final String TOKEN_REALM = "token";
 
     private static final int NONCE_NUM_BYTES = 12;
 
@@ -158,16 +159,15 @@ public abstract class Util {
      * Converts alias to AddAlias operation.
      *
      * @param alias alias to add
-     * @param realm realm of the alias
      * @return member operation
      */
-    public static MemberOperation toAddAliasOperation(Alias alias, String realm) {
+    public static MemberOperation toAddAliasOperation(Alias alias) {
         return MemberOperation
                 .newBuilder()
                 .setAddAlias(MemberAliasOperation
                         .newBuilder()
                         .setAliasHash(hashAlias(alias))
-                        .setRealm(realm))
+                        .setRealm(alias.getRealm()))
                 .build();
     }
 
@@ -175,15 +175,13 @@ public abstract class Util {
      * Converts alias to MemberOperationMetadata.
      *
      * @param alias alias to add
-     * @param realm realm of the alias
      * @return member operation metadata
      */
-    public static MemberOperationMetadata toAddAliasOperationMetadata(Alias alias, String realm ) {
+    public static MemberOperationMetadata toAddAliasOperationMetadata(Alias alias) {
         return MemberOperationMetadata.newBuilder()
                 .setAddAliasMetadata(AddAliasMetadata.newBuilder()
                         .setAlias(alias)
-                        .setAliasHash(hashAlias(alias))
-                        .setRealm(realm))
+                        .setAliasHash(hashAlias(alias)))
                 .build();
     }
 
@@ -197,7 +195,8 @@ public abstract class Util {
         if (alias.getType() == USERNAME) {
             return alias.getValue();
         }
-        return hashAndSerializeJson(alias);
+        Alias toHash = alias.toBuilder().clearRealm().build();
+        return hashAndSerializeJson(toHash);
     }
 
     /**
