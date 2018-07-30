@@ -27,13 +27,13 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.TOKEN;
-import static io.token.util.Util.TOKEN_REALM;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.NotifyResult;
 import io.token.TokenRequest;
 import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
@@ -49,6 +49,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
+import io.token.proto.common.notification.NotificationProtos.EndorseAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
 import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.NotifyBody;
@@ -64,12 +65,12 @@ import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
-import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
-import io.token.proto.gateway.Gateway.GetDefaultAgentResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetTokenIdRequest;
 import io.token.proto.gateway.Gateway.GetTokenIdResponse;
+import io.token.proto.gateway.Gateway.InvalidateNotificationRequest;
+import io.token.proto.gateway.Gateway.InvalidateNotificationResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
@@ -78,6 +79,8 @@ import io.token.proto.gateway.Gateway.ResolveAliasRequest;
 import io.token.proto.gateway.Gateway.ResolveAliasResponse;
 import io.token.proto.gateway.Gateway.RetrieveTokenRequestRequest;
 import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
+import io.token.proto.gateway.Gateway.TriggerEndorseAndAddKeyNotificationRequest;
+import io.token.proto.gateway.Gateway.TriggerEndorseAndAddKeyNotificationResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -360,6 +363,52 @@ public final class UnauthenticatedClient {
     @Deprecated
     public Observable<NotifyStatus> notifyPaymentRequest(Alias alias, TokenPayload tokenPayload) {
         return notifyPaymentRequest(tokenPayload);
+    }
+
+    /**
+     * Notifies subscribed devices that a token payload should be endorsed and keys should be
+     * added.
+     *
+     * @param tokenPayload the token payload to be sent
+     * @param addKey the add key payload to be sent
+     * @return notify result of the notification request
+     */
+    public Observable<NotifyResult> notifyEndorseAndAddKey(
+            TokenPayload tokenPayload,
+            AddKey addKey) {
+        return toObservable(gateway.triggerEndorseAndAddKeyNotification(
+                TriggerEndorseAndAddKeyNotificationRequest.newBuilder()
+                        .setEndorseAndAddKey(EndorseAndAddKey.newBuilder()
+                                .setPayload(tokenPayload)
+                                .setAddKey(addKey)
+                                .build())
+                        .build()))
+                .map(new Function<TriggerEndorseAndAddKeyNotificationResponse, NotifyResult>() {
+                    public NotifyResult apply(
+                            TriggerEndorseAndAddKeyNotificationResponse response) {
+                        return NotifyResult.create(
+                                response.getNotificationId(),
+                                response.getStatus());
+                    }
+                });
+    }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
+        return toObservable(gateway.invalidateNotification(
+                InvalidateNotificationRequest.newBuilder()
+                        .setNotificationId(notificationId)
+                        .build()))
+                .map(new Function<InvalidateNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(InvalidateNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 
     /**

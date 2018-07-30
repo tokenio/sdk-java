@@ -57,6 +57,8 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.notification.NotificationProtos.AddKey;
+import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos;
@@ -392,6 +394,39 @@ public class TokenIOAsync implements Closeable {
             tokenPayload = tokenPayload.toBuilder().setRefId(generateNonce()).build();
         }
         return unauthenticated.notifyPaymentRequest(tokenPayload);
+    }
+
+    /**
+     * Notifies subscribed devices that a token payload should be endorsed and keys should be
+     * added.
+     *
+     * @param tokenPayload the token payload to be sent
+     * @param keys keys to be added
+     * @param deviceMetadata device metadata of the keys
+     * @return notify result of the notification request
+     */
+    public Observable<NotifyResult> notifyEndorseAndAddKey(
+            TokenPayload tokenPayload,
+            List<Key> keys,
+            DeviceMetadata deviceMetadata) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.notifyEndorseAndAddKey(
+                tokenPayload,
+                AddKey.newBuilder()
+                        .addAllKeys(keys)
+                        .setDeviceMetadata(deviceMetadata)
+                        .build());
+    }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.invalidateNotification(notificationId);
     }
 
     /**

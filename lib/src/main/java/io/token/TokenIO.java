@@ -28,6 +28,7 @@ import static io.token.TokenIO.TokenCluster.SANDBOX;
 
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
+import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.VerificationException;
@@ -38,6 +39,7 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -307,6 +309,32 @@ public class TokenIO implements Closeable {
         return async
                 .notifyPaymentRequest(tokenPayload)
                 .blockingSingle();
+    }
+
+    /**
+     * Notifies subscribed devices that a token payload should be endorsed and keys should be
+     * added.
+     *
+     * @param tokenPayload the token payload to be sent
+     * @param keys keys to be added
+     * @param deviceMetadata device metadata of the keys
+     * @return notify result of the notification request
+     */
+    public NotifyResult notifyEndorseAndAddKey(
+            TokenPayload tokenPayload,
+            List<Key> keys,
+            DeviceMetadata deviceMetadata) {
+        return async.notifyEndorseAndAddKey(tokenPayload, keys, deviceMetadata).blockingSingle();
+    }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public NotifyStatus invalidateNotification(String notificationId) {
+        return async.invalidateNotification(notificationId).blockingSingle();
     }
 
     /**
