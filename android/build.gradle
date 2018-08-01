@@ -68,8 +68,8 @@ artifactory {
 
 repositories {
     mavenLocal()
-    jcenter()
     google()
+    jcenter()
 }
 
 dependencies {
