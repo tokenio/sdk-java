@@ -67,8 +67,8 @@ import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
-import io.token.proto.gateway.Gateway.GetTokenIdRequest;
-import io.token.proto.gateway.Gateway.GetTokenIdResponse;
+import io.token.proto.gateway.Gateway.GetTokenRequestResultRequest;
+import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
 import io.token.proto.gateway.Gateway.InvalidateNotificationRequest;
 import io.token.proto.gateway.Gateway.InvalidateNotificationResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
@@ -692,12 +692,12 @@ public final class UnauthenticatedClient {
      */
     public Observable<String> getTokenId(String tokenRequestId) {
         return toObservable(gateway
-                .getTokenId(GetTokenIdRequest.newBuilder()
+                .getTokenRequestResult(GetTokenRequestResultRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()))
-                .map(new Function<GetTokenIdResponse, String>() {
+                .map(new Function<GetTokenRequestResultResponse, String>() {
                     @Override
-                    public String apply(GetTokenIdResponse response) throws Exception {
+                    public String apply(GetTokenRequestResultResponse response) throws Exception {
                         return response.getTokenId();
                     }
                 });
