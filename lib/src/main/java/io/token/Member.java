@@ -175,32 +175,12 @@ public class Member {
     }
 
     /**
-     * Adds a new alias for the member.
-     *
-     * @param alias alias, e.g. 'john', must be unique within the realm
-     * @param realm realm of the alias
-     */
-    public void addAlias(Alias alias, String realm) {
-        async.addAlias(alias, realm).blockingAwait();
-    }
-
-    /**
      * Adds new aliases for the member.
      *
      * @param aliases aliases, e.g. 'john', must be unique
      */
     public void addAliases(List<Alias> aliases) {
         async.addAliases(aliases).blockingAwait();
-    }
-
-    /**
-     * Adds new aliases for the member.
-     *
-     * @param aliases aliases, e.g. 'john', must be unique with the realm
-     * @param realm realm of the aliases
-     */
-    public void addAliases(List<Alias> aliases, String realm) {
-        async.addAliases(aliases, realm).blockingAwait();
     }
 
     /**

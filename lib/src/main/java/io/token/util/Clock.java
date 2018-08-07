@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2018 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,24 +20,16 @@
  * THE SOFTWARE.
  */
 
-package io.token.exceptions;
+package io.token.util;
 
-import static java.lang.String.format;
-
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
-import io.token.proto.ProtoJson;
-import io.token.proto.common.alias.AliasProtos.Alias;
-
-public class MemberNotFoundException extends StatusRuntimeException {
+/**
+ * Clock object; used to get current time.
+ */
+public interface Clock {
     /**
-     * Member not found exception.
+     * Gets the current time in Epoch milliseconds.
      *
-     * @param alias alias
+     * @return current time
      */
-    public MemberNotFoundException(Alias alias) {
-        super(Status.NOT_FOUND.withDescription(format(
-                "Member could not be resolved for alias %s",
-                ProtoJson.toJson(alias))));
-    }
+    long getTime();
 }

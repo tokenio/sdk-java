@@ -2,6 +2,7 @@ package io.token.security;
 
 import com.google.protobuf.Message;
 import io.token.proto.ProtoJson;
+import io.token.util.codec.ByteEncoding;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -44,7 +45,10 @@ public class AKSVerifier implements Verifier {
             Signature s = Signature.getInstance("SHA256withECDSA");
             s.initVerify(((PrivateKeyEntry) entry).getCertificate());
             s.update(payload.getBytes("UTF-8"));
-            s.verify(signature.getBytes("UTF-8"));
+            boolean verified = s.verify(ByteEncoding.parse(signature));
+            if (!verified) {
+                throw new InvalidSignatureException("Invalid signature");
+            }
         } catch (InvalidKeyException | NoSuchAlgorithmException | UnsupportedEncodingException ex) {
             throw new RuntimeException(ex);
         } catch (SignatureException ex) {

@@ -24,6 +24,7 @@ package io.token.security;
 
 import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.Base58;
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Charsets;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Lists;
@@ -32,6 +33,9 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.util.Clock;
+import io.token.util.SystemTimeClock;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -54,21 +58,37 @@ import java.util.List;
 public final class UnsecuredFileSystemKeyStore implements KeyStore {
     private final File keyStoreRoot;
     private final KeyCodec codec;
+    private final Clock clock;
+
+    /**
+     * Creates a new key store with the default clock.
+     *
+     * @param keyStoreRoot the directory containing keys, or to add keys to.  Must exist.
+     */
+    public UnsecuredFileSystemKeyStore(File keyStoreRoot) {
+        this(keyStoreRoot, new SystemTimeClock());
+    }
 
     /**
      * Creates a new key store.
      *
      * @param keyStoreRoot the directory containing keys, or to add keys to.  Must exist.
+     * @param clock the directory containing keys, or to add keys to.  Must exist.
      */
-    public UnsecuredFileSystemKeyStore(File keyStoreRoot) {
+    @VisibleForTesting
+    public UnsecuredFileSystemKeyStore(File keyStoreRoot, Clock clock) {
         Preconditions.checkArgument(keyStoreRoot.isDirectory(), "keyStoreRoot must be a directory");
         Preconditions.checkArgument(keyStoreRoot.canWrite(), "keyStoreRoot must be writable");
         this.keyStoreRoot = keyStoreRoot;
         this.codec = new JsonKeyCodec();
+        this.clock = clock;
     }
 
     @Override
     public void put(String memberId, SecretKey key) {
+        if (key.isExpired(clock)) {
+            throw new IllegalArgumentException("Key " + key.getId() + "has expired");
+        }
         File keyFile = getKeyFile(memberId, key.getId());
         File keyDir = keyFile.getParentFile();
         if (!keyDir.exists() && !keyFile.getParentFile().mkdirs()) {
@@ -84,7 +104,7 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
     @Override
     public SecretKey getByLevel(String memberId, Level keyLevel) {
         for (SecretKey key : listKeys(memberId)) {
-            if (key.getLevel() == keyLevel) {
+            if (key.getLevel() == keyLevel && !key.isExpired(clock)) {
                 return key;
             }
         }
@@ -93,7 +113,11 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
 
     @Override
     public SecretKey getById(String memberId, String keyId) {
-        return keyFromFile(getKeyFile(memberId, keyId));
+        SecretKey key = keyFromFile(getKeyFile(memberId, keyId));
+        if (key.isExpired(clock)) {
+            throw new IllegalArgumentException("Key with id: " + keyId + "has expired");
+        }
+        return key;
     }
 
     /**
@@ -150,7 +174,10 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
 
         List<SecretKey> keys = Lists.newArrayList();
         for (File keyFile : keyFiles) {
-            keys.add(keyFromFile(keyFile));
+            SecretKey key = keyFromFile(keyFile);
+            if (!key.isExpired(clock)) {
+                keys.add(key);
+            }
         }
         return keys;
     }
@@ -171,19 +198,22 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
             private final String privateKeyAlgorithm;
             private final String publicKey;
             private final String publicKeyAlgorithm;
+            private final Long expiresAtMs;
 
             JsonKey(
                     Key.Level level,
                     byte[] privateKey,
                     String privateKeyAlgorithm,
                     byte[] publicKey,
-                    String publicKeyAlgorithm) {
+                    String publicKeyAlgorithm,
+                    Long expiresAtMs) {
 
                 this.level = level;
                 this.privateKey = Base58.encode(privateKey);
                 this.privateKeyAlgorithm = privateKeyAlgorithm;
                 this.publicKey = Base58.encode(publicKey);
                 this.publicKeyAlgorithm = publicKeyAlgorithm;
+                this.expiresAtMs = expiresAtMs;
             }
         }
 
@@ -196,7 +226,8 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
                     key.getPrivateKey().getEncoded(),
                     key.getPrivateKey().getAlgorithm(),
                     key.getPublicKey().getEncoded(),
-                    key.getPublicKey().getAlgorithm());
+                    key.getPublicKey().getAlgorithm(),
+                    key.getExpiresAtMs());
 
             return gson.toJson(jsonKey);
         }
@@ -218,7 +249,8 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
                 return SecretKey.create(
                         keyId,
                         jsonKey.level,
-                        new KeyPair(publicKey, privateKey));
+                        new KeyPair(publicKey, privateKey),
+                        jsonKey.expiresAtMs);
             } catch (GeneralSecurityException e) {
                 throw new KeyIOException("Unable to decode key: " + keyId, e);
             }

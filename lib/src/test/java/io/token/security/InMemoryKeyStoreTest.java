@@ -1,8 +1,9 @@
 package io.token.security;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static org.assertj.core.api.Assertions.assertThat;
 
-import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.util.Clock;
 
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
@@ -11,8 +12,8 @@ import org.junit.Test;
 
 public class InMemoryKeyStoreTest extends KeyStoreTest {
     @Override
-    KeyStore createKeyStore() {
-        return new InMemoryKeyStore();
+    KeyStore createKeyStore(Clock clock) {
+        return new InMemoryKeyStore(clock);
     }
 
     @Test
@@ -23,7 +24,7 @@ public class InMemoryKeyStoreTest extends KeyStoreTest {
 
         InMemoryKeyStore store = new InMemoryKeyStore();
 
-        SecretKey laptop = SecretKey.create("laptop", Level.STANDARD, keyPair);
+        SecretKey laptop = SecretKey.create("laptop", STANDARD, keyPair);
         store.put("steve", laptop);
         assertThat(store.listKeys("steve").size()).isEqualTo(1);
 

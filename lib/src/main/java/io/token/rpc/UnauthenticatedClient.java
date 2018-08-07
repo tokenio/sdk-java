@@ -27,13 +27,13 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.TOKEN;
-import static io.token.util.Util.TOKEN_REALM;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.NotifyResult;
 import io.token.TokenRequest;
 import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
@@ -49,6 +49,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
+import io.token.proto.common.notification.NotificationProtos.EndorseAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
 import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.NotifyBody;
@@ -64,12 +65,12 @@ import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
-import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
-import io.token.proto.gateway.Gateway.GetDefaultAgentResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
-import io.token.proto.gateway.Gateway.GetTokenIdRequest;
-import io.token.proto.gateway.Gateway.GetTokenIdResponse;
+import io.token.proto.gateway.Gateway.GetTokenRequestResultRequest;
+import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
+import io.token.proto.gateway.Gateway.InvalidateNotificationRequest;
+import io.token.proto.gateway.Gateway.InvalidateNotificationResponse;
 import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
@@ -78,6 +79,8 @@ import io.token.proto.gateway.Gateway.ResolveAliasRequest;
 import io.token.proto.gateway.Gateway.ResolveAliasResponse;
 import io.token.proto.gateway.Gateway.RetrieveTokenRequestRequest;
 import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
+import io.token.proto.gateway.Gateway.TriggerEndorseAndAddKeyNotificationRequest;
+import io.token.proto.gateway.Gateway.TriggerEndorseAndAddKeyNotificationResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -110,15 +113,13 @@ public final class UnauthenticatedClient {
      * Checks if a given alias already exists.
      *
      * @param alias alias to check
-     * @param realm realm of the alias
      * @return {@code true} if alias already exists, {@code false} otherwise
      */
-    public Observable<Boolean> aliasExists(Alias alias, String realm) {
+    public Observable<Boolean> aliasExists(Alias alias) {
         return toObservable(gateway
                 .resolveAlias(ResolveAliasRequest
                         .newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .build()))
                 .map(new Function<ResolveAliasResponse, Boolean>() {
                     public Boolean apply(ResolveAliasResponse response) {
@@ -131,21 +132,19 @@ public final class UnauthenticatedClient {
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
-     * @param realm realm of the alias
      * @return member id, or throws exception if member not found
      */
-    public Observable<String> getMemberId(final Alias alias, final String realm) {
+    public Observable<String> getMemberId(final Alias alias) {
         return toObservable(
                 gateway.resolveAlias(ResolveAliasRequest.newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .build()))
                 .map(new Function<ResolveAliasResponse, String>() {
                     public String apply(ResolveAliasResponse response) {
                         if (response.hasMember()) {
                             return response.getMember().getId();
                         } else {
-                            throw new MemberNotFoundException(alias, realm);
+                            throw new MemberNotFoundException(alias);
                         }
                     }
                 });
@@ -248,18 +247,15 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that accounts should be linked.
      *
      * @param alias alias of the member
-     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccounts(
             Alias alias,
-            String realm,
             BankAuthorization authorization) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccounts(LinkAccounts.newBuilder()
                                         .setBankAuthorization(authorization)
@@ -277,20 +273,17 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that a key should be added.
      *
      * @param alias alias of the member
-     * @param realm  realm of the member
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyAddKey(
             Alias alias,
-            String realm,
             String name,
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(AddKey.newBuilder()
                                         .setName(name)
@@ -309,7 +302,6 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that a key should be added.
      *
      * @param alias alias of the member
-     * @param realm realm of the alias
      * @param authorization the bank authorization for the funding account
      * @param name device/client name, e.g. iPhone, Chrome Browser, etc
      * @param key the that needs an approval
@@ -317,14 +309,12 @@ public final class UnauthenticatedClient {
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
             Alias alias,
-            String realm,
             BankAuthorization authorization,
             String name,
             Key key) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
-                        .setRealm(realm)
                         .setBody(NotifyBody.newBuilder()
                                 .setLinkAccountsAndAddKey(LinkAccountsAndAddKey.newBuilder()
                                         .setLinkAccounts(LinkAccounts.newBuilder()
@@ -373,6 +363,52 @@ public final class UnauthenticatedClient {
     @Deprecated
     public Observable<NotifyStatus> notifyPaymentRequest(Alias alias, TokenPayload tokenPayload) {
         return notifyPaymentRequest(tokenPayload);
+    }
+
+    /**
+     * Notifies subscribed devices that a token payload should be endorsed and keys should be
+     * added.
+     *
+     * @param tokenPayload the token payload to be sent
+     * @param addKey the add key payload to be sent
+     * @return notify result of the notification request
+     */
+    public Observable<NotifyResult> notifyEndorseAndAddKey(
+            TokenPayload tokenPayload,
+            AddKey addKey) {
+        return toObservable(gateway.triggerEndorseAndAddKeyNotification(
+                TriggerEndorseAndAddKeyNotificationRequest.newBuilder()
+                        .setEndorseAndAddKey(EndorseAndAddKey.newBuilder()
+                                .setPayload(tokenPayload)
+                                .setAddKey(addKey)
+                                .build())
+                        .build()))
+                .map(new Function<TriggerEndorseAndAddKeyNotificationResponse, NotifyResult>() {
+                    public NotifyResult apply(
+                            TriggerEndorseAndAddKeyNotificationResponse response) {
+                        return NotifyResult.create(
+                                response.getNotificationId(),
+                                response.getStatus());
+                    }
+                });
+    }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
+        return toObservable(gateway.invalidateNotification(
+                InvalidateNotificationRequest.newBuilder()
+                        .setNotificationId(notificationId)
+                        .build()))
+                .map(new Function<InvalidateNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(InvalidateNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 
     /**
@@ -639,7 +675,7 @@ public final class UnauthenticatedClient {
      * @return token member
      */
     public Observable<Member> getTokenMember() {
-        return getMemberId(TOKEN, TOKEN_REALM).flatMap(
+        return getMemberId(TOKEN).flatMap(
                 new Function<String, Observable<Member>>() {
                     @Override
                     public Observable<Member> apply(String memberId) throws Exception {
@@ -656,12 +692,12 @@ public final class UnauthenticatedClient {
      */
     public Observable<String> getTokenId(String tokenRequestId) {
         return toObservable(gateway
-                .getTokenId(GetTokenIdRequest.newBuilder()
+                .getTokenRequestResult(GetTokenRequestResultRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()))
-                .map(new Function<GetTokenIdResponse, String>() {
+                .map(new Function<GetTokenRequestResultResponse, String>() {
                     @Override
-                    public String apply(GetTokenIdResponse response) throws Exception {
+                    public String apply(GetTokenRequestResultResponse response) throws Exception {
                         return response.getTokenId();
                     }
                 });
