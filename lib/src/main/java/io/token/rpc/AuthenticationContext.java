@@ -24,6 +24,8 @@ package io.token.rpc;
 
 import io.token.proto.common.security.SecurityProtos.Key;
 
+import javax.annotation.Nullable;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -33,17 +35,18 @@ import org.slf4j.LoggerFactory;
  */
 public class AuthenticationContext {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationContext.class);
-    private static final ThreadLocal<String> onBehalfOf = new ThreadLocal<>();
     private static final ThreadLocal<Key.Level> keyLevel = new ThreadLocal<>();
     private static final ThreadLocal<Boolean> customerInitiated = new ThreadLocal<>();
+    private static String onBehalfOf = null;
 
     /**
      * Retrieves the On-Behalf-Of value.
      *
      * @return the current On-Behalf-Of value
      */
+    @Nullable
     public static String getOnBehalfOf() {
-        return onBehalfOf.get();
+        return onBehalfOf;
     }
 
     /**
@@ -80,7 +83,7 @@ public class AuthenticationContext {
      */
     public static void setOnBehalfOf(String tokenId) {
         logger.info("Authenticated On-Behalf-Of: {}", tokenId);
-        onBehalfOf.set(tokenId);
+        onBehalfOf = tokenId;
     }
 
     /**
@@ -104,12 +107,9 @@ public class AuthenticationContext {
     /**
      * Retrieves and clears an On-Behalf-Of value.
      *
-     * @return an On-Behalf-Of value or null
      */
-    public static String clearOnBehalfOf() {
-        String tokenId = onBehalfOf.get();
-        onBehalfOf.remove();
-        return tokenId;
+    public static void clearOnBehalfOf() {
+        onBehalfOf = null;
     }
 
     /**
@@ -127,7 +127,7 @@ public class AuthenticationContext {
      * Resets the authenticator.
      */
     public static void clear() {
-        onBehalfOf.remove();
+        onBehalfOf = null;
         keyLevel.set(Key.Level.LOW);
         customerInitiated.remove();
     }
