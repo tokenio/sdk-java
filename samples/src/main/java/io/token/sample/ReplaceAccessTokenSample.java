@@ -2,11 +2,10 @@ package io.token.sample;
 
 import io.token.AccessTokenBuilder;
 import io.token.Member;
+import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-
-import java.util.Optional;
 
 /**
  * Working with existing access tokens: finding and replacing.
@@ -15,19 +14,17 @@ public final class ReplaceAccessTokenSample {
     /**
      * Finds a previously-created access token from grantor to grantee.
      *
+     * @param tokenIO initialized SDK
      * @param grantor Token member granting access to her accounts
      * @param granteeAlias Token member alias acquiring information access
      * @return an access Token
      */
-    public static Optional<Token> findAccessToken(Member grantor, Alias granteeAlias) {
-        for (Token token : grantor.getAccessTokens(null, 100)
-                .getList()) {
-            Alias toAlias = token.getPayload().getTo().getAlias();
-            if (toAlias.equals(granteeAlias)) {
-                return Optional.of(token);
-            }
-        }
-        return Optional.empty();
+    public static Token findAccessToken(
+            TokenIO tokenIO,
+            Member grantor,
+            Alias granteeAlias) {
+        String granteeMemberId = tokenIO.getMemberId(granteeAlias);
+        return grantor.getActiveAccessToken(granteeMemberId);
     }
 
     /**

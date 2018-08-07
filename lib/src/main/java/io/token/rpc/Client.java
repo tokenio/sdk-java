@@ -100,6 +100,8 @@ import io.token.proto.gateway.Gateway.GetAccountRequest;
 import io.token.proto.gateway.Gateway.GetAccountResponse;
 import io.token.proto.gateway.Gateway.GetAccountsRequest;
 import io.token.proto.gateway.Gateway.GetAccountsResponse;
+import io.token.proto.gateway.Gateway.GetActiveAccessTokenRequest;
+import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
 import io.token.proto.gateway.Gateway.GetAddressRequest;
 import io.token.proto.gateway.Gateway.GetAddressResponse;
 import io.token.proto.gateway.Gateway.GetAddressesRequest;
@@ -703,6 +705,26 @@ public final class Client {
                         .build()))
                 .map(new Function<GetTokenResponse, Token>() {
                     public Token apply(GetTokenResponse response) {
+                        return response.getToken();
+                    }
+                });
+    }
+
+    /**
+     * Looks up a existing access token where the calling member is the grantor and given member is
+     * the grantee.
+     *
+     * @param toMemberId beneficiary of the active access token
+     * @return token returned by the server
+     */
+    public Observable<Token> getActiveAccessToken(String toMemberId) {
+        return toObservable(gateway
+                .getActiveAccessToken(GetActiveAccessTokenRequest
+                        .newBuilder()
+                        .setToMemberId(toMemberId)
+                        .build()))
+                .map(new Function<GetActiveAccessTokenResponse, Token>() {
+                    public Token apply(GetActiveAccessTokenResponse response) {
                         return response.getToken();
                     }
                 });
