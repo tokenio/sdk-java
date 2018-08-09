@@ -69,7 +69,7 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 Long.toString(now));
         metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
 
-        String onBehalfOf = AuthenticationContext.getOnBehalfOf();
+        String onBehalfOf = AuthenticationContext.clearOnBehalfOf();
         if (!Strings.isNullOrEmpty(onBehalfOf)) {
             metadata.put(
                     Metadata.Key.of("token-on-behalf-of", ASCII_STRING_MARSHALLER),
