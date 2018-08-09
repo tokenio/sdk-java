@@ -202,7 +202,6 @@ public final class Client {
     private final String memberId;
     private final CryptoEngine crypto;
     private final GatewayServiceFutureStub gateway;
-    private String onBehalfOf;
 
     /**
      * This is generally the same key that is used for authentication.
@@ -239,7 +238,7 @@ public final class Client {
      * @param customerInitiated whether the customer initiated the calls
      */
     public void useAccessToken(String accessTokenId, boolean customerInitiated) {
-        this.onBehalfOf = accessTokenId;
+        AuthenticationContext.setOnBehalfOf(accessTokenId);
         AuthenticationContext.setCustomerInitiated(customerInitiated);
     }
 
@@ -247,7 +246,7 @@ public final class Client {
      * Clears the On-Behalf-Of value used with this client.
      */
     public void clearAccessToken() {
-        this.onBehalfOf = null;
+        AuthenticationContext.clearOnBehalfOf();
         AuthenticationContext.setCustomerInitiated(false);
     }
 
@@ -550,7 +549,6 @@ public final class Client {
      * @return account info
      */
     public Observable<Account> getAccount(String accountId) {
-        setOnBehalfOf();
         return toObservable(gateway
                 .getAccount(GetAccountRequest
                         .newBuilder()
@@ -569,7 +567,6 @@ public final class Client {
      * @return list of linked accounts
      */
     public Observable<List<Account>> getAccounts() {
-        setOnBehalfOf();
         return toObservable(gateway
                 .getAccounts(GetAccountsRequest
                         .newBuilder()
@@ -901,7 +898,6 @@ public final class Client {
      * @return account balance
      */
     public Observable<Balance> getBalance(String accountId, Key.Level keyLevel) {
-        setOnBehalfOf();
         setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
@@ -928,7 +924,6 @@ public final class Client {
      * @return list of balances
      */
     public Observable<List<Balance>> getBalances(List<String> accountIds, Key.Level keyLevel) {
-        setOnBehalfOf();
         setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
@@ -1037,7 +1032,6 @@ public final class Client {
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
-        setOnBehalfOf();
         setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
@@ -1071,7 +1065,6 @@ public final class Client {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        setOnBehalfOf();
         setRequestSignerKeyLevel(keyLevel);
 
         return toObservable(gateway
@@ -1187,7 +1180,6 @@ public final class Client {
      * @return an address record
      */
     public Observable<AddressRecord> getAddress(String addressId) {
-        setOnBehalfOf();
         return toObservable(gateway
                 .getAddress(GetAddressRequest
                         .newBuilder()
@@ -1206,7 +1198,6 @@ public final class Client {
      * @return a list of addresses
      */
     public Observable<List<AddressRecord>> getAddresses() {
-        setOnBehalfOf();
         return toObservable(gateway
                 .getAddresses(GetAddressesRequest
                         .newBuilder()
@@ -1593,7 +1584,6 @@ public final class Client {
      * @return completable
      */
     public Completable deleteMember() {
-        setOnBehalfOf();
         setRequestSignerKeyLevel(PRIVILEGED);
         return toCompletable(gateway.deleteMember(DeleteMemberRequest.getDefaultInstance()));
     }
@@ -1625,12 +1615,6 @@ public final class Client {
 
     public CryptoEngine getCryptoEngine() {
         return crypto;
-    }
-
-    private void setOnBehalfOf() {
-        if (onBehalfOf != null) {
-            AuthenticationContext.setOnBehalfOf(onBehalfOf);
-        }
     }
 
     private void setRequestSignerKeyLevel(Key.Level keyLevel) {
