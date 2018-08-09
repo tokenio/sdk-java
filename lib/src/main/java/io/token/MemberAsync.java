@@ -232,6 +232,16 @@ public class MemberAsync {
     }
 
     /**
+     * Act as another member using an granted access token.
+     *
+     * @param tokenId the token id
+     * @return a delegate member that acts as the grantor of the access token
+     */
+    public DelegateMemberAsync actAs(String tokenId) {
+        return new DelegateMemberAsync(this.clone(), tokenId);
+    }
+
+    /**
      * Adds a new alias for the member.
      *
      * @param alias alias, e.g. 'john', must be unique
@@ -1387,6 +1397,11 @@ public class MemberAsync {
      */
     public TokenCluster getTokenCluster() {
         return cluster;
+    }
+
+    @Override
+    protected MemberAsync clone() {
+        return new MemberAsync(member.build(), client.clone(), cluster, browserFactory);
     }
 
     @Override

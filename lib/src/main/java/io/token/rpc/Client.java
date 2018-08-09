@@ -202,6 +202,7 @@ public final class Client {
     private final String memberId;
     private final CryptoEngine crypto;
     private final GatewayServiceFutureStub gateway;
+    private boolean customerInitiated = false;
     private String onBehalfOf;
 
     /**
@@ -240,7 +241,7 @@ public final class Client {
      */
     public void useAccessToken(String accessTokenId, boolean customerInitiated) {
         this.onBehalfOf = accessTokenId;
-        AuthenticationContext.setCustomerInitiated(customerInitiated);
+        this.customerInitiated = customerInitiated;
     }
 
     /**
@@ -248,7 +249,7 @@ public final class Client {
      */
     public void clearAccessToken() {
         this.onBehalfOf = null;
-        AuthenticationContext.setCustomerInitiated(false);
+        this.customerInitiated = false;
     }
 
     /**
@@ -1627,9 +1628,15 @@ public final class Client {
         return crypto;
     }
 
+    @Override
+    public Client clone() {
+        return new Client(memberId, crypto, gateway);
+    }
+
     private void setOnBehalfOf() {
         if (onBehalfOf != null) {
             AuthenticationContext.setOnBehalfOf(onBehalfOf);
+            AuthenticationContext.setCustomerInitiated(customerInitiated);
         }
     }
 

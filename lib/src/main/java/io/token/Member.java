@@ -166,6 +166,16 @@ public class Member {
     }
 
     /**
+     * Act as another member using an granted access token.
+     *
+     * @param tokenId the token id
+     * @return a delegate member that acts as the grantor of the access token
+     */
+    public DelegateMember actAs(String tokenId) {
+        return new DelegateMember(this.clone(), tokenId);
+    }
+
+    /**
      * Adds a new alias for the member.
      *
      * @param alias alias, e.g. 'john', must be unique
@@ -1116,6 +1126,11 @@ public class Member {
      */
     public void deleteMember()  {
         async.deleteMember().blockingAwait();
+    }
+
+    @Override
+    protected Member clone() {
+        return new Member(async.clone());
     }
 
     @Override
