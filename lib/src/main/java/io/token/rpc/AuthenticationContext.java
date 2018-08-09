@@ -36,7 +36,7 @@ import org.slf4j.LoggerFactory;
 public class AuthenticationContext {
     private static final Logger logger = LoggerFactory.getLogger(AuthenticationContext.class);
     private static final ThreadLocal<Key.Level> keyLevel = new ThreadLocal<>();
-    private static final ThreadLocal<Boolean> customerInitiated = new ThreadLocal<>();
+    private static boolean customerInitiated = false;
     private static String onBehalfOf = null;
 
     /**
@@ -68,12 +68,7 @@ public class AuthenticationContext {
      * @return flag
      */
     public static boolean getCustomerInitiated() {
-        Boolean flag = customerInitiated.get();
-        if (flag == null) {
-            return false;
-        }
-
-        return flag;
+        return customerInitiated;
     }
 
     /**
@@ -101,7 +96,7 @@ public class AuthenticationContext {
      * @param flag flag
      */
     public static void setCustomerInitiated(boolean flag) {
-        customerInitiated.set(flag);
+        customerInitiated = flag;
     }
 
     /**
@@ -129,6 +124,6 @@ public class AuthenticationContext {
     public static void clear() {
         onBehalfOf = null;
         keyLevel.set(Key.Level.LOW);
-        customerInitiated.remove();
+        customerInitiated = false;
     }
 }
