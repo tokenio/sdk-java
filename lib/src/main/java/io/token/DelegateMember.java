@@ -120,6 +120,6 @@ public class DelegateMember {
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
-        return getTransaction(accountId, transactionId, keyLevel);
+        return member.getTransaction(accountId, transactionId, keyLevel);
     }
 }
