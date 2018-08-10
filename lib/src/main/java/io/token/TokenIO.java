@@ -50,6 +50,7 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
+import io.token.tokenrequest.TokenRequestResult;
 
 import java.io.Closeable;
 import java.util.List;
@@ -596,13 +597,13 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Get a token ID based on a token's tokenRequestId.
+     * Get the token request result based on a token's tokenRequestId.
      *
      * @param tokenRequestId token request id
-     * @return token id
+     * @return token request result
      */
-    public String getTokenId(String tokenRequestId) {
-        return async.getTokenId(tokenRequestId).blockingSingle();
+    public TokenRequestResult getTokenRequestResult(String tokenRequestId) {
+        return async.getTokenRequestResult(tokenRequestId).blockingSingle();
     }
 
     /**

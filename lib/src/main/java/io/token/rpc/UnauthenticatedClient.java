@@ -87,6 +87,7 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.tokenrequest.TokenRequestResult;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -685,20 +686,22 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Get a token ID based on a token's tokenRequestId.
+     * Get the token request result based on a token's tokenRequestId.
      *
      * @param tokenRequestId token request id
-     * @return token id
+     * @return token request result
      */
-    public Observable<String> getTokenId(String tokenRequestId) {
+    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
         return toObservable(gateway
                 .getTokenRequestResult(GetTokenRequestResultRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()))
-                .map(new Function<GetTokenRequestResultResponse, String>() {
+                .map(new Function<GetTokenRequestResultResponse, TokenRequestResult>() {
                     @Override
-                    public String apply(GetTokenRequestResultResponse response) throws Exception {
-                        return response.getTokenId();
+                    public TokenRequestResult apply(GetTokenRequestResultResponse response)  {
+                        return TokenRequestResult.create(
+                                response.getTokenId(),
+                                response.getSignature());
                     }
                 });
     }

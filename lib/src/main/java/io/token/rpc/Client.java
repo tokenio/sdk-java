@@ -1554,15 +1554,20 @@ public final class Client {
     /**
      * Sign with a Token signature a token request state payload.
      *
+     * @param tokenRequestId token request id
      * @param tokenId token id
      * @param state state
      * @return signature
      */
-    public Observable<Signature> signTokenRequestState(String tokenId, String state) {
+    public Observable<Signature> signTokenRequestState(
+            String tokenRequestId,
+            String tokenId,
+            String state) {
         return toObservable(gateway.signTokenRequestState(SignTokenRequestStateRequest.newBuilder()
                 .setPayload(TokenRequestStatePayload.newBuilder()
                         .setTokenId(tokenId)
                         .setState(state))
+                .setTokenRequestId(tokenRequestId)
                 .build()))
                 .map(new Function<SignTokenRequestStateResponse, Signature>() {
                     public Signature apply(SignTokenRequestStateResponse response) {
