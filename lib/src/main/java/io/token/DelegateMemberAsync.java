@@ -38,8 +38,8 @@ import javax.annotation.Nullable;
 public class DelegateMemberAsync {
     private final MemberAsync member;
 
-    public DelegateMemberAsync(MemberAsync member, String tokenId) {
-        this.member = member;
+    DelegateMemberAsync(MemberAsync member, String tokenId) {
+        this.member = member.clone();
         this.member.useAccessToken(tokenId);
     }
 

@@ -37,8 +37,8 @@ import javax.annotation.Nullable;
 public class DelegateMember {
     private final Member member;
 
-    public DelegateMember(Member member, String tokenId) {
-        this.member = member;
+    DelegateMember(Member member, String tokenId) {
+        this.member = member.clone();
         this.member.useAccessToken(tokenId);
     }
 

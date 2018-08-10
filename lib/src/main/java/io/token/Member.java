@@ -172,7 +172,7 @@ public class Member {
      * @return a delegate member that acts as the grantor of the access token
      */
     public DelegateMember actAs(String tokenId) {
-        return new DelegateMember(this.clone(), tokenId);
+        return new DelegateMember(this, tokenId);
     }
 
     /**

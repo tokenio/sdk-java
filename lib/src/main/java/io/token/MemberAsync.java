@@ -238,7 +238,7 @@ public class MemberAsync {
      * @return a delegate member that acts as the grantor of the access token
      */
     public DelegateMemberAsync actAs(String tokenId) {
-        return new DelegateMemberAsync(this.clone(), tokenId);
+        return new DelegateMemberAsync(this, tokenId);
     }
 
     /**
