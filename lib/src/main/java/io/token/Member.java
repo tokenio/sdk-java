@@ -142,6 +142,7 @@ public class Member implements Representable {
      *
      * @param accessTokenId the access token id
      */
+    @Deprecated
     public void useAccessToken(String accessTokenId) {
         this.async.useAccessToken(accessTokenId);
     }
@@ -154,6 +155,7 @@ public class Member implements Representable {
      * @param accessTokenId the access token id
      * @param customerInitiated whether the request is customer initiated
      */
+    @Deprecated
     public void useAccessToken(String accessTokenId, boolean customerInitiated) {
         this.async.useAccessToken(accessTokenId, customerInitiated);
     }
@@ -161,20 +163,33 @@ public class Member implements Representable {
     /**
      * Clears the access token value used with this client.
      */
+    @Deprecated
     public void clearAccessToken() {
         this.async.clearAccessToken();
     }
 
     /**
-     * Act as another member using an granted access token.
+     * Creates a {@link Representable} that acts as another member using the access token
+     * that was granted by that member.
      *
      * @param tokenId the token id
-     * @return a delegate member that acts as the grantor of the access token
+     * @return the {@link Representable}
      */
     public Representable forAccessToken(String tokenId) {
-        Member cloned = this.clone();
-        cloned.useAccessToken(tokenId);
-        return cloned;
+        return forAccessToken(tokenId, false);
+    }
+
+    /**
+     * Creates a {@link Representable} that acts as another member using the access token
+     * that was granted by that member.
+     *
+     * @param tokenId the token id
+     * @param customerInitiated whether the call is initiated by the customer
+     * @return the {@link Representable}
+     */
+    public Representable forAccessToken(String tokenId, boolean customerInitiated) {
+        MemberAsync cloned = (MemberAsync) async.forAccessToken(tokenId, customerInitiated);
+        return new Member(cloned);
     }
 
     /**
@@ -1128,11 +1143,6 @@ public class Member implements Representable {
      */
     public void deleteMember()  {
         async.deleteMember().blockingAwait();
-    }
-
-    @Override
-    protected Member clone() {
-        return new Member(async.clone());
     }
 
     @Override

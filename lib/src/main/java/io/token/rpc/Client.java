@@ -247,6 +247,7 @@ public final class Client {
     /**
      * Clears the On-Behalf-Of value used with this client.
      */
+    @Deprecated
     public void clearAccessToken() {
         this.onBehalfOf = null;
         this.customerInitiated = false;
