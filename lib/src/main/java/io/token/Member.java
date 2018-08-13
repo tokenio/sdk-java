@@ -69,7 +69,7 @@ import javax.annotation.Nullable;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public class Member {
+public class Member implements Representable {
     private final MemberAsync async;
 
     /**
@@ -171,8 +171,10 @@ public class Member {
      * @param tokenId the token id
      * @return a delegate member that acts as the grantor of the access token
      */
-    public DelegateMember actAs(String tokenId) {
-        return new DelegateMember(this, tokenId);
+    public Representable forAccessToken(String tokenId) {
+        Member cloned = this.clone();
+        cloned.useAccessToken(tokenId);
+        return cloned;
     }
 
     /**

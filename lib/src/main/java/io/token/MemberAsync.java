@@ -105,7 +105,7 @@ import org.slf4j.LoggerFactory;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public class MemberAsync {
+public class MemberAsync implements RepresentableAsync {
     private static final Logger logger = LoggerFactory.getLogger(MemberAsync.class);
 
     private final Client client;
@@ -237,8 +237,10 @@ public class MemberAsync {
      * @param tokenId the token id
      * @return a delegate member that acts as the grantor of the access token
      */
-    public DelegateMemberAsync actAs(String tokenId) {
-        return new DelegateMemberAsync(this, tokenId);
+    public RepresentableAsync forAccessToken(String tokenId) {
+        MemberAsync cloned = this.clone();
+        cloned.useAccessToken(tokenId);
+        return cloned;
     }
 
     /**

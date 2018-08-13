@@ -22,34 +22,24 @@
 
 package io.token;
 
+import static io.token.proto.common.member.MemberProtos.AddressRecord;
+import static io.token.proto.common.security.SecurityProtos.Key;
+import static io.token.proto.common.transaction.TransactionProtos.Balance;
+import static io.token.proto.common.transaction.TransactionProtos.Transaction;
+
+import io.reactivex.Observable;
 import io.token.proto.PagedList;
-import io.token.proto.common.member.MemberProtos.AddressRecord;
-import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.transaction.TransactionProtos.Balance;
-import io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import java.util.List;
 import javax.annotation.Nullable;
 
-/**
- * Acts as another member by using a granted access token.
- */
-public class DelegateMember {
-    private final Member member;
-
-    DelegateMember(Member member, String tokenId) {
-        this.member = member.clone();
-        this.member.useAccessToken(tokenId);
-    }
-
+public interface RepresentableAsync {
     /**
      * Looks up member addresses.
      *
      * @return a list of addresses
      */
-    public List<AddressRecord> getAddresses() {
-        return member.getAddresses();
-    }
+    public Observable<List<AddressRecord>> getAddresses();
 
     /**
      * Looks up an address by id.
@@ -57,18 +47,14 @@ public class DelegateMember {
      * @param addressId the address id
      * @return an address record
      */
-    public AddressRecord getAddress(String addressId) {
-        return member.getAddress(addressId);
-    }
+    public Observable<AddressRecord> getAddress(String addressId);
 
     /**
-     * Looks up funding bank accounts linked to Token.
+     * Links a funding bank account to Token and returns it to the caller.
      *
-     * @return list of linked accounts
+     * @return list of accounts
      */
-    public List<Account> getAccounts() {
-        return member.getAccounts();
-    }
+    public Observable<List<AccountAsync>> getAccounts();
 
     /**
      * Looks up a funding bank account linked to Token.
@@ -76,20 +62,16 @@ public class DelegateMember {
      * @param accountId account id
      * @return looked up account
      */
-    public Account getAccount(String accountId) {
-        return member.getAccount(accountId);
-    }
+    public Observable<AccountAsync> getAccount(String accountId);
 
     /**
      * Looks up account balance.
      *
-     * @param accountId account id
+     * @param accountId the account id
      * @param keyLevel key level
      * @return balance
      */
-    public Balance getBalance(String accountId, Key.Level keyLevel) {
-        return member.getBalance(accountId, keyLevel);
-    }
+    public Observable<Balance> getBalance(String accountId, Key.Level keyLevel);
 
     /**
      * Looks up transactions for a given account.
@@ -98,15 +80,13 @@ public class DelegateMember {
      * @param offset optional offset to start at
      * @param limit max number of records to return
      * @param keyLevel key level
-     * @return paged list of transactions
+     * @return a paged list of transaction records
      */
-    public PagedList<Transaction, String> getTransactions(
+    public Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
             @Nullable String offset,
             int limit,
-            Key.Level keyLevel) {
-        return member.getTransactions(accountId, offset, limit, keyLevel);
-    }
+            Key.Level keyLevel);
 
     /**
      * Looks up an existing transaction for a given account.
@@ -114,12 +94,10 @@ public class DelegateMember {
      * @param accountId the account id
      * @param transactionId ID of the transaction
      * @param keyLevel key level
-     * @return transaction
+     * @return transaction record
      */
-    public Transaction getTransaction(
+    public Observable<Transaction> getTransaction(
             String accountId,
             String transactionId,
-            Key.Level keyLevel) {
-        return member.getTransaction(accountId, transactionId, keyLevel);
-    }
+            Key.Level keyLevel);
 }
