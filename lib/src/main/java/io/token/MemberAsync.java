@@ -254,6 +254,10 @@ public class MemberAsync implements RepresentableAsync {
      * @return the {@link RepresentableAsync}
      */
     public RepresentableAsync forAccessToken(String tokenId, boolean customerInitiated) {
+        return forAccessTokenInternal(tokenId, customerInitiated);
+    }
+
+    MemberAsync forAccessTokenInternal(String tokenId, boolean customerInitiated) {
         Client cloned = client.clone();
         cloned.useAccessToken(tokenId, customerInitiated);
         return new MemberAsync(member.build(), cloned, cluster, browserFactory);

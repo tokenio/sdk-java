@@ -188,8 +188,8 @@ public class Member implements Representable {
      * @return the {@link Representable}
      */
     public Representable forAccessToken(String tokenId, boolean customerInitiated) {
-        MemberAsync cloned = (MemberAsync) async.forAccessToken(tokenId, customerInitiated);
-        return new Member(cloned);
+        MemberAsync async = this.async.forAccessTokenInternal(tokenId, customerInitiated);
+        return new Member(async);
     }
 
     /**
