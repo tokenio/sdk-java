@@ -72,6 +72,7 @@ import io.token.security.InMemoryKeyStore;
 import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 import io.token.tokenrequest.TokenRequestCallbackParameters;
+import io.token.tokenrequest.TokenRequestResult;
 import io.token.tokenrequest.TokenRequestState;
 
 import java.io.Closeable;
@@ -744,13 +745,13 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Get a token ID based on a token's tokenRequestId.
+     * Get the token request result based on a token's tokenRequestId.
      *
      * @param tokenRequestId token request id
-     * @return token id
+     * @return token request result
      */
-    public Observable<String> getTokenId(String tokenRequestId) {
+    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenId(tokenRequestId);
+        return unauthenticated.getTokenRequestResult(tokenRequestId);
     }
 }
