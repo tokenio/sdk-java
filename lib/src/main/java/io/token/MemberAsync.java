@@ -39,6 +39,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -93,6 +94,7 @@ import io.token.util.Util;
 
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -582,6 +584,7 @@ public class MemberAsync implements RepresentableAsync {
 
     /**
      * Links accounts by navigating browser through bank authorization pages.
+     * Returns empty list if the linking process is cancelled from the browser.
      *
      * @param bankId the bank id
      * @return observable list of linked accounts
@@ -639,6 +642,12 @@ public class MemberAsync implements RepresentableAsync {
                                                     public void accept(Throwable ex) {
                                                         emitter.onError(ex);
                                                         browser.close();
+                                                    }
+                                                },
+                                                new Action() {
+                                                    @Override
+                                                    public void run() {
+                                                        emitter.onSuccess(Collections.EMPTY_LIST);
                                                     }
                                                 });
                                 String linkingUrl = bankInfo.getBankLinkingUri();
