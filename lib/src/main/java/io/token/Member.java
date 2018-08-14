@@ -132,7 +132,7 @@ public class Member implements Representable {
      * @return list of public keys that are approved for this member
      */
     public List<Key> keys() {
-        return async.keys();
+        return async.getKeys().blockingSingle();
     }
 
     /**

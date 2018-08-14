@@ -198,8 +198,24 @@ public class MemberAsync implements RepresentableAsync {
      *
      * @return list of public keys that are approved for this member
      */
+    @Deprecated
     public List<Key> keys() {
         return member.getKeysList();
+    }
+
+    /**
+     * Gets all public keys for this member.
+     *
+     * @return list of public keys that are approved for this member
+     */
+    public Observable<List<Key>> getKeys() {
+        return client.getMember(memberId())
+                .map(new Function<MemberProtos.Member, List<Key>>() {
+                    @Override
+                    public List<Key> apply(MemberProtos.Member updated) throws Exception {
+                        return member.clear().mergeFrom(updated).getKeysList();
+                    }
+                });
     }
 
     /**
