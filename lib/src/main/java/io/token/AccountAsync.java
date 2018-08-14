@@ -133,7 +133,7 @@ public class AccountAsync {
      *
      * @return the account.
      */
-    public AccountProtos.Account protoAccount() {
+    public AccountProtos.Account toProto() {
         return account;
     }
 
