@@ -105,7 +105,7 @@ import org.slf4j.LoggerFactory;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public class MemberAsync {
+public class MemberAsync implements RepresentableAsync {
     private static final Logger logger = LoggerFactory.getLogger(MemberAsync.class);
 
     private final Client client;
@@ -207,6 +207,7 @@ public class MemberAsync {
      *
      * @param accessTokenId the access token id
      */
+    @Deprecated
     public void useAccessToken(String accessTokenId) {
         this.client.useAccessToken(accessTokenId);
     }
@@ -220,6 +221,7 @@ public class MemberAsync {
      * @param accessTokenId the access token id
      * @param customerInitiated whether the request is customer initiated
      */
+    @Deprecated
     public void useAccessToken(String accessTokenId, boolean customerInitiated) {
         this.client.useAccessToken(accessTokenId, customerInitiated);
     }
@@ -227,8 +229,38 @@ public class MemberAsync {
     /**
      * Clears the access token id from the authentication context used with this client.
      */
+    @Deprecated
     public void clearAccessToken() {
         this.client.clearAccessToken();
+    }
+
+    /**
+     * Creates a {@link RepresentableAsync} that acts as another member using the access token
+     * that was granted by that member.
+     *
+     * @param tokenId the token id
+     * @return the {@link RepresentableAsync}
+     */
+    public RepresentableAsync forAccessToken(String tokenId) {
+        return forAccessToken(tokenId, false);
+    }
+
+    /**
+     * Creates a {@link RepresentableAsync} that acts as another member using the access token
+     * that was granted by that member.
+     *
+     * @param tokenId the token id
+     * @param customerInitiated whether the call is initiated by the customer
+     * @return the {@link RepresentableAsync}
+     */
+    public RepresentableAsync forAccessToken(String tokenId, boolean customerInitiated) {
+        return forAccessTokenInternal(tokenId, customerInitiated);
+    }
+
+    MemberAsync forAccessTokenInternal(String tokenId, boolean customerInitiated) {
+        Client cloned = client.clone();
+        cloned.useAccessToken(tokenId, customerInitiated);
+        return new MemberAsync(member.build(), cloned, cluster, browserFactory);
     }
 
     /**
