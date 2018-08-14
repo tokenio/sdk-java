@@ -33,6 +33,9 @@ import io.token.proto.PagedList;
 import java.util.List;
 import javax.annotation.Nullable;
 
+/**
+ * Represents the part of a token member that can be accessed through an access token.
+ */
 public interface RepresentableAsync {
     /**
      * Looks up member addresses.
