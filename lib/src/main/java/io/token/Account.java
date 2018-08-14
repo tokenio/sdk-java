@@ -122,8 +122,8 @@ public class Account {
      *
      * @return the account.
      */
-    public AccountProtos.Account protoAccount() {
-        return async.protoAccount();
+    public AccountProtos.Account toProto() {
+        return async.toProto();
     }
 
     /**
