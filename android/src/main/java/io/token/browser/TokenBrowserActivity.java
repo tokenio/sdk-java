@@ -14,6 +14,7 @@ import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
 import static io.token.browser.TokenBrowserService.MSG_CLOSE;
+import static io.token.browser.TokenBrowserService.MSG_COMPLETE;
 import static io.token.browser.TokenBrowserService.MSG_GO_TO;
 import static io.token.browser.TokenBrowserService.MSG_KEY_SID;
 import static io.token.browser.TokenBrowserService.MSG_KEY_URL;
@@ -71,6 +72,13 @@ public class TokenBrowserActivity extends Activity {
     }
 
     @Override
+    public void onBackPressed() {
+        Bundle data = new Bundle(1);
+        data.putString(MSG_KEY_SID, sessionId);
+        messenger.send(MSG_COMPLETE, data);
+    }
+
+    @Override
     protected void onStop() {
         super.onStop();
         messenger.stop();
@@ -83,7 +91,7 @@ public class TokenBrowserActivity extends Activity {
     }
 
     @Override
-    public void onConfigurationChanged(Configuration newConfig){
+    public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
     }
 

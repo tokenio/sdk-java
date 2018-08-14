@@ -22,11 +22,13 @@ import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
 
 import static io.token.browser.TokenBrowserService.MSG_CLOSE;
+import static io.token.browser.TokenBrowserService.MSG_COMPLETE;
 import static io.token.browser.TokenBrowserService.MSG_GO_TO;
 import static io.token.browser.TokenBrowserService.MSG_KEY_SID;
 import static io.token.browser.TokenBrowserService.MSG_KEY_URL;
 import static io.token.browser.TokenBrowserService.MSG_ON_URL;
 import static io.token.browser.TokenBrowserService.MSG_REGISTER_CLIENT;
+import static io.token.browser.TokenBrowserService.MSG_UNREGISTER_CLIENT;
 
 public class TokenBrowserFactory implements BrowserFactory {
     private Context parent;
@@ -141,6 +143,11 @@ public class TokenBrowserFactory implements BrowserFactory {
                         browser.onUrl(url);
                     }
                     break;
+                case MSG_COMPLETE:
+                    browser = browsers.get(sessionId);
+                    if (browser != null) {
+                        browser.close();
+                    }
                 default:
                     super.handleMessage(msg);
             }
