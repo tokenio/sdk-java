@@ -166,7 +166,7 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * @see TokenIOAsync#createMember(Alias, CreateMemberType, String).
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
      *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
