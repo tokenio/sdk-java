@@ -589,7 +589,7 @@ public final class Client {
      *
      * @param payload transfer token payload
      * @param options map of options
-     * @param userRefId user ref id
+     * @param userRefId (optional) user ref id
      * @return id to reference token request
      */
     public Observable<String> storeTokenRequest(

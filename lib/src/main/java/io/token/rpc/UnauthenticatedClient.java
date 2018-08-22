@@ -23,6 +23,7 @@
 package io.token.rpc;
 
 import static com.google.common.base.Strings.emptyToNull;
+import static com.google.common.base.Strings.nullToEmpty;
 import static io.token.proto.common.alias.AliasProtos.VerificationStatus.SUCCESS;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
@@ -175,13 +176,17 @@ public final class UnauthenticatedClient {
      * Creates new member ID. After the method returns the ID is reserved on the server.
      *
      * @param memberType the type of member to register
+     * @param tokenRequestId (optional) token request id
      * @return newly created member id
      */
-    public Observable<String> createMemberId(CreateMemberType memberType) {
+    public Observable<String> createMemberId(
+            CreateMemberType memberType,
+            @Nullable String tokenRequestId) {
         return
                 toObservable(gateway.createMember(CreateMemberRequest.newBuilder()
                         .setNonce(generateNonce())
                         .setMemberType(memberType)
+                        .setTokenRequestId(nullToEmpty(tokenRequestId))
                         .build()))
                         .map(new Function<CreateMemberResponse, String>() {
                             public String apply(CreateMemberResponse response) {
