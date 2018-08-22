@@ -173,5 +173,4 @@ public abstract class TokenRequest {
         getOptions().put(option.getName(), value);
         return this;
     }
-
 }
