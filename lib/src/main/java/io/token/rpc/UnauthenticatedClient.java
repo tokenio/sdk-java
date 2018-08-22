@@ -22,6 +22,7 @@
 
 package io.token.rpc;
 
+import static com.google.common.base.Strings.emptyToNull;
 import static io.token.proto.common.alias.AliasProtos.VerificationStatus.SUCCESS;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
@@ -237,9 +238,20 @@ public final class UnauthenticatedClient {
                     public TokenRequest apply(
                             RetrieveTokenRequestResponse retrieveTokenRequestResponse)
                             throws Exception {
-                        return TokenRequest.create(
-                                retrieveTokenRequestResponse.getTokenRequest().getPayload(),
-                                retrieveTokenRequestResponse.getTokenRequest().getOptionsMap());
+                        return TokenRequest
+                                .newBuilder(
+                                        retrieveTokenRequestResponse
+                                                .getTokenRequest()
+                                                .getPayload())
+                                .setOptions(
+                                        retrieveTokenRequestResponse
+                                                .getTokenRequest()
+                                                .getOptionsMap())
+                                .setUserRefId(
+                                        emptyToNull(retrieveTokenRequestResponse
+                                                .getTokenRequest()
+                                                .getUserRefId()))
+                                .build();
                     }
                 });
     }

@@ -23,6 +23,7 @@
 package io.token;
 
 import com.google.auto.value.AutoValue;
+import io.reactivex.annotations.Nullable;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 
 import java.util.HashMap;
@@ -51,24 +52,101 @@ public abstract class TokenRequest {
         }
     }
 
+    public abstract TokenPayload getTokenPayload();
+
+    public abstract Map<String, String> getOptions();
+
+    @Nullable public abstract String getUserRefId();
+
+    public String getOption(TokenRequestOptions option) {
+        return getOptions().get(option.getName());
+    }
+
+    /**
+     * Create a new Builder instance from an access token.
+     *
+     * @param accessTokenBuilder access token builder
+     * @return Builder instance
+     */
+    public static Builder newBuilder(AccessTokenBuilder accessTokenBuilder) {
+        return new Builder(accessTokenBuilder.build());
+    }
+
+    /**
+     * Create a new Builder instance from a transfer token.
+     *
+     * @param transferTokenBuilder transfer token builder
+     * @return Builder instance
+     */
+    public static Builder newBuilder(TransferTokenBuilder transferTokenBuilder) {
+        return new Builder(transferTokenBuilder.buildPayload());
+    }
+
+    /**
+     * Create a new Builder instance from a token payload.
+     *
+     * @param tokenPayload token payload
+     * @return Builder instance
+     */
+    public static Builder newBuilder(TokenPayload tokenPayload) {
+        return new Builder(tokenPayload);
+    }
+
+    public static class Builder {
+        private TokenPayload tokenPayload;
+        private Map<String, String> options;
+        private String userRefId;
+
+        Builder(TokenPayload tokenPayload) {
+            this.tokenPayload = tokenPayload;
+            this.options = new HashMap<>();
+        }
+
+        public Builder setOption(TokenRequestOptions option, String value) {
+            options.put(option.getName(), value);
+            return this;
+        }
+
+        public Builder setOptions(Map<String, String> options) {
+            this.options.putAll(options);
+            return this;
+        }
+
+        public Builder setUserRefId(String userRefId) {
+            this.userRefId = userRefId;
+            return this;
+        }
+
+        public TokenRequest build() {
+            return new AutoValue_TokenRequest(tokenPayload, options, userRefId);
+        }
+    }
+
+    // Deprecated constructor methods
+
+    @Deprecated
     public static TokenRequest create(AccessTokenBuilder accessTokenBuilder) {
         return TokenRequest.create(accessTokenBuilder.build(), null);
     }
 
+    @Deprecated
     public static TokenRequest create(TransferTokenBuilder transferTokenBuilder) {
         return TokenRequest.create(transferTokenBuilder.buildPayload(), null);
     }
 
+    @Deprecated
     public static TokenRequest create(TokenPayload payload) {
         return TokenRequest.create(payload, null);
     }
 
+    @Deprecated
     public static TokenRequest create(
             AccessTokenBuilder accessTokenBuilder,
             Map<String, String> options) {
         return TokenRequest.create(accessTokenBuilder.build(), options);
     }
 
+    @Deprecated
     public static TokenRequest create(
             TransferTokenBuilder transferTokenBuilder,
             Map<String, String> options) {
@@ -82,23 +160,18 @@ public abstract class TokenRequest {
      * @param options options map
      * @return token request
      */
+    @Deprecated
     public static TokenRequest create(TokenPayload payload, Map<String, String> options) {
         if (options == null) {
             options = new HashMap<>();
         }
-        return new AutoValue_TokenRequest(payload, options);
+        return new AutoValue_TokenRequest(payload, options, null);
     }
 
-    public abstract TokenPayload getTokenPayload();
-
-    public abstract Map<String, String> getOptions();
-
-    public String getOption(TokenRequestOptions option) {
-        return getOptions().get(option.getName());
-    }
-
+    @Deprecated
     public TokenRequest setOption(TokenRequestOptions option, String value) {
         getOptions().put(option.getName(), value);
         return this;
     }
+
 }
