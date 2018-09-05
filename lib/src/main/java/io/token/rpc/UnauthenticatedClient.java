@@ -248,7 +248,7 @@ public final class UnauthenticatedClient {
                                         retrieveTokenRequestResponse
                                                 .getTokenRequest()
                                                 .getPayload())
-                                .setOptions(
+                                .addAllOptions(
                                         retrieveTokenRequestResponse
                                                 .getTokenRequest()
                                                 .getOptionsMap())
