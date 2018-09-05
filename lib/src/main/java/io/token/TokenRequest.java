@@ -102,12 +102,12 @@ public abstract class TokenRequest {
             this.options = new HashMap<>();
         }
 
-        public Builder setOption(TokenRequestOptions option, String value) {
+        public Builder addOption(TokenRequestOptions option, String value) {
             options.put(option.getName(), value);
             return this;
         }
 
-        public Builder setOptions(Map<String, String> options) {
+        public Builder addAllOptions(Map<String, String> options) {
             this.options.putAll(options);
             return this;
         }
