@@ -960,13 +960,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
-     * Stores an token request. This can be retrieved later by the token request id.
+     * Stores a token request. This can be retrieved later by the token request id.
      *
      * @param tokenRequest token request
      * @return token request id
      */
     public Observable<String> storeTokenRequest(TokenRequest tokenRequest) {
-        return client.storeTokenRequest(tokenRequest.getTokenPayload(), tokenRequest.getOptions());
+        return client.storeTokenRequest(
+                tokenRequest.getTokenPayload(),
+                tokenRequest.getOptions(),
+                tokenRequest.getUserRefId());
     }
 
     /**

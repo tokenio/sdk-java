@@ -192,6 +192,19 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Creates a new transient Token member and claims it for the creator of the token request
+     * corresponding to the given token request ID.
+     *
+     * @param tokenRequestId token request id
+     * @return newly created member
+     */
+    public Member createClaimedMember(String tokenRequestId) {
+        return async.createClaimedMember(tokenRequestId)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
      * Creates a new business-use Token member with a set of auto-generated keys and alias.
      *
      * @param alias alias to associated with member

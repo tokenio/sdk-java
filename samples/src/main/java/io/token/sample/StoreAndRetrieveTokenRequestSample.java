@@ -28,10 +28,11 @@ public final class StoreAndRetrieveTokenRequestSample {
                         .setToMemberId(payee.memberId()); // redeemer member id
 
         // Create a TokenRequest to be stored
-        TokenRequest request = TokenRequest.create(tokenBuilder)
-                .setOption(ALIAS, "payer-alias@token.io") // user alias
-                .setOption(BANK_ID, "iron") // bank id
-                .setOption(REDIRECT_URL, "https://token.io/callback"); // callback url
+        TokenRequest request = TokenRequest.newBuilder(tokenBuilder)
+                .addOption(ALIAS, "payer-alias@token.io") // user alias
+                .addOption(BANK_ID, "iron") // bank id
+                .addOption(REDIRECT_URL, "https://token.io/callback") // callback url
+                .build();
 
         // Store token request
         return payee.storeTokenRequest(request);
@@ -48,11 +49,12 @@ public final class StoreAndRetrieveTokenRequestSample {
         AccessTokenBuilder tokenBuilder = AccessTokenBuilder.create(grantee.memberId()).forAll();
 
         // Create a TokenRequest to be stored
-        TokenRequest request = TokenRequest.create(tokenBuilder)
+        TokenRequest request = TokenRequest.newBuilder(tokenBuilder)
                 // Configure options for the TokenRequest
-                .setOption(ALIAS, "user-alias@token.io")
-                .setOption(BANK_ID, "iron")
-                .setOption(REDIRECT_URL, "https://token.io/callback");
+                .addOption(ALIAS, "user-alias@token.io")
+                .addOption(BANK_ID, "iron")
+                .addOption(REDIRECT_URL, "https://token.io/callback")
+                .build();
 
         return grantee.storeTokenRequest(request);
     }

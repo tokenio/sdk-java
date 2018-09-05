@@ -25,6 +25,7 @@ package io.token;
 import static io.token.TokenIO.TokenCluster;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
+import static io.token.proto.common.member.MemberProtos.CreateMemberType.TRANSIENT;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -173,11 +174,28 @@ public class TokenIOAsync implements Closeable {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(
+            Alias alias,
+            CreateMemberType memberType) {
+        return createMember(alias, memberType, null);
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param memberType the type of member to register
+     * @param tokenRequestId (optional) token request id. If used, then the member will be claimed
+     *     by the creator of the corresponding token request. Only works if memberType == TRANSIENT.
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createMember(
             final Alias alias,
-            final CreateMemberType memberType) {
+            final CreateMemberType memberType,
+            @Nullable final String tokenRequestId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .createMemberId(memberType)
+                .createMemberId(memberType, tokenRequestId)
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
                     public Observable<MemberProtos.Member> apply(final String memberId) {
                         return unauthenticated.getDefaultAgent()
@@ -234,7 +252,7 @@ public class TokenIOAsync implements Closeable {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember() {
-        return createMember(null, PERSONAL);
+        return createMember(null, PERSONAL, null);
     }
 
     /**
@@ -244,7 +262,18 @@ public class TokenIOAsync implements Closeable {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(Alias alias) {
-        return createMember(alias, PERSONAL);
+        return createMember(alias, PERSONAL, null);
+    }
+
+    /**
+     * Creates a new transient Token member and claims it for the creator of the token request
+     * corresponding to the given token request ID.
+     *
+     * @param tokenRequestId token request id
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createClaimedMember(String tokenRequestId) {
+        return createMember(null, TRANSIENT, tokenRequestId);
     }
 
     /**
@@ -254,7 +283,7 @@ public class TokenIOAsync implements Closeable {
      * @return newly created member
      */
     public Observable<MemberAsync> createBusinessMember(Alias alias) {
-        return createMember(alias, BUSINESS);
+        return createMember(alias, BUSINESS, null);
     }
 
     /**

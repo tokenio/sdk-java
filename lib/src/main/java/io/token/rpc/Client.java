@@ -22,6 +22,7 @@
 
 package io.token.rpc;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
@@ -588,14 +589,17 @@ public final class Client {
      *
      * @param payload transfer token payload
      * @param options map of options
+     * @param userRefId (optional) user ref id
      * @return id to reference token request
      */
     public Observable<String> storeTokenRequest(
             TokenPayload payload,
-            Map<String, String> options) {
+            Map<String, String> options,
+            @Nullable String userRefId) {
         return toObservable(gateway.storeTokenRequest(StoreTokenRequestRequest.newBuilder()
                 .setPayload(payload)
                 .putAllOptions(options)
+                .setUserRefId(nullToEmpty(userRefId))
                 .build()))
                 .map(new Function<StoreTokenRequestResponse, String>() {
                     @Override
