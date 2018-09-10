@@ -28,7 +28,6 @@ import static io.token.TokenIO.TokenCluster.SANDBOX;
 
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
-import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.VerificationException;
@@ -187,6 +186,24 @@ public class TokenIO implements Closeable {
      */
     public Member createMember(Alias alias) {
         return async.createMember(alias)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Instantiates a member given a specific ID of a member that already exists in the system. If
+     * the member ID already has keys, this will not succeed. Used mostly for testing since this
+     * gives more control over the member creation process.
+     *
+     * <p>Adds an alias and a set of auto-generated keys to the member.</p>
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member
+     * @param memberId member id
+     * @return newly created member
+     */
+    public Member createMember(final Alias alias, final String memberId) {
+        return async().createMember(alias, memberId)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
