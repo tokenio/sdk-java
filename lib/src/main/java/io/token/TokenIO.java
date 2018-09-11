@@ -351,13 +351,26 @@ public class TokenIO implements Closeable {
      * @param tokenPayload the token payload to be sent
      * @param keys keys to be added
      * @param deviceMetadata device metadata of the keys
+     * @param tokenRequestId optional token request id
+     * @param bankId optional bank id
+     * @param state optional token request state for signing
      * @return notify result of the notification request
      */
     public NotifyResult notifyEndorseAndAddKey(
             TokenPayload tokenPayload,
             List<Key> keys,
-            DeviceMetadata deviceMetadata) {
-        return async.notifyEndorseAndAddKey(tokenPayload, keys, deviceMetadata).blockingSingle();
+            DeviceMetadata deviceMetadata,
+            @Nullable String tokenRequestId,
+            @Nullable String bankId,
+            @Nullable String state) {
+        return async.notifyEndorseAndAddKey(
+                tokenPayload,
+                keys,
+                deviceMetadata,
+                tokenRequestId,
+                bankId,
+                state)
+                .blockingSingle();
     }
 
     /**

@@ -452,19 +452,28 @@ public class TokenIOAsync implements Closeable {
      * @param tokenPayload the token payload to be sent
      * @param keys keys to be added
      * @param deviceMetadata device metadata of the keys
+     * @param tokenRequestId optional token request id
+     * @param bankId optional bank id
+     * @param state optional token request state for signing
      * @return notify result of the notification request
      */
     public Observable<NotifyResult> notifyEndorseAndAddKey(
             TokenPayload tokenPayload,
             List<Key> keys,
-            DeviceMetadata deviceMetadata) {
+            DeviceMetadata deviceMetadata,
+            @Nullable String tokenRequestId,
+            @Nullable String bankId,
+            @Nullable String state) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.notifyEndorseAndAddKey(
                 tokenPayload,
                 AddKey.newBuilder()
                         .addAllKeys(keys)
                         .setDeviceMetadata(deviceMetadata)
-                        .build());
+                        .build(),
+                tokenRequestId,
+                bankId,
+                state);
     }
 
     /**
