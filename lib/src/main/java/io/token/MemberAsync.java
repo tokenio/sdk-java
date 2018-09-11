@@ -1455,7 +1455,7 @@ public class MemberAsync implements RepresentableAsync {
 
     @Override
     public int hashCode() {
-        return member.getId().hashCode();
+        return client.hashCode();
     }
 
     @Override
@@ -1465,7 +1465,8 @@ public class MemberAsync implements RepresentableAsync {
         }
 
         MemberAsync other = (MemberAsync) obj;
-        return member.build().equals(other.member.build());
+        return member.build().equals(other.member.build())
+                && client.equals(other.client);
     }
 
     @Override

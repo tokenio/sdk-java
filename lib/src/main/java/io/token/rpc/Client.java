@@ -1639,6 +1639,22 @@ public final class Client {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Client)) {
+            return false;
+        }
+
+        Client other = (Client) obj;
+        return memberId.equals(other.memberId)
+                && Util.compare(onBehalfOf, other.onBehalfOf);
+    }
+
+    @Override
+    public int hashCode() {
+        return (memberId + (onBehalfOf == null ? "" : onBehalfOf)).hashCode();
+    }
+
+    @Override
     public Client clone() {
         return new Client(memberId, crypto, gateway);
     }
