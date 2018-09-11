@@ -42,6 +42,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
@@ -198,14 +199,55 @@ public class TokenIOAsync implements Closeable {
                 .createMemberId(memberType, tokenRequestId)
                 .flatMap(new Function<String, Observable<MemberAsync>>() {
                     public Observable<MemberAsync> apply(String memberId) {
-                        return createMember(alias, memberId);
+                        return setupMember(alias, memberId);
                     }
                 });
     }
 
     /**
-     * Instantiates a member given a specific ID of a member that already exists in the system. If
-     * the member ID already has keys, this will not succeed. Used mostly for testing since this
+     * Creates a new personal-use Token member with a set of auto-generated keys and no alias.
+     *
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createMember() {
+        return createMember(null, PERSONAL, null);
+    }
+
+    /**
+     * Creates a new personal-use Token member with a set of auto-generated keys and and an alias.
+     *
+     * @param alias alias to associate with member
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createMember(Alias alias) {
+        return createMember(alias, PERSONAL, null);
+    }
+
+    /**
+     * Creates a new transient Token member and claims it for the creator of the token request
+     * corresponding to the given token request ID.
+     *
+     * @param tokenRequestId token request id
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createClaimedMember(String tokenRequestId) {
+        return createMember(null, TRANSIENT, tokenRequestId);
+    }
+
+    /**
+     * Creates a new business-use Token member with a set of auto-generated keys and alias.
+     *
+     * @param alias alias to associated with member
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createBusinessMember(Alias alias) {
+        return createMember(alias, BUSINESS, null);
+    }
+
+
+    /**
+     * Sets up a member given a specific ID of a member that already exists in the system. If
+     * the member ID already has keys, this will not succeed. Used for testing since this
      * gives more control over the member creation process.
      *
      * <p>Adds an alias and a set of auto-generated keys to the member.</p>
@@ -215,7 +257,8 @@ public class TokenIOAsync implements Closeable {
      * @param memberId member id
      * @return newly created member
      */
-    public Observable<MemberAsync> createMember(final Alias alias, final String memberId) {
+    @VisibleForTesting
+    public Observable<MemberAsync> setupMember(final Alias alias, final String memberId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getDefaultAgent()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
@@ -260,46 +303,6 @@ public class TokenIOAsync implements Closeable {
                                 browserFactory));
                     }
                 });
-    }
-
-    /**
-     * Creates a new personal-use Token member with a set of auto-generated keys and no alias.
-     *
-     * @return newly created member
-     */
-    public Observable<MemberAsync> createMember() {
-        return createMember(null, PERSONAL, null);
-    }
-
-    /**
-     * Creates a new personal-use Token member with a set of auto-generated keys and and an alias.
-     *
-     * @param alias alias to associate with member
-     * @return newly created member
-     */
-    public Observable<MemberAsync> createMember(Alias alias) {
-        return createMember(alias, PERSONAL, null);
-    }
-
-    /**
-     * Creates a new transient Token member and claims it for the creator of the token request
-     * corresponding to the given token request ID.
-     *
-     * @param tokenRequestId token request id
-     * @return newly created member
-     */
-    public Observable<MemberAsync> createClaimedMember(String tokenRequestId) {
-        return createMember(null, TRANSIENT, tokenRequestId);
-    }
-
-    /**
-     * Creates a new business-use Token member with a set of auto-generated keys and alias.
-     *
-     * @param alias alias to associated with member
-     * @return newly created member
-     */
-    public Observable<MemberAsync> createBusinessMember(Alias alias) {
-        return createMember(alias, BUSINESS, null);
     }
 
     /**

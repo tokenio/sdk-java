@@ -26,6 +26,7 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.token.TokenIO.TokenCluster.SANDBOX;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
@@ -191,24 +192,6 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Instantiates a member given a specific ID of a member that already exists in the system. If
-     * the member ID already has keys, this will not succeed. Used mostly for testing since this
-     * gives more control over the member creation process.
-     *
-     * <p>Adds an alias and a set of auto-generated keys to the member.</p>
-     *
-     * @param alias nullable member alias to use, must be unique. If null, then no alias will
-     *     be created with the member
-     * @param memberId member id
-     * @return newly created member
-     */
-    public Member createMember(final Alias alias, final String memberId) {
-        return async().createMember(alias, memberId)
-                .map(new MemberFunction())
-                .blockingSingle();
-    }
-
-    /**
      * Creates a new transient Token member and claims it for the creator of the token request
      * corresponding to the given token request ID.
      *
@@ -229,6 +212,25 @@ public class TokenIO implements Closeable {
      */
     public Member createBusinessMember(Alias alias) {
         return async.createBusinessMember(alias)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
+     * Sets up a member given a specific ID of a member that already exists in the system. If
+     * the member ID already has keys, this will not succeed. Used mostly for testing since this
+     * gives more control over the member creation process.
+     *
+     * <p>Adds an alias and a set of auto-generated keys to the member.</p>
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member
+     * @param memberId member id
+     * @return newly created member
+     */
+    @VisibleForTesting
+    public Member setupMember(final Alias alias, final String memberId) {
+        return async().setupMember(alias, memberId)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
