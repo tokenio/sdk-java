@@ -380,13 +380,13 @@ public abstract class Util {
     }
 
     /**
-     * Compare two nullable strings.
+     * Compares two nullable objects.
      *
-     * @param str1 string 1
-     * @param str2 string 2
+     * @param obj1 object 1
+     * @param obj2 object 2
      * @return a boolean
      */
-    public static boolean compare(String str1, String str2) {
-        return (str1 == null ? str2 == null : str1.equals(str2));
+    public static boolean compare(Object obj1, Object obj2) {
+        return (obj1 == null ? obj2 == null : obj1.equals(obj2));
     }
 }
