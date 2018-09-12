@@ -378,4 +378,15 @@ public abstract class Util {
             }
         });
     }
+
+    /**
+     * Compares two nullable objects.
+     *
+     * @param obj1 object 1
+     * @param obj2 object 2
+     * @return a boolean
+     */
+    public static boolean compare(Object obj1, Object obj2) {
+        return (obj1 == null ? obj2 == null : obj1.equals(obj2));
+    }
 }
