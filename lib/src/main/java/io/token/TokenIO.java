@@ -26,9 +26,9 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.token.TokenIO.TokenCluster.SANDBOX;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
-import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.VerificationException;
@@ -217,6 +217,25 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Sets up a member given a specific ID of a member that already exists in the system. If
+     * the member ID already has keys, this will not succeed. Used mostly for testing since this
+     * gives more control over the member creation process.
+     *
+     * <p>Adds an alias and a set of auto-generated keys to the member.</p>
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member
+     * @param memberId member id
+     * @return newly created member
+     */
+    @VisibleForTesting
+    public Member setupMember(final Alias alias, final String memberId) {
+        return async().setupMember(alias, memberId)
+                .map(new MemberFunction())
+                .blockingSingle();
+    }
+
+    /**
      * Provisions a new device for an existing user. The call generates a set
      * of keys that are returned back. The keys need to be approved by an
      * existing device/keys.
@@ -332,13 +351,26 @@ public class TokenIO implements Closeable {
      * @param tokenPayload the token payload to be sent
      * @param keys keys to be added
      * @param deviceMetadata device metadata of the keys
+     * @param tokenRequestId optional token request id
+     * @param bankId optional bank id
+     * @param state optional token request state for signing
      * @return notify result of the notification request
      */
     public NotifyResult notifyEndorseAndAddKey(
             TokenPayload tokenPayload,
             List<Key> keys,
-            DeviceMetadata deviceMetadata) {
-        return async.notifyEndorseAndAddKey(tokenPayload, keys, deviceMetadata).blockingSingle();
+            DeviceMetadata deviceMetadata,
+            @Nullable String tokenRequestId,
+            @Nullable String bankId,
+            @Nullable String state) {
+        return async.notifyEndorseAndAddKey(
+                tokenPayload,
+                keys,
+                deviceMetadata,
+                tokenRequestId,
+                bankId,
+                state)
+                .blockingSingle();
     }
 
     /**

@@ -42,6 +42,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
@@ -196,52 +197,9 @@ public class TokenIOAsync implements Closeable {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType, tokenRequestId)
-                .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
-                    public Observable<MemberProtos.Member> apply(final String memberId) {
-                        return unauthenticated.getDefaultAgent()
-                                .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
-                                    public Observable<MemberProtos.Member> apply(String agentId) {
-                                        CryptoEngine crypto = cryptoFactory.create(memberId);
-                                        List<MemberOperation> operations = new ArrayList<>();
-                                        operations.add(
-                                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
-                                        operations.add(
-                                                toAddKeyOperation(crypto.generateKey(STANDARD)));
-                                        operations.add(
-                                                toAddKeyOperation(crypto.generateKey(LOW)));
-                                        operations.add(toRecoveryAgentOperation(agentId));
-
-                                        if (alias != null) {
-                                            operations.add(toAddAliasOperation(
-                                                    normalizeAlias(alias)));
-                                        }
-                                        List<MemberOperationMetadata> metadata = alias == null
-                                                ? Collections.<MemberOperationMetadata>emptyList()
-                                                : singletonList(toAddAliasOperationMetadata(
-                                                        normalizeAlias(alias)));
-                                        Signer signer = crypto.createSigner(PRIVILEGED);
-                                        return unauthenticated.createMember(
-                                                memberId,
-                                                operations,
-                                                metadata,
-                                                signer);
-                                    }
-                                });
-
-                    }
-                })
-                .flatMap(new Function<MemberProtos.Member, Observable<MemberAsync>>() {
-                    public Observable<MemberAsync> apply(MemberProtos.Member member) {
-                        CryptoEngine crypto = cryptoFactory.create(member.getId());
-                        Client client = ClientFactory.authenticated(
-                                channel,
-                                member.getId(),
-                                crypto);
-                        return Observable.just(new MemberAsync(
-                                member,
-                                client,
-                                tokenCluster,
-                                browserFactory));
+                .flatMap(new Function<String, Observable<MemberAsync>>() {
+                    public Observable<MemberAsync> apply(String memberId) {
+                        return setupMember(alias, memberId);
                     }
                 });
     }
@@ -284,6 +242,67 @@ public class TokenIOAsync implements Closeable {
      */
     public Observable<MemberAsync> createBusinessMember(Alias alias) {
         return createMember(alias, BUSINESS, null);
+    }
+
+
+    /**
+     * Sets up a member given a specific ID of a member that already exists in the system. If
+     * the member ID already has keys, this will not succeed. Used for testing since this
+     * gives more control over the member creation process.
+     *
+     * <p>Adds an alias and a set of auto-generated keys to the member.</p>
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member
+     * @param memberId member id
+     * @return newly created member
+     */
+    @VisibleForTesting
+    public Observable<MemberAsync> setupMember(final Alias alias, final String memberId) {
+        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getDefaultAgent()
+                .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
+                    public Observable<MemberProtos.Member> apply(String agentId) {
+                        CryptoEngine crypto = cryptoFactory.create(memberId);
+                        List<MemberOperation> operations = new ArrayList<>();
+                        operations.add(
+                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
+                        operations.add(
+                                toAddKeyOperation(crypto.generateKey(STANDARD)));
+                        operations.add(
+                                toAddKeyOperation(crypto.generateKey(LOW)));
+                        operations.add(toRecoveryAgentOperation(agentId));
+
+                        if (alias != null) {
+                            operations.add(toAddAliasOperation(
+                                    normalizeAlias(alias)));
+                        }
+                        List<MemberOperationMetadata> metadata = alias == null
+                                ? Collections.<MemberOperationMetadata>emptyList()
+                                : singletonList(toAddAliasOperationMetadata(
+                                        normalizeAlias(alias)));
+                        Signer signer = crypto.createSigner(PRIVILEGED);
+                        return unauthenticated.createMember(
+                                memberId,
+                                operations,
+                                metadata,
+                                signer);
+                    }
+                })
+                .flatMap(new Function<MemberProtos.Member, Observable<MemberAsync>>() {
+                    public Observable<MemberAsync> apply(MemberProtos.Member member) {
+                        CryptoEngine crypto = cryptoFactory.create(member.getId());
+                        Client client = ClientFactory.authenticated(
+                                channel,
+                                member.getId(),
+                                crypto);
+                        return Observable.just(new MemberAsync(
+                                member,
+                                client,
+                                tokenCluster,
+                                browserFactory));
+                    }
+                });
     }
 
     /**
@@ -433,19 +452,28 @@ public class TokenIOAsync implements Closeable {
      * @param tokenPayload the token payload to be sent
      * @param keys keys to be added
      * @param deviceMetadata device metadata of the keys
+     * @param tokenRequestId optional token request id
+     * @param bankId optional bank id
+     * @param state optional token request state for signing
      * @return notify result of the notification request
      */
     public Observable<NotifyResult> notifyEndorseAndAddKey(
             TokenPayload tokenPayload,
             List<Key> keys,
-            DeviceMetadata deviceMetadata) {
+            DeviceMetadata deviceMetadata,
+            @Nullable String tokenRequestId,
+            @Nullable String bankId,
+            @Nullable String state) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.notifyEndorseAndAddKey(
                 tokenPayload,
                 AddKey.newBuilder()
                         .addAllKeys(keys)
                         .setDeviceMetadata(deviceMetadata)
-                        .build());
+                        .build(),
+                tokenRequestId,
+                bankId,
+                state);
     }
 
     /**

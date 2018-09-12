@@ -389,16 +389,25 @@ public final class UnauthenticatedClient {
      *
      * @param tokenPayload the token payload to be sent
      * @param addKey the add key payload to be sent
+     * @param tokenRequestId optional token request id
+     * @param bankId optional bank id
+     * @param state optional token request state for signing
      * @return notify result of the notification request
      */
     public Observable<NotifyResult> notifyEndorseAndAddKey(
             TokenPayload tokenPayload,
-            AddKey addKey) {
+            AddKey addKey,
+            @Nullable String tokenRequestId,
+            @Nullable String bankId,
+            @Nullable String state) {
         return toObservable(gateway.triggerEndorseAndAddKeyNotification(
                 TriggerEndorseAndAddKeyNotificationRequest.newBuilder()
                         .setEndorseAndAddKey(EndorseAndAddKey.newBuilder()
                                 .setPayload(tokenPayload)
                                 .setAddKey(addKey)
+                                .setTokenRequestId(nullToEmpty(tokenRequestId))
+                                .setBankId(nullToEmpty(bankId))
+                                .setState(nullToEmpty(state))
                                 .build())
                         .build()))
                 .map(new Function<TriggerEndorseAndAddKeyNotificationResponse, NotifyResult>() {
