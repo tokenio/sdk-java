@@ -215,11 +215,11 @@ public final class AKSCryptoEngine implements CryptoEngine {
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                KeyStore.Entry entry = keyStore.getEntry(alias, null);
-                if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
-                    throw new RuntimeException("Invalid private key");
-                }
                 if (alias.startsWith(getAliasPrefix(keyLevel)) && !isExpired(alias)) {
+                    KeyStore.Entry entry = keyStore.getEntry(alias, null);
+                    if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
+                        throw new RuntimeException("Invalid private key");
+                    }
                     return entry;
                 }
             }
