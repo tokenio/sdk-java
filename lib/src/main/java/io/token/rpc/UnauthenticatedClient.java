@@ -50,6 +50,7 @@ import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.EndorseAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
@@ -392,6 +393,7 @@ public final class UnauthenticatedClient {
      * @param tokenRequestId optional token request id
      * @param bankId optional bank id
      * @param state optional token request state for signing
+     * @param receiptContact optional receipt contact
      * @return notify result of the notification request
      */
     public Observable<NotifyResult> notifyEndorseAndAddKey(
@@ -399,16 +401,21 @@ public final class UnauthenticatedClient {
             AddKey addKey,
             @Nullable String tokenRequestId,
             @Nullable String bankId,
-            @Nullable String state) {
+            @Nullable String state,
+            @Nullable ReceiptContact receiptContact) {
+        EndorseAndAddKey.Builder builder = EndorseAndAddKey.newBuilder()
+                .setPayload(tokenPayload)
+                .setAddKey(addKey)
+                .setTokenRequestId(nullToEmpty(tokenRequestId))
+                .setBankId(nullToEmpty(bankId))
+                .setState(nullToEmpty(state));
+
+        if (receiptContact != null) {
+            builder.setContact(receiptContact);
+        }
         return toObservable(gateway.triggerEndorseAndAddKeyNotification(
                 TriggerEndorseAndAddKeyNotificationRequest.newBuilder()
-                        .setEndorseAndAddKey(EndorseAndAddKey.newBuilder()
-                                .setPayload(tokenPayload)
-                                .setAddKey(addKey)
-                                .setTokenRequestId(nullToEmpty(tokenRequestId))
-                                .setBankId(nullToEmpty(bankId))
-                                .setState(nullToEmpty(state))
-                                .build())
+                        .setEndorseAndAddKey(builder.build())
                         .build()))
                 .map(new Function<TriggerEndorseAndAddKeyNotificationResponse, NotifyResult>() {
                     public NotifyResult apply(

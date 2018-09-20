@@ -59,6 +59,7 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -455,6 +456,7 @@ public class TokenIOAsync implements Closeable {
      * @param tokenRequestId optional token request id
      * @param bankId optional bank id
      * @param state optional token request state for signing
+     * @param receiptContact optional receipt contact
      * @return notify result of the notification request
      */
     public Observable<NotifyResult> notifyEndorseAndAddKey(
@@ -463,7 +465,8 @@ public class TokenIOAsync implements Closeable {
             DeviceMetadata deviceMetadata,
             @Nullable String tokenRequestId,
             @Nullable String bankId,
-            @Nullable String state) {
+            @Nullable String state,
+            @Nullable ReceiptContact receiptContact) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.notifyEndorseAndAddKey(
                 tokenPayload,
@@ -473,7 +476,8 @@ public class TokenIOAsync implements Closeable {
                         .build(),
                 tokenRequestId,
                 bankId,
-                state);
+                state,
+                receiptContact);
     }
 
     /**

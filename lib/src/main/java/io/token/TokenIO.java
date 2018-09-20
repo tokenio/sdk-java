@@ -39,6 +39,7 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -354,6 +355,7 @@ public class TokenIO implements Closeable {
      * @param tokenRequestId optional token request id
      * @param bankId optional bank id
      * @param state optional token request state for signing
+     * @param receiptContact optional receipt contact
      * @return notify result of the notification request
      */
     public NotifyResult notifyEndorseAndAddKey(
@@ -362,14 +364,16 @@ public class TokenIO implements Closeable {
             DeviceMetadata deviceMetadata,
             @Nullable String tokenRequestId,
             @Nullable String bankId,
-            @Nullable String state) {
+            @Nullable String state,
+            @Nullable ReceiptContact receiptContact) {
         return async.notifyEndorseAndAddKey(
                 tokenPayload,
                 keys,
                 deviceMetadata,
                 tokenRequestId,
                 bankId,
-                state)
+                state,
+                receiptContact)
                 .blockingSingle();
     }
 
