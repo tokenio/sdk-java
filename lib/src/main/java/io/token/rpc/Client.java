@@ -181,6 +181,7 @@ import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
+import io.token.proto.gateway.Gateway.VerifyTppMemberRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
@@ -1607,6 +1608,19 @@ public final class Client {
         setOnBehalfOf();
         setRequestSignerKeyLevel(PRIVILEGED);
         return toCompletable(gateway.deleteMember(DeleteMemberRequest.getDefaultInstance()));
+    }
+
+    /**
+     * Verifies an affiliated TPP.
+     *
+     * @param memberId member ID of the TPP to verify
+     * @return completable
+     */
+    public Completable verifyTppMember(String memberId) {
+        return toCompletable(gateway
+                .verifyTppMember(VerifyTppMemberRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()));
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(

@@ -1458,6 +1458,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Verifies an affiliated TPP.
+     *
+     * @param memberId member ID of the TPP to verify
+     * @return completable
+     */
+    public Completable verifyTppMember(String memberId) {
+        return client.verifyTppMember(memberId);
+    }
+
+    /**
      * Get the Token cluster, e.g. sandbox, production.
      *
      * @return Token cluster
