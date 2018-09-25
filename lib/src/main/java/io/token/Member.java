@@ -1151,8 +1151,8 @@ public class Member implements Representable {
      *
      * @param memberId member ID of the TPP to verify
      */
-    public void verifyTppMember(String memberId) {
-        async.verifyTppMember(memberId).blockingAwait();
+    public void verifyAffiliate(String memberId) {
+        async.verifyAffiliate(memberId).blockingAwait();
     }
 
     @Override

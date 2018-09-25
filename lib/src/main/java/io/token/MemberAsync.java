@@ -1463,8 +1463,8 @@ public class MemberAsync implements RepresentableAsync {
      * @param memberId member ID of the TPP to verify
      * @return completable
      */
-    public Completable verifyTppMember(String memberId) {
-        return client.verifyTppMember(memberId);
+    public Completable verifyAffiliate(String memberId) {
+        return client.verifyAffiliate(memberId);
     }
 
     /**
