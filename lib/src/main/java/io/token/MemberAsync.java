@@ -24,6 +24,7 @@ package io.token;
 
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
+import static io.token.util.Util.TOKEN_REALM;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
@@ -47,6 +48,7 @@ import io.token.TokenIO.TokenCluster;
 import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
+import io.token.exceptions.InvalidRealmException;
 import io.token.exceptions.NoAliasesFoundException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -301,6 +303,17 @@ public class MemberAsync implements RepresentableAsync {
         final List<MemberOperation> operations = new LinkedList<>();
         final List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliasList) {
+            String partnerId = member.getPartnerId();
+            if (!partnerId.isEmpty() && !partnerId.equals(TOKEN_REALM)) {
+                // Realm must equal member's partner ID if affiliated
+                if (!alias.getRealm().isEmpty() && !alias.getRealm().equals(partnerId)) {
+                    throw new InvalidRealmException(alias.getRealm(), partnerId);
+                }
+                alias = alias.toBuilder()
+                        .setRealm(partnerId)
+                        .build();
+            }
+
             operations.add(Util.toAddAliasOperation(normalizeAlias(alias)));
             metadata.add(Util.toAddAliasOperationMetadata(normalizeAlias(alias)));
         }
