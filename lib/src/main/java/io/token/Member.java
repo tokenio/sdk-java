@@ -1146,6 +1146,15 @@ public class Member implements Representable {
         async.deleteMember().blockingAwait();
     }
 
+    /**
+     * Verifies an affiliated TPP.
+     *
+     * @param memberId member ID of the TPP to verify
+     */
+    public void verifyAffiliate(String memberId) {
+        async.verifyAffiliate(memberId).blockingAwait();
+    }
+
     @Override
     public int hashCode() {
         return async.hashCode();
