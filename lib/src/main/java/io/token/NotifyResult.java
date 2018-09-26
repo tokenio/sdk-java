@@ -20,24 +20,25 @@
  * THE SOFTWARE.
  */
 
-package io.token.exceptions;
+package io.token;
 
-import static java.lang.String.format;
+import com.google.auto.value.AutoValue;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
-import io.token.proto.ProtoJson;
-import io.token.proto.common.alias.AliasProtos.Alias;
-
-public class MemberNotFoundException extends StatusRuntimeException {
+@AutoValue
+public abstract class NotifyResult {
     /**
-     * Member not found exception.
+     * Create token request.
      *
-     * @param alias alias
+     * @param notificationId notification id
+     * @param notifyStatus notify status
+     * @return notify result
      */
-    public MemberNotFoundException(Alias alias) {
-        super(Status.NOT_FOUND.withDescription(format(
-                "Member could not be resolved for alias %s",
-                ProtoJson.toJson(alias))));
+    public static NotifyResult create(String notificationId, NotifyStatus notifyStatus) {
+        return new AutoValue_NotifyResult(notificationId, notifyStatus);
     }
+
+    public abstract String getNotificationId();
+
+    public abstract NotifyStatus getNotifyStatus();
 }

@@ -20,7 +20,8 @@ import java.security.SignatureException;
 /**
  * Signs payloads using keys in the Android KeyStore.
  */
-public class AKSSigner implements Signer{
+public class AKSSigner implements Signer {
+    private static final String ALGORITHM = "SHA256withECDSA";
     private final Entry entry;
     private final Key.Level keyLevel;
     private final UserAuthenticationStore userAuthenticationStore;
@@ -73,7 +74,7 @@ public class AKSSigner implements Signer{
     public String sign(String payload) {
         Signature s = null;
         try {
-            s = Signature.getInstance("SHA256withECDSA");
+            s = Signature.getInstance(ALGORITHM);
             s.initSign(((PrivateKeyEntry) entry).getPrivateKey());
 
             // If this is a privileged signer / operation
@@ -100,5 +101,10 @@ public class AKSSigner implements Signer{
             }
             throw new RuntimeException(ex);
         }
+    }
+
+    @Override
+    public String getAlgorithm() {
+        return ALGORITHM;
     }
 }

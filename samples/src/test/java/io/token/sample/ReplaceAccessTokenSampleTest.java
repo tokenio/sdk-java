@@ -7,22 +7,15 @@ import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.randomAlias;
 import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatCode;
 
 import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.Token;
 
-import java.util.ArrayList;
-import java.util.Optional;
-
 import org.junit.Test;
 
 public class ReplaceAccessTokenSampleTest {
-    private static final int TOKEN_LOOKUP_TIMEOUT_MS = 60000;
-    private static final int TOKEN_LOOKUP_POLL_FREQUENCY_MS = 5000;
-
     @Test
     public void getAccessTokensTest() {
         try (TokenIO tokenIO = createClient()) {
@@ -33,11 +26,8 @@ public class ReplaceAccessTokenSampleTest {
             // only for +noverify aliases)
             waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
             Token createdToken = createAccessToken(grantor, granteeAlias);
-            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 1, () -> {
-                Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
-                assertThat(foundToken).isPresent();
-                assertThat(foundToken.get().getId()).isEqualTo(createdToken.getId());
-            });
+            Token foundToken = findAccessToken(tokenIO, grantor, granteeAlias);
+            assertThat(foundToken.getId()).isEqualTo(createdToken.getId());
         }
     }
 
@@ -50,16 +40,13 @@ public class ReplaceAccessTokenSampleTest {
             // wait until alias is processed by the asynchronous verification job (this is needed
             // only for +noverify aliases)
             waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
-            Token createdToken = createAccessToken(grantor, granteeAlias);
-            ArrayList<Token> foundList = new ArrayList();
-            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
-                assertThat(foundToken).isPresent();
-                foundList.add(foundToken.get());
-            });
-            assertThatCode(() -> {
-                replaceAccessToken(grantor, granteeAlias, foundList.get(0));
-            }).doesNotThrowAnyException();
+            createAccessToken(grantor, granteeAlias);
+            Token activeToken = findAccessToken(tokenIO, grantor, granteeAlias);
+
+            replaceAccessToken(grantor, granteeAlias, activeToken);
+
+            assertThat(findAccessToken(tokenIO, grantor, granteeAlias))
+                    .isNotEqualTo(activeToken.getId());
         }
     }
 
@@ -72,27 +59,16 @@ public class ReplaceAccessTokenSampleTest {
             // wait until alias is processed by the asynchronous verification job (this is needed
             // only for +noverify aliases)
             waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
-            Token createdToken = createAccessToken(grantor, granteeAlias);
-            ArrayList<Token> foundList = new ArrayList();
-            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
-                assertThat(foundToken).isPresent();
-                foundList.add(foundToken.get());
-            });
-            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                assertThatCode(() -> {
-                    ReplaceAccessTokenSample.replaceAndEndorseAccessToken(
-                            grantor,
-                            granteeAlias,
-                            foundList.get(0));
-                }).doesNotThrowAnyException();
-            });
-            waitUntil(TOKEN_LOOKUP_TIMEOUT_MS, TOKEN_LOOKUP_POLL_FREQUENCY_MS, 2, () -> {
-                Optional<Token> foundToken = findAccessToken(grantor, granteeAlias);
-                assertThat(foundToken).isPresent();
-                assertThat(foundToken.get().getPayload().getAccess().getResourcesCount())
-                        .isEqualTo(3);
-            });
+            createAccessToken(grantor, granteeAlias);
+            Token activeToken = findAccessToken(tokenIO, grantor, granteeAlias);
+
+            ReplaceAccessTokenSample.replaceAndEndorseAccessToken(
+                    grantor,
+                    granteeAlias,
+                    activeToken);
+
+            activeToken = findAccessToken(tokenIO, grantor, granteeAlias);
+            assertThat(activeToken.getPayload().getAccess().getResourcesCount()).isEqualTo(3);
         }
     }
 }

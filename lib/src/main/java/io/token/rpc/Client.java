@@ -22,6 +22,7 @@
 
 package io.token.rpc;
 
+import static com.google.common.base.Strings.nullToEmpty;
 import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
@@ -100,6 +101,8 @@ import io.token.proto.gateway.Gateway.GetAccountRequest;
 import io.token.proto.gateway.Gateway.GetAccountResponse;
 import io.token.proto.gateway.Gateway.GetAccountsRequest;
 import io.token.proto.gateway.Gateway.GetAccountsResponse;
+import io.token.proto.gateway.Gateway.GetActiveAccessTokenRequest;
+import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
 import io.token.proto.gateway.Gateway.GetAddressRequest;
 import io.token.proto.gateway.Gateway.GetAddressResponse;
 import io.token.proto.gateway.Gateway.GetAddressesRequest;
@@ -177,6 +180,7 @@ import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
+import io.token.proto.gateway.Gateway.VerifyAffiliateRequest;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
@@ -200,6 +204,7 @@ public final class Client {
     private final String memberId;
     private final CryptoEngine crypto;
     private final GatewayServiceFutureStub gateway;
+    private boolean customerInitiated = false;
     private String onBehalfOf;
 
     /**
@@ -238,15 +243,16 @@ public final class Client {
      */
     public void useAccessToken(String accessTokenId, boolean customerInitiated) {
         this.onBehalfOf = accessTokenId;
-        AuthenticationContext.setCustomerInitiated(customerInitiated);
+        this.customerInitiated = customerInitiated;
     }
 
     /**
      * Clears the On-Behalf-Of value used with this client.
      */
+    @Deprecated
     public void clearAccessToken() {
         this.onBehalfOf = null;
-        AuthenticationContext.setCustomerInitiated(false);
+        this.customerInitiated = false;
     }
 
     /**
@@ -584,14 +590,17 @@ public final class Client {
      *
      * @param payload transfer token payload
      * @param options map of options
+     * @param userRefId (optional) user ref id
      * @return id to reference token request
      */
     public Observable<String> storeTokenRequest(
             TokenPayload payload,
-            Map<String, String> options) {
+            Map<String, String> options,
+            @Nullable String userRefId) {
         return toObservable(gateway.storeTokenRequest(StoreTokenRequestRequest.newBuilder()
                 .setPayload(payload)
                 .putAllOptions(options)
+                .setUserRefId(nullToEmpty(userRefId))
                 .build()))
                 .map(new Function<StoreTokenRequestResponse, String>() {
                     @Override
@@ -703,6 +712,26 @@ public final class Client {
                         .build()))
                 .map(new Function<GetTokenResponse, Token>() {
                     public Token apply(GetTokenResponse response) {
+                        return response.getToken();
+                    }
+                });
+    }
+
+    /**
+     * Looks up a existing access token where the calling member is the grantor and given member is
+     * the grantee.
+     *
+     * @param toMemberId beneficiary of the active access token
+     * @return token returned by the server
+     */
+    public Observable<Token> getActiveAccessToken(String toMemberId) {
+        return toObservable(gateway
+                .getActiveAccessToken(GetActiveAccessTokenRequest
+                        .newBuilder()
+                        .setToMemberId(toMemberId)
+                        .build()))
+                .map(new Function<GetActiveAccessTokenResponse, Token>() {
+                    public Token apply(GetActiveAccessTokenResponse response) {
                         return response.getToken();
                     }
                 });
@@ -1532,15 +1561,20 @@ public final class Client {
     /**
      * Sign with a Token signature a token request state payload.
      *
+     * @param tokenRequestId token request id
      * @param tokenId token id
      * @param state state
      * @return signature
      */
-    public Observable<Signature> signTokenRequestState(String tokenId, String state) {
+    public Observable<Signature> signTokenRequestState(
+            String tokenRequestId,
+            String tokenId,
+            String state) {
         return toObservable(gateway.signTokenRequestState(SignTokenRequestStateRequest.newBuilder()
                 .setPayload(TokenRequestStatePayload.newBuilder()
                         .setTokenId(tokenId)
                         .setState(state))
+                .setTokenRequestId(tokenRequestId)
                 .build()))
                 .map(new Function<SignTokenRequestStateResponse, Signature>() {
                     public Signature apply(SignTokenRequestStateResponse response) {
@@ -1576,6 +1610,19 @@ public final class Client {
         return toCompletable(gateway.deleteMember(DeleteMemberRequest.getDefaultInstance()));
     }
 
+    /**
+     * Verifies an affiliated TPP.
+     *
+     * @param memberId member ID of the TPP to verify
+     * @return completable
+     */
+    public Completable verifyAffiliate(String memberId) {
+        return toCompletable(gateway
+                .verifyAffiliate(VerifyAffiliateRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()));
+    }
+
     private Observable<TokenOperationResult> cancelAndReplace(
             Token tokenToCancel,
             CreateToken.Builder createToken) {
@@ -1605,9 +1652,31 @@ public final class Client {
         return crypto;
     }
 
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof Client)) {
+            return false;
+        }
+
+        Client other = (Client) obj;
+        return memberId.equals(other.memberId)
+                && Util.compare(onBehalfOf, other.onBehalfOf);
+    }
+
+    @Override
+    public int hashCode() {
+        return (memberId + (onBehalfOf == null ? "" : onBehalfOf)).hashCode();
+    }
+
+    @Override
+    public Client clone() {
+        return new Client(memberId, crypto, gateway);
+    }
+
     private void setOnBehalfOf() {
         if (onBehalfOf != null) {
             AuthenticationContext.setOnBehalfOf(onBehalfOf);
+            AuthenticationContext.setCustomerInitiated(customerInitiated);
         }
     }
 

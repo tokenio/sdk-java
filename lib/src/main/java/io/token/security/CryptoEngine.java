@@ -47,10 +47,10 @@ public interface CryptoEngine {
      * verification later.
      *
      * @param keyLevel key privilege level
-     * @param expirationMs expiration date in milliseconds
+     * @param expiresAtMs expiration date in milliseconds
      * @return newly generated key information
      */
-    Key generateKey(Key.Level keyLevel, long expirationMs);
+    Key generateKey(Key.Level keyLevel, long expiresAtMs);
 
     /**
      * Signs the data with the identified by the supplied key id.

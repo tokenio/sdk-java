@@ -104,12 +104,10 @@ public class AuthenticationContext {
     /**
      * Retrieves and clears an On-Behalf-Of value.
      *
-     * @return an On-Behalf-Of value or null
      */
-    public static String clearOnBehalfOf() {
-        String tokenId = onBehalfOf.get();
+    public static void clearAccessToken() {
         onBehalfOf.remove();
-        return tokenId;
+        customerInitiated.remove();
     }
 
     /**

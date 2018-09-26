@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2018 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,24 +20,22 @@
  * THE SOFTWARE.
  */
 
-package io.token.exceptions;
+package io.token.util;
 
-import static java.lang.String.format;
+public class TestClock implements Clock {
+    private long offset = 0L;
 
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
-import io.token.proto.ProtoJson;
-import io.token.proto.common.alias.AliasProtos.Alias;
+    @Override
+    public long getTime() {
+        return System.currentTimeMillis() + offset;
+    }
 
-public class MemberNotFoundException extends StatusRuntimeException {
     /**
-     * Member not found exception.
+     * Tick the clock by a specified duration.
      *
-     * @param alias alias
+     * @param duration duration in epoch milliseconds
      */
-    public MemberNotFoundException(Alias alias) {
-        super(Status.NOT_FOUND.withDescription(format(
-                "Member could not be resolved for alias %s",
-                ProtoJson.toJson(alias))));
+    public void tick(long duration) {
+        offset += duration;
     }
 }

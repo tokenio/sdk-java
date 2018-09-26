@@ -69,7 +69,7 @@ import javax.annotation.Nullable;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public class Member {
+public class Member implements Representable {
     private final MemberAsync async;
 
     /**
@@ -132,7 +132,7 @@ public class Member {
      * @return list of public keys that are approved for this member
      */
     public List<Key> keys() {
-        return async.keys();
+        return async.getKeys().blockingSingle();
     }
 
     /**
@@ -142,6 +142,7 @@ public class Member {
      *
      * @param accessTokenId the access token id
      */
+    @Deprecated
     public void useAccessToken(String accessTokenId) {
         this.async.useAccessToken(accessTokenId);
     }
@@ -154,6 +155,7 @@ public class Member {
      * @param accessTokenId the access token id
      * @param customerInitiated whether the request is customer initiated
      */
+    @Deprecated
     public void useAccessToken(String accessTokenId, boolean customerInitiated) {
         this.async.useAccessToken(accessTokenId, customerInitiated);
     }
@@ -161,8 +163,33 @@ public class Member {
     /**
      * Clears the access token value used with this client.
      */
+    @Deprecated
     public void clearAccessToken() {
         this.async.clearAccessToken();
+    }
+
+    /**
+     * Creates a {@link Representable} that acts as another member using the access token
+     * that was granted by that member.
+     *
+     * @param tokenId the token id
+     * @return the {@link Representable}
+     */
+    public Representable forAccessToken(String tokenId) {
+        return forAccessToken(tokenId, false);
+    }
+
+    /**
+     * Creates a {@link Representable} that acts as another member using the access token
+     * that was granted by that member.
+     *
+     * @param tokenId the token id
+     * @param customerInitiated whether the call is initiated by the customer
+     * @return the {@link Representable}
+     */
+    public Representable forAccessToken(String tokenId, boolean customerInitiated) {
+        MemberAsync async = this.async.forAccessTokenInternal(tokenId, customerInitiated);
+        return new Member(async);
     }
 
     /**
@@ -175,32 +202,12 @@ public class Member {
     }
 
     /**
-     * Adds a new alias for the member.
-     *
-     * @param alias alias, e.g. 'john', must be unique within the realm
-     * @param realm realm of the alias
-     */
-    public void addAlias(Alias alias, String realm) {
-        async.addAlias(alias, realm).blockingAwait();
-    }
-
-    /**
      * Adds new aliases for the member.
      *
      * @param aliases aliases, e.g. 'john', must be unique
      */
     public void addAliases(List<Alias> aliases) {
         async.addAliases(aliases).blockingAwait();
-    }
-
-    /**
-     * Adds new aliases for the member.
-     *
-     * @param aliases aliases, e.g. 'john', must be unique with the realm
-     * @param realm realm of the aliases
-     */
-    public void addAliases(List<Alias> aliases, String realm) {
-        async.addAliases(aliases, realm).blockingAwait();
     }
 
     /**
@@ -675,10 +682,21 @@ public class Member {
      * Looks up an existing token.
      *
      * @param tokenId token id
-     * @return transfer token returned by the server
+     * @return token returned by the server
      */
     public Token getToken(String tokenId) {
         return async.getToken(tokenId).blockingSingle();
+    }
+
+    /**
+     * Looks up a existing access token where the calling member is the grantor and given member is
+     * the grantee.
+     *
+     * @param toMemberId beneficiary of the active access token
+     * @return access token returned by the server
+     */
+    public Token getActiveAccessToken(String toMemberId) {
+        return async.getActiveAccessToken(toMemberId).blockingSingle();
     }
 
     /**
@@ -1103,12 +1121,13 @@ public class Member {
     /**
      * Sign with a Token signature a token request state payload.
      *
+     * @param tokenRequestId token request id
      * @param tokenId token id
      * @param state state
      * @return signature
      */
-    public Signature signTokenRequestState(String tokenId, String state) {
-        return async.signTokenRequestState(tokenId, state).blockingSingle();
+    public Signature signTokenRequestState(String tokenRequestId, String tokenId, String state) {
+        return async.signTokenRequestState(tokenRequestId, tokenId, state).blockingSingle();
     }
 
     /**
@@ -1125,6 +1144,15 @@ public class Member {
      */
     public void deleteMember()  {
         async.deleteMember().blockingAwait();
+    }
+
+    /**
+     * Verifies an affiliated TPP.
+     *
+     * @param memberId member ID of the TPP to verify
+     */
+    public void verifyAffiliate(String memberId) {
+        async.verifyAffiliate(memberId).blockingAwait();
     }
 
     @Override

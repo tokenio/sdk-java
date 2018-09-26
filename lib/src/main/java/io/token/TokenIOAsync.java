@@ -25,6 +25,7 @@ package io.token;
 import static io.token.TokenIO.TokenCluster;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
+import static io.token.proto.common.member.MemberProtos.CreateMemberType.TRANSIENT;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -41,6 +42,7 @@ import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
@@ -57,6 +59,9 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.ReceiptContact;
+import io.token.proto.common.notification.NotificationProtos.AddKey;
+import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos;
@@ -70,6 +75,7 @@ import io.token.security.InMemoryKeyStore;
 import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 import io.token.tokenrequest.TokenRequestCallbackParameters;
+import io.token.tokenrequest.TokenRequestResult;
 import io.token.tokenrequest.TokenRequestState;
 
 import java.io.Closeable;
@@ -146,19 +152,8 @@ public class TokenIOAsync implements Closeable {
      * @return {@code true} if alias exists, {@code false} otherwise
      */
     public Observable<Boolean> aliasExists(Alias alias) {
-        return aliasExists(alias, "");
-    }
-
-    /**
-     * Checks if a given alias already exists.
-     *
-     * @param alias alias to check
-     * @param realm realm of the alias
-     * @return {@code true} if alias exists, {@code false} otherwise
-     */
-    public Observable<Boolean> aliasExists(Alias alias, String realm) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.aliasExists(alias, realm);
+        return unauthenticated.aliasExists(alias);
     }
 
     /**
@@ -168,19 +163,8 @@ public class TokenIOAsync implements Closeable {
      * @return member id, or throws exception if member not found
      */
     public Observable<String> getMemberId(Alias alias) {
-        return getMemberId(alias, "");
-    }
-
-    /**
-     * Looks up member id for a given alias.
-     *
-     * @param alias alias to check
-     * @param realm realm of the alias
-     * @return member id, or throws exception if member not found
-     */
-    public Observable<String> getMemberId(Alias alias, String realm) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getMemberId(alias, realm);
+        return unauthenticated.getMemberId(alias);
     }
 
     /**
@@ -192,9 +176,9 @@ public class TokenIOAsync implements Closeable {
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(
-            final Alias alias,
-            final CreateMemberType memberType) {
-        return createMember(alias, "", memberType);
+            Alias alias,
+            CreateMemberType memberType) {
+        return createMember(alias, memberType, null);
     }
 
     /**
@@ -202,51 +186,108 @@ public class TokenIOAsync implements Closeable {
      *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
-     * @param realm realm of the alias
      * @param memberType the type of member to register
+     * @param tokenRequestId (optional) token request id. If used, then the member will be claimed
+     *     by the creator of the corresponding token request. Only works if memberType == TRANSIENT.
      * @return newly created member
      */
     public Observable<MemberAsync> createMember(
             final Alias alias,
-            final String realm,
-            final CreateMemberType memberType) {
+            final CreateMemberType memberType,
+            @Nullable final String tokenRequestId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .createMemberId(memberType)
+                .createMemberId(memberType, tokenRequestId)
+                .flatMap(new Function<String, Observable<MemberAsync>>() {
+                    public Observable<MemberAsync> apply(String memberId) {
+                        return setupMember(alias, memberId);
+                    }
+                });
+    }
+
+    /**
+     * Creates a new personal-use Token member with a set of auto-generated keys and no alias.
+     *
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createMember() {
+        return createMember(null, PERSONAL, null);
+    }
+
+    /**
+     * Creates a new personal-use Token member with a set of auto-generated keys and and an alias.
+     *
+     * @param alias alias to associate with member
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createMember(Alias alias) {
+        return createMember(alias, PERSONAL, null);
+    }
+
+    /**
+     * Creates a new transient Token member and claims it for the creator of the token request
+     * corresponding to the given token request ID.
+     *
+     * @param tokenRequestId token request id
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createClaimedMember(String tokenRequestId) {
+        return createMember(null, TRANSIENT, tokenRequestId);
+    }
+
+    /**
+     * Creates a new business-use Token member with a set of auto-generated keys and alias.
+     *
+     * @param alias alias to associated with member
+     * @return newly created member
+     */
+    public Observable<MemberAsync> createBusinessMember(Alias alias) {
+        return createMember(alias, BUSINESS, null);
+    }
+
+
+    /**
+     * Sets up a member given a specific ID of a member that already exists in the system. If
+     * the member ID already has keys, this will not succeed. Used for testing since this
+     * gives more control over the member creation process.
+     *
+     * <p>Adds an alias and a set of auto-generated keys to the member.</p>
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member
+     * @param memberId member id
+     * @return newly created member
+     */
+    @VisibleForTesting
+    public Observable<MemberAsync> setupMember(final Alias alias, final String memberId) {
+        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getDefaultAgent()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
-                    public Observable<MemberProtos.Member> apply(final String memberId) {
-                        return unauthenticated.getDefaultAgent()
-                                .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
-                                    public Observable<MemberProtos.Member> apply(String agentId) {
-                                        CryptoEngine crypto = cryptoFactory.create(memberId);
-                                        List<MemberOperation> operations = new ArrayList<>();
-                                        operations.add(
-                                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
-                                        operations.add(
-                                                toAddKeyOperation(crypto.generateKey(STANDARD)));
-                                        operations.add(
-                                                toAddKeyOperation(crypto.generateKey(LOW)));
-                                        operations.add(toRecoveryAgentOperation(agentId));
+                    public Observable<MemberProtos.Member> apply(String agentId) {
+                        CryptoEngine crypto = cryptoFactory.create(memberId);
+                        List<MemberOperation> operations = new ArrayList<>();
+                        operations.add(
+                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
+                        operations.add(
+                                toAddKeyOperation(crypto.generateKey(STANDARD)));
+                        operations.add(
+                                toAddKeyOperation(crypto.generateKey(LOW)));
+                        operations.add(toRecoveryAgentOperation(agentId));
 
-                                        if (alias != null) {
-                                            operations.add(toAddAliasOperation(
-                                                    normalizeAlias(alias),
-                                                    realm));
-                                        }
-                                        List<MemberOperationMetadata> metadata = alias == null
-                                                ? Collections.<MemberOperationMetadata>emptyList()
-                                                : singletonList(toAddAliasOperationMetadata(
-                                                        normalizeAlias(alias),
-                                                        realm));
-                                        Signer signer = crypto.createSigner(PRIVILEGED);
-                                        return unauthenticated.createMember(
-                                                memberId,
-                                                operations,
-                                                metadata,
-                                                signer);
-                                    }
-                                });
-
+                        if (alias != null) {
+                            operations.add(toAddAliasOperation(
+                                    normalizeAlias(alias)));
+                        }
+                        List<MemberOperationMetadata> metadata = alias == null
+                                ? Collections.<MemberOperationMetadata>emptyList()
+                                : singletonList(toAddAliasOperationMetadata(
+                                        normalizeAlias(alias)));
+                        Signer signer = crypto.createSigner(PRIVILEGED);
+                        return unauthenticated.createMember(
+                                memberId,
+                                operations,
+                                metadata,
+                                signer);
                     }
                 })
                 .flatMap(new Function<MemberProtos.Member, Observable<MemberAsync>>() {
@@ -266,59 +307,6 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Creates a new personal-use Token member with a set of auto-generated keys and no alias.
-     *
-     * @return newly created member
-     */
-    public Observable<MemberAsync> createMember() {
-        return createMember(null, "", PERSONAL);
-    }
-
-    /**
-     * Creates a new personal-use Token member with a set of auto-generated keys and and an alias.
-     *
-     * @param alias alias to associate with member
-     * @return newly created member
-     */
-    public Observable<MemberAsync> createMember(Alias alias) {
-        return createMember(alias, "", PERSONAL);
-    }
-
-    /**
-     * Creates a new personal-use Token member with a set of auto-generated keys, an alias
-     * and a realm.
-     *
-     * @param alias alias to associate with member
-     * @param realm realm
-     * @return newly created member
-     */
-    public Observable<MemberAsync> createMember(Alias alias, String realm) {
-        return createMember(alias, realm, PERSONAL);
-    }
-
-    /**
-     * Creates a new business-use Token member with a set of auto-generated keys and alias.
-     *
-     * @param alias alias to associated with member
-     * @return newly created member
-     */
-    public Observable<MemberAsync> createBusinessMember(Alias alias) {
-        return createMember(alias, "", BUSINESS);
-    }
-
-    /**
-     * Creates a new business-use Token member with a set of auto-generated keys, an alias
-     * and a realm.
-     *
-     * @param alias alias to associated with member
-     * @param realm realm
-     * @return newly created member
-     */
-    public Observable<MemberAsync> createBusinessMember(Alias alias, String realm) {
-        return createMember(alias, realm, BUSINESS);
-    }
-
-    /**
      * Provisions a new device for an existing user. The call generates a set
      * of keys that are returned back. The keys need to be approved by an
      * existing device/keys.
@@ -327,22 +315,9 @@ public class TokenIOAsync implements Closeable {
      * @return device information
      */
     public Observable<DeviceInfo> provisionDevice(Alias alias) {
-        return provisionDevice(alias, "");
-    }
-
-    /**
-     * Provisions a new device for an existing user. The call generates a set
-     * of keys that are returned back. The keys need to be approved by an
-     * existing device/keys.
-     *
-     * @param alias member id to provision the device for
-     * @param realm realm of the alias
-     * @return device information
-     */
-    public Observable<DeviceInfo> provisionDevice(Alias alias, String realm) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .getMemberId(alias, realm)
+                .getMemberId(alias)
                 .map(new Function<String, DeviceInfo>() {
                     public DeviceInfo apply(String memberId) {
                         CryptoEngine crypto = cryptoFactory.create(memberId);
@@ -415,23 +390,8 @@ public class TokenIOAsync implements Closeable {
     public Observable<NotifyStatus> notifyLinkAccounts(
             Alias alias,
             BankAuthorization authorization) {
-        return notifyLinkAccounts(alias, "", authorization);
-    }
-
-    /**
-     * Notifies to link an account.
-     *
-     * @param alias alias to notify
-     * @param realm realm of the alias
-     * @param authorization the bank authorization for the funding account
-     * @return status of the notification
-     */
-    public Observable<NotifyStatus> notifyLinkAccounts(
-            Alias alias,
-            String realm,
-            BankAuthorization authorization) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.notifyLinkAccounts(alias, realm, authorization);
+        return unauthenticated.notifyLinkAccounts(alias, authorization);
     }
 
     /**
@@ -446,25 +406,8 @@ public class TokenIOAsync implements Closeable {
             Alias alias,
             String name,
             Key key) {
-        return notifyAddKey(alias, "", name, key);
-    }
-
-    /**
-     * Notifies to add a key.
-     *
-     * @param alias alias to notify
-     * @param realm realm of the alias
-     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
-     * @param key key that needs an approval
-     * @return status of the notification
-     */
-    public Observable<NotifyStatus> notifyAddKey(
-            Alias alias,
-            String realm,
-            String name,
-            Key key) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.notifyAddKey(alias, realm,  name, key);
+        return unauthenticated.notifyAddKey(alias,  name, key);
     }
 
     /**
@@ -478,32 +421,12 @@ public class TokenIOAsync implements Closeable {
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
             Alias alias,
-            BankAuthorization authorization,
-            String name,
-            Key key) {
-        return notifyLinkAccountsAndAddKey(alias, "", authorization, name, key);
-    }
-
-    /**
-     * Notifies to link accounts and add a key.
-     *
-     * @param alias alias to notify
-     * @param realm realm of the alias
-     * @param authorization the bank authorization for the funding account
-     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
-     * @param key the that needs an approval
-     * @return status of the notification
-     */
-    public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
-            Alias alias,
-            String realm,
             BankAuthorization authorization,
             String name,
             Key key) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.notifyLinkAccountsAndAddKey(
                 alias,
-                realm,
                 authorization,
                 name,
                 key);
@@ -521,6 +444,51 @@ public class TokenIOAsync implements Closeable {
             tokenPayload = tokenPayload.toBuilder().setRefId(generateNonce()).build();
         }
         return unauthenticated.notifyPaymentRequest(tokenPayload);
+    }
+
+    /**
+     * Notifies subscribed devices that a token payload should be endorsed and keys should be
+     * added.
+     *
+     * @param tokenPayload the token payload to be sent
+     * @param keys keys to be added
+     * @param deviceMetadata device metadata of the keys
+     * @param tokenRequestId optional token request id
+     * @param bankId optional bank id
+     * @param state optional token request state for signing
+     * @param receiptContact optional receipt contact
+     * @return notify result of the notification request
+     */
+    public Observable<NotifyResult> notifyEndorseAndAddKey(
+            TokenPayload tokenPayload,
+            List<Key> keys,
+            DeviceMetadata deviceMetadata,
+            @Nullable String tokenRequestId,
+            @Nullable String bankId,
+            @Nullable String state,
+            @Nullable ReceiptContact receiptContact) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.notifyEndorseAndAddKey(
+                tokenPayload,
+                AddKey.newBuilder()
+                        .addAllKeys(keys)
+                        .setDeviceMetadata(deviceMetadata)
+                        .build(),
+                tokenRequestId,
+                bankId,
+                state,
+                receiptContact);
+    }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.invalidateNotification(notificationId);
     }
 
     /**
@@ -838,13 +806,13 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Get a token ID based on a token's tokenRequestId.
+     * Get the token request result based on a token's tokenRequestId.
      *
      * @param tokenRequestId token request id
-     * @return token id
+     * @return token request result
      */
-    public Observable<String> getTokenId(String tokenRequestId) {
+    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenId(tokenRequestId);
+        return unauthenticated.getTokenRequestResult(tokenRequestId);
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2018 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,24 +20,27 @@
  * THE SOFTWARE.
  */
 
-package io.token.exceptions;
+package io.token.util;
 
-import static java.lang.String.format;
-
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
-import io.token.proto.ProtoJson;
-import io.token.proto.common.alias.AliasProtos.Alias;
-
-public class MemberNotFoundException extends StatusRuntimeException {
+public class TimeUtil {
     /**
-     * Member not found exception.
+     * Returns the time after a specified number of days.
      *
-     * @param alias alias
+     * @param time the baseline time
+     * @param days number of days
+     * @return time after the inputted days have elapsed
      */
-    public MemberNotFoundException(Alias alias) {
-        super(Status.NOT_FOUND.withDescription(format(
-                "Member could not be resolved for alias %s",
-                ProtoJson.toJson(alias))));
+    public static long daysAfter(long time, int days) {
+        return time + daysToMs(days);
+    }
+
+    /**
+     * Converts days to milliseconds.
+     *
+     * @param days number of days
+     * @return number of milliseconds
+     */
+    public static long daysToMs(int days) {
+        return 86400000L * days;
     }
 }

@@ -26,18 +26,17 @@ import static java.lang.String.format;
 
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.token.proto.ProtoJson;
-import io.token.proto.common.alias.AliasProtos.Alias;
 
-public class MemberNotFoundException extends StatusRuntimeException {
+public class InvalidRealmException extends StatusRuntimeException {
     /**
-     * Member not found exception.
-     *
-     * @param alias alias
+     * Creates an instance.
+     * @param actualRealm given realm
+     * @param expectedRealm expected realm
      */
-    public MemberNotFoundException(Alias alias) {
+    public InvalidRealmException(String actualRealm, String expectedRealm) {
         super(Status.NOT_FOUND.withDescription(format(
-                "Member could not be resolved for alias %s",
-                ProtoJson.toJson(alias))));
+                "Invalid realm: %s; expected: %s",
+                actualRealm,
+                expectedRealm)));
     }
 }

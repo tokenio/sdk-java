@@ -26,6 +26,7 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.token.TokenIO.TokenCluster.SANDBOX;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
@@ -38,6 +39,8 @@ import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
+import io.token.proto.common.member.MemberProtos.ReceiptContact;
+import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -48,6 +51,7 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
+import io.token.tokenrequest.TokenRequestResult;
 
 import java.io.Closeable;
 import java.util.List;
@@ -141,17 +145,6 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Checks if a given alias already exists.
-     *
-     * @param alias alias to check
-     * @param realm realm of the alias
-     * @return {@code true} if alias exists, {@code false} otherwise
-     */
-    public boolean aliasExists(Alias alias, String realm) {
-        return async.aliasExists(alias, realm).blockingSingle();
-    }
-
-    /**
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
@@ -159,17 +152,6 @@ public class TokenIO implements Closeable {
      */
     public String getMemberId(Alias alias) {
         return async.getMemberId(alias).blockingSingle();
-    }
-
-    /**
-     * Looks up member id for a given alias.
-     *
-     * @param alias alias to check
-     * @param realm realm of the alias
-     * @return member id, or throws exception if member not found
-     */
-    public String getMemberId(Alias alias, String realm) {
-        return async.getMemberId(alias, realm).blockingSingle();
     }
 
     /**
@@ -182,22 +164,6 @@ public class TokenIO implements Closeable {
      */
     public Member createMember(Alias alias, CreateMemberType memberType) {
         return async.createMember(alias, memberType)
-                .map(new MemberFunction())
-                .blockingSingle();
-    }
-
-    /**
-     * Creates a new Token member with a set of auto-generated keys, an alias, a realm and
-     * a member type.
-     *
-     * @param alias nullable member alias to use, must be unique. If null, then no alias will
-     *     be created with the member.
-     * @param realm realm of the alias
-     * @param memberType the type of member to register
-     * @return newly created member
-     */
-    public Member createMember(Alias alias, String realm, CreateMemberType memberType) {
-        return async.createMember(alias, realm, memberType)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
@@ -227,15 +193,14 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new personal-use Token member with a set of auto generated keys, the
-     * given alias and a realm.
+     * Creates a new transient Token member and claims it for the creator of the token request
+     * corresponding to the given token request ID.
      *
-     * @param alias member alias to use, must be unique
-     * @param realm realm
+     * @param tokenRequestId token request id
      * @return newly created member
      */
-    public Member createMember(Alias alias, String realm) {
-        return async.createMember(alias, realm)
+    public Member createClaimedMember(String tokenRequestId) {
+        return async.createClaimedMember(tokenRequestId)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
@@ -253,15 +218,20 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Creates a new business-use Token member with a set of auto-generated keys, an alias
-     * and a realm.
+     * Sets up a member given a specific ID of a member that already exists in the system. If
+     * the member ID already has keys, this will not succeed. Used mostly for testing since this
+     * gives more control over the member creation process.
      *
-     * @param alias alias to associated with member
-     * @param realm realm
+     * <p>Adds an alias and a set of auto-generated keys to the member.</p>
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member
+     * @param memberId member id
      * @return newly created member
      */
-    public Member createBusinessMember(Alias alias, String realm) {
-        return async.createBusinessMember(alias, realm)
+    @VisibleForTesting
+    public Member setupMember(final Alias alias, final String memberId) {
+        return async().setupMember(alias, memberId)
                 .map(new MemberFunction())
                 .blockingSingle();
     }
@@ -276,20 +246,6 @@ public class TokenIO implements Closeable {
      */
     public DeviceInfo provisionDevice(Alias alias) {
         return async.provisionDevice(alias)
-                .blockingSingle();
-    }
-
-    /**
-     * Provisions a new device for an existing user. The call generates a set
-     * of keys that are returned back. The keys need to be approved by an
-     * existing device/keys.
-     *
-     * @param alias member id to provision the device for
-     * @param realm realm of the alias
-     * @return device information
-     */
-    public DeviceInfo provisionDevice(Alias alias, String realm) {
-        return async.provisionDevice(alias, realm)
                 .blockingSingle();
     }
 
@@ -342,22 +298,6 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Notifies to link accounts.
-     *
-     * @param alias alias to notify
-     * @param realm realm of the alias
-     * @param authorization the bank authorization for the funding account
-     * @return status of the notification request
-     */
-    public NotifyStatus notifyLinkAccounts(
-            Alias alias,
-            String realm,
-            BankAuthorization authorization) {
-        return async.notifyLinkAccounts(alias, realm, authorization)
-                .blockingSingle();
-    }
-
-    /**
      * Notifies to add a key.
      *
      * @param alias alias to notify
@@ -373,27 +313,6 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Notifies to add a key.
-     *
-     * @param alias alias to notify
-     * @param realm realm of the alias
-     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
-     * @param key key that needs an approval
-     * @return status of the notification request
-     */
-    public NotifyStatus notifyAddKey(
-            Alias alias,
-            String realm,
-            String name,
-            Key key) {
-        return async.notifyAddKey(
-                alias,
-                realm,
-                name,
-                key).blockingSingle();
-    }
-
-    /**
      * Notifies to link accounts and add a key.
      *
      * @param alias alias to notify
@@ -409,30 +328,6 @@ public class TokenIO implements Closeable {
             Key key) {
         return async.notifyLinkAccountsAndAddKey(
                 alias,
-                authorization,
-                name,
-                key).blockingSingle();
-    }
-
-    /**
-     * Notifies to link accounts and add a key.
-     *
-     * @param alias alias to notify
-     * @param realm realm of the alias
-     * @param authorization the bank authorization for the funding account
-     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
-     * @param key key that needs an approval
-     * @return status of the notification request
-     */
-    public NotifyStatus notifyLinkAccountsAndAddKey(
-            Alias alias,
-            String realm,
-            BankAuthorization authorization,
-            String name,
-            Key key) {
-        return async.notifyLinkAccountsAndAddKey(
-                alias,
-                realm,
                 authorization,
                 name,
                 key).blockingSingle();
@@ -448,6 +343,48 @@ public class TokenIO implements Closeable {
         return async
                 .notifyPaymentRequest(tokenPayload)
                 .blockingSingle();
+    }
+
+    /**
+     * Notifies subscribed devices that a token payload should be endorsed and keys should be
+     * added.
+     *
+     * @param tokenPayload the token payload to be sent
+     * @param keys keys to be added
+     * @param deviceMetadata device metadata of the keys
+     * @param tokenRequestId optional token request id
+     * @param bankId optional bank id
+     * @param state optional token request state for signing
+     * @param receiptContact optional receipt contact
+     * @return notify result of the notification request
+     */
+    public NotifyResult notifyEndorseAndAddKey(
+            TokenPayload tokenPayload,
+            List<Key> keys,
+            DeviceMetadata deviceMetadata,
+            @Nullable String tokenRequestId,
+            @Nullable String bankId,
+            @Nullable String state,
+            @Nullable ReceiptContact receiptContact) {
+        return async.notifyEndorseAndAddKey(
+                tokenPayload,
+                keys,
+                deviceMetadata,
+                tokenRequestId,
+                bankId,
+                state,
+                receiptContact)
+                .blockingSingle();
+    }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public NotifyStatus invalidateNotification(String notificationId) {
+        return async.invalidateNotification(notificationId).blockingSingle();
     }
 
     /**
@@ -709,13 +646,13 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Get a token ID based on a token's tokenRequestId.
+     * Get the token request result based on a token's tokenRequestId.
      *
      * @param tokenRequestId token request id
-     * @return token id
+     * @return token request result
      */
-    public String getTokenId(String tokenRequestId) {
-        return async.getTokenId(tokenRequestId).blockingSingle();
+    public TokenRequestResult getTokenRequestResult(String tokenRequestId) {
+        return async.getTokenRequestResult(tokenRequestId).blockingSingle();
     }
 
     /**

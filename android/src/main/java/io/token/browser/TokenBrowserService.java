@@ -18,6 +18,7 @@ public class TokenBrowserService extends Service {
     static final int MSG_ON_URL = 3;
     static final int MSG_CLOSE = 4;
     static final int MSG_GO_TO = 5;
+    static final int MSG_COMPLETE = 6;
     static final String MSG_KEY_SID = "SID";
     static final String MSG_KEY_URL = "URL";
 

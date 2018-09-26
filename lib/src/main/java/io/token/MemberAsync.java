@@ -24,6 +24,7 @@ package io.token;
 
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
+import static io.token.util.Util.TOKEN_REALM;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
@@ -39,6 +40,7 @@ import io.reactivex.ObservableSource;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
@@ -46,6 +48,7 @@ import io.token.TokenIO.TokenCluster;
 import io.token.browser.Browser;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.BankAuthorizationRequiredException;
+import io.token.exceptions.InvalidRealmException;
 import io.token.exceptions.NoAliasesFoundException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -93,6 +96,7 @@ import io.token.util.Util;
 
 import java.net.URL;
 import java.net.URLEncoder;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -105,7 +109,7 @@ import org.slf4j.LoggerFactory;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public class MemberAsync {
+public class MemberAsync implements RepresentableAsync {
     private static final Logger logger = LoggerFactory.getLogger(MemberAsync.class);
 
     private final Client client;
@@ -196,8 +200,24 @@ public class MemberAsync {
      *
      * @return list of public keys that are approved for this member
      */
+    @Deprecated
     public List<Key> keys() {
         return member.getKeysList();
+    }
+
+    /**
+     * Gets all public keys for this member.
+     *
+     * @return list of public keys that are approved for this member
+     */
+    public Observable<List<Key>> getKeys() {
+        return client.getMember(memberId())
+                .map(new Function<MemberProtos.Member, List<Key>>() {
+                    @Override
+                    public List<Key> apply(MemberProtos.Member updated) throws Exception {
+                        return member.clear().mergeFrom(updated).getKeysList();
+                    }
+                });
     }
 
     /**
@@ -207,6 +227,7 @@ public class MemberAsync {
      *
      * @param accessTokenId the access token id
      */
+    @Deprecated
     public void useAccessToken(String accessTokenId) {
         this.client.useAccessToken(accessTokenId);
     }
@@ -220,6 +241,7 @@ public class MemberAsync {
      * @param accessTokenId the access token id
      * @param customerInitiated whether the request is customer initiated
      */
+    @Deprecated
     public void useAccessToken(String accessTokenId, boolean customerInitiated) {
         this.client.useAccessToken(accessTokenId, customerInitiated);
     }
@@ -227,8 +249,38 @@ public class MemberAsync {
     /**
      * Clears the access token id from the authentication context used with this client.
      */
+    @Deprecated
     public void clearAccessToken() {
         this.client.clearAccessToken();
+    }
+
+    /**
+     * Creates a {@link RepresentableAsync} that acts as another member using the access token
+     * that was granted by that member.
+     *
+     * @param tokenId the token id
+     * @return the {@link RepresentableAsync}
+     */
+    public RepresentableAsync forAccessToken(String tokenId) {
+        return forAccessToken(tokenId, false);
+    }
+
+    /**
+     * Creates a {@link RepresentableAsync} that acts as another member using the access token
+     * that was granted by that member.
+     *
+     * @param tokenId the token id
+     * @param customerInitiated whether the call is initiated by the customer
+     * @return the {@link RepresentableAsync}
+     */
+    public RepresentableAsync forAccessToken(String tokenId, boolean customerInitiated) {
+        return forAccessTokenInternal(tokenId, customerInitiated);
+    }
+
+    MemberAsync forAccessTokenInternal(String tokenId, boolean customerInitiated) {
+        Client cloned = client.clone();
+        cloned.useAccessToken(tokenId, customerInitiated);
+        return new MemberAsync(member.build(), cloned, cluster, browserFactory);
     }
 
     /**
@@ -238,19 +290,7 @@ public class MemberAsync {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable addAlias(Alias alias) {
-        return addAlias(alias, "");
-    }
-
-    /**
-     * Adds a new alias for the member.
-     *
-     * @param alias alias, e.g. 'john', must be unique within the realm
-     * @param realm realm of the alias
-     *
-     * @return completable that indicates whether the operation finished or had an error
-     */
-    public Completable addAlias(Alias alias, String realm) {
-        return addAliases(singletonList(alias), realm);
+        return addAliases(singletonList(alias));
     }
 
     /**
@@ -259,23 +299,23 @@ public class MemberAsync {
      * @param aliasList aliases, e.g. 'john', must be unique
      * @return completable that indicates whether the operation finished or had an error
      */
-    public Completable addAliases(List<Alias> aliasList) {
-        return addAliases(aliasList, "");
-    }
-
-    /**
-     * Adds new aliases for the member.
-     *
-     * @param aliasList aliases, e.g. 'john', must be unique within the realm
-     * @param realm realm of the aliases
-     * @return completable that indicates whether the operation finished or had an error
-     */
-    public Completable addAliases(final List<Alias> aliasList, String realm) {
+    public Completable addAliases(final List<Alias> aliasList) {
         final List<MemberOperation> operations = new LinkedList<>();
         final List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliasList) {
-            operations.add(Util.toAddAliasOperation(normalizeAlias(alias), realm));
-            metadata.add(Util.toAddAliasOperationMetadata(normalizeAlias(alias), realm));
+            String partnerId = member.getPartnerId();
+            if (!partnerId.isEmpty() && !partnerId.equals(TOKEN_REALM)) {
+                // Realm must equal member's partner ID if affiliated
+                if (!alias.getRealm().isEmpty() && !alias.getRealm().equals(partnerId)) {
+                    throw new InvalidRealmException(alias.getRealm(), partnerId);
+                }
+                alias = alias.toBuilder()
+                        .setRealm(partnerId)
+                        .build();
+            }
+
+            operations.add(Util.toAddAliasOperation(normalizeAlias(alias)));
+            metadata.add(Util.toAddAliasOperationMetadata(normalizeAlias(alias)));
         }
         return fromObservable(client
                 .getMember(memberId())
@@ -573,6 +613,7 @@ public class MemberAsync {
 
     /**
      * Links accounts by navigating browser through bank authorization pages.
+     * Returns empty list if the linking process is cancelled from the browser.
      *
      * @param bankId the bank id
      * @return observable list of linked accounts
@@ -630,6 +671,12 @@ public class MemberAsync {
                                                     public void accept(Throwable ex) {
                                                         emitter.onError(ex);
                                                         browser.close();
+                                                    }
+                                                },
+                                                new Action() {
+                                                    @Override
+                                                    public void run() {
+                                                        emitter.onSuccess(Collections.EMPTY_LIST);
                                                     }
                                                 });
                                 String linkingUrl = bankInfo.getBankLinkingUri();
@@ -926,13 +973,16 @@ public class MemberAsync {
     }
 
     /**
-     * Stores an token request. This can be retrieved later by the token request id.
+     * Stores a token request. This can be retrieved later by the token request id.
      *
      * @param tokenRequest token request
      * @return token request id
      */
     public Observable<String> storeTokenRequest(TokenRequest tokenRequest) {
-        return client.storeTokenRequest(tokenRequest.getTokenPayload(), tokenRequest.getOptions());
+        return client.storeTokenRequest(
+                tokenRequest.getTokenPayload(),
+                tokenRequest.getOptions(),
+                tokenRequest.getUserRefId());
     }
 
     /**
@@ -996,10 +1046,21 @@ public class MemberAsync {
      * Looks up a existing token.
      *
      * @param tokenId token id
-     * @return transfer token returned by the server
+     * @return token returned by the server
      */
     public Observable<Token> getToken(String tokenId) {
         return client.getToken(tokenId);
+    }
+
+    /**
+     * Looks up a existing access token where the calling member is the grantor and given member is
+     * the grantee.
+     *
+     * @param toMemberId beneficiary of the active access token
+     * @return access token returned by the server
+     */
+    public Observable<Token> getActiveAccessToken(String toMemberId) {
+        return client.getActiveAccessToken(toMemberId);
     }
 
     /**
@@ -1366,12 +1427,16 @@ public class MemberAsync {
     /**
      * Sign with a Token signature a token request state payload.
      *
+     * @param tokenRequestId token request id
      * @param tokenId token id
      * @param state state
      * @return signature
      */
-    public Observable<Signature> signTokenRequestState(String tokenId, String state) {
-        return client.signTokenRequestState(tokenId, state);
+    public Observable<Signature> signTokenRequestState(
+            String tokenRequestId,
+            String tokenId,
+            String state) {
+        return client.signTokenRequestState(tokenRequestId, tokenId, state);
     }
 
     /**
@@ -1393,6 +1458,16 @@ public class MemberAsync {
     }
 
     /**
+     * Verifies an affiliated TPP.
+     *
+     * @param memberId member ID of the TPP to verify
+     * @return completable
+     */
+    public Completable verifyAffiliate(String memberId) {
+        return client.verifyAffiliate(memberId);
+    }
+
+    /**
      * Get the Token cluster, e.g. sandbox, production.
      *
      * @return Token cluster
@@ -1403,7 +1478,7 @@ public class MemberAsync {
 
     @Override
     public int hashCode() {
-        return member.getId().hashCode();
+        return client.hashCode();
     }
 
     @Override
@@ -1413,7 +1488,8 @@ public class MemberAsync {
         }
 
         MemberAsync other = (MemberAsync) obj;
-        return member.build().equals(other.member.build());
+        return member.build().equals(other.member.build())
+                && client.equals(other.client);
     }
 
     @Override
