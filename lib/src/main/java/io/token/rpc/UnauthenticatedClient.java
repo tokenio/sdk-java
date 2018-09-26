@@ -68,6 +68,8 @@ import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
+import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
+import io.token.proto.gateway.Gateway.GetDefaultAgentResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequestResultRequest;
@@ -745,18 +747,11 @@ public final class UnauthenticatedClient {
      * @return the default recovery agent id.
      */
     public Observable<String> getDefaultAgent() {
-        // TODO(sibin): Use GetDefaultAgentRequest instead after the call is available.
-        return toObservable(gateway.resolveAlias(
-                ResolveAliasRequest.newBuilder()
-                        .setAlias(Alias.newBuilder()
-                                .setType(Alias.Type.DOMAIN)
-                                .setValue("token.io")
-                                .build())
-                        .build()))
-                .map(new Function<ResolveAliasResponse, String>() {
+        return toObservable(gateway.getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
+                .map(new Function<GetDefaultAgentResponse, String>() {
                     @Override
-                    public String apply(ResolveAliasResponse response) throws Exception {
-                        return response.getMember().getId();
+                    public String apply(GetDefaultAgentResponse response) throws Exception {
+                        return response.getMemberId();
                     }
                 });
     }
