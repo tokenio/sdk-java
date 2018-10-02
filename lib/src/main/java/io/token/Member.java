@@ -1155,6 +1155,16 @@ public class Member implements Representable {
         async.verifyAffiliate(memberId).blockingAwait();
     }
 
+    /**
+     * Resolves transfer destinations for the given account ID.
+     *
+     * @param accountId account ID
+     * @return transfer endpoints
+     */
+    public List<TransferEndpoint> resolveTransferDestinations(String accountId) {
+        return async.resolveTransferDestinations(accountId).blockingSingle();
+    }
+
     @Override
     public int hashCode() {
         return async.hashCode();

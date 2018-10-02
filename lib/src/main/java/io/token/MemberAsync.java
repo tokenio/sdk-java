@@ -1468,6 +1468,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Resolves transfer destinations for the given account ID.
+     *
+     * @param accountId account ID
+     * @return transfer endpoints
+     */
+    public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
+        return client.resolveTransferDestinations(accountId);
+    }
+
+    /**
      * Get the Token cluster, e.g. sandbox, production.
      *
      * @return Token cluster

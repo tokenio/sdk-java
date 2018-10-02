@@ -29,6 +29,7 @@ import static io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import io.reactivex.Observable;
 import io.token.proto.PagedList;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.List;
 import javax.annotation.Nullable;
@@ -42,7 +43,7 @@ public interface RepresentableAsync {
      *
      * @return a list of addresses
      */
-    public Observable<List<AddressRecord>> getAddresses();
+    Observable<List<AddressRecord>> getAddresses();
 
     /**
      * Looks up an address by id.
@@ -50,14 +51,14 @@ public interface RepresentableAsync {
      * @param addressId the address id
      * @return an address record
      */
-    public Observable<AddressRecord> getAddress(String addressId);
+    Observable<AddressRecord> getAddress(String addressId);
 
     /**
      * Links a funding bank account to Token and returns it to the caller.
      *
      * @return list of accounts
      */
-    public Observable<List<AccountAsync>> getAccounts();
+    Observable<List<AccountAsync>> getAccounts();
 
     /**
      * Looks up a funding bank account linked to Token.
@@ -65,7 +66,7 @@ public interface RepresentableAsync {
      * @param accountId account id
      * @return looked up account
      */
-    public Observable<AccountAsync> getAccount(String accountId);
+    Observable<AccountAsync> getAccount(String accountId);
 
     /**
      * Looks up account balance.
@@ -74,7 +75,7 @@ public interface RepresentableAsync {
      * @param keyLevel key level
      * @return balance
      */
-    public Observable<Balance> getBalance(String accountId, Key.Level keyLevel);
+    Observable<Balance> getBalance(String accountId, Key.Level keyLevel);
 
     /**
      * Looks up transactions for a given account.
@@ -85,7 +86,7 @@ public interface RepresentableAsync {
      * @param keyLevel key level
      * @return a paged list of transaction records
      */
-    public Observable<PagedList<Transaction, String>> getTransactions(
+    Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
             @Nullable String offset,
             int limit,
@@ -99,8 +100,16 @@ public interface RepresentableAsync {
      * @param keyLevel key level
      * @return transaction record
      */
-    public Observable<Transaction> getTransaction(
+    Observable<Transaction> getTransaction(
             String accountId,
             String transactionId,
             Key.Level keyLevel);
+
+    /**
+     * Resolves transfer destinations for the given account ID.
+     *
+     * @param accountId account ID
+     * @return transfer endpoints
+     */
+    Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId);
 }

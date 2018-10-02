@@ -78,6 +78,7 @@ import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
@@ -161,6 +162,8 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.ResolveTransferDestinationsRequest;
+import io.token.proto.gateway.Gateway.ResolveTransferDestinationsResponse;
 import io.token.proto.gateway.Gateway.RetryVerificationRequest;
 import io.token.proto.gateway.Gateway.RetryVerificationResponse;
 import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
@@ -1621,6 +1624,26 @@ public final class Client {
                 .verifyAffiliate(VerifyAffiliateRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()));
+    }
+
+    /**
+     * Resolves transfer destinations for the given account ID.
+     *
+     * @param accountId account ID
+     * @return transfer endpoints
+     */
+    public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
+        return toObservable(gateway
+                .resolveTransferDestinations(ResolveTransferDestinationsRequest.newBuilder()
+                        .setAccountId(accountId)
+                        .build()))
+                .map(new Function<ResolveTransferDestinationsResponse, List<TransferEndpoint>>() {
+                    @Override
+                    public List<TransferEndpoint> apply(
+                            ResolveTransferDestinationsResponse response) {
+                        return response.getDestinationsList();
+                    }
+                });
     }
 
     private Observable<TokenOperationResult> cancelAndReplace(
