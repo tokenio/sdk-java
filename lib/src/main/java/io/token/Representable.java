@@ -76,6 +76,15 @@ public interface Representable {
     public Balance getBalance(String accountId, Key.Level keyLevel);
 
     /**
+     * Looks up balances for a list of accounts.
+     *
+     * @param accountIds list of account ids
+     * @param keyLevel key level
+     * @return list of balances
+     */
+    public List<Balance> getBalances(List<String> accountIds, Key.Level keyLevel);
+
+    /**
      * Looks up an existing transaction for a given account.
      *
      * @param accountId the account id
