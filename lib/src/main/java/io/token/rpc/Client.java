@@ -1633,6 +1633,7 @@ public final class Client {
      * @return transfer endpoints
      */
     public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
+        setOnBehalfOf();
         return toObservable(gateway
                 .resolveTransferDestinations(ResolveTransferDestinationsRequest.newBuilder()
                         .setAccountId(accountId)
