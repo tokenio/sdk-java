@@ -28,6 +28,7 @@ import static io.token.proto.common.transaction.TransactionProtos.Balance;
 import static io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import io.token.proto.PagedList;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.List;
 import javax.annotation.Nullable;
@@ -41,7 +42,7 @@ public interface Representable {
      *
      * @return a list of addresses
      */
-    public List<AddressRecord> getAddresses();
+    List<AddressRecord> getAddresses();
 
     /**
      * Looks up an address by id.
@@ -49,14 +50,14 @@ public interface Representable {
      * @param addressId the address id
      * @return an address record
      */
-    public AddressRecord getAddress(String addressId);
+    AddressRecord getAddress(String addressId);
 
     /**
      * Looks up funding bank accounts linked to Token.
      *
      * @return list of linked accounts
      */
-    public List<Account> getAccounts();
+    List<Account> getAccounts();
 
     /**
      * Looks up a funding bank account linked to Token.
@@ -64,7 +65,7 @@ public interface Representable {
      * @param accountId account id
      * @return looked up account
      */
-    public Account getAccount(String accountId);
+    Account getAccount(String accountId);
 
     /**
      * Looks up account balance.
@@ -73,7 +74,7 @@ public interface Representable {
      * @param keyLevel key level
      * @return balance
      */
-    public Balance getBalance(String accountId, Key.Level keyLevel);
+    Balance getBalance(String accountId, Key.Level keyLevel);
 
     /**
      * Looks up balances for a list of accounts.
@@ -92,7 +93,7 @@ public interface Representable {
      * @param keyLevel key level
      * @return transaction
      */
-    public Transaction getTransaction(
+    Transaction getTransaction(
             String accountId,
             String transactionId,
             Key.Level keyLevel);
@@ -106,9 +107,17 @@ public interface Representable {
      * @param keyLevel key level
      * @return paged list of transactions
      */
-    public PagedList<Transaction, String> getTransactions(
+    PagedList<Transaction, String> getTransactions(
             String accountId,
             @Nullable String offset,
             int limit,
             Key.Level keyLevel);
+
+    /**
+     * Resolves transfer destinations for the given account ID.
+     *
+     * @param accountId account ID
+     * @return transfer endpoints
+     */
+    List<TransferEndpoint> resolveTransferDestinations(String accountId);
 }

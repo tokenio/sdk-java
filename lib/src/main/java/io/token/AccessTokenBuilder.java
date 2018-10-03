@@ -37,6 +37,9 @@ import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAccountsAt
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllAddresses;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllBalancesAtBank;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllTransactionsAtBank;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllTransferDestinations;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllTransferDestinationsAtBank;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.TransferDestinations;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenPayload.ActingAs;
@@ -245,12 +248,59 @@ public final class AccessTokenBuilder {
     }
 
     /**
+     * Grants access to all transfer destinations.
+     *
+     * @return {@link AccessTokenBuilder}
+     */
+    public AccessTokenBuilder forAllTransferDestinations() {
+        payload
+                .getAccessBuilder()
+                .addResources(Resource.newBuilder()
+                        .setAllTransferDestinations(AllTransferDestinations.getDefaultInstance()));
+        return this;
+    }
+
+    /**
+     * Grants access to all transfer destinations at a given bank.
+     *
+     * @param bankId bank id
+     * @return {@link AccessTokenBuilder}
+     */
+    public AccessTokenBuilder forAllTransferDestinationsAtBank(String bankId) {
+        payload
+                .getAccessBuilder()
+                .addResources(Resource.newBuilder()
+                        .setAllTransferDestinationsAtBank(AllTransferDestinationsAtBank.newBuilder()
+                                .setBankId(bankId)));
+        return this;
+    }
+
+    /**
+     * Grants access to all transfer destinations at the given account.
+     *
+     * @param accountId account id
+     * @return {@link AccessTokenBuilder}
+     */
+    public AccessTokenBuilder forTransferDestinations(String accountId) {
+        payload
+                .getAccessBuilder()
+                .addResources(Resource.newBuilder()
+                        .setTransferDestinations(TransferDestinations.newBuilder()
+                                .setAccountId(accountId)));
+        return this;
+    }
+
+    /**
      * Grants access to ALL resources (aka wildcard permissions).
      *
      * @return {@link AccessTokenBuilder}
      */
     public AccessTokenBuilder forAll() {
-        return forAllAccounts().forAllAddresses().forAllBalances().forAllTransactions();
+        return forAllAccounts()
+                .forAllAddresses()
+                .forAllBalances()
+                .forAllTransactions()
+                .forAllTransferDestinations();
     }
 
     /**
