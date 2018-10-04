@@ -38,8 +38,6 @@ public class PollNotificationsSampleTest {
                     .setAccountId(account.id())
                     .setToAlias(payeeAlias)
                     .addDestination(Destinations.token(payee.memberId()))
-                    // TODO to test
-                    // .setToMemberId(payer.memberId())
                     .execute();
             payer.endorseToken(token, Key.Level.STANDARD);
             Transfer transfer = payee.redeemToken(token);
