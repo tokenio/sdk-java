@@ -239,11 +239,9 @@ public final class TransferTokenBuilder {
      * @param redeemerAlias alias
      * @return builder
      */
+    @Deprecated
     public TransferTokenBuilder setRedeemerAlias(Alias redeemerAlias) {
-        payload.getTransferBuilder()
-                .getRedeemerBuilder()
-                .setAlias(redeemerAlias);
-        return this;
+        return setToAlias(redeemerAlias);
     }
 
     /**
@@ -252,11 +250,9 @@ public final class TransferTokenBuilder {
      * @param redeemerMemberId memberId
      * @return builder
      */
+    @Deprecated
     public TransferTokenBuilder setRedeemerMemberId(String redeemerMemberId) {
-        payload.getTransferBuilder()
-                .getRedeemerBuilder()
-                .setId(redeemerMemberId);
-        return this;
+        return setToMemberId(redeemerMemberId);
     }
 
     /**
@@ -427,8 +423,8 @@ public final class TransferTokenBuilder {
         if (!Arrays.asList(TOKEN_AUTHORIZATION, TOKEN, BANK).contains(sourceCase)) {
             throw new TokenArgumentsException("No source on token");
         }
-        if (Strings.isNullOrEmpty(payload.getTransfer().getRedeemer().getId())
-                && !payload.getTransfer().getRedeemer().hasAlias()) {
+        if (Strings.isNullOrEmpty(payload.getTo().getId())
+                && !payload.getTo().hasAlias()) {
             throw new TokenArgumentsException("No redeemer on token");
         }
 

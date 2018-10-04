@@ -33,7 +33,7 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
         Token transferToken =
                 payer.createTransferToken(100.0, "EUR")
                         .setAccountId(payer.getAccounts().get(0).id())
-                        .setRedeemerAlias(payeeAlias)
+                        .setToAlias(payeeAlias)
                         .setDescription("Invoice payment")
                         .addAttachment(
                                 payer.memberId(),
@@ -71,7 +71,7 @@ public final class CreateAndEndorseTransferTokenWithAttachmentSample {
         Token transferToken =
                 payer.createTransferToken(100.0, "EUR")
                         .setAccountId(payer.getAccounts().get(0).id())
-                        .setRedeemerMemberId(payeeId)
+                        .setToMemberId(payeeId)
                         .setDescription("Invoice payment")
                         .addAttachment(attachment)
                         .execute();
