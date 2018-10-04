@@ -1659,7 +1659,7 @@ public final class Client {
      * @return a completable
      */
     public Completable addTrustedBeneficiary(TrustedBeneficiary.Payload payload) {
-        Signer signer = crypto.createSigner(PRIVILEGED);
+        Signer signer = crypto.createSigner(STANDARD);
         return toCompletable(gateway
                 .addTrustedBeneficiary(AddTrustedBeneficiaryRequest.newBuilder()
                         .setTrustedBeneficiary(TrustedBeneficiary.newBuilder()
@@ -1678,7 +1678,7 @@ public final class Client {
      * @return a completable
      */
     public Completable removeTrustedBeneficiary(TrustedBeneficiary.Payload payload) {
-        Signer signer = crypto.createSigner(PRIVILEGED);
+        Signer signer = crypto.createSigner(STANDARD);
         return toCompletable(gateway
                 .removeTrustedBeneficiary(RemoveTrustedBeneficiaryRequest.newBuilder()
                         .setTrustedBeneficiary(TrustedBeneficiary.newBuilder()
