@@ -75,6 +75,7 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
+import io.token.proto.common.member.MemberProtos.TrustedBeneficiary;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -1475,6 +1476,41 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
         return client.resolveTransferDestinations(accountId);
+    }
+
+    /**
+     * Adds a trusted beneficiary for whom the SCA will be skipped.
+     *
+     * @param memberId the member id of the beneficiary
+     * @return a completable
+     */
+    public Completable addTrustedBeneficiary(String memberId) {
+        return client.addTrustedBeneficiary(TrustedBeneficiary.Payload.newBuilder()
+                .setMemberId(memberId)
+                .setNonce(generateNonce())
+                .build());
+    }
+
+    /**
+     * Removes a trusted beneficiary.
+     *
+     * @param memberId the member id of the beneficiary
+     * @return a completable
+     */
+    public Completable removeTrustedBeneficiary(String memberId) {
+        return client.removeTrustedBeneficiary(TrustedBeneficiary.Payload.newBuilder()
+                .setMemberId(memberId)
+                .setNonce(generateNonce())
+                .build());
+    }
+
+    /**
+     * Gets a list of all trusted beneficiaries.
+     *
+     * @return the list
+     */
+    public Observable<List<TrustedBeneficiary>> getTrustedBeneficiaries() {
+        return client.getTrustedBeneficiaries();
     }
 
     /**
