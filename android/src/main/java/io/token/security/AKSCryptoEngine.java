@@ -434,4 +434,20 @@ public final class AKSCryptoEngine implements CryptoEngine {
                 .asBytes();
         return ByteEncoding.serialize(hash).substring(0, 16);
     }
+
+    @Override
+    public void deleteKeys() {
+        try {
+            keyStore.load(null);
+            Enumeration<String> aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                if (getMemberId(alias).equals(memberId)) {
+                    keyStore.deleteEntry(alias);
+                }
+            }
+        } catch (GeneralSecurityException | IOException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
 }

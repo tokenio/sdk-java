@@ -103,6 +103,7 @@ public final class InMemoryKeyStore implements KeyStore {
      *
      * @param memberId Id of member
      */
+    @Override
     public void deleteKeys(String memberId) {
         Set<String> memberKeys = new HashSet<>(keys.row(memberId).keySet());
         for (String keyId : memberKeys) {

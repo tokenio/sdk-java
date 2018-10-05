@@ -74,4 +74,9 @@ public interface CryptoEngine {
      * @return list of public keys
      */
     List<Key> getPublicKeys();
+
+    /**
+     * Deletes all the keys of this CryptoEngine.
+     */
+    void deleteKeys();
 }
