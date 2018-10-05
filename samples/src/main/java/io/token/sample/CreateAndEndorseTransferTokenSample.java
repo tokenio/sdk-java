@@ -38,7 +38,7 @@ public final class CreateAndEndorseTransferTokenSample {
                 // source account:
                 .setAccountId(payer.getAccounts().get(0).id())
                 // payee token alias:
-                .setToAlias(payeeAlias)
+                .setRedeemerAlias(payeeAlias)
                 // optional description:
                 .setDescription("Book purchase")
                 // ref id (if not set, will get random ID)
@@ -89,7 +89,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         // source account:
                         .setAccountId(payer.getAccounts().get(0).id())
                         .setToMemberId(payeeId)
-                        .setToMemberId(payeeId)
+                        .setRedeemerMemberId(payeeId)
                         // effective in one second:
                         .setEffectiveAtMs(now + 1000)
                         // expires in 300 seconds:
@@ -127,7 +127,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         100.0, // amount
                         "EUR")  // currency
                         .setAccountId(payer.getAccounts().get(0).id())
-                        .setToAlias(payeeAlias)
+                        .setRedeemerAlias(payeeAlias)
                         .addDestination(Destinations.sepa(
                                 "XUIWC2489",
                                 "DE89 3704 0044 0532 0130 00"))
