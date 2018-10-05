@@ -74,6 +74,28 @@ public class AKSCryptoEngineTest {
         cryptoEngine.createVerifier(expiredKey.getId());
     }
 
+    @Test
+    public void deleteKeys() {
+        CryptoEngine cryptoEngine = new AKSCryptoEngineFactory(
+                new MockContext(),
+                new UserAuthenticationStore(),
+                Build.VERSION.SDK_INT >= Build.VERSION_CODES.M)
+                .create(randomId());
+
+        cryptoEngine.generateKey(LOW);
+        cryptoEngine.generateKey(STANDARD);
+        cryptoEngine.generateKey(PRIVILEGED);
+        assertEquals(cryptoEngine.getPublicKeys().size(), 3);
+
+        cryptoEngine.generateKey(LOW);
+        cryptoEngine.generateKey(STANDARD);
+        cryptoEngine.generateKey(PRIVILEGED);
+        assertEquals(cryptoEngine.getPublicKeys().size(), 6);
+
+        cryptoEngine.deleteKeys();
+        assertEquals(cryptoEngine.getPublicKeys().size(), 0);
+    }
+
     private String randomId() {
         return UUID.randomUUID().toString().replace("-", "");
     }

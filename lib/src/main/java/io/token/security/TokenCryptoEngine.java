@@ -115,4 +115,9 @@ public final class TokenCryptoEngine implements CryptoEngine {
                 .setExpiresAtMs(expiresAtMs)
                 .build();
     }
+
+    @Override
+    public void deleteKeys() {
+        keyStore.deleteKeys(memberId);
+    }
 }
