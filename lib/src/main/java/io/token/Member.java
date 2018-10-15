@@ -23,9 +23,12 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
+import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toAccountList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
+import io.reactivex.Completable;
+import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
@@ -44,6 +47,7 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
+import io.token.proto.common.member.MemberProtos.TrustedBeneficiary;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -1163,6 +1167,33 @@ public class Member implements Representable {
      */
     public List<TransferEndpoint> resolveTransferDestinations(String accountId) {
         return async.resolveTransferDestinations(accountId).blockingSingle();
+    }
+
+    /**
+     * Adds a trusted beneficiary for whom the SCA will be skipped.
+     *
+     * @param memberId the member id of the beneficiary
+     */
+    public void addTrustedBeneficiary(String memberId) {
+        async.addTrustedBeneficiary(memberId).blockingAwait();
+    }
+
+    /**
+     * Removes a trusted beneficiary.
+     *
+     * @param memberId the member id of the beneficiary
+     */
+    public void removeTrustedBeneficiary(String memberId) {
+        async.removeTrustedBeneficiary(memberId).blockingAwait();
+    }
+
+    /**
+     * Gets a list of all trusted beneficiaries.
+     *
+     * @return the list
+     */
+    public List<TrustedBeneficiary> getTrustedBeneficiaries() {
+        return async.getTrustedBeneficiaries().blockingSingle();
     }
 
     @Override

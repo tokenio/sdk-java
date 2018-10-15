@@ -60,6 +60,7 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
+import io.token.proto.common.member.MemberProtos.TrustedBeneficiary;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
@@ -82,6 +83,7 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
+import io.token.proto.gateway.Gateway.AddTrustedBeneficiaryRequest;
 import io.token.proto.gateway.Gateway.ApplyScaRequest;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
@@ -153,11 +155,14 @@ import io.token.proto.gateway.Gateway.GetTransferRequest;
 import io.token.proto.gateway.Gateway.GetTransferResponse;
 import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetTransfersResponse;
+import io.token.proto.gateway.Gateway.GetTrustedBeneficiariesRequest;
+import io.token.proto.gateway.Gateway.GetTrustedBeneficiariesResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsOauthRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsOauthResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsResponse;
 import io.token.proto.gateway.Gateway.Page;
+import io.token.proto.gateway.Gateway.RemoveTrustedBeneficiaryRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
@@ -1643,6 +1648,60 @@ public final class Client {
                     public List<TransferEndpoint> apply(
                             ResolveTransferDestinationsResponse response) {
                         return response.getDestinationsList();
+                    }
+                });
+    }
+
+    /**
+     * Adds a trusted beneficiary for whom the SCA will be skipped.
+     *
+     * @param payload the payload of the request
+     * @return a completable
+     */
+    public Completable addTrustedBeneficiary(TrustedBeneficiary.Payload payload) {
+        Signer signer = crypto.createSigner(STANDARD);
+        return toCompletable(gateway
+                .addTrustedBeneficiary(AddTrustedBeneficiaryRequest.newBuilder()
+                        .setTrustedBeneficiary(TrustedBeneficiary.newBuilder()
+                                .setPayload(payload)
+                                .setSignature(Signature.newBuilder()
+                                        .setKeyId(signer.getKeyId())
+                                        .setMemberId(memberId)
+                                        .setSignature(signer.sign(payload))))
+                        .build()));
+    }
+
+    /**
+     * Removes a trusted beneficiary.
+     *
+     * @param payload the payload of the request
+     * @return a completable
+     */
+    public Completable removeTrustedBeneficiary(TrustedBeneficiary.Payload payload) {
+        Signer signer = crypto.createSigner(STANDARD);
+        return toCompletable(gateway
+                .removeTrustedBeneficiary(RemoveTrustedBeneficiaryRequest.newBuilder()
+                        .setTrustedBeneficiary(TrustedBeneficiary.newBuilder()
+                                .setPayload(payload)
+                                .setSignature(Signature.newBuilder()
+                                        .setKeyId(signer.getKeyId())
+                                        .setMemberId(memberId)
+                                        .setSignature(signer.sign(payload))))
+                        .build()));
+    }
+
+    /**
+     * Gets a list of all trusted beneficiaries.
+     *
+     * @return the list
+     */
+    public Observable<List<TrustedBeneficiary>> getTrustedBeneficiaries() {
+        return toObservable(gateway
+                .getTrustedBeneficiaries(GetTrustedBeneficiariesRequest.getDefaultInstance()))
+                .map(new Function<GetTrustedBeneficiariesResponse, List<TrustedBeneficiary>>() {
+                    @Override
+                    public List<TrustedBeneficiary> apply(GetTrustedBeneficiariesResponse res) {
+                        return res.getTrustedBeneficiariesList();
                     }
                 });
     }
