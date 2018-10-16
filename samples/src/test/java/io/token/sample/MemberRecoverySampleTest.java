@@ -2,7 +2,6 @@ package io.token.sample;
 
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.randomAlias;
-import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -23,9 +22,6 @@ public class MemberRecoverySampleTest {
             // set up
             Alias originalAlias = randomAlias();
             Member originalMember = tokenIO.createMember(originalAlias);
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(originalMember.aliases()).contains(originalAlias));
             mrs.setUpDefaultRecoveryRule(originalMember);
 
             TokenIO otherTokenIO = createClient();
@@ -45,18 +41,12 @@ public class MemberRecoverySampleTest {
             TokenIO agentTokenIO = createClient();
             Alias agentAlias = randomAlias();
             Member agentMember = agentTokenIO.createMember(agentAlias);
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(agentMember.aliases()).contains(agentAlias));
 
             mrs.agentMember = agentMember;
 
             // set up
             Alias originalAlias = randomAlias();
             Member originalMember = tokenIO.createMember(originalAlias);
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(originalMember.aliases()).contains(originalAlias));
             mrs.setUpComplexRecoveryRule(originalMember, tokenIO, agentAlias);
 
             // recover

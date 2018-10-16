@@ -7,7 +7,6 @@ import static io.token.sample.RedeemAccessTokenSample.redeemAccessToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
 import static io.token.sample.TestUtil.randomAlias;
-import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.AccessTokenBuilder;
@@ -31,9 +30,6 @@ public class RedeemAccessTokenSampleTest {
             Member grantor = createMemberAndLinkAccounts(tokenIO);
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
 
             Token token = createAccessToken(grantor, granteeAlias);
             Money balance0 = redeemAccessToken(grantee, token.getId());
@@ -45,18 +41,12 @@ public class RedeemAccessTokenSampleTest {
     public void useAccessTokenTest() {
         try (TokenIO tokenIO = createClient()) {
             Member grantor = tokenIO.createMember(randomAlias());
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(grantor.aliases()).isNotEmpty());
             final String account1Id = LinkMemberAndBankSample.linkBankAccounts(grantor).id();
             final String account2Id = LinkMemberAndBankSample.linkBankAccounts(grantor).id();
             LinkMemberAndBankSample.linkBankAccounts(grantor); // a third account
 
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
 
             // get a token from doc sample code: all accounts, all balance
             Token token1 = createAccessToken(grantor, granteeAlias);

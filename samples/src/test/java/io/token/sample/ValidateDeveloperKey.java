@@ -18,7 +18,6 @@ public class ValidateDeveloperKey {
 
     @Test(expected = StatusRuntimeException.class)
     public void noKeyProvided() {
-        TokenIO tokenIO = TokenIO.create(DEVELOPMENT, null
-        );
+        TokenIO tokenIO = TokenIO.create(DEVELOPMENT, null);
     }
 }
