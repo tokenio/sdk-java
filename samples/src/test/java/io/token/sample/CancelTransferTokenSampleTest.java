@@ -5,7 +5,6 @@ import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransfer
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
 import static io.token.sample.TestUtil.randomAlias;
-import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -23,9 +22,6 @@ public class CancelTransferTokenSampleTest {
             Member grantor = createMemberAndLinkAccounts(tokenIO);
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
 
             Token token = createTransferToken(grantor, granteeAlias);
             TokenOperationResult result = cancelTransferToken(grantor, token.getId());

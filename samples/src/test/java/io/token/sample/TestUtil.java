@@ -2,7 +2,6 @@ package io.token.sample;
 
 import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
-import static org.assertj.core.api.Assertions.assertThat;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.Member;
@@ -50,10 +49,6 @@ public abstract class TestUtil {
     public static Member createMemberAndLinkAccounts(TokenIO client) {
         Alias alias = randomAlias();
         Member member = client.createMember(alias);
-        // wait until members alias is processed by verification job, cause otherwise there is a
-        // possibility that prev_hash for MemberUpdate being changed before request reaches
-        // directory
-        waitUntil(() -> assertThat(member.aliases()).contains(alias));
         LinkMemberAndBankSample.linkBankAccounts(member);
         return member;
     }

@@ -5,7 +5,6 @@ import static io.token.sample.ReplaceAccessTokenSample.findAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.replaceAccessToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.randomAlias;
-import static io.token.sample.TestUtil.waitUntil;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.Member;
@@ -22,9 +21,6 @@ public class ReplaceAccessTokenSampleTest {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
             Token createdToken = createAccessToken(grantor, granteeAlias);
             Token foundToken = findAccessToken(tokenIO, grantor, granteeAlias);
             assertThat(foundToken.getId()).isEqualTo(createdToken.getId());
@@ -37,9 +33,6 @@ public class ReplaceAccessTokenSampleTest {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
             createAccessToken(grantor, granteeAlias);
             Token activeToken = findAccessToken(tokenIO, grantor, granteeAlias);
 
@@ -56,9 +49,6 @@ public class ReplaceAccessTokenSampleTest {
             Member grantor = tokenIO.createMember(randomAlias());
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            // wait until alias is processed by the asynchronous verification job (this is needed
-            // only for +noverify aliases)
-            waitUntil(() -> assertThat(grantee.aliases()).contains(granteeAlias));
             createAccessToken(grantor, granteeAlias);
             Token activeToken = findAccessToken(tokenIO, grantor, granteeAlias);
 
