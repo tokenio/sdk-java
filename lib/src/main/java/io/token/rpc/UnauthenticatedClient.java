@@ -37,6 +37,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.NotifyResult;
 import io.token.TokenRequest;
+import io.token.TokenRequestAndCustomization;
 import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -233,31 +234,37 @@ public final class UnauthenticatedClient {
      *
      * @param tokenRequestId token request id
      *
-     * @return TokenRequest representing the request that was stored with the request id
+     * @return token request and customization that was stored with the request id
      */
-    public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
+    public Observable<TokenRequestAndCustomization> retrieveTokenRequest(String tokenRequestId) {
         return toObservable(gateway.retrieveTokenRequest(RetrieveTokenRequestRequest.newBuilder()
                 .setRequestId(tokenRequestId)
                 .build()))
-                .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
+                .map(new Function<RetrieveTokenRequestResponse, TokenRequestAndCustomization>() {
                     @Override
-                    public TokenRequest apply(
+                    public TokenRequestAndCustomization apply(
                             RetrieveTokenRequestResponse retrieveTokenRequestResponse)
                             throws Exception {
-                        return TokenRequest
-                                .newBuilder(
-                                        retrieveTokenRequestResponse
+                        return TokenRequestAndCustomization.create(
+                                TokenRequest
+                                        .newBuilder(
+                                                retrieveTokenRequestResponse
+                                                        .getTokenRequest()
+                                                        .getPayload())
+                                        .addAllOptions(
+                                                retrieveTokenRequestResponse
+                                                        .getTokenRequest()
+                                                        .getOptionsMap())
+                                        .setUserRefId(
+                                                emptyToNull(retrieveTokenRequestResponse
+                                                        .getTokenRequest()
+                                                        .getUserRefId()))
+                                        .setCustomizationId(
+                                                emptyToNull(retrieveTokenRequestResponse
                                                 .getTokenRequest()
-                                                .getPayload())
-                                .addAllOptions(
-                                        retrieveTokenRequestResponse
-                                                .getTokenRequest()
-                                                .getOptionsMap())
-                                .setUserRefId(
-                                        emptyToNull(retrieveTokenRequestResponse
-                                                .getTokenRequest()
-                                                .getUserRefId()))
-                                .build();
+                                                .getCustomizationId()))
+                                        .build(),
+                                retrieveTokenRequestResponse.getCustomization());
                     }
                 });
     }

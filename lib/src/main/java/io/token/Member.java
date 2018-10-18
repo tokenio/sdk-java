@@ -39,6 +39,7 @@ import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
+import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.AddressRecord;
 import io.token.proto.common.member.MemberProtos.Device;
@@ -1194,6 +1195,17 @@ public class Member implements Representable {
      */
     public List<TrustedBeneficiary> getTrustedBeneficiaries() {
         return async.getTrustedBeneficiaries().blockingSingle();
+    }
+
+    /**
+     * Creates a customization.
+     *
+     * @param logo logo
+     * @param colors map of colors
+     * @return customization id
+     */
+    public String createCustomization(Payload logo, Map<String, String> colors) {
+        return async.createCustomization(logo, colors).blockingFirst();
     }
 
     @Override

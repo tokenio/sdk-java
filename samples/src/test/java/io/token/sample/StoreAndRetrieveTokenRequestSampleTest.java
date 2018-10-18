@@ -20,7 +20,7 @@ public class StoreAndRetrieveTokenRequestSampleTest {
         try (TokenIO tokenIO = createClient()) {
             Member payee = tokenIO.createMember();
             String requestId = storeTransferTokenRequest(payee);
-            TokenRequest request = tokenIO.retrieveTokenRequest(requestId);
+            TokenRequest request = tokenIO.retrieveTokenRequest(requestId).getTokenRequest();
             assertThat(request).isNotNull();
         }
     }
@@ -30,7 +30,7 @@ public class StoreAndRetrieveTokenRequestSampleTest {
         try (TokenIO tokenIO = createClient()) {
             Member grantee = tokenIO.createMember();
             String requestId = storeAccessTokenRequest(grantee);
-            TokenRequest request = tokenIO.retrieveTokenRequest(requestId);
+            TokenRequest request = tokenIO.retrieveTokenRequest(requestId).getTokenRequest();
             assertThat(request).isNotNull();
         }
     }

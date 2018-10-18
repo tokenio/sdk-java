@@ -983,7 +983,8 @@ public class MemberAsync implements RepresentableAsync {
         return client.storeTokenRequest(
                 tokenRequest.getTokenPayload(),
                 tokenRequest.getOptions(),
-                tokenRequest.getUserRefId());
+                tokenRequest.getUserRefId(),
+                tokenRequest.getCustomizationId());
     }
 
     /**
@@ -1511,6 +1512,17 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<List<TrustedBeneficiary>> getTrustedBeneficiaries() {
         return client.getTrustedBeneficiaries();
+    }
+
+    /**
+     * Creates a customization.
+     *
+     * @param logo logo
+     * @param colors map of colors
+     * @return customization id
+     */
+    public Observable<String> createCustomization(Payload logo, Map<String, String> colors) {
+        return client.createCustomization(logo, colors);
     }
 
     /**

@@ -353,9 +353,9 @@ public class TokenIOAsync implements Closeable {
      * Return a TokenRequest that was previously stored.
      *
      * @param requestId request id
-     * @return token request
+     * @return token request and customization that was stored with the request id
      */
-    public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
+    public Observable<TokenRequestAndCustomization> retrieveTokenRequest(String requestId) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.retrieveTokenRequest(requestId);
     }
