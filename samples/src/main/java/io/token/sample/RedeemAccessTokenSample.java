@@ -30,6 +30,7 @@ public final class RedeemAccessTokenSample {
         // Specifies whether the request originated from a customer
         boolean customerInitiated = true;
 
+        // forAccessToken snippet begin
         // Access grantor's account list by applying
         // access token to the grantee client.
         grantee.useAccessToken(tokenId, customerInitiated);
@@ -39,6 +40,7 @@ public final class RedeemAccessTokenSample {
         Money balance0 = grantorAccounts.get(0).getCurrentBalance(STANDARD);
         // When done using access, clear token from grantee client.
         grantee.clearAccessToken();
+        // forAccessToken snippet end
         return balance0;
     }
 
