@@ -37,7 +37,6 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.NotifyResult;
 import io.token.TokenRequest;
-import io.token.TokenRequestAndCustomization;
 import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.banklink.Banklink.BankAuthorization;
@@ -234,37 +233,38 @@ public final class UnauthenticatedClient {
      *
      * @param tokenRequestId token request id
      *
-     * @return token request and customization that was stored with the request id
+     * @return token request that was stored with the request id
      */
-    public Observable<TokenRequestAndCustomization> retrieveTokenRequest(String tokenRequestId) {
+    public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
         return toObservable(gateway.retrieveTokenRequest(RetrieveTokenRequestRequest.newBuilder()
                 .setRequestId(tokenRequestId)
                 .build()))
-                .map(new Function<RetrieveTokenRequestResponse, TokenRequestAndCustomization>() {
+                .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
                     @Override
-                    public TokenRequestAndCustomization apply(
+                    public TokenRequest apply(
                             RetrieveTokenRequestResponse retrieveTokenRequestResponse)
                             throws Exception {
-                        return TokenRequestAndCustomization.create(
-                                TokenRequest
-                                        .newBuilder(
-                                                retrieveTokenRequestResponse
-                                                        .getTokenRequest()
-                                                        .getPayload())
-                                        .addAllOptions(
-                                                retrieveTokenRequestResponse
-                                                        .getTokenRequest()
-                                                        .getOptionsMap())
-                                        .setUserRefId(
-                                                emptyToNull(retrieveTokenRequestResponse
-                                                        .getTokenRequest()
-                                                        .getUserRefId()))
-                                        .setCustomizationId(
-                                                emptyToNull(retrieveTokenRequestResponse
+                        return TokenRequest
+                                .newBuilder(
+                                        retrieveTokenRequestResponse
+                                                .getTokenRequest()
+                                                .getPayload())
+                                .addAllOptions(
+                                        retrieveTokenRequestResponse
+                                                .getTokenRequest()
+                                                .getOptionsMap())
+                                .setUserRefId(
+                                        emptyToNull(retrieveTokenRequestResponse
+                                                .getTokenRequest()
+                                                .getUserRefId()))
+                                .setCustomizationId(
+                                        emptyToNull(retrieveTokenRequestResponse
                                                 .getTokenRequest()
                                                 .getCustomizationId()))
-                                        .build(),
-                                retrieveTokenRequestResponse.getCustomization());
+                                .setCustomization(retrieveTokenRequestResponse.hasCustomization()
+                                        ? retrieveTokenRequestResponse.getCustomization()
+                                        : null)
+                                .build();
                     }
                 });
     }

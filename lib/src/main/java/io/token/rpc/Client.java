@@ -1715,7 +1715,7 @@ public final class Client {
      * Creates a customization.
      *
      * @param logo logo
-     * @param colors map of colors
+     * @param colors map of ARGB colors #AARRGGBB
      * @return customization id
      */
     public Observable<String> createCustomization(Payload logo, Map<String, String> colors) {

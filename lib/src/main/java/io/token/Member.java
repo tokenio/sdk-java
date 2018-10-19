@@ -1201,7 +1201,7 @@ public class Member implements Representable {
      * Creates a customization.
      *
      * @param logo logo
-     * @param colors map of colors
+     * @param colors map of ARGB colors #AARRGGBB
      * @return customization id
      */
     public String createCustomization(Payload logo, Map<String, String> colors) {

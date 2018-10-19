@@ -8,7 +8,6 @@ import io.token.AccessTokenBuilder;
 import io.token.Member;
 import io.token.TokenIO;
 import io.token.TokenRequest;
-import io.token.TokenRequestAndCustomization;
 import io.token.TransferTokenBuilder;
 
 /**
@@ -63,11 +62,11 @@ public final class StoreAndRetrieveTokenRequestSample {
     /**
      * Retrieves a token request.
      *
-     * @param tokenIO tokenIO instnace to use
+     * @param tokenIO tokenIO instance to use
      * @param requestId id of request to retrieve
-     * @return token request and customization that was stored with the request id
+     * @return token request that was stored with the request id
      */
-    public static TokenRequestAndCustomization retrieveTokenRequest(
+    public static TokenRequest retrieveTokenRequest(
             TokenIO tokenIO,
             String requestId) {
         return tokenIO.retrieveTokenRequest(requestId);
