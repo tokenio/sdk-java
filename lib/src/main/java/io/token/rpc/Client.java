@@ -90,6 +90,8 @@ import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
 import io.token.proto.gateway.Gateway.CreateAccessTokenResponse;
 import io.token.proto.gateway.Gateway.CreateBlobResponse;
+import io.token.proto.gateway.Gateway.CreateCustomizationRequest;
+import io.token.proto.gateway.Gateway.CreateCustomizationResponse;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountRequest;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
@@ -599,16 +601,19 @@ public final class Client {
      * @param payload transfer token payload
      * @param options map of options
      * @param userRefId (optional) user ref id
+     * @param customizationId (optional) customization id
      * @return id to reference token request
      */
     public Observable<String> storeTokenRequest(
             TokenPayload payload,
             Map<String, String> options,
-            @Nullable String userRefId) {
+            @Nullable String userRefId,
+            @Nullable String customizationId) {
         return toObservable(gateway.storeTokenRequest(StoreTokenRequestRequest.newBuilder()
                 .setPayload(payload)
                 .putAllOptions(options)
                 .setUserRefId(nullToEmpty(userRefId))
+                .setCustomizationId(nullToEmpty(customizationId))
                 .build()))
                 .map(new Function<StoreTokenRequestResponse, String>() {
                     @Override
@@ -1702,6 +1707,26 @@ public final class Client {
                     @Override
                     public List<TrustedBeneficiary> apply(GetTrustedBeneficiariesResponse res) {
                         return res.getTrustedBeneficiariesList();
+                    }
+                });
+    }
+
+    /**
+     * Creates a customization.
+     *
+     * @param logo logo
+     * @param colors map of ARGB colors #AARRGGBB
+     * @return customization id
+     */
+    public Observable<String> createCustomization(Payload logo, Map<String, String> colors) {
+        return toObservable(gateway.createCustomization(CreateCustomizationRequest.newBuilder()
+                .setLogo(logo)
+                .putAllColors(colors)
+                .build()))
+                .map(new Function<CreateCustomizationResponse, String>() {
+                    @Override
+                    public String apply(CreateCustomizationResponse createCustomizationResponse) {
+                        return createCustomizationResponse.getCustomizationId();
                     }
                 });
     }

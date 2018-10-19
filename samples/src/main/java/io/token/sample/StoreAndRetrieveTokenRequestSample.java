@@ -62,9 +62,9 @@ public final class StoreAndRetrieveTokenRequestSample {
     /**
      * Retrieves a token request.
      *
-     * @param tokenIO tokenIO instnace to use
+     * @param tokenIO tokenIO instance to use
      * @param requestId id of request to retrieve
-     * @return a token request id
+     * @return token request that was stored with the request id
      */
     public static TokenRequest retrieveTokenRequest(
             TokenIO tokenIO,

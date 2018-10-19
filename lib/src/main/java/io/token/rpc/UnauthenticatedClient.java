@@ -233,7 +233,7 @@ public final class UnauthenticatedClient {
      *
      * @param tokenRequestId token request id
      *
-     * @return TokenRequest representing the request that was stored with the request id
+     * @return token request that was stored with the request id
      */
     public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
         return toObservable(gateway.retrieveTokenRequest(RetrieveTokenRequestRequest.newBuilder()
@@ -257,6 +257,13 @@ public final class UnauthenticatedClient {
                                         emptyToNull(retrieveTokenRequestResponse
                                                 .getTokenRequest()
                                                 .getUserRefId()))
+                                .setCustomizationId(
+                                        emptyToNull(retrieveTokenRequestResponse
+                                                .getTokenRequest()
+                                                .getCustomizationId()))
+                                .setCustomization(retrieveTokenRequestResponse.hasCustomization()
+                                        ? retrieveTokenRequestResponse.getCustomization()
+                                        : null)
                                 .build();
                     }
                 });

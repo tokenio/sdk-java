@@ -24,6 +24,8 @@ package io.token;
 
 import com.google.auto.value.AutoValue;
 import io.reactivex.annotations.Nullable;
+import io.token.proto.common.account.AccountProtos.BankAccount.Custom;
+import io.token.proto.common.member.MemberProtos.Customization;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 
 import java.util.HashMap;
@@ -57,6 +59,10 @@ public abstract class TokenRequest {
     public abstract Map<String, String> getOptions();
 
     @Nullable public abstract String getUserRefId();
+
+    @Nullable public abstract String getCustomizationId();
+
+    @Nullable public abstract Customization getCustomization();
 
     public String getOption(TokenRequestOptions option) {
         return getOptions().get(option.getName());
@@ -96,6 +102,8 @@ public abstract class TokenRequest {
         private TokenPayload tokenPayload;
         private Map<String, String> options;
         private String userRefId;
+        private String customizationId;
+        private Customization customization;
 
         Builder(TokenPayload tokenPayload) {
             this.tokenPayload = tokenPayload;
@@ -117,8 +125,28 @@ public abstract class TokenRequest {
             return this;
         }
 
+        public Builder setCustomizationId(String customizationId) {
+            this.customizationId = customizationId;
+            return this;
+        }
+
+        public Builder setCustomization(Customization customization) {
+            this.customization = customization;
+            return this;
+        }
+
+        /**
+         * Builds the token payload.
+         *
+         * @return TokenRequest instance
+         */
         public TokenRequest build() {
-            return new AutoValue_TokenRequest(tokenPayload, options, userRefId);
+            return new AutoValue_TokenRequest(
+                    tokenPayload,
+                    options,
+                    userRefId,
+                    customizationId,
+                    customization);
         }
     }
 
@@ -165,7 +193,7 @@ public abstract class TokenRequest {
         if (options == null) {
             options = new HashMap<>();
         }
-        return new AutoValue_TokenRequest(payload, options, null);
+        return new  AutoValue_TokenRequest(payload, options, null, null, null);
     }
 
     @Deprecated
