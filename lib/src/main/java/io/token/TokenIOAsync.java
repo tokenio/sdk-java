@@ -361,26 +361,6 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Return a Member set up to use some Token member's keys (assuming we have them).
-     *
-     * @param memberId member id
-     * @return member
-     * @deprecated login's name changed to getMember
-     */
-    @Deprecated
-    public Observable<MemberAsync> login(String memberId) {
-        CryptoEngine crypto = cryptoFactory.create(memberId);
-        final Client client = ClientFactory.authenticated(channel, memberId, crypto);
-        return client
-                .getMember(memberId)
-                .map(new Function<MemberProtos.Member, MemberAsync>() {
-                    public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client, tokenCluster, browserFactory);
-                    }
-                });
-    }
-
-    /**
      * Notifies to link an account.
      *
      * @param alias alias to notify
