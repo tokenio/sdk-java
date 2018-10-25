@@ -4,9 +4,11 @@ import io.token.DeviceInfo;
 import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 
+import java.util.Collections;
 
 public class ProvisionDeviceSample {
 
@@ -23,7 +25,12 @@ public class ProvisionDeviceSample {
             return k.getLevel() == Key.Level.LOW;
         }).findFirst().orElse(null);
         // ask user (on "regular" device) to approve one of our keys
-        NotifyStatus status = tokenIO.notifyAddKey(alias, "SDK Sample", lowKey);
+        NotifyStatus status = tokenIO.notifyAddKey(
+                alias,
+                Collections.singletonList(lowKey),
+                DeviceMetadata.newBuilder()
+                        .setApplication("SDK Sample")
+                        .build());
         return lowKey;
     }
 
