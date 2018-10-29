@@ -378,16 +378,20 @@ public class TokenIOAsync implements Closeable {
      * Notifies to add a key.
      *
      * @param alias alias to notify
-     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
-     * @param key key that needs an approval
+     * @param keys keys that need approval
+     * @param deviceMetadata device metadata of the keys
      * @return status of the notification
      */
     public Observable<NotifyStatus> notifyAddKey(
             Alias alias,
-            String name,
-            Key key) {
+            List<Key> keys,
+            DeviceMetadata deviceMetadata) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.notifyAddKey(alias,  name, key);
+        AddKey addKey = AddKey.newBuilder()
+                .addAllKeys(keys)
+                .setDeviceMetadata(deviceMetadata)
+                .build();
+        return unauthenticated.notifyAddKey(alias, addKey);
     }
 
     /**
@@ -395,21 +399,24 @@ public class TokenIOAsync implements Closeable {
      *
      * @param alias alias to notify
      * @param authorization the bank authorization for the funding account
-     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
-     * @param key the that needs an approval
+     * @param keys keys that need approval
+     * @param deviceMetadata device metadata of the keys
      * @return status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
             Alias alias,
             BankAuthorization authorization,
-            String name,
-            Key key) {
+            List<Key> keys,
+            DeviceMetadata deviceMetadata) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        AddKey addKey = AddKey.newBuilder()
+                .addAllKeys(keys)
+                .setDeviceMetadata(deviceMetadata)
+                .build();
         return unauthenticated.notifyLinkAccountsAndAddKey(
                 alias,
                 authorization,
-                name,
-                key);
+                addKey);
     }
 
     /**

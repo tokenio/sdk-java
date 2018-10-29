@@ -51,7 +51,9 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
+import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
+import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.EndorseAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
 import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
@@ -299,22 +301,15 @@ public final class UnauthenticatedClient {
      * Notifies subscribed devices that a key should be added.
      *
      * @param alias alias of the member
-     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
-     * @param key the that needs an approval
+     * @param addKey the add key payload to be sent
      * @return status status of the notification
      */
-    public Observable<NotifyStatus> notifyAddKey(
-            Alias alias,
-            String name,
-            Key key) {
+    public Observable<NotifyStatus> notifyAddKey(Alias alias, AddKey addKey) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
                         .setBody(NotifyBody.newBuilder()
-                                .setAddKey(AddKey.newBuilder()
-                                        .setName(name)
-                                        .setKey(key)
-                                        .build())
+                                .setAddKey(addKey)
                                 .build())
                         .build()))
                 .map(new Function<NotifyResponse, NotifyStatus>() {
@@ -329,15 +324,13 @@ public final class UnauthenticatedClient {
      *
      * @param alias alias of the member
      * @param authorization the bank authorization for the funding account
-     * @param name device/client name, e.g. iPhone, Chrome Browser, etc
-     * @param key the that needs an approval
+     * @param addKey the add key payload to be sent
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
             Alias alias,
             BankAuthorization authorization,
-            String name,
-            Key key) {
+            AddKey addKey ) {
         return toObservable(gateway.notify(
                 NotifyRequest.newBuilder()
                         .setAlias(alias)
@@ -346,10 +339,7 @@ public final class UnauthenticatedClient {
                                         .setLinkAccounts(LinkAccounts.newBuilder()
                                                 .setBankAuthorization(authorization)
                                                 .build())
-                                        .setAddKey(AddKey.newBuilder()
-                                                .setName(name)
-                                                .setKey(key)
-                                                .build())
+                                        .setAddKey(addKey)
                                         .build())
                                 .build())
                         .build()))
