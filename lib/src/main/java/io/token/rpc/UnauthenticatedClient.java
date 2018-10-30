@@ -272,32 +272,6 @@ public final class UnauthenticatedClient {
     }
 
     /**
-     * Notifies subscribed devices that accounts should be linked.
-     *
-     * @param alias alias of the member
-     * @param authorization the bank authorization for the funding account
-     * @return status status of the notification
-     */
-    public Observable<NotifyStatus> notifyLinkAccounts(
-            Alias alias,
-            BankAuthorization authorization) {
-        return toObservable(gateway.notify(
-                NotifyRequest.newBuilder()
-                        .setAlias(alias)
-                        .setBody(NotifyBody.newBuilder()
-                                .setLinkAccounts(LinkAccounts.newBuilder()
-                                        .setBankAuthorization(authorization)
-                                        .build())
-                                .build())
-                        .build()))
-                .map(new Function<NotifyResponse, NotifyStatus>() {
-                    public NotifyStatus apply(NotifyResponse response) {
-                        return response.getStatus();
-                    }
-                });
-    }
-
-    /**
      * Notifies subscribed devices that a key should be added.
      *
      * @param alias alias of the member
@@ -310,37 +284,6 @@ public final class UnauthenticatedClient {
                         .setAlias(alias)
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(addKey)
-                                .build())
-                        .build()))
-                .map(new Function<NotifyResponse, NotifyStatus>() {
-                    public NotifyStatus apply(NotifyResponse response) {
-                        return response.getStatus();
-                    }
-                });
-    }
-
-    /**
-     * Notifies subscribed devices that a key should be added.
-     *
-     * @param alias alias of the member
-     * @param authorization the bank authorization for the funding account
-     * @param addKey the add key payload to be sent
-     * @return status status of the notification
-     */
-    public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
-            Alias alias,
-            BankAuthorization authorization,
-            AddKey addKey ) {
-        return toObservable(gateway.notify(
-                NotifyRequest.newBuilder()
-                        .setAlias(alias)
-                        .setBody(NotifyBody.newBuilder()
-                                .setLinkAccountsAndAddKey(LinkAccountsAndAddKey.newBuilder()
-                                        .setLinkAccounts(LinkAccounts.newBuilder()
-                                                .setBankAuthorization(authorization)
-                                                .build())
-                                        .setAddKey(addKey)
-                                        .build())
                                 .build())
                         .build()))
                 .map(new Function<NotifyResponse, NotifyStatus>() {

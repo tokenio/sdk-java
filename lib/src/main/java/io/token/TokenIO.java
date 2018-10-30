@@ -272,18 +272,6 @@ public class TokenIO implements Closeable {
     }
 
     /**
-     * Notifies to link accounts.
-     *
-     * @param alias alias to notify
-     * @param authorization the bank authorization for the funding account
-     * @return status of the notification request
-     */
-    public NotifyStatus notifyLinkAccounts(Alias alias, BankAuthorization authorization) {
-        return async.notifyLinkAccounts(alias, authorization)
-                .blockingSingle();
-    }
-
-    /**
      * Notifies to add a key.
      *
      * @param alias alias to notify
@@ -294,27 +282,6 @@ public class TokenIO implements Closeable {
     public NotifyStatus notifyAddKey(Alias alias, List<Key> keys, DeviceMetadata deviceMetadata) {
         return async.notifyAddKey(
                 alias,
-                keys,
-                deviceMetadata).blockingSingle();
-    }
-
-    /**
-     * Notifies to link accounts and add a key.
-     *
-     * @param alias alias to notify
-     * @param authorization the bank authorization for the funding account
-     * @param keys keys that need approval
-     * @param deviceMetadata device metadata of the keys
-     * @return status of the notification request
-     */
-    public NotifyStatus notifyLinkAccountsAndAddKey(
-            Alias alias,
-            BankAuthorization authorization,
-            List<Key> keys,
-            DeviceMetadata deviceMetadata) {
-        return async.notifyLinkAccountsAndAddKey(
-                alias,
-                authorization,
                 keys,
                 deviceMetadata).blockingSingle();
     }
