@@ -135,23 +135,6 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the Bank Authorization.
-     *
-     * @param bankAuthorization BankAuthorization
-     * @return builder
-     */
-    public TransferTokenBuilder setBankAuthorization(BankAuthorization bankAuthorization) {
-        payload.getTransferBuilder()
-                .getInstructionsBuilder()
-                .getSourceBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setTokenAuthorization(TokenAuthorization.newBuilder()
-                                .setAuthorization(bankAuthorization))
-                        .build());
-        return this;
-    }
-
-    /**
      * Sets the expiration date.
      *
      * @param expiresAtMs expiration date in ms.
