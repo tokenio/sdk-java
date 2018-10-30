@@ -135,6 +135,26 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the source custom authorization.
+     *
+     * @param bankId source bank ID
+     * @param authorization source custom authorization
+     * @return builder
+     */
+    public TransferTokenBuilder setCustomAuthorization(String bankId, String authorization) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .getSourceBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setCustom(BankAccount.Custom.newBuilder()
+                                .setBankId(bankId)
+                                .setPayload(authorization)
+                                .build())
+                        .build());
+        return this;
+    }
+
+    /**
      * Sets the expiration date.
      *
      * @param expiresAtMs expiration date in ms.
