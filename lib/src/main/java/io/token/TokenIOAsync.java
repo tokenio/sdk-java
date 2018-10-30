@@ -361,20 +361,6 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
-     * Notifies to link an account.
-     *
-     * @param alias alias to notify
-     * @param authorization the bank authorization for the funding account
-     * @return status of the notification
-     */
-    public Observable<NotifyStatus> notifyLinkAccounts(
-            Alias alias,
-            BankAuthorization authorization) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.notifyLinkAccounts(alias, authorization);
-    }
-
-    /**
      * Notifies to add a key.
      *
      * @param alias alias to notify
@@ -392,31 +378,6 @@ public class TokenIOAsync implements Closeable {
                 .setDeviceMetadata(deviceMetadata)
                 .build();
         return unauthenticated.notifyAddKey(alias, addKey);
-    }
-
-    /**
-     * Notifies to link accounts and add a key.
-     *
-     * @param alias alias to notify
-     * @param authorization the bank authorization for the funding account
-     * @param keys keys that need approval
-     * @param deviceMetadata device metadata of the keys
-     * @return status of the notification
-     */
-    public Observable<NotifyStatus> notifyLinkAccountsAndAddKey(
-            Alias alias,
-            BankAuthorization authorization,
-            List<Key> keys,
-            DeviceMetadata deviceMetadata) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        AddKey addKey = AddKey.newBuilder()
-                .addAllKeys(keys)
-                .setDeviceMetadata(deviceMetadata)
-                .build();
-        return unauthenticated.notifyLinkAccountsAndAddKey(
-                alias,
-                authorization,
-                addKey);
     }
 
     /**

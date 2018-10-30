@@ -135,18 +135,21 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the Bank Authorization.
+     * Sets the source custom authorization.
      *
-     * @param bankAuthorization BankAuthorization
+     * @param bankId source bank ID
+     * @param authorization source custom authorization
      * @return builder
      */
-    public TransferTokenBuilder setBankAuthorization(BankAuthorization bankAuthorization) {
+    public TransferTokenBuilder setCustomAuthorization(String bankId, String authorization) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .getSourceBuilder()
                 .setAccount(BankAccount.newBuilder()
-                        .setTokenAuthorization(TokenAuthorization.newBuilder()
-                                .setAuthorization(bankAuthorization))
+                        .setCustom(BankAccount.Custom.newBuilder()
+                                .setBankId(bankId)
+                                .setPayload(authorization)
+                                .build())
                         .build());
         return this;
     }
