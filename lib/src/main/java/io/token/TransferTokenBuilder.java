@@ -426,10 +426,6 @@ public final class TransferTokenBuilder {
         if (!Arrays.asList(TOKEN_AUTHORIZATION, TOKEN, BANK).contains(sourceCase)) {
             throw new TokenArgumentsException("No source on token");
         }
-        if (Strings.isNullOrEmpty(payload.getTo().getId())
-                && !payload.getTo().hasAlias()) {
-            throw new TokenArgumentsException("No redeemer on token");
-        }
 
         if (payload.getRefId().isEmpty()) {
             logger.warn("refId is not set. A random ID will be used.");
