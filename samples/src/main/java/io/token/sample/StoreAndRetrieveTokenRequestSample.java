@@ -46,7 +46,8 @@ public final class StoreAndRetrieveTokenRequestSample {
      */
     public static String storeAccessTokenRequest(Member grantee) {
         // Create an AccessTokenBuilder
-        AccessTokenBuilder tokenBuilder = AccessTokenBuilder.create(grantee.memberId()).forAll();
+        AccessTokenBuilder tokenBuilder = AccessTokenBuilder.create(grantee.memberId())
+                .forAllAddresses();
 
         // Create a TokenRequest to be stored
         TokenRequest request = TokenRequest.newBuilder(tokenBuilder)

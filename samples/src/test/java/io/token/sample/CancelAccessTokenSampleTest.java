@@ -19,10 +19,12 @@ public class CancelAccessTokenSampleTest {
     public void cancelAccessTokenByGrantorTest() {
         try (TokenIO tokenIO = createClient()) {
             Member grantor = tokenIO.createMember(randomAlias());
+            String accountId = grantor.createAndLinkTestBankAccount(1000.0, "EUR")
+                    .id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
 
-            Token token = createAccessToken(grantor, granteeAlias);
+            Token token = createAccessToken(grantor, accountId, granteeAlias);
             TokenOperationResult result = cancelAccessToken(grantor, token.getId());
             assertThat(result.getStatus()).isEqualTo(TokenOperationResult.Status.SUCCESS);
         }

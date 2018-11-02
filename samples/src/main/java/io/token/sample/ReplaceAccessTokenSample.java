@@ -48,8 +48,6 @@ public final class ReplaceAccessTokenSample {
                 oldToken,
                 AccessTokenBuilder
                         .fromPayload(oldToken.getPayload())
-                        .forAllAccounts()
-                        .forAllBalances()
                         .forAllAddresses());
         return status;
     }
@@ -71,8 +69,6 @@ public final class ReplaceAccessTokenSample {
                 oldToken,
                 AccessTokenBuilder
                         .fromPayload(oldToken.getPayload())
-                        .forAllAccounts()
-                        .forAllBalances()
                         .forAllAddresses());
         return status;
     }
