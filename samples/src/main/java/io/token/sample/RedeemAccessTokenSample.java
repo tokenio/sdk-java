@@ -7,6 +7,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import io.grpc.StatusRuntimeException;
 import io.token.Account;
 import io.token.Member;
+import io.token.Representable;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -30,16 +31,15 @@ public final class RedeemAccessTokenSample {
         // Specifies whether the request originated from a customer
         boolean customerInitiated = true;
 
-        // forAccessToken snippet begin
+
         // Access grantor's account list by applying
         // access token to the grantee client.
-        grantee.useAccessToken(tokenId, customerInitiated);
-        List<Account> grantorAccounts = grantee.getAccounts();
+        // forAccessToken snippet begin
+        Representable grantor = grantee.forAccessToken(tokenId, customerInitiated);
+        List<Account> accounts = grantor.getAccounts();
 
         // Get the data we want
-        Money balance0 = grantorAccounts.get(0).getCurrentBalance(STANDARD);
-        // When done using access, clear token from grantee client.
-        grantee.clearAccessToken();
+        Money balance0 = accounts.get(0).getCurrentBalance(STANDARD);
         // forAccessToken snippet end
         return balance0;
     }
@@ -79,11 +79,11 @@ public final class RedeemAccessTokenSample {
                     break;
             }
         }
-        grantee.useAccessToken(accessToken.getId(), customerInitiated);
+        Representable grantor = grantee.forAccessToken(accessToken.getId(), customerInitiated);
         if (haveAllAccountsAccess && haveAllBalancesAccess) {
-            List<Account> grantorAccounts = grantee.getAccounts();
-            for (int i = 0; i < grantorAccounts.size(); i++) {
-                accountIds.add(grantorAccounts.get(i).id());
+            List<Account> accounts = grantor.getAccounts();
+            for (int i = 0; i < accounts.size(); i++) {
+                accountIds.add(accounts.get(i).id());
             }
         }
         // We don't have access to any accounts, so return empty balance.
@@ -92,8 +92,7 @@ public final class RedeemAccessTokenSample {
         }
         for (String accountId : accountIds) {
             try {
-                Money balance = grantee.getAvailableBalance(accountId, LOW);
-                grantee.clearAccessToken(); // stop using access token
+                Money balance = grantor.getBalance(accountId, LOW).getAvailable();
                 return balance;
             } catch (StatusRuntimeException ex) {
                 // If grantor previously un-linked an account, then grantee can't get its balance.
@@ -103,7 +102,6 @@ public final class RedeemAccessTokenSample {
                 throw ex;
             }
         }
-        grantee.clearAccessToken(); // stop using access token
         // We don't have access to any accounts, so return empty balance.
         return Money.getDefaultInstance();
     }
