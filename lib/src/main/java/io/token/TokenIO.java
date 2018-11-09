@@ -815,12 +815,12 @@ public class TokenIO implements Closeable {
                 String version = (String) projectClass
                         .getMethod("getVersion")
                         .invoke(null);
-                String name = (String) projectClass
+                String platform = (String) projectClass
                         .getMethod("getPlatform")
                         .invoke(null);
                 headers.put(
                         Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
-                        name);
+                        platform);
                 headers.put(
                         Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
                         version);
