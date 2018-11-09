@@ -24,6 +24,7 @@ package io.token;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.grpc.Status.INVALID_ARGUMENT;
+import static io.grpc.Status.NOT_FOUND;
 import static io.token.TokenIO.TokenCluster.SANDBOX;
 
 import com.google.common.annotations.VisibleForTesting;
@@ -32,8 +33,6 @@ import io.grpc.StatusRuntimeException;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.VerificationException;
-import io.token.gradle.TokenVersion;
-import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
@@ -54,6 +53,7 @@ import io.token.security.TokenCryptoEngineFactory;
 import io.token.tokenrequest.TokenRequestResult;
 
 import java.io.Closeable;
+import java.lang.reflect.Method;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -785,16 +785,8 @@ public class TokenIO implements Closeable {
                                 + " Contact Token for more details."));
             }
 
-            Metadata headers = new Metadata();
-            headers.put(
-                    Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
-                    "java");
-            headers.put(
-                    Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
-                    TokenVersion.getVersion());
-            headers.put(
-                    Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
-                    devKey);
+            Metadata headers = getHeaders();
+
             return new TokenIOAsync(
                     RpcChannelFactory
                             .builder(hostName, port, useSsl)
@@ -808,6 +800,36 @@ public class TokenIO implements Closeable {
                     devKey,
                     tokenCluster == null ? SANDBOX : tokenCluster,
                     browserFactory);
+        }
+
+        private Metadata getHeaders() {
+            Metadata headers = new Metadata();
+            headers.put(
+                    Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
+                    devKey);
+
+            ClassLoader classLoader = TokenIO.class.getClassLoader();
+            try {
+                Class<?> projectClass = classLoader.loadClass("io.token.gradle.TokenProject");
+
+                String version = (String) projectClass
+                        .getMethod("getVersion")
+                        .invoke(null);
+                String platform = (String) projectClass
+                        .getMethod("getPlatform")
+                        .invoke(null);
+                headers.put(
+                        Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
+                        platform);
+                headers.put(
+                        Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
+                        version);
+            } catch (Exception e) {
+                throw new StatusRuntimeException(NOT_FOUND
+                        .withDescription("Plugin io.token.gradle.TokenProject is not found"
+                                + " in this module"));
+            }
+            return headers;
         }
     }
 
