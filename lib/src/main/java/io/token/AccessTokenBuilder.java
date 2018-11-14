@@ -127,6 +127,7 @@ public final class AccessTokenBuilder {
      *
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllAccounts() {
         payload
                 .getAccessBuilder()
