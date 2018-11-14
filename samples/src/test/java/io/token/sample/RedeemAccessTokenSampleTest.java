@@ -28,49 +28,13 @@ public class RedeemAccessTokenSampleTest {
     public void redeemAccessTokenTest() {
         try (TokenIO tokenIO = createClient()) {
             Member grantor = createMemberAndLinkAccounts(tokenIO);
+            String accountId = grantor.getAccounts().get(0).id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
 
-            Token token = createAccessToken(grantor, granteeAlias);
+            Token token = createAccessToken(grantor, accountId, granteeAlias);
             Money balance0 = redeemAccessToken(grantee, token.getId());
             assertThat(MoneyUtil.parseAmount(balance0.getValue())).isGreaterThan(BigDecimal.TEN);
-        }
-    }
-
-    @Test
-    public void useAccessTokenTest() {
-        try (TokenIO tokenIO = createClient()) {
-            Member grantor = tokenIO.createMember(randomAlias());
-            final String account1Id = LinkMemberAndBankSample.linkBankAccounts(grantor).id();
-            final String account2Id = LinkMemberAndBankSample.linkBankAccounts(grantor).id();
-            LinkMemberAndBankSample.linkBankAccounts(grantor); // a third account
-
-            Alias granteeAlias = randomAlias();
-            Member grantee = tokenIO.createMember(granteeAlias);
-
-            // get a token from doc sample code: all accounts, all balance
-            Token token1 = createAccessToken(grantor, granteeAlias);
-
-            Money balance1 = carefullyUseAccessToken(grantee, token1.getId());
-            assertThat(MoneyUtil.parseAmount(balance1.getValue())).isGreaterThan(BigDecimal.TEN);
-
-            TokenOperationResult replaceResult = grantor.replaceAndEndorseAccessToken(
-                    token1,
-                    AccessTokenBuilder.fromPayload(token1.getPayload())
-                            .forAccount(account1Id)
-                            .forAccount(account2Id)
-                            .forAccountBalances(account1Id)
-                            .forAccountBalances(account2Id));
-            final Token token3 = replaceResult.getToken();
-
-            Money balance3 = carefullyUseAccessToken(grantee, token1.getId()); // use replaced token
-            assertThat(MoneyUtil.parseAmount(balance3.getValue())).isGreaterThan(BigDecimal.TEN);
-
-            Money balance6 = carefullyUseAccessToken(grantee, token3.getId()); // use new token
-            assertThat(MoneyUtil.parseAmount(balance6.getValue())).isGreaterThan(BigDecimal.TEN);
-            grantor.unlinkAccounts(Arrays.asList(account1Id, account2Id));
-            Money balance7 = carefullyUseAccessToken(grantee, token3.getId());
-            assertThat(MoneyUtil.parseAmount(balance7.getValue())).isZero();
         }
     }
 }

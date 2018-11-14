@@ -39,6 +39,9 @@ public final class ReplaceAccessTokenSample {
             Member grantor,
             Alias granteeAlias,
             Token oldToken) {
+        String accountId = grantor.createAndLinkTestBankAccount(1000.0, "EUR")
+                .id();
+
         // Replace, but don't endorse the replacement
         // (replaceAndEndorseAccessToken is much safer.
         // The "find" code doesn't see unendorsed tokens,
@@ -48,9 +51,7 @@ public final class ReplaceAccessTokenSample {
                 oldToken,
                 AccessTokenBuilder
                         .fromPayload(oldToken.getPayload())
-                        .forAllAccounts()
-                        .forAllBalances()
-                        .forAllAddresses());
+                        .forAccount(accountId));
         return status;
     }
 
@@ -66,14 +67,14 @@ public final class ReplaceAccessTokenSample {
             Member grantor,
             Alias granteeAlias,
             Token oldToken) {
+        String accountId = grantor.createAndLinkTestBankAccount(1000.0, "EUR")
+                .id();
         // Replace old access token:
         TokenOperationResult status = grantor.replaceAndEndorseAccessToken(
                 oldToken,
                 AccessTokenBuilder
                         .fromPayload(oldToken.getPayload())
-                        .forAllAccounts()
-                        .forAllBalances()
-                        .forAllAddresses());
+                        .forAccount(accountId));
         return status;
     }
 }

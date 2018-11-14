@@ -32,7 +32,7 @@ public class AccessTokenBuilderTest {
         TokenProtos.TokenPayload payload = AccessTokenBuilder
                 .create(alias)
                 .from("member")
-                .forAllAccounts()
+                .forAccount("12345678")
                 .build();
         assertThat(payload).isNotNull();
     }

@@ -99,6 +99,7 @@ public final class AccessTokenBuilder {
      *
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllAddresses() {
         payload
                 .getAccessBuilder()
@@ -126,6 +127,7 @@ public final class AccessTokenBuilder {
      *
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllAccounts() {
         payload
                 .getAccessBuilder()
@@ -140,6 +142,7 @@ public final class AccessTokenBuilder {
      * @param  bankId the bank id
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllAccountsAtBank(String bankId) {
         payload
                 .getAccessBuilder()
@@ -168,6 +171,7 @@ public final class AccessTokenBuilder {
      *
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllTransactions() {
         payload
                 .getAccessBuilder()
@@ -182,6 +186,7 @@ public final class AccessTokenBuilder {
      * @param  bankId the bank id
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllTransactionsAtBank(String bankId) {
         payload
                 .getAccessBuilder()
@@ -210,6 +215,7 @@ public final class AccessTokenBuilder {
      *
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllBalances() {
         payload
                 .getAccessBuilder()
@@ -224,6 +230,7 @@ public final class AccessTokenBuilder {
      * @param  bankId the bank id
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllBalancesAtBank(String bankId) {
         payload
                 .getAccessBuilder()
@@ -252,6 +259,7 @@ public final class AccessTokenBuilder {
      *
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllTransferDestinations() {
         payload
                 .getAccessBuilder()
@@ -266,6 +274,7 @@ public final class AccessTokenBuilder {
      * @param bankId bank id
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAllTransferDestinationsAtBank(String bankId) {
         payload
                 .getAccessBuilder()
@@ -295,6 +304,7 @@ public final class AccessTokenBuilder {
      *
      * @return {@link AccessTokenBuilder}
      */
+    @Deprecated
     public AccessTokenBuilder forAll() {
         return forAllAccounts()
                 .forAllAddresses()

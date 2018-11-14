@@ -19,9 +19,10 @@ public class ReplaceAccessTokenSampleTest {
     public void getAccessTokensTest() {
         try (TokenIO tokenIO = createClient()) {
             Member grantor = tokenIO.createMember(randomAlias());
+            String accountId = grantor.createAndLinkTestBankAccount(1000, "EUR").id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            Token createdToken = createAccessToken(grantor, granteeAlias);
+            Token createdToken = createAccessToken(grantor, accountId, granteeAlias);
             Token foundToken = findAccessToken(tokenIO, grantor, granteeAlias);
             assertThat(foundToken.getId()).isEqualTo(createdToken.getId());
         }
@@ -31,9 +32,10 @@ public class ReplaceAccessTokenSampleTest {
     public void replaceAccessTokenTest() {
         try (TokenIO tokenIO = createClient()) {
             Member grantor = tokenIO.createMember(randomAlias());
+            String accountId = grantor.createAndLinkTestBankAccount(1000, "EUR").id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            createAccessToken(grantor, granteeAlias);
+            createAccessToken(grantor, accountId, granteeAlias);
             Token activeToken = findAccessToken(tokenIO, grantor, granteeAlias);
 
             replaceAccessToken(grantor, granteeAlias, activeToken);
@@ -47,9 +49,10 @@ public class ReplaceAccessTokenSampleTest {
     public void replaceAndEndorseAccessTokenTest() {
         try (TokenIO tokenIO = createClient()) {
             Member grantor = tokenIO.createMember(randomAlias());
+            String accountId = grantor.createAndLinkTestBankAccount(1000, "EUR").id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenIO.createMember(granteeAlias);
-            createAccessToken(grantor, granteeAlias);
+            createAccessToken(grantor, accountId, granteeAlias);
             Token activeToken = findAccessToken(tokenIO, grantor, granteeAlias);
 
             ReplaceAccessTokenSample.replaceAndEndorseAccessToken(
@@ -58,7 +61,7 @@ public class ReplaceAccessTokenSampleTest {
                     activeToken);
 
             activeToken = findAccessToken(tokenIO, grantor, granteeAlias);
-            assertThat(activeToken.getPayload().getAccess().getResourcesCount()).isEqualTo(3);
+            assertThat(activeToken.getPayload().getAccess().getResourcesCount()).isEqualTo(1);
         }
     }
 }
