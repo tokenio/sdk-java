@@ -41,13 +41,16 @@ public final class StoreAndRetrieveTokenRequestSample {
     /**
      * Stores an access token request.
      *
-     * @param grantee Grantee Token member (the member requesting the access token be created)
+     * @param grantee Token member requesting the access token be created
+     * @param grantor Token member granting access to her account information
      * @return a token request id
      */
-    public static String storeAccessTokenRequest(Member grantee) {
+    public static String storeAccessTokenRequest(Member grantee, Member grantor) {
         // Create an AccessTokenBuilder
+        String accountId = grantor.createAndLinkTestBankAccount(1000.0, "EUR")
+                .id();
         AccessTokenBuilder tokenBuilder = AccessTokenBuilder.create(grantee.memberId())
-                .forAllAddresses();
+                .forAccount(accountId);
 
         // Create a TokenRequest to be stored
         TokenRequest request = TokenRequest.newBuilder(tokenBuilder)
