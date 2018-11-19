@@ -69,9 +69,12 @@ import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestStatePayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
@@ -190,6 +193,7 @@ import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
+import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.proto.gateway.Gateway.VerifyAffiliateRequest;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -596,14 +600,15 @@ public final class Client {
     }
 
     /**
-     * Stores a transfer token request.
+     * Stores a token request.
      *
-     * @param payload transfer token payload
+     * @param payload token payload
      * @param options map of options
      * @param userRefId (optional) user ref id
      * @param customizationId (optional) customization id
      * @return id to reference token request
      */
+    @Deprecated
     public Observable<String> storeTokenRequest(
             TokenPayload payload,
             Map<String, String> options,
@@ -622,6 +627,43 @@ public final class Client {
                         return storeTokenRequestResponse.getTokenRequest().getId();
                     }
                 });
+    }
+
+    /**
+     * Stores a token request.
+     *
+     * @param payload token request payload
+     * @param options token request options
+     * @return reference id for token request
+     */
+    public Observable<String> storeTokenRequest(
+            TokenRequestPayload payload,
+            TokenRequestOptions options) {
+        return toObservable(gateway.storeTokenRequest(StoreTokenRequestRequest.newBuilder()
+                .setRequestPayload(payload)
+                .setRequestOptions(options)
+                .build()))
+                .map(new Function<StoreTokenRequestResponse, String>() {
+                    @Override
+                    public String apply(StoreTokenRequestResponse storeTokenRequestResponse)
+                            throws Exception {
+                        return storeTokenRequestResponse.getTokenRequest().getId();
+                    }
+                });
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     * @return completable
+     */
+    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
+        return toCompletable(gateway.updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
+                .setRequestId(requestId)
+                .setRequestOptions(options)
+                .build()));
     }
 
     /**

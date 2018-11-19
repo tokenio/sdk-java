@@ -56,8 +56,10 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
+import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -649,6 +651,16 @@ public class Member implements Representable {
      */
     public String storeTokenRequest(TokenRequest tokenRequest) {
         return async.storeTokenRequest(tokenRequest).blockingSingle();
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     */
+    public void updateTokenRequest(String requestId, TokenRequestOptions options) {
+        async.updateTokenRequest(requestId, options).blockingAwait();
     }
 
     /**

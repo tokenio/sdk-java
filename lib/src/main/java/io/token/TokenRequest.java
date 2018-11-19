@@ -24,15 +24,18 @@ package io.token;
 
 import com.google.auto.value.AutoValue;
 import io.reactivex.annotations.Nullable;
-import io.token.proto.common.account.AccountProtos.BankAccount.Custom;
 import io.token.proto.common.member.MemberProtos.Customization;
+import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 
 import java.util.HashMap;
 import java.util.Map;
 
 @AutoValue
 public abstract class TokenRequest {
+    @Deprecated
     public enum TokenRequestOptions {
         BANK_ID("bankId"),
         ALIAS("alias"),
@@ -54,26 +57,47 @@ public abstract class TokenRequest {
         }
     }
 
-    public abstract TokenPayload getTokenPayload();
+    @Nullable public abstract TokenRequestPayload getTokenRequestPayload();
 
-    public abstract Map<String, String> getOptions();
+    @Nullable public abstract TokenProtos.TokenRequestOptions getTokenRequestOptions();
 
+    @Deprecated
+    @Nullable public abstract TokenPayload getTokenPayload();
+
+    @Deprecated
+    @Nullable public abstract Map<String, String> getOptions();
+
+    @Deprecated
     @Nullable public abstract String getUserRefId();
 
+    @Deprecated
     @Nullable public abstract String getCustomizationId();
 
     @Nullable public abstract Customization getCustomization();
 
+    @Deprecated
     public String getOption(TokenRequestOptions option) {
         return getOptions().get(option.getName());
     }
 
     /**
+     * Create a new Builder instance from a token request payload.
+     *
+     * @param requestPayload token request payload
+     * @return Builder instance
+     */
+    public static Builder newBuilder(TokenRequestPayload requestPayload) {
+        return new Builder(requestPayload);
+    }
+
+    /**
      * Create a new Builder instance from an access token.
      *
+     * @deprecated Use newBuilder(TokenRequestPayload requestPayload) instead.
      * @param accessTokenBuilder access token builder
      * @return Builder instance
      */
+    @Deprecated
     public static Builder newBuilder(AccessTokenBuilder accessTokenBuilder) {
         return new Builder(accessTokenBuilder.build());
     }
@@ -81,9 +105,11 @@ public abstract class TokenRequest {
     /**
      * Create a new Builder instance from a transfer token.
      *
+     * @deprecated Use newBuilder(TokenRequestPayload requestPayload) instead.
      * @param transferTokenBuilder transfer token builder
      * @return Builder instance
      */
+    @Deprecated
     public static Builder newBuilder(TransferTokenBuilder transferTokenBuilder) {
         return new Builder(transferTokenBuilder.buildPayload());
     }
@@ -91,40 +117,79 @@ public abstract class TokenRequest {
     /**
      * Create a new Builder instance from a token payload.
      *
+     * @deprecated Use newBuilder(TokenRequestPayload requestPayload) instead.
      * @param tokenPayload token payload
      * @return Builder instance
      */
+    @Deprecated
     public static Builder newBuilder(TokenPayload tokenPayload) {
         return new Builder(tokenPayload);
     }
 
     public static class Builder {
-        private TokenPayload tokenPayload;
-        private Map<String, String> options;
-        private String userRefId;
-        private String customizationId;
+        private TokenRequestPayload requestPayload = null;
+        private TokenProtos.TokenRequestOptions.Builder requestOptions;
+        @Deprecated private TokenPayload tokenPayload;
+        @Deprecated private Map<String, String> options;
+        @Deprecated private String userRefId;
+        @Deprecated private String customizationId;
         private Customization customization;
 
+        Builder(TokenRequestPayload requestPayload) {
+            this.requestPayload = requestPayload;
+            this.requestOptions = TokenProtos.TokenRequestOptions.newBuilder();
+        }
+
+        @Deprecated
         Builder(TokenPayload tokenPayload) {
             this.tokenPayload = tokenPayload;
             this.options = new HashMap<>();
         }
 
+        public Builder setBankId(String bankId) {
+            this.requestOptions.setBankId(bankId);
+            return this;
+        }
+
+        public Builder setFrom(TokenMember member) {
+            this.requestOptions.setFrom(member);
+            return this;
+        }
+
+        public Builder setSourceAccount(String sourceAccountId) {
+            this.requestOptions.setSourceAccountId(sourceAccountId);
+            return this;
+        }
+
+        public Builder setReceiptRequested(boolean receiptRequested) {
+            this.requestOptions.setReceiptRequested(receiptRequested);
+            return this;
+        }
+
+        public Builder setTokenRequestOptions(TokenProtos.TokenRequestOptions options) {
+            this.requestOptions = options.toBuilder();
+            return this;
+        }
+
+        @Deprecated
         public Builder addOption(TokenRequestOptions option, String value) {
             options.put(option.getName(), value);
             return this;
         }
 
+        @Deprecated
         public Builder addAllOptions(Map<String, String> options) {
             this.options.putAll(options);
             return this;
         }
 
+        @Deprecated
         public Builder setUserRefId(String userRefId) {
             this.userRefId = userRefId;
             return this;
         }
 
+        @Deprecated
         public Builder setCustomizationId(String customizationId) {
             this.customizationId = customizationId;
             return this;
@@ -141,12 +206,24 @@ public abstract class TokenRequest {
          * @return TokenRequest instance
          */
         public TokenRequest build() {
-            return new AutoValue_TokenRequest(
-                    tokenPayload,
-                    options,
-                    userRefId,
-                    customizationId,
-                    customization);
+            // TODO(RD-1515) remove backwards compatibility with token payload
+            return requestPayload == null
+                    ? new AutoValue_TokenRequest(
+                            null,
+                    null,
+                            tokenPayload,
+                            options,
+                            userRefId,
+                            customizationId,
+                            customization)
+                    : new AutoValue_TokenRequest(
+                            requestPayload,
+                            requestOptions.build(),
+                            null,
+                            null,
+                            null,
+                            null,
+                            customization);
         }
     }
 
@@ -193,7 +270,14 @@ public abstract class TokenRequest {
         if (options == null) {
             options = new HashMap<>();
         }
-        return new  AutoValue_TokenRequest(payload, options, null, null, null);
+        return new AutoValue_TokenRequest(
+                null,
+                null,
+                payload,
+                options,
+                null,
+                null,
+                null);
     }
 
     @Deprecated

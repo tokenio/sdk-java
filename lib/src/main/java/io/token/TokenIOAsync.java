@@ -395,6 +395,30 @@ public class TokenIOAsync implements Closeable {
     }
 
     /**
+     * Notifies subscribed devices that a token should be created and endorsed.
+     *
+     * @param tokenRequestId the token request ID to send
+     * @param keys keys to be added
+     * @param deviceMetadata device metadata of the keys
+     * @param receiptContact optional receipt contact to send
+     * @return notify result of the notification request
+     */
+    public Observable<NotifyResult> notifyCreateAndEndorseToken(
+            String tokenRequestId,
+            @Nullable List<Key> keys,
+            @Nullable DeviceMetadata deviceMetadata,
+            @Nullable ReceiptContact receiptContact) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.notifyCreateAndEndorseToken(
+                tokenRequestId,
+                AddKey.newBuilder()
+                        .addAllKeys(keys)
+                        .setDeviceMetadata(deviceMetadata)
+                        .build(),
+                receiptContact);
+    }
+
+    /**
      * Notifies subscribed devices that a token payload should be endorsed and keys should be
      * added.
      *
@@ -406,7 +430,9 @@ public class TokenIOAsync implements Closeable {
      * @param state optional token request state for signing
      * @param receiptContact optional receipt contact
      * @return notify result of the notification request
+     * @deprecated use notifyCreateAndEndorseToken instead
      */
+    @Deprecated
     public Observable<NotifyResult> notifyEndorseAndAddKey(
             TokenPayload tokenPayload,
             List<Key> keys,
