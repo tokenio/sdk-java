@@ -39,9 +39,10 @@ import io.token.NotifyResult;
 import io.token.TokenRequest;
 import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
-import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.blob.BlobProtos;
+import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -51,13 +52,8 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
-import io.token.proto.common.notification.NotificationProtos.CreateAndEndorseToken;
-import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.EndorseAndAddKey;
-import io.token.proto.common.notification.NotificationProtos.LinkAccounts;
-import io.token.proto.common.notification.NotificationProtos.LinkAccountsAndAddKey;
 import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -73,6 +69,7 @@ import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
+import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequestResultRequest;
@@ -474,6 +471,25 @@ public final class UnauthenticatedClient {
                                 .setMemberKey(privilegedKey)
                                 .setPrevHash(response.getMember().getLastHash())
                                 .build();
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getBlob(String blobId) {
+        return toObservable(gateway
+                .getBlob(Gateway.GetBlobRequest
+                        .newBuilder()
+                        .setBlobId(blobId)
+                        .build()))
+                .map(new Function<GetBlobResponse, Blob>() {
+                    public Blob apply(GetBlobResponse response) {
+                        return response.getBlob();
                     }
                 });
     }

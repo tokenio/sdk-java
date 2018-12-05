@@ -35,6 +35,7 @@ import io.token.browser.BrowserFactory;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
@@ -53,7 +54,6 @@ import io.token.security.TokenCryptoEngineFactory;
 import io.token.tokenrequest.TokenRequestResult;
 
 import java.io.Closeable;
-import java.lang.reflect.Method;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -362,6 +362,16 @@ public class TokenIO implements Closeable {
      */
     public NotifyStatus invalidateNotification(String notificationId) {
         return async.invalidateNotification(notificationId).blockingSingle();
+    }
+
+    /**
+     * Gets a blob from the server.
+     *
+     * @param blobId blob Id
+     * @return Blob
+     */
+    public Blob getBlob(String blobId) {
+        return async.getBlob(blobId).blockingSingle();
     }
 
     /**
