@@ -299,6 +299,28 @@ public class TokenIO implements Closeable {
     }
 
     /**
+     * Notifies subscribed devices that a token should be created and endorsed.
+     *
+     * @param tokenRequestId the token request ID to send
+     * @param keys keys to be added
+     * @param deviceMetadata device metadata of the keys
+     * @param receiptContact optional receipt contact to send
+     * @return notify result of the notification request
+     */
+    public NotifyResult notifyCreateAndEndorseToken(
+            String tokenRequestId,
+            @Nullable List<Key> keys,
+            @Nullable DeviceMetadata deviceMetadata,
+            @Nullable ReceiptContact receiptContact) {
+        return async.notifyCreateAndEndorseToken(
+                tokenRequestId,
+                keys,
+                deviceMetadata,
+                receiptContact)
+                .blockingSingle();
+    }
+
+    /**
      * Notifies subscribed devices that a token payload should be endorsed and keys should be
      * added.
      *
@@ -310,7 +332,9 @@ public class TokenIO implements Closeable {
      * @param state optional token request state for signing
      * @param receiptContact optional receipt contact
      * @return notify result of the notification request
+     * @deprecated use notifyCreateAndEndorseToken instead
      */
+    @Deprecated
     public NotifyResult notifyEndorseAndAddKey(
             TokenPayload tokenPayload,
             List<Key> keys,

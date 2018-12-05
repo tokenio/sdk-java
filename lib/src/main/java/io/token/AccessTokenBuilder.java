@@ -40,9 +40,9 @@ import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllTransactio
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllTransferDestinations;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AllTransferDestinationsAtBank;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.TransferDestinations;
+import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.proto.common.token.TokenProtos.TokenPayload.ActingAs;
 
 /**
  * Helps building an access token payload.

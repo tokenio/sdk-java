@@ -24,7 +24,7 @@ buildscript {
 allprojects {
     ext {
         ver = [
-            tokenProto           : '1.1.27',
+            tokenProto           : '1.1.45',
             tokenRpc             : '1.1.4',
             tokenSecurity        : '1.1.0',
             rxjava               : '2.1.1',
@@ -32,5 +32,5 @@ allprojects {
     }
 
     group = 'io.token.sdk'
-    version = '1.1.30'
+    version = '1.1.31'
 }
