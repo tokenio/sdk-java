@@ -49,9 +49,9 @@ import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.InvalidStateException;
 import io.token.exceptions.VerificationException;
-import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.Member;
@@ -463,6 +463,17 @@ public class TokenIOAsync implements Closeable {
     public Observable<NotifyStatus> invalidateNotification(String notificationId) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.invalidateNotification(notificationId);
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getBlob(String blobId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getBlob(blobId);
     }
 
     /**
