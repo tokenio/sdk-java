@@ -23,7 +23,6 @@
 package io.token.rpc;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
-import static io.token.rpc.Constants.ERROR_UNSUPPORTED_CLIENT_VERSION;
 import static io.token.rpc.Constants.TOKEN_CUSTOM_ERROR_HEADER_NAME;
 import static io.token.rpc.Constants.TOKEN_ERROR_DETAILS_HEADER_NAME;
 import static io.token.rpc.Constants.TOKEN_HTTP_HEADER_ENCODING;
@@ -44,6 +43,8 @@ import javax.annotation.Nullable;
  * StatusRuntimeException instances into specific Exception types to be handled by the callers.
  */
 final class ErrorHandler<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
+    private static final String ERROR_UNSUPPORTED_CLIENT_VERSION = "unsupported-client-version";
+
     @Override
     public void onStart(ReqT req, Metadata headers) {
         // Ignore

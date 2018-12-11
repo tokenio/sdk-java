@@ -25,6 +25,7 @@ package io.token.rpc;
 import static com.google.common.base.Strings.nullToEmpty;
 import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
@@ -67,9 +68,9 @@ import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.notification.NotificationProtos.StepUp;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -83,7 +84,6 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
-import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.AddAddressRequest;
 import io.token.proto.gateway.Gateway.AddAddressResponse;
 import io.token.proto.gateway.Gateway.AddTrustedBeneficiaryRequest;
@@ -92,6 +92,7 @@ import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
 import io.token.proto.gateway.Gateway.CreateAccessTokenResponse;
+import io.token.proto.gateway.Gateway.CreateBlobRequest;
 import io.token.proto.gateway.Gateway.CreateBlobResponse;
 import io.token.proto.gateway.Gateway.CreateCustomizationRequest;
 import io.token.proto.gateway.Gateway.CreateCustomizationResponse;
@@ -123,6 +124,7 @@ import io.token.proto.gateway.Gateway.GetBalancesRequest;
 import io.token.proto.gateway.Gateway.GetBalancesResponse;
 import io.token.proto.gateway.Gateway.GetBankInfoRequest;
 import io.token.proto.gateway.Gateway.GetBankInfoResponse;
+import io.token.proto.gateway.Gateway.GetBlobRequest;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAccountResponse;
@@ -197,7 +199,6 @@ import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.proto.gateway.Gateway.VerifyAffiliateRequest;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 import io.token.util.Util;
@@ -217,21 +218,36 @@ import javax.annotation.Nullable;
 public final class Client {
     private final String memberId;
     private final CryptoEngine crypto;
-    private final GatewayServiceFutureStub gateway;
+    private final GatewayProvider gateway;
     private boolean customerInitiated = false;
     private String onBehalfOf;
+    private SecurityMetadata securityMetadata = SecurityMetadata.getDefaultInstance();
 
     /**
-     * This is generally the same key that is used for authentication.
+     * Creates a client instance.
      *
      * @param memberId member id
      * @param crypto the crypto engine used to sign for authentication, request payloads, etc
      * @param gateway gateway gRPC stub
      */
-    public Client(String memberId, CryptoEngine crypto, GatewayServiceFutureStub gateway) {
+    Client(String memberId, CryptoEngine crypto, GatewayProvider gateway) {
         this.memberId = memberId;
         this.crypto = crypto;
         this.gateway = gateway;
+    }
+
+    /**
+     * Creates a new instance with On-Behalf-Of authentication set.
+     *
+     * @param tokenId access token ID to be used
+     * @param customerInitiated whether the customer initiated the calls
+     * @return new client instance
+     */
+    public Client forAccessToken(String tokenId, boolean customerInitiated) {
+        Client updated = new Client(memberId, crypto, gateway);
+        updated.useAccessToken(tokenId, customerInitiated);
+        updated.setSecurityMetadata(securityMetadata);
+        return updated;
     }
 
     /**
@@ -277,8 +293,9 @@ public final class Client {
      * @return an observable of member
      */
     public Observable<Member> getMember(String memberId) {
-        return Converters
-                .toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getMember(GetMemberRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
                 .map(new Function<GetMemberResponse, Member>() {
@@ -312,6 +329,7 @@ public final class Client {
                 .build();
 
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .updateMember(UpdateMemberRequest
                         .newBuilder()
                         .setUpdate(update)
@@ -356,6 +374,7 @@ public final class Client {
                 .putAllHandlerInstructions(handlerInstructions)
                 .build();
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .subscribeToNotifications(request))
                 .map(new Function<SubscribeToNotificationsResponse, Subscriber>() {
                     public Subscriber apply(SubscribeToNotificationsResponse response) {
@@ -375,6 +394,7 @@ public final class Client {
                 .flatMap(new Function<Member, Observable<MemberUpdate>>() {
                     public Observable<MemberUpdate> apply(final Member member) {
                         return toObservable(gateway
+                                .withAuthentication(authenticationContext())
                                 .getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
                                 .map(new Function<GetDefaultAgentResponse, MemberUpdate>() {
                                     public MemberUpdate apply(GetDefaultAgentResponse response) {
@@ -396,13 +416,15 @@ public final class Client {
                 })
                 .flatMapCompletable(new Function<MemberUpdate, Completable>() {
                     public Completable apply(MemberUpdate update) {
-                        return toCompletable(gateway.updateMember(UpdateMemberRequest.newBuilder()
-                                .setUpdate(update)
-                                .setUpdateSignature(Signature.newBuilder()
-                                        .setKeyId(signer.getKeyId())
-                                        .setMemberId(memberId)
-                                        .setSignature(signer.sign(update)))
-                                .build()));
+                        return toCompletable(gateway
+                                .withAuthentication(authenticationContext())
+                                .updateMember(UpdateMemberRequest.newBuilder()
+                                        .setUpdate(update)
+                                        .setUpdateSignature(Signature.newBuilder()
+                                                .setKeyId(signer.getKeyId())
+                                                .setMemberId(memberId)
+                                                .setSignature(signer.sign(update)))
+                                        .build()));
                     }
                 });
     }
@@ -414,6 +436,7 @@ public final class Client {
      */
     public Observable<List<Subscriber>> getSubscribers() {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getSubscribers(GetSubscribersRequest
                         .newBuilder()
                         .build()))
@@ -433,6 +456,7 @@ public final class Client {
      */
     public Observable<Subscriber> getSubscriber(String subscriberId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getSubscriber(GetSubscriberRequest
                         .newBuilder()
                         .setSubscriberId(subscriberId)
@@ -450,9 +474,9 @@ public final class Client {
      * @param subscriberId id of the subscriber
      * @return nothing
      */
-    public Completable unsubscribeFromNotifications(
-            String subscriberId) {
+    public Completable unsubscribeFromNotifications(String subscriberId) {
         return toCompletable(gateway
+                .withAuthentication(authenticationContext())
                 .unsubscribeFromNotifications(UnsubscribeFromNotificationsRequest
                         .newBuilder()
                         .setSubscriberId(subscriberId)
@@ -469,8 +493,9 @@ public final class Client {
     public Observable<PagedList<Notification, String>> getNotifications(
             @Nullable String offset,
             int limit) {
-        return toObservable(gateway.getNotifications(
-                GetNotificationsRequest
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getNotifications(GetNotificationsRequest
                         .newBuilder()
                         .setPage(pageBuilder(offset, limit))
                         .build()))
@@ -492,6 +517,7 @@ public final class Client {
      */
     public Observable<Notification> getNotification(String notificationId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getNotification(GetNotificationRequest
                         .newBuilder()
                         .setNotificationId(notificationId)
@@ -509,9 +535,9 @@ public final class Client {
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
-    public Observable<List<Account>> linkAccounts(
-            BankAuthorization authorization) {
+    public Observable<List<Account>> linkAccounts(BankAuthorization authorization) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .linkAccounts(LinkAccountsRequest
                         .newBuilder()
                         .setBankAuthorization(authorization)
@@ -534,6 +560,7 @@ public final class Client {
     public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
             throws BankAuthorizationRequiredException {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .linkAccountsOauth(LinkAccountsOauthRequest
                         .newBuilder()
                         .setAuthorization(authorization)
@@ -555,8 +582,9 @@ public final class Client {
      * @return nothing
      */
     public Completable unlinkAccounts(List<String> accountIds) {
-        return toCompletable(gateway.unlinkAccounts(
-                UnlinkAccountsRequest.newBuilder()
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .unlinkAccounts(UnlinkAccountsRequest.newBuilder()
                         .addAllAccountIds(accountIds)
                         .build()));
     }
@@ -568,8 +596,8 @@ public final class Client {
      * @return account info
      */
     public Observable<Account> getAccount(String accountId) {
-        setOnBehalfOf();
         return toObservable(gateway
+                .withAuthentication(onBehalfOf())
                 .getAccount(GetAccountRequest
                         .newBuilder()
                         .setAccountId(accountId)
@@ -587,8 +615,8 @@ public final class Client {
      * @return list of linked accounts
      */
     public Observable<List<Account>> getAccounts() {
-        setOnBehalfOf();
         return toObservable(gateway
+                .withAuthentication(onBehalfOf())
                 .getAccounts(GetAccountsRequest
                         .newBuilder()
                         .build()))
@@ -614,12 +642,14 @@ public final class Client {
             Map<String, String> options,
             @Nullable String userRefId,
             @Nullable String customizationId) {
-        return toObservable(gateway.storeTokenRequest(StoreTokenRequestRequest.newBuilder()
-                .setPayload(payload)
-                .putAllOptions(options)
-                .setUserRefId(nullToEmpty(userRefId))
-                .setCustomizationId(nullToEmpty(customizationId))
-                .build()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .storeTokenRequest(StoreTokenRequestRequest.newBuilder()
+                        .setPayload(payload)
+                        .putAllOptions(options)
+                        .setUserRefId(nullToEmpty(userRefId))
+                        .setCustomizationId(nullToEmpty(customizationId))
+                        .build()))
                 .map(new Function<StoreTokenRequestResponse, String>() {
                     @Override
                     public String apply(StoreTokenRequestResponse storeTokenRequestResponse)
@@ -639,14 +669,15 @@ public final class Client {
     public Observable<String> storeTokenRequest(
             TokenRequestPayload payload,
             TokenRequestOptions options) {
-        return toObservable(gateway.storeTokenRequest(StoreTokenRequestRequest.newBuilder()
-                .setRequestPayload(payload)
-                .setRequestOptions(options)
-                .build()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .storeTokenRequest(StoreTokenRequestRequest.newBuilder()
+                        .setRequestPayload(payload)
+                        .setRequestOptions(options)
+                        .build()))
                 .map(new Function<StoreTokenRequestResponse, String>() {
                     @Override
-                    public String apply(StoreTokenRequestResponse storeTokenRequestResponse)
-                            throws Exception {
+                    public String apply(StoreTokenRequestResponse storeTokenRequestResponse) {
                         return storeTokenRequestResponse.getTokenRequest().getId();
                     }
                 });
@@ -660,10 +691,12 @@ public final class Client {
      * @return completable
      */
     public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
-        return toCompletable(gateway.updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
-                .setRequestId(requestId)
-                .setRequestOptions(options)
-                .build()));
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
+                        .setRequestId(requestId)
+                        .setRequestOptions(options)
+                        .build()));
     }
 
     /**
@@ -674,6 +707,7 @@ public final class Client {
      */
     public Observable<Token> createTransferToken(TokenPayload payload) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .createTransferToken(CreateTransferTokenRequest
                         .newBuilder()
                         .setPayload(payload)
@@ -697,6 +731,7 @@ public final class Client {
      */
     public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .createTransferToken(CreateTransferTokenRequest
                         .newBuilder()
                         .setPayload(payload)
@@ -720,6 +755,7 @@ public final class Client {
      */
     public Observable<Token> createAccessToken(TokenPayload payload) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .createAccessToken(CreateAccessTokenRequest
                         .newBuilder()
                         .setPayload(payload)
@@ -740,6 +776,7 @@ public final class Client {
      */
     public Observable<Token> createAccessToken(TokenPayload tokenPayload, String tokenRequestId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .createAccessToken(CreateAccessTokenRequest.newBuilder()
                         .setPayload(tokenPayload)
                         .setTokenRequestId(tokenRequestId)
@@ -761,6 +798,7 @@ public final class Client {
      */
     public Observable<Token> getToken(String tokenId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getToken(GetTokenRequest
                         .newBuilder()
                         .setTokenId(tokenId)
@@ -781,6 +819,7 @@ public final class Client {
      */
     public Observable<Token> getActiveAccessToken(String toMemberId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getActiveAccessToken(GetActiveAccessTokenRequest
                         .newBuilder()
                         .setToMemberId(toMemberId)
@@ -805,6 +844,7 @@ public final class Client {
             @Nullable String offset,
             int limit) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getTokens(GetTokensRequest
                         .newBuilder()
                         .setType(type)
@@ -827,6 +867,7 @@ public final class Client {
     public Observable<TokenOperationResult> endorseToken(Token token, Key.Level keyLevel) {
         Signer signer = crypto.createSigner(keyLevel);
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .endorseToken(EndorseTokenRequest
                         .newBuilder()
                         .setTokenId(token.getId())
@@ -853,6 +894,7 @@ public final class Client {
     public Observable<TokenOperationResult> cancelToken(Token token) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .cancelToken(CancelTokenRequest
                         .newBuilder()
                         .setTokenId(token.getId())
@@ -877,6 +919,7 @@ public final class Client {
      */
     public Observable<Account> getDefaultAccount(String memberId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
@@ -895,6 +938,7 @@ public final class Client {
      */
     public Completable setDefaultAccount(String accountId) {
         return toCompletable(gateway
+                .withAuthentication(authenticationContext())
                 .setDefaultAccount(SetDefaultAccountRequest
                         .newBuilder()
                         .setMemberId(memberId)
@@ -910,6 +954,7 @@ public final class Client {
      */
     public Observable<Boolean> isDefault(final String accountId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
@@ -963,12 +1008,9 @@ public final class Client {
      * @return account balance
      */
     public Observable<Balance> getBalance(String accountId, Key.Level keyLevel) {
-        setOnBehalfOf();
-        setRequestSignerKeyLevel(keyLevel);
-
         return toObservable(gateway
-                .getBalance(GetBalanceRequest
-                        .newBuilder()
+                .withAuthentication(onBehalfOf(keyLevel))
+                .getBalance(GetBalanceRequest.newBuilder()
                         .setAccountId(accountId)
                         .build()))
                 .map(new Function<GetBalanceResponse, Balance>() {
@@ -990,10 +1032,8 @@ public final class Client {
      * @return list of balances
      */
     public Observable<List<Balance>> getBalances(List<String> accountIds, Key.Level keyLevel) {
-        setOnBehalfOf();
-        setRequestSignerKeyLevel(keyLevel);
-
         return toObservable(gateway
+                .withAuthentication(onBehalfOf(keyLevel))
                 .getBalances(GetBalancesRequest
                         .newBuilder()
                         .addAllAccountId(accountIds)
@@ -1020,6 +1060,7 @@ public final class Client {
     public Observable<Transfer> createTransfer(TransferPayload transfer) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .createTransfer(CreateTransferRequest
                         .newBuilder()
                         .setPayload(transfer)
@@ -1044,6 +1085,7 @@ public final class Client {
      */
     public Observable<Transfer> getTransfer(String transferId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getTransfer(GetTransferRequest
                         .newBuilder()
                         .setTransferId(transferId)
@@ -1079,7 +1121,9 @@ public final class Client {
                     .build());
         }
 
-        return toObservable(gateway.getTransfers(request.build()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getTransfers(request.build()))
                 .map(new Function<GetTransfersResponse, PagedList<Transfer, String>>() {
                     public PagedList<Transfer, String> apply(GetTransfersResponse response) {
                         return PagedList.create(response.getTransfersList(), response.getOffset());
@@ -1099,10 +1143,8 @@ public final class Client {
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
-        setOnBehalfOf();
-        setRequestSignerKeyLevel(keyLevel);
-
         return toObservable(gateway
+                .withAuthentication(onBehalfOf(keyLevel))
                 .getTransaction(GetTransactionRequest
                         .newBuilder()
                         .setAccountId(accountId)
@@ -1133,10 +1175,8 @@ public final class Client {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        setOnBehalfOf();
-        setRequestSignerKeyLevel(keyLevel);
-
         return toObservable(gateway
+                .withAuthentication(onBehalfOf(keyLevel))
                 .getTransactions(GetTransactionsRequest
                         .newBuilder()
                         .setAccountId(accountId)
@@ -1163,7 +1203,8 @@ public final class Client {
      */
     public Observable<String> createBlob(Payload payload) {
         return toObservable(gateway
-                .createBlob(Gateway.CreateBlobRequest
+                .withAuthentication(authenticationContext())
+                .createBlob(CreateBlobRequest
                         .newBuilder()
                         .setPayload(payload)
                         .build()))
@@ -1182,7 +1223,8 @@ public final class Client {
      */
     public Observable<Blob> getBlob(String blobId) {
         return toObservable(gateway
-                .getBlob(Gateway.GetBlobRequest
+                .withAuthentication(authenticationContext())
+                .getBlob(GetBlobRequest
                         .newBuilder()
                         .setBlobId(blobId)
                         .build()))
@@ -1202,6 +1244,7 @@ public final class Client {
      */
     public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getTokenBlob(GetTokenBlobRequest
                         .newBuilder()
                         .setTokenId(tokenId)
@@ -1224,6 +1267,7 @@ public final class Client {
     public Observable<AddressRecord> addAddress(String name, Address address) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .addAddress(AddAddressRequest
                         .newBuilder()
                         .setName(name)
@@ -1249,8 +1293,8 @@ public final class Client {
      * @return an address record
      */
     public Observable<AddressRecord> getAddress(String addressId) {
-        setOnBehalfOf();
         return toObservable(gateway
+                .withAuthentication(onBehalfOf())
                 .getAddress(GetAddressRequest
                         .newBuilder()
                         .setAddressId(addressId)
@@ -1268,8 +1312,8 @@ public final class Client {
      * @return a list of addresses
      */
     public Observable<List<AddressRecord>> getAddresses() {
-        setOnBehalfOf();
         return toObservable(gateway
+                .withAuthentication(onBehalfOf())
                 .getAddresses(GetAddressesRequest
                         .newBuilder()
                         .build()))
@@ -1288,6 +1332,7 @@ public final class Client {
      */
     public Completable deleteAddress(String addressId) {
         return toCompletable(gateway
+                .withAuthentication(authenticationContext())
                 .deleteAddress(DeleteAddressRequest
                         .newBuilder()
                         .setAddressId(addressId)
@@ -1301,8 +1346,9 @@ public final class Client {
      * @return observable that completes when request handled
      */
     public Observable<Profile> setProfile(Profile profile) {
-        return Util
-                .toObservable(gateway.setProfile(SetProfileRequest.newBuilder()
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfile(SetProfileRequest.newBuilder()
                         .setProfile(profile)
                         .build()))
                 .map(new Function<SetProfileResponse, Profile>() {
@@ -1319,8 +1365,9 @@ public final class Client {
      * @return their profile text
      */
     public Observable<Profile> getProfile(String memberId) {
-        return Util
-                .toObservable(gateway.getProfile(GetProfileRequest.newBuilder()
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfile(GetProfileRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
                 .map(new Function<GetProfileResponse, Profile>() {
@@ -1338,6 +1385,7 @@ public final class Client {
      */
     public Completable setProfilePicture(Payload payload) {
         return toCompletable(gateway
+                .withAuthentication(authenticationContext())
                 .setProfilePicture(SetProfilePictureRequest.newBuilder()
                         .setPayload(payload)
                         .build()));
@@ -1351,8 +1399,9 @@ public final class Client {
      * @return blob with picture; empty blob (no fields set) if has no picture
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
-        return Util
-                .toObservable(gateway.getProfilePicture(GetProfilePictureRequest.newBuilder()
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfilePicture(GetProfilePictureRequest.newBuilder()
                         .setMemberId(memberId)
                         .setSize(size)
                         .build()))
@@ -1371,6 +1420,7 @@ public final class Client {
      */
     public Completable setReceiptContact(ReceiptContact contact) {
         return toCompletable(gateway
+                .withAuthentication(authenticationContext())
                 .setReceiptContact(SetReceiptContactRequest.newBuilder()
                         .setContact(contact)
                         .build()));
@@ -1382,9 +1432,9 @@ public final class Client {
      * @return receipt contact
      */
     public Observable<ReceiptContact> getReceiptContact() {
-        return Util
-                .toObservable(gateway.getReceiptContact(
-                        GetReceiptContactRequest.getDefaultInstance()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getReceiptContact(GetReceiptContactRequest.getDefaultInstance()))
                 .map(new Function<GetReceiptContactResponse, ReceiptContact>() {
                     @Override
                     public ReceiptContact apply(
@@ -1402,6 +1452,7 @@ public final class Client {
      */
     public Observable<BankInfo> getBankInfo(String bankId) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getBankInfo(GetBankInfoRequest
                         .newBuilder()
                         .setBankId(bankId)
@@ -1448,6 +1499,7 @@ public final class Client {
      */
     public Observable<OauthBankAuthorization> createTestBankAccount(Money balance) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
                         .setBalance(balance)
                         .build()))
@@ -1465,6 +1517,7 @@ public final class Client {
      */
     public Observable<List<Alias>> getAliases() {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getAliases(GetAliasesRequest
                         .newBuilder()
                         .build()))
@@ -1483,6 +1536,7 @@ public final class Client {
      */
     public Observable<String> retryVerification(Alias alias) {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .retryVerification(RetryVerificationRequest.newBuilder()
                         .setAlias(alias)
                         .setMemberId(memberId)
@@ -1515,7 +1569,9 @@ public final class Client {
      * @return the member id
      */
     public Observable<String> getDefaultAgent() {
-        return toObservable(gateway.getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
                 .map(new Function<GetDefaultAgentResponse, String>() {
                     public String apply(GetDefaultAgentResponse response) {
                         return response.getMemberId();
@@ -1532,6 +1588,7 @@ public final class Client {
      */
     public Completable verifyAlias(String verificationId, String code) {
         return toCompletable(gateway
+                .withAuthentication(authenticationContext())
                 .verifyAlias(VerifyAliasRequest.newBuilder()
                         .setVerificationId(verificationId)
                         .setCode(code)
@@ -1545,12 +1602,12 @@ public final class Client {
      * @return notification status
      */
     public Observable<NotifyStatus> triggerTokenStepUpNotification(String tokenId) {
-        return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
-                .newBuilder()
-                .setTokenStepUp(StepUp.newBuilder()
-                        .setTokenId(tokenId)
-                        .build())
-                .build()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest.newBuilder()
+                        .setTokenStepUp(StepUp.newBuilder()
+                                .setTokenId(tokenId))
+                        .build()))
                 .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
                     public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
                         return response.getStatus();
@@ -1565,12 +1622,12 @@ public final class Client {
      * @return notification status
      */
     public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
-        return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
-                .newBuilder()
-                .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
-                        .addAllAccountId(accountIds)
-                        .build())
-                .build()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest.newBuilder()
+                        .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
+                                .addAllAccountId(accountIds))
+                        .build()))
                 .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
                     public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
                         return response.getStatus();
@@ -1585,12 +1642,13 @@ public final class Client {
      * @return notification status
      */
     public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
-        return toObservable(gateway.triggerStepUpNotification(TriggerStepUpNotificationRequest
-                .newBuilder()
-                .setTransactionStepUp(NotificationProtos.TransactionStepUp.newBuilder()
-                        .setAccountId(accountId)
-                        .build())
-                .build()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest
+                        .newBuilder()
+                        .setTransactionStepUp(NotificationProtos.TransactionStepUp.newBuilder()
+                                .setAccountId(accountId))
+                        .build()))
                 .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
                     public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
                         return response.getStatus();
@@ -1605,12 +1663,11 @@ public final class Client {
      * @return completable
      */
     public Completable applySca(List<String> accountIds) {
-        setRequestSignerKeyLevel(STANDARD);
-
-        return toCompletable(gateway.applySca(ApplyScaRequest
-                .newBuilder()
-                .addAllAccountId(accountIds)
-                .build()));
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext(STANDARD))
+                .applySca(ApplyScaRequest.newBuilder()
+                        .addAllAccountId(accountIds)
+                        .build()));
     }
 
     /**
@@ -1625,7 +1682,9 @@ public final class Client {
             String tokenRequestId,
             String tokenId,
             String state) {
-        return toObservable(gateway.signTokenRequestState(SignTokenRequestStateRequest.newBuilder()
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .signTokenRequestState(SignTokenRequestStateRequest.newBuilder()
                 .setPayload(TokenRequestStatePayload.newBuilder()
                         .setTokenId(tokenId)
                         .setState(state))
@@ -1644,7 +1703,9 @@ public final class Client {
      * @return list of devices
      */
     public Observable<List<Device>> getPairedDevices() {
-        return toObservable(gateway.getPairedDevices(GetPairedDevicesRequest.getDefaultInstance()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getPairedDevices(GetPairedDevicesRequest.getDefaultInstance()))
                 .map(new Function<GetPairedDevicesResponse, List<Device>>() {
                     @Override
                     public List<Device> apply(GetPairedDevicesResponse response)
@@ -1660,9 +1721,9 @@ public final class Client {
      * @return completable
      */
     public Completable deleteMember() {
-        setOnBehalfOf();
-        setRequestSignerKeyLevel(PRIVILEGED);
-        return toCompletable(gateway.deleteMember(DeleteMemberRequest.getDefaultInstance()));
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext(PRIVILEGED))
+                .deleteMember(DeleteMemberRequest.getDefaultInstance()));
     }
 
     /**
@@ -1673,6 +1734,7 @@ public final class Client {
      */
     public Completable verifyAffiliate(String memberId) {
         return toCompletable(gateway
+                .withAuthentication(authenticationContext())
                 .verifyAffiliate(VerifyAffiliateRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()));
@@ -1685,8 +1747,8 @@ public final class Client {
      * @return transfer endpoints
      */
     public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
-        setOnBehalfOf();
         return toObservable(gateway
+                .withAuthentication(onBehalfOf())
                 .resolveTransferDestinations(ResolveTransferDestinationsRequest.newBuilder()
                         .setAccountId(accountId)
                         .build()))
@@ -1708,6 +1770,7 @@ public final class Client {
     public Completable addTrustedBeneficiary(TrustedBeneficiary.Payload payload) {
         Signer signer = crypto.createSigner(STANDARD);
         return toCompletable(gateway
+                .withAuthentication(authenticationContext())
                 .addTrustedBeneficiary(AddTrustedBeneficiaryRequest.newBuilder()
                         .setTrustedBeneficiary(TrustedBeneficiary.newBuilder()
                                 .setPayload(payload)
@@ -1727,6 +1790,7 @@ public final class Client {
     public Completable removeTrustedBeneficiary(TrustedBeneficiary.Payload payload) {
         Signer signer = crypto.createSigner(STANDARD);
         return toCompletable(gateway
+                .withAuthentication(authenticationContext())
                 .removeTrustedBeneficiary(RemoveTrustedBeneficiaryRequest.newBuilder()
                         .setTrustedBeneficiary(TrustedBeneficiary.newBuilder()
                                 .setPayload(payload)
@@ -1744,6 +1808,7 @@ public final class Client {
      */
     public Observable<List<TrustedBeneficiary>> getTrustedBeneficiaries() {
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .getTrustedBeneficiaries(GetTrustedBeneficiariesRequest.getDefaultInstance()))
                 .map(new Function<GetTrustedBeneficiariesResponse, List<TrustedBeneficiary>>() {
                     @Override
@@ -1761,10 +1826,12 @@ public final class Client {
      * @return customization id
      */
     public Observable<String> createCustomization(Payload logo, Map<String, String> colors) {
-        return toObservable(gateway.createCustomization(CreateCustomizationRequest.newBuilder()
-                .setLogo(logo)
-                .putAllColors(colors)
-                .build()))
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .createCustomization(CreateCustomizationRequest.newBuilder()
+                        .setLogo(logo)
+                        .putAllColors(colors)
+                        .build()))
                 .map(new Function<CreateCustomizationResponse, String>() {
                     @Override
                     public String apply(CreateCustomizationResponse createCustomizationResponse) {
@@ -1778,6 +1845,7 @@ public final class Client {
             CreateToken.Builder createToken) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
         return toObservable(gateway
+                .withAuthentication(authenticationContext())
                 .replaceToken(ReplaceTokenRequest
                         .newBuilder()
                         .setCancelToken(CancelToken
@@ -1802,6 +1870,22 @@ public final class Client {
         return crypto;
     }
 
+    /**
+     * Sets security metadata included in all requests.
+     *
+     * @param securityMetadata security metadata
+     */
+    public void setSecurityMetadata(SecurityMetadata securityMetadata) {
+        this.securityMetadata = securityMetadata;
+    }
+
+    /**
+     * Clears security metadata.
+     */
+    public void clearSecurityMetadata() {
+        this.securityMetadata = SecurityMetadata.getDefaultInstance();
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Client)) {
@@ -1818,20 +1902,20 @@ public final class Client {
         return (memberId + (onBehalfOf == null ? "" : onBehalfOf)).hashCode();
     }
 
-    @Override
-    public Client clone() {
-        return new Client(memberId, crypto, gateway);
+    private AuthenticationContext authenticationContext() {
+        return AuthenticationContext.create(null, false, LOW, securityMetadata);
     }
 
-    private void setOnBehalfOf() {
-        if (onBehalfOf != null) {
-            AuthenticationContext.setOnBehalfOf(onBehalfOf);
-            AuthenticationContext.setCustomerInitiated(customerInitiated);
-        }
+    private AuthenticationContext authenticationContext(Key.Level level) {
+        return AuthenticationContext.create(null, false, level, securityMetadata);
     }
 
-    private void setRequestSignerKeyLevel(Key.Level keyLevel) {
-        AuthenticationContext.setKeyLevel(keyLevel);
+    private AuthenticationContext onBehalfOf() {
+        return AuthenticationContext.create(onBehalfOf, customerInitiated, LOW, securityMetadata);
+    }
+
+    private AuthenticationContext onBehalfOf(Key.Level level) {
+        return AuthenticationContext.create(onBehalfOf, customerInitiated, level, securityMetadata);
     }
 
     private Page.Builder pageBuilder(@Nullable String offset, int limit) {
@@ -1853,5 +1937,9 @@ public final class Client {
                 "%s.%s",
                 toJson(tokenPayload),
                 action.name().toLowerCase());
+    }
+
+    interface GatewayProvider {
+        GatewayServiceFutureStub withAuthentication(AuthenticationContext context);
     }
 }

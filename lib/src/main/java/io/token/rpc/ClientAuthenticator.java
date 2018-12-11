@@ -23,6 +23,9 @@
 package io.token.rpc;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+import static io.token.proto.ProtoJson.toJson;
+import static io.token.rpc.ContextKeys.SECURITY_METADATA_KEY;
+import static org.apache.commons.codec.binary.Base64.encodeBase64String;
 
 import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
@@ -41,10 +44,15 @@ import io.token.security.Signer;
 final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
     private final String memberId;
     private final CryptoEngine crypto;
+    private final AuthenticationContext authenticationContext;
 
-    ClientAuthenticator(String memberId, CryptoEngine crypto) {
+    ClientAuthenticator(
+            String memberId,
+            CryptoEngine crypto,
+            AuthenticationContext authenticationContext) {
         this.memberId = memberId;
         this.crypto = crypto;
+        this.authenticationContext = authenticationContext;
     }
 
     @Override
@@ -54,7 +62,7 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 .setRequest(ByteString.copyFrom(((Message) reqT).toByteArray()))
                 .setCreatedAtMs(now)
                 .build();
-        Key.Level keyLevel = AuthenticationContext.resetKeyLevel();
+        Key.Level keyLevel = authenticationContext.getKeyLevel();
         Signer signer = crypto.createSigner(keyLevel);
         String signature = signer.sign(payload);
 
@@ -68,16 +76,18 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 Metadata.Key.of("token-created-at-ms", ASCII_STRING_MARSHALLER),
                 Long.toString(now));
         metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
+        metadata.put(
+                SECURITY_METADATA_KEY.getMetadataKey(),
+                encodeBase64String(toJson(authenticationContext.getSecurityMetadata()).getBytes()));
 
-        String onBehalfOf = AuthenticationContext.getOnBehalfOf();
+        String onBehalfOf = authenticationContext.getOnBehalfOf();
         if (!Strings.isNullOrEmpty(onBehalfOf)) {
             metadata.put(
                     Metadata.Key.of("token-on-behalf-of", ASCII_STRING_MARSHALLER),
                     onBehalfOf);
             metadata.put(
                     Metadata.Key.of("customer-initiated", ASCII_STRING_MARSHALLER),
-                    Boolean.toString(AuthenticationContext.getCustomerInitiated()));
-            AuthenticationContext.clearAccessToken();
+                    Boolean.toString(authenticationContext.getCustomerInitiated()));
         }
     }
 
