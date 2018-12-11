@@ -597,7 +597,7 @@ public final class Client {
      */
     public Observable<Account> getAccount(String accountId) {
         return toObservable(gateway
-                .withAuthentication(authenticationContext())
+                .withAuthentication(onBehalfOf())
                 .getAccount(GetAccountRequest
                         .newBuilder()
                         .setAccountId(accountId)
@@ -616,7 +616,7 @@ public final class Client {
      */
     public Observable<List<Account>> getAccounts() {
         return toObservable(gateway
-                .withAuthentication(authenticationContext())
+                .withAuthentication(onBehalfOf())
                 .getAccounts(GetAccountsRequest
                         .newBuilder()
                         .build()))
@@ -1009,9 +1009,8 @@ public final class Client {
      */
     public Observable<Balance> getBalance(String accountId, Key.Level keyLevel) {
         return toObservable(gateway
-                .withAuthentication(authenticationContext(keyLevel))
-                .getBalance(GetBalanceRequest
-                        .newBuilder()
+                .withAuthentication(onBehalfOf(keyLevel))
+                .getBalance(GetBalanceRequest.newBuilder()
                         .setAccountId(accountId)
                         .build()))
                 .map(new Function<GetBalanceResponse, Balance>() {
@@ -1034,7 +1033,7 @@ public final class Client {
      */
     public Observable<List<Balance>> getBalances(List<String> accountIds, Key.Level keyLevel) {
         return toObservable(gateway
-                .withAuthentication(authenticationContext(keyLevel))
+                .withAuthentication(onBehalfOf(keyLevel))
                 .getBalances(GetBalancesRequest
                         .newBuilder()
                         .addAllAccountId(accountIds)
@@ -1145,7 +1144,7 @@ public final class Client {
             String transactionId,
             Key.Level keyLevel) {
         return toObservable(gateway
-                .withAuthentication(authenticationContext(keyLevel))
+                .withAuthentication(onBehalfOf(keyLevel))
                 .getTransaction(GetTransactionRequest
                         .newBuilder()
                         .setAccountId(accountId)
@@ -1177,7 +1176,7 @@ public final class Client {
             int limit,
             Key.Level keyLevel) {
         return toObservable(gateway
-                .withAuthentication(authenticationContext(keyLevel))
+                .withAuthentication(onBehalfOf(keyLevel))
                 .getTransactions(GetTransactionsRequest
                         .newBuilder()
                         .setAccountId(accountId)
@@ -1295,7 +1294,7 @@ public final class Client {
      */
     public Observable<AddressRecord> getAddress(String addressId) {
         return toObservable(gateway
-                .withAuthentication(authenticationContext())
+                .withAuthentication(onBehalfOf())
                 .getAddress(GetAddressRequest
                         .newBuilder()
                         .setAddressId(addressId)
@@ -1314,7 +1313,7 @@ public final class Client {
      */
     public Observable<List<AddressRecord>> getAddresses() {
         return toObservable(gateway
-                .withAuthentication(authenticationContext())
+                .withAuthentication(onBehalfOf())
                 .getAddresses(GetAddressesRequest
                         .newBuilder()
                         .build()))
@@ -1749,7 +1748,7 @@ public final class Client {
      */
     public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
         return toObservable(gateway
-                .withAuthentication(authenticationContext())
+                .withAuthentication(onBehalfOf())
                 .resolveTransferDestinations(ResolveTransferDestinationsRequest.newBuilder()
                         .setAccountId(accountId)
                         .build()))
@@ -1904,10 +1903,18 @@ public final class Client {
     }
 
     private AuthenticationContext authenticationContext() {
-        return AuthenticationContext.create(onBehalfOf, customerInitiated, LOW, securityMetadata);
+        return AuthenticationContext.create(null, false, LOW, securityMetadata);
     }
 
     private AuthenticationContext authenticationContext(Key.Level level) {
+        return AuthenticationContext.create(null, false, level, securityMetadata);
+    }
+
+    private AuthenticationContext onBehalfOf() {
+        return AuthenticationContext.create(onBehalfOf, customerInitiated, LOW, securityMetadata);
+    }
+
+    private AuthenticationContext onBehalfOf(Key.Level level) {
         return AuthenticationContext.create(onBehalfOf, customerInitiated, level, securityMetadata);
     }
 
