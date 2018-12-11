@@ -34,14 +34,19 @@ import io.token.security.CryptoEngine;
 final class ClientAuthenticatorFactory implements InterceptorFactory {
     private final String memberId;
     private final CryptoEngine crypto;
+    private final AuthenticationContext authenticationContext;
 
-    public ClientAuthenticatorFactory(String memberId, CryptoEngine crypto) {
+    ClientAuthenticatorFactory(
+            String memberId,
+            CryptoEngine crypto,
+            AuthenticationContext authenticationContext) {
         this.memberId = memberId;
         this.crypto = crypto;
+        this.authenticationContext = authenticationContext;
     }
 
     @Override
     public <ReqT, ResT> SimpleInterceptor<ReqT, ResT> create(MethodDescriptor<ReqT, ResT> ignore) {
-        return new ClientAuthenticator<>(memberId, crypto);
+        return new ClientAuthenticator<>(memberId, crypto, authenticationContext);
     }
 }

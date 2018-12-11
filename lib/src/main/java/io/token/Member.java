@@ -23,12 +23,9 @@
 package io.token;
 
 import static io.token.proto.common.address.AddressProtos.Address;
-import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toAccountList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
-import io.reactivex.Completable;
-import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
@@ -54,6 +51,7 @@ import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos;
@@ -1218,6 +1216,22 @@ public class Member implements Representable {
      */
     public String createCustomization(Payload logo, Map<String, String> colors) {
         return async.createCustomization(logo, colors).blockingFirst();
+    }
+
+    /**
+     * Sets security metadata included in all requests.
+     *
+     * @param securityMetadata security metadata
+     */
+    public void setSecurityMetadata(SecurityMetadata securityMetadata) {
+        async.setSecurityMetadata(securityMetadata);
+    }
+
+    /**
+     * Clears security metadata.
+     */
+    public void clearSecurityMetadata() {
+        async.clearSecurityMetadata();
     }
 
     @Override

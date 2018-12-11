@@ -80,6 +80,7 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos;
@@ -281,8 +282,7 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     MemberAsync forAccessTokenInternal(String tokenId, boolean customerInitiated) {
-        Client cloned = client.clone();
-        cloned.useAccessToken(tokenId, customerInitiated);
+        Client cloned = client.forAccessToken(tokenId, customerInitiated);
         return new MemberAsync(member.build(), cloned, cluster, browserFactory);
     }
 
@@ -1550,6 +1550,22 @@ public class MemberAsync implements RepresentableAsync {
      */
     public TokenCluster getTokenCluster() {
         return cluster;
+    }
+
+    /**
+     * Sets security metadata included in all requests.
+     *
+     * @param securityMetadata security metadata
+     */
+    public void setSecurityMetadata(SecurityMetadata securityMetadata) {
+        client.setSecurityMetadata(securityMetadata);
+    }
+
+    /**
+     * Clears security metadata.
+     */
+    public void clearSecurityMetadata() {
+        client.clearSecurityMetadata();
     }
 
     @Override
