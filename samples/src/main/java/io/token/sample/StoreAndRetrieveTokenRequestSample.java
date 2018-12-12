@@ -67,7 +67,6 @@ public final class StoreAndRetrieveTokenRequestSample {
                         .addType(ACCOUNTS) // request access to basic account info
                         .addType(BALANCES) // request access to account balances
                         .build())
-                .setDescription("Book purchase") // optional description
                 .setRedirectUrl("https://token.io/callback") // callback URL
                 .build();
 
