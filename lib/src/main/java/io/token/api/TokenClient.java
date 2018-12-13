@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2018 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.api;
 
 import static io.token.TokenIO.TokenCluster;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
@@ -50,11 +50,10 @@ import io.token.browser.BrowserFactory;
 import io.token.exceptions.InvalidStateException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.bank.BankProtos.Bank;
-import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.bank.BankProtos;
+import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
-import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
@@ -63,7 +62,7 @@ import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.rpc.Client;
@@ -74,6 +73,8 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestCallback;
 import io.token.tokenrequest.TokenRequestCallbackParameters;
 import io.token.tokenrequest.TokenRequestResult;
 import io.token.tokenrequest.TokenRequestState;
@@ -86,17 +87,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
-/**
- * **DEPRECATED** Use api.TokenClient instead.
- *
- * <p>An SDK Client that interacts with TokenOS.
- *
- * <p>The class provides async API with {@link TokenIO} providing a synchronous
- * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
- * method.</p>
- */
-@Deprecated
-public class TokenIOAsync implements Closeable {
+public class TokenClient implements Closeable {
     private static final String TOKEN_REQUEST_TEMPLATE =
             "https://%s/request-token/%s?state=%s";
     private static final long SHUTDOWN_DURATION_MS = 10000L;
@@ -115,7 +106,7 @@ public class TokenIOAsync implements Closeable {
      * @param developerKey developer key
      * @param tokenCluster token cluster
      */
-    TokenIOAsync(
+    TokenClient(
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
             String developerKey,
@@ -137,15 +128,6 @@ public class TokenIOAsync implements Closeable {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
-    }
-
-    /**
-     * Returns a sync version of the API.
-     *
-     * @return synchronous version of the account API
-     */
-    public TokenIO sync() {
-        return new TokenIO(this, devKey);
     }
 
     /**
@@ -178,7 +160,7 @@ public class TokenIOAsync implements Closeable {
      * @param memberType the type of member to register
      * @return newly created member
      */
-    public Observable<MemberAsync> createMember(
+    public Observable<Member> createMember(
             Alias alias,
             CreateMemberType memberType) {
         return createMember(alias, memberType, null);
@@ -194,16 +176,16 @@ public class TokenIOAsync implements Closeable {
      *     by the creator of the corresponding token request. Only works if memberType == TRANSIENT.
      * @return newly created member
      */
-    public Observable<MemberAsync> createMember(
+    public Observable<Member> createMember(
             final Alias alias,
             final CreateMemberType memberType,
             @Nullable final String tokenRequestId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType, tokenRequestId)
-                .flatMap(new Function<String, Observable<MemberAsync>>() {
-                    public Observable<MemberAsync> apply(String memberId) {
-                        return setupMember(alias, memberId);
+                .flatMap(new Function<String, Observable<Member>>() {
+                    public Observable<Member> apply(String memberId) {
+                        return setUpMember(alias, memberId);
                     }
                 });
     }
@@ -213,7 +195,7 @@ public class TokenIOAsync implements Closeable {
      *
      * @return newly created member
      */
-    public Observable<MemberAsync> createMember() {
+    public Observable<Member> createMember() {
         return createMember(null, PERSONAL, null);
     }
 
@@ -223,7 +205,7 @@ public class TokenIOAsync implements Closeable {
      * @param alias alias to associate with member
      * @return newly created member
      */
-    public Observable<MemberAsync> createMember(Alias alias) {
+    public Observable<Member> createMember(Alias alias) {
         return createMember(alias, PERSONAL, null);
     }
 
@@ -234,7 +216,7 @@ public class TokenIOAsync implements Closeable {
      * @param tokenRequestId token request id
      * @return newly created member
      */
-    public Observable<MemberAsync> createClaimedMember(String tokenRequestId) {
+    public Observable<Member> createClaimedMember(String tokenRequestId) {
         return createMember(null, TRANSIENT, tokenRequestId);
     }
 
@@ -244,7 +226,7 @@ public class TokenIOAsync implements Closeable {
      * @param alias alias to associated with member
      * @return newly created member
      */
-    public Observable<MemberAsync> createBusinessMember(Alias alias) {
+    public Observable<Member> createBusinessMember(Alias alias) {
         return createMember(alias, BUSINESS, null);
     }
 
@@ -262,7 +244,7 @@ public class TokenIOAsync implements Closeable {
      * @return newly created member
      */
     @VisibleForTesting
-    public Observable<MemberAsync> setupMember(final Alias alias, final String memberId) {
+    public Observable<Member> setUpMember(final Alias alias, final String memberId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getDefaultAgent()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
@@ -293,14 +275,14 @@ public class TokenIOAsync implements Closeable {
                                 signer);
                     }
                 })
-                .flatMap(new Function<MemberProtos.Member, Observable<MemberAsync>>() {
-                    public Observable<MemberAsync> apply(MemberProtos.Member member) {
+                .flatMap(new Function<MemberProtos.Member, Observable<Member>>() {
+                    public Observable<Member> apply(MemberProtos.Member member) {
                         CryptoEngine crypto = cryptoFactory.create(member.getId());
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
                                 crypto);
-                        return Observable.just(new MemberAsync(
+                        return Observable.just(new Member(
                                 member,
                                 client,
                                 tokenCluster,
@@ -340,14 +322,14 @@ public class TokenIOAsync implements Closeable {
      * @param memberId member id
      * @return member
      */
-    public Observable<MemberAsync> getMember(String memberId) {
+    public Observable<Member> getMember(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client
                 .getMember(memberId)
-                .map(new Function<MemberProtos.Member, MemberAsync>() {
-                    public MemberAsync apply(MemberProtos.Member member) {
-                        return new MemberAsync(member, client, tokenCluster, browserFactory);
+                .map(new Function<MemberProtos.Member, Member>() {
+                    public Member apply(MemberProtos.Member member) {
+                        return new Member(member, client, tokenCluster, browserFactory);
                     }
                 });
     }
@@ -360,7 +342,7 @@ public class TokenIOAsync implements Closeable {
      */
     public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.retrieveTokenRequestLegacy(requestId);
+        return unauthenticated.retrieveTokenRequest(requestId);
     }
 
     /**
@@ -373,7 +355,7 @@ public class TokenIOAsync implements Closeable {
      */
     public Observable<NotifyStatus> notifyAddKey(
             Alias alias,
-            List<Key> keys,
+            List<SecurityProtos.Key> keys,
             DeviceMetadata deviceMetadata) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         AddKey addKey = AddKey.newBuilder()
@@ -408,52 +390,16 @@ public class TokenIOAsync implements Closeable {
      */
     public Observable<NotifyResult> notifyCreateAndEndorseToken(
             String tokenRequestId,
-            @Nullable List<Key> keys,
+            @Nullable List<SecurityProtos.Key> keys,
             @Nullable DeviceMetadata deviceMetadata,
             @Nullable ReceiptContact receiptContact) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.notifyCreateAndEndorseTokenLegacy(
+        return unauthenticated.notifyCreateAndEndorseToken(
                 tokenRequestId,
                 AddKey.newBuilder()
                         .addAllKeys(keys)
                         .setDeviceMetadata(deviceMetadata)
                         .build(),
-                receiptContact);
-    }
-
-    /**
-     * Notifies subscribed devices that a token payload should be endorsed and keys should be
-     * added.
-     *
-     * @param tokenPayload the token payload to be sent
-     * @param keys keys to be added
-     * @param deviceMetadata device metadata of the keys
-     * @param tokenRequestId optional token request id
-     * @param bankId optional bank id
-     * @param state optional token request state for signing
-     * @param receiptContact optional receipt contact
-     * @return notify result of the notification request
-     * @deprecated use notifyCreateAndEndorseTokenLegacy instead
-     */
-    @Deprecated
-    public Observable<NotifyResult> notifyEndorseAndAddKey(
-            TokenPayload tokenPayload,
-            List<Key> keys,
-            DeviceMetadata deviceMetadata,
-            @Nullable String tokenRequestId,
-            @Nullable String bankId,
-            @Nullable String state,
-            @Nullable ReceiptContact receiptContact) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.notifyEndorseAndAddKey(
-                tokenPayload,
-                AddKey.newBuilder()
-                        .addAllKeys(keys)
-                        .setDeviceMetadata(deviceMetadata)
-                        .build(),
-                tokenRequestId,
-                bankId,
-                state,
                 receiptContact);
     }
 
@@ -474,7 +420,7 @@ public class TokenIOAsync implements Closeable {
      * @param blobId id of the blob
      * @return Blob
      */
-    public Observable<Blob> getBlob(String blobId) {
+    public Observable<BlobProtos.Blob> getBlob(String blobId) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getBlob(blobId);
     }
@@ -499,7 +445,7 @@ public class TokenIOAsync implements Closeable {
      */
     public Observable<Authorization> createRecoveryAuthorization(
             String memberId,
-            Key privilegedKey) {
+            SecurityProtos.Key privilegedKey) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.createRecoveryAuthorization(memberId, privilegedKey);
     }
@@ -516,7 +462,7 @@ public class TokenIOAsync implements Closeable {
     public Observable<MemberRecoveryOperation> getRecoveryAuthorization(
             String verificationId,
             String code,
-            Key key) throws VerificationException {
+            SecurityProtos.Key key) throws VerificationException {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getRecoveryAuthorization(verificationId, code, key);
     }
@@ -530,21 +476,21 @@ public class TokenIOAsync implements Closeable {
      * @param cryptoEngine the new crypto engine
      * @return an observable of the updated member
      */
-    public Observable<MemberAsync> completeRecovery(
+    public Observable<Member> completeRecovery(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
-            Key privilegedKey,
+            SecurityProtos.Key privilegedKey,
             final CryptoEngine cryptoEngine) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
-                .map(new Function<MemberProtos.Member, MemberAsync>() {
-                    public MemberAsync apply(MemberProtos.Member member) throws Exception {
+                .map(new Function<MemberProtos.Member, Member>() {
+                    public Member apply(MemberProtos.Member member) {
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new MemberAsync(member, client, tokenCluster, browserFactory);
+                        return new Member(member, client, tokenCluster, browserFactory);
                     }
                 });
     }
@@ -557,7 +503,7 @@ public class TokenIOAsync implements Closeable {
      * @param code the code
      * @return the new member
      */
-    public Observable<MemberAsync> completeRecoveryWithDefaultRule(
+    public Observable<Member> completeRecoveryWithDefaultRule(
             String memberId,
             String verificationId,
             String code) {
@@ -565,13 +511,13 @@ public class TokenIOAsync implements Closeable {
         final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
         return unauthenticated
                 .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
-                .map(new Function<MemberProtos.Member, MemberAsync>() {
-                    public MemberAsync apply(MemberProtos.Member member) throws Exception {
+                .map(new Function<MemberProtos.Member, Member>() {
+                    public Member apply(MemberProtos.Member member) {
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new MemberAsync(member, client, tokenCluster, browserFactory);
+                        return new Member(member, client, tokenCluster, browserFactory);
                     }
                 });
     }
@@ -586,7 +532,7 @@ public class TokenIOAsync implements Closeable {
      *     if not specified.
      * @return a list of banks
      */
-    public Observable<List<Bank>> getBanks(
+    public Observable<List<BankProtos.Bank>> getBanks(
             @Nullable List<String> bankIds,
             @Nullable Integer page,
             @Nullable Integer perPage)  {
@@ -605,35 +551,11 @@ public class TokenIOAsync implements Closeable {
      *     if not specified.
      * @param sort The key to sort the results. Could be one of: name, provider and country.
      *     Defaults to name if not specified.
-     * @return a list of banks
-     */
-    @Deprecated
-    public Observable<List<Bank>> getBanks(
-            @Nullable String search,
-            @Nullable String country,
-            @Nullable Integer page,
-            @Nullable Integer perPage,
-            @Nullable String sort) {
-        return getBanks(null, search, country, page, perPage, sort, null);
-    }
-
-    /**
-     * Returns a list of token enabled banks.
-     *
-     * @param search If specified, return banks whose 'name' or 'identifier' contains the given
-     *     search string (case-insensitive)
-     * @param country If specified, return banks whose 'country' matches the given ISO 3166-1
-     *     alpha-2 country code (case-insensitive)
-     * @param page Result page to retrieve. Default to 1 if not specified.
-     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
-     *     if not specified.
-     * @param sort The key to sort the results. Could be one of: name, provider and country.
-     *     Defaults to name if not specified.
      * @param provider If specified, return banks whose 'provider' matches the given provider
      *     (case insensitive).
      * @return a list of banks
      */
-    public Observable<List<Bank>> getBanks(
+    public Observable<List<BankProtos.Bank>> getBanks(
             @Nullable String search,
             @Nullable String country,
             @Nullable Integer page,
@@ -657,38 +579,11 @@ public class TokenIOAsync implements Closeable {
      *     if not specified.
      * @param sort The key to sort the results. Could be one of: name, provider and country.
      *     Defaults to name if not specified.
-     * @return a list of banks
-     */
-    @Deprecated
-    public Observable<List<Bank>> getBanks(
-            @Nullable List<String> bankIds,
-            @Nullable String search,
-            @Nullable String country,
-            @Nullable Integer page,
-            @Nullable Integer perPage,
-            @Nullable String sort) {
-        return getBanks(bankIds, search, country, page, perPage, sort, null);
-    }
-
-    /**
-     * Returns a list of token enabled banks.
-     *
-     * @param bankIds If specified, return banks whose 'id' matches any one of the given ids
-     *     (case-insensitive). Can be at most 1000.
-     * @param search If specified, return banks whose 'name' or 'identifier' contains the given
-     *     search string (case-insensitive)
-     * @param country If specified, return banks whose 'country' matches the given ISO 3166-1
-     *     alpha-2 country code (case-insensitive)
-     * @param page Result page to retrieve. Default to 1 if not specified.
-     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
-     *     if not specified.
-     * @param sort The key to sort the results. Could be one of: name, provider and country.
-     *     Defaults to name if not specified.
      * @param provider If specified, return banks whose 'provider' matches the given provider
      *     (case insensitive).
      * @return a list of banks
      */
-    public Observable<List<Bank>> getBanks(
+    public Observable<List<BankProtos.Bank>> getBanks(
             @Nullable List<String> bankIds,
             @Nullable String search,
             @Nullable String country,
@@ -739,9 +634,9 @@ public class TokenIOAsync implements Closeable {
         String csrfTokenHash = hashString(csrfToken);
         TokenRequestState tokenRequestState = TokenRequestState.create(csrfTokenHash, state);
         return Observable.just(format(TOKEN_REQUEST_TEMPLATE,
-                        tokenCluster.webAppUrl(),
-                        requestId,
-                        urlEncode(tokenRequestState.serialize())));
+                tokenCluster.webAppUrl(),
+                requestId,
+                urlEncode(tokenRequestState.serialize())));
     }
 
     /**
@@ -768,9 +663,10 @@ public class TokenIOAsync implements Closeable {
             final String callbackUrl,
             final String csrfToken) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenMember().map(new Function<Member, TokenRequestCallback>() {
+        return unauthenticated.getTokenMember().map(new Function<MemberProtos.Member,
+                TokenRequestCallback>() {
             @Override
-            public TokenRequestCallback apply(Member tokenMember) throws Exception {
+            public TokenRequestCallback apply(MemberProtos.Member tokenMember) throws Exception {
                 TokenRequestCallbackParameters params = TokenRequestCallbackParameters
                         .create(new URL(callbackUrl).getQuery());
 

@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2017 Token, Inc.
- *
+ * Copyright (c) 2018 Token, Inc.
+ * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- *
+ * <p>
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- *
+ * <p>
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,23 +20,45 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.api;
 
-import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
+import io.token.proto.common.security.SecurityProtos.Key;
+
+import java.util.List;
 
 /**
- * Thrown when a transfer token creation fails.
+ * Information about a device being provisioned.
  */
-@Deprecated
-public final class TransferTokenException extends RuntimeException {
-    private final TransferTokenStatus status;
+public class DeviceInfo {
+    private final String memberId;
+    private final List<Key> keys;
 
-    public TransferTokenException(TransferTokenStatus status) {
-        super("Failed to create token: " + status);
-        this.status = status;
+    /**
+     * Creates an instance.
+     *
+     * @param memberId member id
+     * @param keys list of keys
+     */
+    public DeviceInfo(String memberId, List<Key> keys) {
+        this.memberId = memberId;
+        this.keys = keys;
     }
 
-    public TransferTokenStatus getStatus() {
-        return status;
+    /**
+     * Gets member ID.
+     *
+     * @return member ID
+     */
+    public String getMemberId() {
+        return memberId;
+    }
+
+    /**
+     * Gets device keys.
+     *
+     * @return list of device keys
+     */
+    public List<Key> getKeys() {
+        return keys;
     }
 }

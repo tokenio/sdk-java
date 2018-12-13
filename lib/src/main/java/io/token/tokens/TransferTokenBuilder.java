@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2018 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,22 +20,21 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.tokens;
 
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.BANK;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN_AUTHORIZATION;
 import static io.token.util.Util.generateNonce;
 
-import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.MemberAsync;
+import io.token.api.Member;
 import io.token.exceptions.TokenArgumentsException;
-import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
-import io.token.proto.common.account.AccountProtos.BankAccount.TokenAuthorization;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
@@ -56,19 +55,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * **DEPRECATED** Use tokens.TransferTokenBuilder instead.
- *
- * <p>This class is used to build a transfer token. The required parameters are member, amount
- * (which is the lifetime amount of the token), and currency. One source of funds must be set:
- * either accountId or BankAuthorization. Finally, a redeemer must be set, specified by either
- * alias or memberId.
+ * This class is used to build a transfer token. The required parameters are member, amount (which
+ * is the lifetime amount of the token), and currency. One source of funds must be set: either
+ * accountId or BankAuthorization. Finally, a redeemer must be set, specified by either alias
+ * or memberId.
  */
-@Deprecated
 public final class TransferTokenBuilder {
     private static final Logger logger = LoggerFactory.getLogger(TransferTokenBuilder.class);
     private static final int REF_ID_MAX_LENGTH = 18;
 
-    private final MemberAsync member;
+    private final Member member;
     private final TokenPayload.Builder payload;
 
     // Used for attaching files / data to tokens
@@ -85,7 +81,7 @@ public final class TransferTokenBuilder {
      * @param currency currency of the token
      */
     public TransferTokenBuilder(
-            MemberAsync member,
+            Member member,
             double amount,
             String currency) {
         this.member = member;
@@ -237,28 +233,6 @@ public final class TransferTokenBuilder {
                 .getInstructionsBuilder()
                 .addDestinations(destination);
         return this;
-    }
-
-    /**
-     * Sets the alias of the redeemer.
-     *
-     * @param redeemerAlias alias
-     * @return builder
-     */
-    @Deprecated
-    public TransferTokenBuilder setRedeemerAlias(Alias redeemerAlias) {
-        return setToAlias(redeemerAlias);
-    }
-
-    /**
-     * Sets the memberId of the redeemer.
-     *
-     * @param redeemerMemberId memberId
-     * @return builder
-     */
-    @Deprecated
-    public TransferTokenBuilder setRedeemerMemberId(String redeemerMemberId) {
-        return setToMemberId(redeemerMemberId);
     }
 
     /**

@@ -58,13 +58,16 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 /**
- * Main entry point to the Token SDK. Use {@link TokenIO.Builder}
+ * **DEPRECATED** Use api.TokenClient instead.
+ *
+ * <p>Main entry point to the Token SDK. Use {@link TokenIO.Builder}
  * class to create an instance of the {@link TokenIOAsync} or {@link TokenIO}.
  *
  * <p>The class provides synchronous API with {@link TokenIOAsync} providing an
  * asynchronous version. {@link TokenIOAsync} instance can be obtained by
  * calling {@link #async} method.</p>
  */
+@Deprecated
 public class TokenIO implements Closeable {
     private final TokenIOAsync async;
     private final String devKey;
@@ -332,7 +335,7 @@ public class TokenIO implements Closeable {
      * @param state optional token request state for signing
      * @param receiptContact optional receipt contact
      * @return notify result of the notification request
-     * @deprecated use notifyCreateAndEndorseToken instead
+     * @deprecated use notifyCreateAndEndorseTokenLegacy instead
      */
     @Deprecated
     public NotifyResult notifyEndorseAndAddKey(

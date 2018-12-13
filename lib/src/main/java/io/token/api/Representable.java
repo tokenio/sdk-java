@@ -20,34 +20,23 @@
  * THE SOFTWARE.
  */
 
-package io.token;
-
-import static io.token.proto.common.member.MemberProtos.AddressRecord;
-import static io.token.proto.common.security.SecurityProtos.Key;
-import static io.token.proto.common.transaction.TransactionProtos.Balance;
-import static io.token.proto.common.transaction.TransactionProtos.Transaction;
+package io.token.api;
 
 import io.reactivex.Observable;
 import io.token.proto.PagedList;
+import io.token.proto.common.member.MemberProtos.AddressRecord;
+import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.transaction.TransactionProtos;
+import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.List;
 import javax.annotation.Nullable;
 
 /**
- * **DEPRECATED** Use api.Representable instead.
- *
- * <p>Represents the part of a token member that can be accessed through an access token.
+ * Represents the part of a token member that can be accessed through an access token.
  */
-@Deprecated
-public interface RepresentableAsync {
-    /**
-     * Looks up member addresses.
-     *
-     * @return a list of addresses
-     */
-    Observable<List<AddressRecord>> getAddresses();
-
+public interface Representable {
     /**
      * Looks up an address by id.
      *
@@ -57,11 +46,12 @@ public interface RepresentableAsync {
     Observable<AddressRecord> getAddress(String addressId);
 
     /**
-     * Links a funding bank account to Token and returns it to the caller.
+     * Looks up an address by id.
      *
-     * @return list of accounts
+     * @param addressId the address id
+     * @return an address record
      */
-    Observable<List<AccountAsync>> getAccounts();
+    AddressRecord getAddressBlocking(String addressId);
 
     /**
      * Looks up a funding bank account linked to Token.
@@ -69,7 +59,15 @@ public interface RepresentableAsync {
      * @param accountId account id
      * @return looked up account
      */
-    Observable<AccountAsync> getAccount(String accountId);
+    Observable<Account> getAccount(String accountId);
+
+    /**
+     * Looks up a funding bank account linked to Token.
+     *
+     * @param accountId account id
+     * @return looked up account
+     */
+    Account getAccountBlocking(String accountId);
 
     /**
      * Looks up account balance.
@@ -81,13 +79,13 @@ public interface RepresentableAsync {
     Observable<Balance> getBalance(String accountId, Key.Level keyLevel);
 
     /**
-     * Looks up balances for a list of accounts.
+     * Looks up account balance.
      *
-     * @param accountIds list of account ids
+     * @param accountId account id
      * @param keyLevel key level
-     * @return list of balances
+     * @return balance
      */
-    Observable<List<Balance>> getBalances(List<String> accountIds, Key.Level keyLevel);
+    Balance getBalanceBlocking(String accountId, Key.Level keyLevel);
 
     /**
      * Looks up transactions for a given account.
@@ -98,7 +96,22 @@ public interface RepresentableAsync {
      * @param keyLevel key level
      * @return a paged list of transaction records
      */
-    Observable<PagedList<Transaction, String>> getTransactions(
+    Observable<PagedList<TransactionProtos.Transaction, String>> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel);
+
+    /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @return paged list of transactions
+     */
+    PagedList<TransactionProtos.Transaction, String> getTransactionsBlocking(
             String accountId,
             @Nullable String offset,
             int limit,
@@ -112,7 +125,20 @@ public interface RepresentableAsync {
      * @param keyLevel key level
      * @return transaction record
      */
-    Observable<Transaction> getTransaction(
+    Observable<TransactionProtos.Transaction> getTransaction(
+            String accountId,
+            String transactionId,
+            Key.Level keyLevel);
+
+    /**
+     * Looks up an existing transaction for a given account.
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @param keyLevel key level
+     * @return transaction
+     */
+    TransactionProtos.Transaction getTransactionBlocking(
             String accountId,
             String transactionId,
             Key.Level keyLevel);
@@ -124,4 +150,12 @@ public interface RepresentableAsync {
      * @return transfer endpoints
      */
     Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId);
+
+    /**
+     * Resolves transfer destinations for the given account ID.
+     *
+     * @param accountId account ID
+     * @return transfer endpoints
+     */
+    List<TransferEndpoint> resolveTransferDestinationsBlocking(String accountId);
 }

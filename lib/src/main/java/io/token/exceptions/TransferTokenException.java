@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2018 Token, Inc.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,14 +20,13 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.exceptions;
 
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 
 /**
  * Thrown when a transfer token creation fails.
  */
-@Deprecated
 public final class TransferTokenException extends RuntimeException {
     private final TransferTokenStatus status;
 

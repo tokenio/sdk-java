@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2018 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.api;
 
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
@@ -29,7 +29,6 @@ import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.parseOauthAccessToken;
-import static io.token.util.Util.toAccountList;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
@@ -83,7 +82,6 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -96,11 +94,15 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokens.AccessTokenBuilder;
+import io.token.tokens.TransferTokenBuilder;
 import io.token.util.Util;
 
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -110,14 +112,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * **DEPRECATED** Use api.Member instead.
- *
- * <p>Represents a Member in the Token system. Each member has an active secret
+ * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-@Deprecated
-public class MemberAsync implements RepresentableAsync {
-    private static final Logger logger = LoggerFactory.getLogger(MemberAsync.class);
+public class Member implements Representable {
+    private static final Logger logger = LoggerFactory.getLogger(Member.class);
 
     private final Client client;
     private final Builder member;
@@ -125,13 +124,13 @@ public class MemberAsync implements RepresentableAsync {
     private final BrowserFactory browserFactory;
 
     /**
-     * Creates an instance of {@link MemberAsync}.
+     * Creates an instance of {@link Member}.
      *
      * @param member internal member representation, fetched from server
      * @param client RPC client used to perform operations against the server
      * @param cluster Token cluster, e.g. sandbox, production
      */
-    MemberAsync(
+    Member(
             MemberProtos.Member member,
             Client client,
             TokenCluster cluster,
@@ -140,15 +139,6 @@ public class MemberAsync implements RepresentableAsync {
         this.member = member.toBuilder();
         this.cluster = cluster;
         this.browserFactory = browserFactory;
-    }
-
-    /**
-     * Gets a sync version of the account API.
-     *
-     * @return synchronous version of the account API
-     */
-    public Member sync() {
-        return new Member(this);
     }
 
     /**
@@ -176,6 +166,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Gets the last hash.
+     *
+     * @return the last hash
+     */
+    public String lastHashBlocking() {
+        return lastHash().blockingSingle();
+    }
+
+    /**
      * Gets the first alias owner by the user.
      *
      * @return first alias owned by the user, or throws exception if no aliases are found
@@ -194,6 +193,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Gets user first alias.
+     *
+     * @return first alias owned by the user, or throws exception if not aliases are found
+     */
+    public Alias firstAliasBlocking() {
+        return firstAlias().blockingSingle();
+    }
+
+    /**
      * Gets all aliases owned by the member.
      *
      * @return list of aliases owned by the member
@@ -203,13 +211,12 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
-     * Gets all public keys for this member.
+     * Gets a list of all aliases owned by the member.
      *
-     * @return list of public keys that are approved for this member
+     * @return list of aliases owned by the member
      */
-    @Deprecated
-    public List<Key> keys() {
-        return member.getKeysList();
+    public List<Alias> aliasesBlocking() {
+        return aliases().blockingSingle();
     }
 
     /**
@@ -228,65 +235,40 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
-     * Sets the On-Behalf-Of authentication value to be used
-     * with this client.  The value must correspond to an existing
-     * Access Token ID issued for the client member.
+     * Gets all public keys for this member.
      *
-     * @param accessTokenId the access token id
+     * @return list of public keys that are approved for this member
      */
-    @Deprecated
-    public void useAccessToken(String accessTokenId) {
-        this.client.useAccessToken(accessTokenId);
-    }
-
-
-    /**
-     * Sets the On-Behalf-Of authentication value to be used
-     * with this client.  The value must correspond to an existing
-     * Access Token ID issued for the client member.
-     *
-     * @param accessTokenId the access token id
-     * @param customerInitiated whether the request is customer initiated
-     */
-    @Deprecated
-    public void useAccessToken(String accessTokenId, boolean customerInitiated) {
-        this.client.useAccessToken(accessTokenId, customerInitiated);
+    public List<Key> getKeysBlocking() {
+        return getKeys().blockingSingle();
     }
 
     /**
-     * Clears the access token id from the authentication context used with this client.
-     */
-    @Deprecated
-    public void clearAccessToken() {
-        this.client.clearAccessToken();
-    }
-
-    /**
-     * Creates a {@link RepresentableAsync} that acts as another member using the access token
+     * Creates a {@link Representable} that acts as another member using the access token
      * that was granted by that member.
      *
      * @param tokenId the token id
-     * @return the {@link RepresentableAsync}
+     * @return the {@link Representable}
      */
-    public RepresentableAsync forAccessToken(String tokenId) {
+    public Representable forAccessToken(String tokenId) {
         return forAccessToken(tokenId, false);
     }
 
     /**
-     * Creates a {@link RepresentableAsync} that acts as another member using the access token
+     * Creates a {@link Representable} that acts as another member using the access token
      * that was granted by that member.
      *
      * @param tokenId the token id
      * @param customerInitiated whether the call is initiated by the customer
-     * @return the {@link RepresentableAsync}
+     * @return the {@link Representable}
      */
-    public RepresentableAsync forAccessToken(String tokenId, boolean customerInitiated) {
+    public Representable forAccessToken(String tokenId, boolean customerInitiated) {
         return forAccessTokenInternal(tokenId, customerInitiated);
     }
 
-    MemberAsync forAccessTokenInternal(String tokenId, boolean customerInitiated) {
+    Member forAccessTokenInternal(String tokenId, boolean customerInitiated) {
         Client cloned = client.forAccessToken(tokenId, customerInitiated);
-        return new MemberAsync(member.build(), cloned, cluster, browserFactory);
+        return new Member(member.build(), cloned, cluster, browserFactory);
     }
 
     /**
@@ -297,6 +279,15 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Completable addAlias(Alias alias) {
         return addAliases(singletonList(alias));
+    }
+
+    /**
+     * Adds a new alias for the member.
+     *
+     * @param alias alias, e.g. 'john', must be unique
+     */
+    public void addAliasBlocking(Alias alias) {
+        addAlias(alias).blockingAwait();
     }
 
     /**
@@ -343,6 +334,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Adds new aliases for the member.
+     *
+     * @param aliases aliases, e.g. 'john', must be unique
+     */
+    public void addAliasesBlocking(List<Alias> aliases) {
+        addAliases(aliases).blockingAwait();
+    }
+
+    /**
      * Retries alias verification.
      *
      * @param alias the alias to be verified
@@ -350,6 +350,16 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<String> retryVerification(Alias alias) {
         return client.retryVerification(alias);
+    }
+
+    /**
+     * Retries alias verification.
+     *
+     * @param alias the alias to be verified
+     * @return the verification id
+     */
+    public String retryVerificationBlocking(Alias alias) {
+        return retryVerification(alias).blockingSingle();
     }
 
     /**
@@ -373,6 +383,17 @@ public class MemberAsync implements RepresentableAsync {
                 });
     }
 
+
+    /**
+     * Adds the recovery rule.
+     *
+     * @param recoveryRule the recovery rule
+     * @return updated member
+     */
+    public MemberProtos.Member addRecoveryRuleBlocking(RecoveryRule recoveryRule) {
+        return addRecoveryRule(recoveryRule).blockingSingle();
+    }
+
     /**
      * Set Token as the recovery agent.
      *
@@ -380,6 +401,13 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Completable useDefaultRecoveryRule() {
         return client.useDefaultRecoveryRule();
+    }
+
+    /**
+     * Set Token as the recovery agent.
+     */
+    public void useDefaultRecoveryRuleBlocking() {
+        useDefaultRecoveryRule().blockingAwait();
     }
 
     /**
@@ -393,12 +421,31 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Authorizes recovery as a trusted agent.
+     *
+     * @param authorization the authorization
+     * @return the signature
+     */
+    public Signature authorizeRecoveryBlocking(Authorization authorization) {
+        return authorizeRecovery(authorization).blockingSingle();
+    }
+
+    /**
      * Gets the member id of the default recovery agent.
      *
      * @return the member id
      */
     public Observable<String> getDefaultAgent() {
         return client.getDefaultAgent();
+    }
+
+    /**
+     * Gets the member id of the default recovery agent.
+     *
+     * @return the member id
+     */
+    public String getDefaultAgentBlocking() {
+        return getDefaultAgent().blockingSingle();
     }
 
     /**
@@ -413,6 +460,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Verifies a given alias.
+     *
+     * @param verificationId the verification id
+     * @param code the code
+     */
+    public void verifyAliasBlocking(String verificationId, String code) {
+        verifyAlias(verificationId, code).blockingAwait();
+    }
+
+    /**
      * Removes an alias for the member.
      *
      * @param alias alias, e.g. 'john'
@@ -420,6 +477,15 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Completable removeAlias(Alias alias) {
         return removeAliases(singletonList(alias));
+    }
+
+    /**
+     * Removes an alias for the member.
+     *
+     * @param alias alias, e.g. 'john'
+     */
+    public void removeAliasBlocking(Alias alias) {
+        removeAlias(alias).blockingAwait();
     }
 
     /**
@@ -457,6 +523,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Removes aliases for the member.
+     *
+     * @param aliases aliases, e.g. 'john'
+     */
+    public void removeAliasesBlocking(List<Alias> aliases) {
+        removeAliases(aliases).blockingAwait();
+    }
+
+    /**
      * Approves a key owned by this member. The key is added to the list
      * of valid keys for the member.
      *
@@ -485,6 +560,27 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Approves a secret key owned by this member. The key is added to the list
+     * of valid keys for the member.
+     *
+     * @param key key to add to the approved list
+     * @param level key privilege level
+     */
+    public void approveKeyBlocking(SecretKeyPair key, Key.Level level) {
+        approveKey(key, level).blockingAwait();
+    }
+
+    /**
+     * Approves a public key owned by this member. The key is added to the list
+     * of valid keys for the member.
+     *
+     * @param key key to add to the approved list
+     */
+    public void approveKeyBlocking(Key key) {
+        approveKey(key).blockingAwait();
+    }
+
+    /**
      * Approves public keys owned by this member. The keys are added to the list
      * of valid keys for the member.
      *
@@ -500,6 +596,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Approves public keys owned by this member. The keys are added to the list
+     * of valid keys for the member.
+     *
+     * @param keys keys to add to the approved list
+     */
+    public void approveKeysBlocking(List<Key> keys) {
+        approveKeys(keys).blockingAwait();
+    }
+
+    /**
      * Removes a public key owned by this member.
      *
      * @param keyId key ID of the key to remove
@@ -507,6 +613,15 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Completable removeKey(String keyId) {
         return removeKeys(singletonList(keyId));
+    }
+
+    /**
+     * Removes a public key owned by this member.
+     *
+     * @param keyId key ID of the key to remove
+     */
+    public void removeKeyBlocking(String keyId) {
+        removeKey(keyId).blockingAwait();
     }
 
     /**
@@ -529,6 +644,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Removes public keys owned by this member.
+     *
+     * @param keyIds key IDs of the keys to remove
+     */
+    public void removeKeysBlocking(List<String> keyIds) {
+        removeKeys(keyIds).blockingAwait();
+    }
+
+    /**
      * Removes all public keys that do not have a corresponding private key stored on
      * the current device from tke member.
      *
@@ -546,9 +670,17 @@ public class MemberAsync implements RepresentableAsync {
                                 toRemoveIds.add(key.getId());
                             }
                         }
-                        return MemberAsync.this.removeKeys(toRemoveIds).toObservable();
+                        return Member.this.removeKeys(toRemoveIds).toObservable();
                     }
                 }));
+    }
+
+    /**
+     * Removes all public keys that do not have a corresponding private key stored on
+     * the current device from tke member.
+     */
+    public void removeNonStoredKeysBlocking() {
+        removeNonStoredKeys().blockingAwait();
     }
 
     /**
@@ -565,12 +697,54 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Subscribes a device to receive push notifications.
+     *
+     * @param handler specify the handler of the notifications
+     * @return subscriber Subscriber
+     */
+    public Observable<Subscriber> subscribeToNotifications(String handler) {
+        return subscribeToNotifications(handler, new HashMap<String, String>());
+    }
+
+    /**
+     * Subscribes a device to receive push notifications.
+     *
+     * @param handler specify the handler of the notifications
+     * @param handlerInstructions map of instructions for the handler
+     * @return subscriber Subscriber
+     */
+    public Subscriber subscribeToNotificationsBlocking(
+            String handler,
+            Map<String, String> handlerInstructions) {
+        return subscribeToNotifications(handler, handlerInstructions).blockingSingle();
+    }
+
+    /**
+     * Subscribes a device to receive push notifications.
+     *
+     * @param handler specify the handler of the notifications
+     * @return subscriber Subscriber
+     */
+    public Subscriber subscribeToNotificationsBlocking(String handler) {
+        return subscribeToNotifications(handler).blockingSingle();
+    }
+
+    /**
      * Gets subscribers.
      *
      * @return subscribers
      */
     public Observable<List<Subscriber>> getSubscribers() {
         return client.getSubscribers();
+    }
+
+    /**
+     * Gets a list of all subscribers.
+     *
+     * @return subscribers Subscribers
+     */
+    public List<Subscriber> getSubscribersBlocking() {
+        return getSubscribers().blockingSingle();
     }
 
     /**
@@ -584,6 +758,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Gets a subscriber by Id.
+     *
+     * @param subscriberId subscriberId
+     * @return subscribers Subscribers
+     */
+    public Subscriber getSubscriberBlocking(String subscriberId) {
+        return getSubscriber(subscriberId).blockingSingle();
+    }
+
+    /**
      * Removes a subscriber.
      *
      * @param subscriberId subscriberId
@@ -592,6 +776,15 @@ public class MemberAsync implements RepresentableAsync {
     public Completable unsubscribeFromNotifications(String subscriberId) {
         return client
                 .unsubscribeFromNotifications(subscriberId);
+    }
+
+    /**
+     * Removes a subscriber by Id.
+     *
+     * @param subscriberId subscriberId
+     */
+    public void unsubscribeFromNotificationsBlocking(String subscriberId) {
+        unsubscribeFromNotifications(subscriberId).blockingAwait();
     }
 
     /**
@@ -608,6 +801,19 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Gets a list of the member's notifications.
+     *
+     * @param offset offset to start
+     * @param limit how many notifications to get
+     * @return list of notifications
+     */
+    public PagedList<Notification, String> getNotificationsBlocking(
+            @Nullable String offset,
+            int limit) {
+        return getNotifications(offset, limit).blockingSingle();
+    }
+
+    /**
      * Gets a notification by id.
      *
      * @param notificationId Id of the notification
@@ -615,6 +821,16 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<Notification> getNotification(String notificationId) {
         return client.getNotification(notificationId);
+    }
+
+    /**
+     * Gets a notification by id.
+     *
+     * @param notificationId Id of the notification
+     * @return notification
+     */
+    public Notification getNotificationBlocking(String notificationId) {
+        return getNotification(notificationId).blockingSingle();
     }
 
     /**
@@ -651,7 +867,7 @@ public class MemberAsync implements RepresentableAsync {
                         if (accessToken == null) {
                             throw new IllegalArgumentException("No access token found");
                         }
-                        return toAccountList(linkAccounts(bankId, accessToken));
+                        return linkAccounts(bankId, accessToken);
                     }
                 });
 
@@ -698,14 +914,26 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Links accounts by navigating browser through bank authorization pages.
+     *
+     * @param bankId the bank id
+     * @return list of linked accounts
+     * @throws BankAuthorizationRequiredException if bank authorization payload
+     *     is required to link accounts
+     */
+    public List<Account> initiateAccountLinkingBlocking(String bankId) {
+        return initiateAccountLinking(bankId).blockingSingle();
+    }
+
+    /**
      * Links a funding bank accounts to Token and returns it to the caller.
      *
      * @param authorization an authorization to accounts, from the bank
      * @return list of linked accounts
      */
-    public Observable<List<AccountAsync>> linkAccounts(
+    public Observable<List<Account>> linkAccounts(
             BankAuthorization authorization) {
-        return toAccountAsyncList(client.linkAccounts(authorization));
+        return toAccountList(client.linkAccounts(authorization));
     }
 
     /**
@@ -717,12 +945,35 @@ public class MemberAsync implements RepresentableAsync {
      * @throws BankAuthorizationRequiredException if bank authorization payload
      *     is required to link accounts
      */
-    public Observable<List<AccountAsync>> linkAccounts(String bankId, String accessToken)
+    public Observable<List<Account>> linkAccounts(String bankId, String accessToken)
             throws BankAuthorizationRequiredException {
-        return toAccountAsyncList(client.linkAccounts(OauthBankAuthorization.newBuilder()
+        return toAccountList(client.linkAccounts(OauthBankAuthorization.newBuilder()
                 .setBankId(bankId)
                 .setAccessToken(accessToken)
                 .build()));
+    }
+
+    /**
+     * Links a funding bank account to Token and returns it to the caller.
+     *
+     * @param authorization an authorization to accounts, from the bank
+     * @return list of linked accounts
+     */
+    public List<Account> linkAccountsBlocking(BankAuthorization authorization) {
+        return linkAccounts(authorization).blockingSingle();
+    }
+
+    /**
+     * Links funding bank accounts to Token and returns them to the caller.
+     *
+     * @param bankId bank id
+     * @param accessToken OAuth access token
+     * @return list of linked accounts
+     * @throws BankAuthorizationRequiredException if bank authorization payload
+     *     is required to link accounts
+     */
+    public List<Account> linkAccountsBlocking(String bankId, String accessToken) {
+        return linkAccounts(bankId, accessToken).blockingSingle();
     }
 
     /**
@@ -736,21 +987,55 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Unlinks bank accounts previously linked via linkAccounts call.
+     *
+     * @param accountIds list of account ids to unlink
+     */
+    public void unlinkAccountsBlocking(List<String> accountIds) {
+        unlinkAccounts(accountIds).blockingAwait();
+    }
+
+    /**
      * Links a funding bank account to Token and returns it to the caller.
      *
      * @return list of accounts
      */
-    public Observable<List<AccountAsync>> getAccounts() {
+    public Observable<List<Account>> getAccounts() {
         return client
                 .getAccounts()
-                .map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
+                .map(new Function<List<AccountProtos.Account>, List<Account>>() {
                     @Override
-                    public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
-                        List<AccountAsync> result = new LinkedList<>();
+                    public List<Account> apply(List<AccountProtos.Account> accounts) {
+                        List<Account> result = new LinkedList<>();
                         for (AccountProtos.Account account : accounts) {
-                            result.add(new AccountAsync(MemberAsync.this, account, client));
+                            result.add(new Account(Member.this, account, client));
                         }
                         return result;
+                    }
+                });
+    }
+
+    /**
+     * Looks up funding bank accounts linked to Token.
+     *
+     * @return list of linked accounts
+     */
+    public List<Account> getAccountsBlocking() {
+        return getAccounts().blockingSingle();
+    }
+
+    /**
+     * Looks up a funding bank account linked to Token.
+     *
+     * @param accountId account id
+     * @return looked up account
+     */
+    public Observable<Account> getAccount(String accountId) {
+        return client
+                .getAccount(accountId)
+                .map(new Function<AccountProtos.Account, Account>() {
+                    public Account apply(AccountProtos.Account account) {
+                        return new Account(Member.this, account, client);
                     }
                 });
     }
@@ -761,14 +1046,33 @@ public class MemberAsync implements RepresentableAsync {
      * @param accountId account id
      * @return looked up account
      */
-    public Observable<AccountAsync> getAccount(String accountId) {
+    public Account getAccountBlocking(String accountId) {
+        return getAccount(accountId).blockingSingle();
+    }
+
+    /**
+     * Get the default bank account for this member.
+     *
+     * @param memberId the member's id
+     * @return observable string
+     */
+    public Observable<Account> getDefaultAccount(String memberId) {
         return client
-                .getAccount(accountId)
-                .map(new Function<AccountProtos.Account, AccountAsync>() {
-                    public AccountAsync apply(AccountProtos.Account account) {
-                        return new AccountAsync(MemberAsync.this, account, client);
+                .getDefaultAccount(memberId)
+                .map(new Function<AccountProtos.Account, Account>() {
+                    public Account apply(AccountProtos.Account account) {
+                        return new Account(Member.this, account, client);
                     }
                 });
+    }
+
+    /**
+     * Gets the default bank account.
+     *
+     * @return the default bank account id
+     */
+    public Account getDefaultAccount() {
+        return getDefaultAccount(this.memberId()).blockingSingle();
     }
 
     /**
@@ -779,6 +1083,16 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<Transfer> getTransfer(String transferId) {
         return client.getTransfer(transferId);
+    }
+
+    /**
+     * Looks up an existing token transfer.
+     *
+     * @param transferId ID of the transfer record
+     * @return transfer record
+     */
+    public Transfer getTransferBlocking(String transferId) {
+        return getTransfer(transferId).blockingSingle();
     }
 
     /**
@@ -797,77 +1111,18 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
-     * Creates and uploads a blob.
+     * Looks up existing token transfers.
      *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @return attachment
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param tokenId optional token id to restrict the search
+     * @return transfer record
      */
-    public Observable<Attachment> createBlob(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data) {
-        return createBlob(ownerId, type, name, data, AccessMode.DEFAULT);
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @param accessMode Normal access or public
-     * @return attachment
-     */
-    public Observable<Attachment> createBlob(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data,
-            AccessMode accessMode) {
-        Payload payload = Payload
-                .newBuilder()
-                .setOwnerId(ownerId)
-                .setType(type)
-                .setName(name)
-                .setData(ByteString.copyFrom(data))
-                .setAccessMode(accessMode)
-                .build();
-        return client.createBlob(payload)
-                .map(new Function<String, Attachment>() {
-                    public Attachment apply(String id) {
-                        return Attachment.newBuilder()
-                                .setBlobId(id)
-                                .setName(name)
-                                .setType(type)
-                                .build();
-                    }
-                });
-    }
-
-    /**
-     * Retrieves a blob from the server.
-     *
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Observable<Blob> getBlob(String blobId) {
-        return client.getBlob(blobId);
-    }
-
-    /**
-     * Retrieves a blob that is attached to a transfer token.
-     *
-     * @param tokenId id of the token
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
-        return client.getTokenBlob(tokenId, blobId);
+    public PagedList<Transfer, String> getTransfersBlocking(
+            @Nullable String offset,
+            int limit,
+            @Nullable String tokenId) {
+        return getTransfers(offset, limit, tokenId).blockingSingle();
     }
 
     /**
@@ -882,6 +1137,17 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Creates a new member address record.
+     *
+     * @param name the name of the address
+     * @param address the address
+     * @return the address record created
+     */
+    public AddressRecord addAddressBlocking(String name, Address address) {
+        return addAddress(name, address).blockingSingle();
+    }
+
+    /**
      * Looks up an address by id.
      *
      * @param addressId the address id
@@ -892,12 +1158,31 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Looks up an address by id.
+     *
+     * @param addressId the address id
+     * @return an address record
+     */
+    public AddressRecord getAddressBlocking(String addressId) {
+        return getAddress(addressId).blockingSingle();
+    }
+
+    /**
      * Looks up member addresses.
      *
      * @return a list of addresses
      */
     public Observable<List<AddressRecord>> getAddresses() {
         return client.getAddresses();
+    }
+
+    /**
+     * Looks up member addresses.
+     *
+     * @return a list of addresses
+     */
+    public List<AddressRecord> getAddressesBlocking() {
+        return getAddresses().blockingSingle();
     }
 
     /**
@@ -911,6 +1196,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Deletes a member address by its id.
+     *
+     * @param addressId the id of the address
+     */
+    public void deleteAddressBlocking(String addressId) {
+        deleteAddress(addressId).blockingAwait();
+    }
+
+    /**
      * Replaces auth'd member's public profile.
      *
      * @param profile profile to set
@@ -921,6 +1215,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Replaces the authenticated member's public profile.
+     *
+     * @param profile Profile to set
+     * @return updated profile
+     */
+    public Profile setProfileBlocking(Profile profile) {
+        return setProfile(profile).blockingSingle();
+    }
+
+    /**
      * Gets a member's public profile. Unlike setProfile, you can get another member's profile.
      *
      * @param memberId member ID of member whose profile we want
@@ -928,6 +1232,16 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<Profile> getProfile(String memberId) {
         return client.getProfile(memberId);
+    }
+
+    /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return profile info
+     */
+    public Profile getProfileBlocking(String memberId) {
+        return getProfile(memberId).blockingSingle();
     }
 
     /**
@@ -949,6 +1263,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Replaces auth'd member's public profile picture.
+     *
+     * @param type MIME type of picture
+     * @param data image data
+     */
+    public void setProfilePictureBlocking(final String type, byte[] data) {
+        setProfilePicture(type, data).blockingAwait();
+    }
+
+    /**
      * Gets a member's public profile picture. Unlike set, you can get another member's picture.
      *
      * @param memberId member ID of member whose profile we want
@@ -957,6 +1281,17 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
         return client.getProfilePicture(memberId, size);
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @param size Size category desired (small/medium/large/original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Blob getProfilePictureBlocking(String memberId, ProfilePictureSize size) {
+        return getProfilePicture(memberId, size).blockingSingle();
     }
 
     /**
@@ -970,6 +1305,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Replaces the member's receipt contact.
+     *
+     * @param receiptContact receipt contact to set
+     */
+    public void setReceiptContactBlocking(ReceiptContact receiptContact) {
+        setReceiptContact(receiptContact).blockingAwait();
+    }
+
+    /**
      * Gets the member's receipt email address.
      *
      * @return receipt contact
@@ -979,22 +1323,34 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Gets the member's receipt contact.
+     *
+     * @return receipt contact
+     */
+    public ReceiptContact getReceiptContactBlocking() {
+        return getReceiptContact().blockingSingle();
+    }
+
+    /**
      * Stores a token request. This can be retrieved later by the token request id.
      *
      * @param tokenRequest token request
      * @return token request id
      */
     public Observable<String> storeTokenRequest(TokenRequest tokenRequest) {
-        // TODO(RD-1515) remove backwards compatibility with token payload
-        return tokenRequest.getTokenRequestPayload() == null
-                ? client.storeTokenRequest(
-                        tokenRequest.getTokenPayload(),
-                        tokenRequest.getOptions(),
-                        tokenRequest.getUserRefId(),
-                        tokenRequest.getCustomizationId())
-                : client.storeTokenRequest(
+        return client.storeTokenRequest(
                         tokenRequest.getTokenRequestPayload(),
                         tokenRequest.getTokenRequestOptions());
+    }
+
+    /**
+     * Stores a token request to be retrieved later (possibly by another member).
+     *
+     * @param tokenRequest token request
+     * @return ID to reference the stored token request
+     */
+    public String storeTokenRequestBlocking(TokenRequest tokenRequest) {
+        return storeTokenRequest(tokenRequest).blockingSingle();
     }
 
     /**
@@ -1006,6 +1362,16 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
         return client.updateTokenRequest(requestId, options);
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     */
+    public void updateTokenRequestBlocking(String requestId, TokenRequestOptions options) {
+        updateTokenRequest(requestId, options).blockingAwait();
     }
 
     /**
@@ -1041,6 +1407,27 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Creates a new transfer token from a token payload.
+     *
+     * @param payload transfer token payload
+     * @return transfer token returned by the server
+     */
+    public Token createTransferTokenBlocking(TokenPayload payload) {
+        return createTransferToken(payload).blockingSingle();
+    }
+
+    /**
+     * Creates a new transfer token from a token payload.
+     *
+     * @param payload transfer token payload
+     * @param tokenRequestId token request id
+     * @return transfer token returned by the server
+     */
+    public Token createTransferTokenBlocking(TokenPayload payload, String tokenRequestId) {
+        return createTransferToken(payload, tokenRequestId).blockingSingle();
+    }
+
+    /**
      * Creates an access token built from a given {@link AccessTokenBuilder}.
      *
      * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
@@ -1065,6 +1452,30 @@ public class MemberAsync implements RepresentableAsync {
                 tokenRequestId);
     }
 
+
+    /**
+     * Creates an access token built from a given {@link AccessTokenBuilder}.
+     *
+     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
+     * @return the access token created
+     */
+    public Token createAccessTokenBlocking(AccessTokenBuilder accessTokenBuilder) {
+        return createAccessToken(accessTokenBuilder).blockingSingle();
+    }
+
+    /**
+     * Creates an access token built from a given {@link AccessTokenBuilder}.
+     *
+     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
+     * @param tokenRequestId token request id
+     * @return the access token created
+     */
+    public Token createAccessTokenBlocking(
+            AccessTokenBuilder accessTokenBuilder,
+            String tokenRequestId) {
+        return createAccessToken(accessTokenBuilder, tokenRequestId).blockingSingle();
+    }
+
     /**
      * Looks up a existing token.
      *
@@ -1076,6 +1487,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Looks up an existing token.
+     *
+     * @param tokenId token id
+     * @return token returned by the server
+     */
+    public Token getTokenBlocking(String tokenId) {
+        return getToken(tokenId).blockingSingle();
+    }
+
+    /**
      * Looks up a existing access token where the calling member is the grantor and given member is
      * the grantee.
      *
@@ -1084,6 +1505,17 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<Token> getActiveAccessToken(String toMemberId) {
         return client.getActiveAccessToken(toMemberId);
+    }
+
+    /**
+     * Looks up a existing access token where the calling member is the grantor and given member is
+     * the grantee.
+     *
+     * @param toMemberId beneficiary of the active access token
+     * @return access token returned by the server
+     */
+    public Token getActiveAccessTokenBlocking(String toMemberId) {
+        return getActiveAccessToken(toMemberId).blockingSingle();
     }
 
     /**
@@ -1100,6 +1532,17 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Looks up tokens owned by the member.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @return transfer tokens owned by the member
+     */
+    public PagedList<Token, String> getTransferTokensBlocking(@Nullable String offset, int limit) {
+        return getTransferTokens(offset, limit).blockingSingle();
+    }
+
+    /**
      * Looks up access tokens owned by the member.
      *
      * @param offset optional offset to start at
@@ -1110,6 +1553,17 @@ public class MemberAsync implements RepresentableAsync {
             @Nullable String offset,
             int limit) {
         return client.getTokens(GetTokensRequest.Type.ACCESS, offset, limit);
+    }
+
+    /**
+     * Looks up tokens owned by the member.
+     *
+     * @param offset optional offset offset to start at
+     * @param limit max number of records to return
+     * @return transfer tokens owned by the member
+     */
+    public PagedList<Token, String> getAccessTokensBlocking(@Nullable String offset, int limit) {
+        return getAccessTokens(offset, limit).blockingSingle();
     }
 
     /**
@@ -1129,6 +1583,22 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Endorses the token by signing it. The signature is persisted along
+     * with the token.
+     *
+     * <p>If the key's level is too low, the result's status is MORE_SIGNATURES_NEEDED
+     * and the system pushes a notification to the member prompting them to use a
+     * higher-privilege key.
+     *
+     * @param token token to endorse
+     * @param keyLevel key level to be used to endorse the token
+     * @return result of endorse token
+     */
+    public TokenOperationResult endorseTokenBlocking(Token token, Key.Level keyLevel) {
+        return endorseToken(token, keyLevel).blockingSingle();
+    }
+
+    /**
      * Cancels the token by signing it. The signature is persisted along
      * with the token.
      *
@@ -1137,6 +1607,17 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<TokenOperationResult> cancelToken(Token token) {
         return client.cancelToken(token);
+    }
+
+    /**
+     * Cancels the token by signing it. The signature is persisted along
+     * with the token.
+     *
+     * @param token token to cancel
+     * @return result of endorsed token
+     */
+    public TokenOperationResult cancelTokenBlocking(Token token) {
+        return cancelToken(token).blockingSingle();
     }
 
     /**
@@ -1155,20 +1636,46 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Cancels the existing access token, creates a replacement and optionally endorses it.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @return result of the replacement operation
+     */
+    public TokenOperationResult replaceAccessTokenBlocking(
+            Token tokenToCancel,
+            AccessTokenBuilder tokenToCreate) {
+        return replaceAccessToken(tokenToCancel, tokenToCreate)
+                .blockingSingle();
+    }
+
+    /**
      * Cancels the existing access token, creates a replacement and endorses it.
      *
      * @param tokenToCancel old token to cancel
      * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
-     * @deprecated use {@link #replaceAccessToken} and {@link #endorseToken} instead
      * @return result of the replacement operation
      */
-    @Deprecated
     public Observable<TokenOperationResult> replaceAndEndorseAccessToken(
             Token tokenToCancel,
             AccessTokenBuilder tokenToCreate) {
         return client.replaceAndEndorseToken(
                 tokenToCancel,
                 tokenToCreate.from(memberId()).build());
+    }
+
+    /**
+     * Cancels the existing access token, creates a replacement and optionally endorses it.
+     *
+     * @param tokenToCancel old token to cancel
+     * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @return result of the replacement operation
+     */
+    public TokenOperationResult replaceAndEndorseAccessTokenBlocking(
+            Token tokenToCancel,
+            AccessTokenBuilder tokenToCreate) {
+        return replaceAndEndorseAccessToken(tokenToCancel, tokenToCreate)
+                .blockingSingle();
     }
 
     /**
@@ -1265,6 +1772,72 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(Token token) {
+        return redeemToken(token).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(Token token, String refId) {
+        return redeemToken(token, refId).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(Token token, TransferEndpoint destination) {
+        return redeemToken(token, destination).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(Token token, TransferEndpoint destination, String refId) {
+        return redeemToken(token, destination, refId).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination,
+            @Nullable String refId) {
+        return redeemToken(token, amount, currency, description, destination, refId)
+                .blockingSingle();
+    }
+
+    /**
      * Looks up an existing transaction for a given account.
      *
      * @param accountId the account id
@@ -1277,6 +1850,21 @@ public class MemberAsync implements RepresentableAsync {
             String transactionId,
             Key.Level keyLevel) {
         return client.getTransaction(accountId, transactionId, keyLevel);
+    }
+
+    /**
+     * Looks up an existing transaction for a given account.
+     *
+     * @param accountId the account id
+     * @param transactionId ID of the transaction
+     * @param keyLevel key level
+     * @return transaction
+     */
+    public Transaction getTransactionBlocking(
+            String accountId,
+            String transactionId,
+            Key.Level keyLevel) {
+        return getTransaction(accountId, transactionId, keyLevel).blockingSingle();
     }
 
     /**
@@ -1297,19 +1885,20 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
-     * Get the default bank account for this member.
+     * Looks up transactions for a given account.
      *
-     * @param memberId the member's id
-     * @return observable string
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @return paged list of transactions
      */
-    public Observable<AccountAsync> getDefaultAccount(String memberId) {
-        return client
-                .getDefaultAccount(memberId)
-                .map(new Function<AccountProtos.Account, AccountAsync>() {
-                    public AccountAsync apply(AccountProtos.Account account) {
-                        return new AccountAsync(MemberAsync.this, account, client);
-                    }
-                });
+    public PagedList<Transaction, String> getTransactionsBlocking(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        return getTransactions(accountId, offset, limit, keyLevel).blockingSingle();
     }
 
     /**
@@ -1321,6 +1910,17 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<Balance> getBalance(String accountId, Key.Level keyLevel) {
         return client.getBalance(accountId, keyLevel);
+    }
+
+    /**
+     * Looks up account balance.
+     *
+     * @param accountId account id
+     * @param keyLevel key level
+     * @return balance
+     */
+    public Balance getBalanceBlocking(String accountId, Key.Level keyLevel) {
+        return getBalance(accountId, keyLevel).blockingSingle();
     }
 
     /**
@@ -1340,6 +1940,17 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Looks up account current balance.
+     *
+     * @param accountId account id
+     * @param keyLevel key level
+     * @return balance
+     */
+    public Money getCurrentBalanceBlocking(String accountId, Key.Level keyLevel) {
+        return getCurrentBalance(accountId, keyLevel).blockingSingle();
+    }
+
+    /**
      * Looks up available account balance.
      *
      * @param accountId the account id
@@ -1356,6 +1967,17 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Looks up account available balance.
+     *
+     * @param accountId account id
+     * @param keyLevel key level
+     * @return balance
+     */
+    public Money getAvailableBalanceBlocking(String accountId, Key.Level keyLevel) {
+        return getAvailableBalance(accountId, keyLevel).blockingSingle();
+    }
+
+    /**
      * Looks up balances for a list of accounts.
      *
      * @param accountIds list of account ids
@@ -1365,6 +1987,19 @@ public class MemberAsync implements RepresentableAsync {
     public Observable<List<Balance>> getBalances(
             List<String> accountIds, Key.Level keyLevel) {
         return client.getBalances(accountIds, keyLevel);
+    }
+
+    /**
+     * Looks up balances for a list of accounts.
+     *
+     * @param accountIds list of account ids
+     * @param keyLevel key level
+     * @return list of balances
+     */
+    public List<Balance> getBalancesBlocking(
+            List<String> accountIds,
+            Key.Level keyLevel) {
+        return getBalances(accountIds, keyLevel).blockingSingle();
     }
 
     /**
@@ -1378,20 +2013,174 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Returns linking information for the specified bank id.
+     *
+     * @param bankId the bank id
+     * @return bank linking information
+     */
+    public BankInfo getBankInfoBlocking(String bankId) {
+        return getBankInfo(bankId).blockingSingle();
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @return attachment
+     */
+    public Observable<Attachment> createBlob(
+            String ownerId,
+            final String type,
+            final String name,
+            byte[] data) {
+        return createBlob(ownerId, type, name, data, AccessMode.DEFAULT);
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @param accessMode Normal access or public
+     * @return attachment
+     */
+    public Observable<Attachment> createBlob(
+            String ownerId,
+            final String type,
+            final String name,
+            byte[] data,
+            AccessMode accessMode) {
+        Payload payload = Payload
+                .newBuilder()
+                .setOwnerId(ownerId)
+                .setType(type)
+                .setName(name)
+                .setData(ByteString.copyFrom(data))
+                .setAccessMode(accessMode)
+                .build();
+        return client.createBlob(payload)
+                .map(new Function<String, Attachment>() {
+                    public Attachment apply(String id) {
+                        return Attachment.newBuilder()
+                                .setBlobId(id)
+                                .setName(name)
+                                .setType(type)
+                                .build();
+                    }
+                });
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @param accessMode Default or public
+     * @return blob Id
+     */
+    public Attachment createBlobBlocking(
+            String ownerId,
+            String type,
+            String name,
+            byte[] data,
+            AccessMode accessMode) {
+        return createBlob(ownerId, type, name, data, accessMode).blockingSingle();
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @return blob Id
+     */
+    public Attachment createBlobBlocking(
+            String ownerId,
+            String type,
+            String name,
+            byte[] data) {
+        return createBlob(ownerId, type, name, data, AccessMode.DEFAULT)
+                .blockingSingle();
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getBlob(String blobId) {
+        return client.getBlob(blobId);
+    }
+
+    /**
+     * Gets a blob from the server.
+     *
+     * @param blobId blob Id
+     * @return Blob
+     */
+    public Blob getBlobBlocking(String blobId) {
+        return getBlob(blobId).blockingSingle();
+    }
+
+    /**
+     * Retrieves a blob that is attached to a transfer token.
+     *
+     * @param tokenId id of the token
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
+        return client.getTokenBlob(tokenId, blobId);
+    }
+
+    /**
+     * Retrieves a blob that is attached to a token.
+     *
+     * @param tokenId id of the token
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Blob getTokenBlobBlocking(String tokenId, String blobId) {
+        return getTokenBlob(tokenId, blobId).blockingSingle();
+    }
+
+    /**
      * Creates a test bank account in a fake bank and links the account.
      *
      * @param balance account balance to set
      * @param currency currency code, e.g. "EUR"
      * @return the linked account
      */
-    public Observable<AccountAsync> createAndLinkTestBankAccount(
+    public Observable<Account> createAndLinkTestBankAccount(
             double balance, String currency) {
-        return toAccountAsync(client.createAndLinkTestBankAccount(
+        return toAccount(client.createAndLinkTestBankAccount(
                 Money.newBuilder()
                         .setValue(Double.toString(balance))
                         .setCurrency(currency)
                         .build()
         ));
+    }
+
+    /**
+     * Creates a test bank account in a fake bank and links the account.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return the linked account
+     */
+    public Account createAndLinkTestBankAccountBlocking(double balance, String currency) {
+        return createAndLinkTestBankAccount(balance, currency)
+                .blockingSingle();
     }
 
     /**
@@ -1410,6 +2199,17 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Creates a test bank account in a fake bank.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return OAuth bank authorization
+     */
+    public OauthBankAuthorization createTestBankAccountBlocking(double balance, String currency) {
+        return createTestBankAccount(balance, currency).blockingSingle();
+    }
+
+    /**
      * Trigger a step up notification for tokens.
      *
      * @param tokenId token id
@@ -1417,6 +2217,16 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<NotifyStatus> triggerTokenStepUpNotification(String tokenId) {
         return client.triggerTokenStepUpNotification(tokenId);
+    }
+
+    /**
+     * Trigger a step up notification for tokens.
+     *
+     * @param tokenId token id
+     * @return notification status
+     */
+    public NotifyStatus triggerTokenStepUpNotificationBlocking(String tokenId) {
+        return triggerTokenStepUpNotification(tokenId).blockingSingle();
     }
 
     /**
@@ -1430,6 +2240,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public NotifyStatus triggerBalanceStepUpNotificationBlocking(List<String> accountIds) {
+        return triggerBalanceStepUpNotification(accountIds).blockingSingle();
+    }
+
+    /**
      * Trigger a step up notification for transaction requests.
      *
      * @param accountId account id
@@ -1440,6 +2260,16 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public NotifyStatus triggerTransactionStepUpNotificationBlocking(String accountId) {
+        return triggerTransactionStepUpNotification(accountId).blockingSingle();
+    }
+
+    /**
      * Apply SCA for the given list of account IDs.
      *
      * @param accountIds list of account ids
@@ -1447,6 +2277,15 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Completable applySca(List<String> accountIds) {
         return client.applySca(accountIds);
+    }
+
+    /**
+     * Apply SCA for the given list of account IDs.
+     *
+     * @param accountIds list of account ids
+     */
+    public void applyScaBlocking(List<String> accountIds) {
+        applySca(accountIds).blockingAwait();
     }
 
     /**
@@ -1465,6 +2304,21 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Sign with a Token signature a token request state payload.
+     *
+     * @param tokenRequestId token request id
+     * @param tokenId token id
+     * @param state state
+     * @return signature
+     */
+    public Signature signTokenRequestStateBlocking(
+            String tokenRequestId,
+            String tokenId,
+            String state) {
+        return signTokenRequestState(tokenRequestId, tokenId, state).blockingSingle();
+    }
+
+    /**
      * Get list of paired devices.
      *
      * @return list of devices
@@ -1474,12 +2328,29 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Get list of paired devices.
+     *
+     * @return list of devices
+     */
+    public List<Device> getPairedDevicesBlocking() {
+        return getPairedDevices().blockingSingle();
+    }
+
+    /**
      * Delete the member.
      *
      * @return completable
      */
     public Completable deleteMember() {
         return client.deleteMember();
+    }
+
+
+    /**
+     * Delete the member.
+     */
+    public void deleteMemberBlocking()  {
+        deleteMember().blockingAwait();
     }
 
     /**
@@ -1493,6 +2364,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Verifies an affiliated TPP.
+     *
+     * @param memberId member ID of the TPP to verify
+     */
+    public void verifyAffiliateBlocking(String memberId) {
+        verifyAffiliate(memberId).blockingAwait();
+    }
+
+    /**
      * Resolves transfer destinations for the given account ID.
      *
      * @param accountId account ID
@@ -1500,6 +2380,16 @@ public class MemberAsync implements RepresentableAsync {
      */
     public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
         return client.resolveTransferDestinations(accountId);
+    }
+
+    /**
+     * Resolves transfer destinations for the given account ID.
+     *
+     * @param accountId account ID
+     * @return transfer endpoints
+     */
+    public List<TransferEndpoint> resolveTransferDestinationsBlocking(String accountId) {
+        return resolveTransferDestinations(accountId).blockingSingle();
     }
 
     /**
@@ -1516,6 +2406,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Adds a trusted beneficiary for whom the SCA will be skipped.
+     *
+     * @param memberId the member id of the beneficiary
+     */
+    public void addTrustedBeneficiaryBlocking(String memberId) {
+        addTrustedBeneficiary(memberId).blockingAwait();
+    }
+
+    /**
      * Removes a trusted beneficiary.
      *
      * @param memberId the member id of the beneficiary
@@ -1529,6 +2428,15 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Removes a trusted beneficiary.
+     *
+     * @param memberId the member id of the beneficiary
+     */
+    public void removeTrustedBeneficiaryBlocking(String memberId) {
+        removeTrustedBeneficiary(memberId).blockingAwait();
+    }
+
+    /**
      * Gets a list of all trusted beneficiaries.
      *
      * @return the list
@@ -1538,18 +2446,34 @@ public class MemberAsync implements RepresentableAsync {
     }
 
     /**
+     * Gets a list of all trusted beneficiaries.
+     *
+     * @return the list
+     */
+    public List<TrustedBeneficiary> getTrustedBeneficiariesBlocking() {
+        return getTrustedBeneficiaries().blockingSingle();
+    }
+
+    /**
      * Creates a customization.
      *
      * @param logo logo
      * @param colors map of ARGB colors #AARRGGBB
-     * @param consentText consent text
      * @return customization id
      */
-    public Observable<String> createCustomization(
-            Payload logo,
-            Map<String, String> colors,
-            String consentText) {
-        return client.createCustomization(logo, colors, consentText);
+    public Observable<String> createCustomization(Payload logo, Map<String, String> colors) {
+        return client.createCustomization(logo, colors);
+    }
+
+    /**
+     * Creates a customization.
+     *
+     * @param logo logo
+     * @param colors map of ARGB colors #AARRGGBB
+     * @return customization id
+     */
+    public String createCustomizationBlocking(Payload logo, Map<String, String> colors) {
+        return createCustomization(logo, colors).blockingFirst();
     }
 
     /**
@@ -1584,11 +2508,11 @@ public class MemberAsync implements RepresentableAsync {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof MemberAsync)) {
+        if (!(obj instanceof Member)) {
             return false;
         }
 
-        MemberAsync other = (MemberAsync) obj;
+        Member other = (Member) obj;
         return member.build().equals(other.member.build())
                 && client.equals(other.client);
     }
@@ -1616,26 +2540,26 @@ public class MemberAsync implements RepresentableAsync {
                 });
     }
 
-    private Observable<List<AccountAsync>> toAccountAsyncList(
+    private Observable<List<Account>> toAccountList(
             Observable<List<AccountProtos.Account>> accounts) {
-        return accounts.map(new Function<List<AccountProtos.Account>, List<AccountAsync>>() {
+        return accounts.map(new Function<List<AccountProtos.Account>, List<Account>>() {
             @Override
-            public List<AccountAsync> apply(List<AccountProtos.Account> accounts) {
-                List<AccountAsync> result = new LinkedList<>();
+            public List<Account> apply(List<AccountProtos.Account> accounts) {
+                List<Account> result = new LinkedList<>();
                 for (AccountProtos.Account account : accounts) {
-                    result.add(new AccountAsync(MemberAsync.this, account, client));
+                    result.add(new Account(Member.this, account, client));
                 }
                 return result;
             }
         });
     }
 
-    private Observable<AccountAsync> toAccountAsync(Observable<AccountProtos.Account> account) {
+    private Observable<Account> toAccount(Observable<AccountProtos.Account> account) {
         return account
-                .map(new Function<AccountProtos.Account, AccountAsync>() {
+                .map(new Function<AccountProtos.Account, Account>() {
                     @Override
-                    public AccountAsync apply(AccountProtos.Account account) throws Exception {
-                        return new AccountAsync(MemberAsync.this, account, client);
+                    public Account apply(AccountProtos.Account account) throws Exception {
+                        return new Account(Member.this, account, client);
                     }
                 });
     }

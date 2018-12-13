@@ -27,8 +27,11 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import java.util.List;
 
 /**
- * Information about a device being provisioned.
+ * **DEPRECATED** Use api.DeviceInfo instead.
+ *
+ * <p>Information about a device being provisioned.
  */
+@Deprecated
 public class DeviceInfo {
     private final String memberId;
     private final List<Key> keys;

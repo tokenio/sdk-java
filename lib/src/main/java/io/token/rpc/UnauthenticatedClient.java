@@ -35,13 +35,11 @@ import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.NotifyResult;
-import io.token.TokenRequest;
+import io.token.api.NotifyResult;
 import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
-import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.Member;
@@ -58,7 +56,6 @@ import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
@@ -94,6 +91,7 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
 
 import java.util.LinkedList;
@@ -246,16 +244,44 @@ public final class UnauthenticatedClient {
                 .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
                     @Override
                     public TokenRequest apply(RetrieveTokenRequestResponse response) {
+                        TokenRequest.Builder builder = TokenRequest
+                                .newBuilder(response.getTokenRequest().getRequestPayload())
+                                .setTokenRequestOptions(response
+                                        .getTokenRequest()
+                                        .getRequestOptions());
+                        if (response.hasCustomization()) {
+                            builder.setCustomization(response.getCustomization());
+                        }
+                        return builder.build();
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a transfer token request.
+     *
+     * @param tokenRequestId token request id
+     *
+     * @return token request that was stored with the request id
+     */
+    @Deprecated
+    public Observable<io.token.TokenRequest> retrieveTokenRequestLegacy(String tokenRequestId) {
+        return toObservable(gateway.retrieveTokenRequest(RetrieveTokenRequestRequest.newBuilder()
+                .setRequestId(tokenRequestId)
+                .build()))
+                .map(new Function<RetrieveTokenRequestResponse, io.token.TokenRequest>() {
+                    @Override
+                    public io.token.TokenRequest apply(RetrieveTokenRequestResponse response) {
                         // TODO(RD-1515) remove backwards compatibility with token payload
-                        TokenRequest.Builder builder = response
+                        io.token.TokenRequest.Builder builder = response
                                 .getTokenRequest()
                                 .hasRequestPayload()
-                                ? TokenRequest
+                                ? io.token.TokenRequest
                                         .newBuilder(response.getTokenRequest().getRequestPayload())
                                         .setTokenRequestOptions(response
                                                 .getTokenRequest()
                                                 .getRequestOptions())
-                                : TokenRequest
+                                : io.token.TokenRequest
                                         .newBuilder(
                                                 response
                                                         .getTokenRequest()
@@ -371,6 +397,44 @@ public final class UnauthenticatedClient {
     }
 
     /**
+     * Notifies subscribed devices that a token should be created and endorsed.
+     *
+     * @param tokenRequestId the token request ID to send
+     * @param addKey optional add key payload to send
+     * @param receiptContact optional receipt contact to send
+     * @return notify result of the notification request
+     */
+    @Deprecated
+    public Observable<io.token.NotifyResult> notifyCreateAndEndorseTokenLegacy(
+            String tokenRequestId,
+            @Nullable AddKey addKey,
+            @Nullable ReceiptContact receiptContact) {
+        TriggerCreateAndEndorseTokenNotificationRequest.Builder builder =
+                TriggerCreateAndEndorseTokenNotificationRequest.newBuilder()
+                        .setTokenRequestId(tokenRequestId);
+
+        if (addKey != null) {
+            builder.setAddKey(addKey);
+        }
+
+        if (receiptContact != null) {
+            builder.setContact(receiptContact);
+        }
+
+        return toObservable(gateway.triggerCreateAndEndorseTokenNotification(builder.build()))
+                .map(new Function<
+                        TriggerCreateAndEndorseTokenNotificationResponse,
+                        io.token.NotifyResult>() {
+                    public io.token.NotifyResult apply(
+                            TriggerCreateAndEndorseTokenNotificationResponse response) {
+                        return io.token.NotifyResult.create(
+                                response.getNotificationId(),
+                                response.getStatus());
+                    }
+                });
+    }
+
+    /**
      * Notifies subscribed devices that a token payload should be endorsed and keys should be
      * added.
      *
@@ -381,10 +445,10 @@ public final class UnauthenticatedClient {
      * @param state optional token request state for signing
      * @param receiptContact optional receipt contact
      * @return notify result of the notification request
-     * @deprecated use notifyCreateAndEndorseToken instead
+     * @deprecated use notifyCreateAndEndorseTokenLegacy instead
      */
     @Deprecated
-    public Observable<NotifyResult> notifyEndorseAndAddKey(
+    public Observable<io.token.NotifyResult> notifyEndorseAndAddKey(
             TokenPayload tokenPayload,
             AddKey addKey,
             @Nullable String tokenRequestId,
@@ -405,10 +469,11 @@ public final class UnauthenticatedClient {
                 TriggerEndorseAndAddKeyNotificationRequest.newBuilder()
                         .setEndorseAndAddKey(builder.build())
                         .build()))
-                .map(new Function<TriggerEndorseAndAddKeyNotificationResponse, NotifyResult>() {
-                    public NotifyResult apply(
+                .map(new Function<TriggerEndorseAndAddKeyNotificationResponse,
+                        io.token.NotifyResult>() {
+                    public io.token.NotifyResult apply(
                             TriggerEndorseAndAddKeyNotificationResponse response) {
-                        return NotifyResult.create(
+                        return io.token.NotifyResult.create(
                                 response.getNotificationId(),
                                 response.getStatus());
                     }

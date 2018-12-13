@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2018 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.tokens;
 
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.Ach;
@@ -29,10 +29,6 @@ import io.token.proto.common.account.AccountProtos.BankAccount.Swift;
 import io.token.proto.common.account.AccountProtos.BankAccount.Token;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
-/**
- * **DEPRECATED** Use tokens.Destinations instead.
- */
-@Deprecated
 public final class Destinations {
     private Destinations() {}
 
