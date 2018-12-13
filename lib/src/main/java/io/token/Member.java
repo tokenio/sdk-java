@@ -783,8 +783,10 @@ public class Member implements Representable {
      *
      * @param tokenToCancel old token to cancel
      * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @deprecated use {@link #replaceAccessToken} and {@link #endorseToken} instead
      * @return result of the replacement operation
      */
+    @Deprecated
     public TokenOperationResult replaceAndEndorseAccessToken(
             Token tokenToCancel,
             AccessTokenBuilder tokenToCreate) {
