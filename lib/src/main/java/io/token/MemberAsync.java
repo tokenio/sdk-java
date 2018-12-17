@@ -1156,8 +1156,10 @@ public class MemberAsync implements RepresentableAsync {
      *
      * @param tokenToCancel old token to cancel
      * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @deprecated use {@link #replaceAccessToken} and {@link #endorseToken} instead
      * @return result of the replacement operation
      */
+    @Deprecated
     public Observable<TokenOperationResult> replaceAndEndorseAccessToken(
             Token tokenToCancel,
             AccessTokenBuilder tokenToCreate) {

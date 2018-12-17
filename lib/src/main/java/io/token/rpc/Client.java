@@ -985,8 +985,10 @@ public final class Client {
      *
      * @param tokenToCancel old token to cancel
      * @param tokenToCreate new token to create
+     * @deprecated use {@link #replace} and {@link #endorseToken} instead
      * @return result of the replacement operation, returned by the server
      */
+    @Deprecated
     public Observable<TokenOperationResult> replaceAndEndorseToken(
             Token tokenToCancel,
             TokenPayload tokenToCreate) {

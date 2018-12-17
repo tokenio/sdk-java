@@ -4,6 +4,8 @@ import io.token.AccessTokenBuilder;
 import io.token.Member;
 import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 
@@ -42,39 +44,17 @@ public final class ReplaceAccessTokenSample {
         String accountId = grantor.createAndLinkTestBankAccount(1000.0, "EUR")
                 .id();
 
-        // Replace, but don't endorse the replacement
-        // (replaceAndEndorseAccessToken is much safer.
-        // The "find" code doesn't see unendorsed tokens,
-        // so if the unendorsed token needs replacing,
-        // it can't be "found").
-        TokenOperationResult status = grantor.replaceAccessToken(
+        // Replace the old access token
+        Token newToken = grantor.replaceAccessToken(
                 oldToken,
                 AccessTokenBuilder
                         .fromPayload(oldToken.getPayload())
-                        .forAccount(accountId));
-        return status;
-    }
+                        .forAccount(accountId))
+                .getToken();
 
-    /**
-     * Replaces and endorses a previously-created access token.
-     *
-     * @param grantor Token member granting access to her accounts
-     * @param granteeAlias Token member alias acquiring information access
-     * @param oldToken token to replace
-     * @return success or failure
-     */
-    public static TokenOperationResult replaceAndEndorseAccessToken(
-            Member grantor,
-            Alias granteeAlias,
-            Token oldToken) {
-        String accountId = grantor.createAndLinkTestBankAccount(1000.0, "EUR")
-                .id();
-        // Replace old access token:
-        TokenOperationResult status = grantor.replaceAndEndorseAccessToken(
-                oldToken,
-                AccessTokenBuilder
-                        .fromPayload(oldToken.getPayload())
-                        .forAccount(accountId));
+        // Endorse the new access token
+        TokenOperationResult status = grantor.endorseToken(newToken, Key.Level.STANDARD);
+
         return status;
     }
 }
