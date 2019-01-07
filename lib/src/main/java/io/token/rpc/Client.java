@@ -1825,14 +1825,19 @@ public final class Client {
      *
      * @param logo logo
      * @param colors map of ARGB colors #AARRGGBB
+     * @param consentText consent text
      * @return customization id
      */
-    public Observable<String> createCustomization(Payload logo, Map<String, String> colors) {
+    public Observable<String> createCustomization(
+            Payload logo,
+            Map<String, String> colors,
+            String consentText) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .createCustomization(CreateCustomizationRequest.newBuilder()
                         .setLogo(logo)
                         .putAllColors(colors)
+                        .setConsentText(consentText)
                         .build()))
                 .map(new Function<CreateCustomizationResponse, String>() {
                     @Override

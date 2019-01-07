@@ -54,7 +54,6 @@ import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
@@ -1214,10 +1213,14 @@ public class Member implements Representable {
      *
      * @param logo logo
      * @param colors map of ARGB colors #AARRGGBB
+     * @param consentText consent text
      * @return customization id
      */
-    public String createCustomization(Payload logo, Map<String, String> colors) {
-        return async.createCustomization(logo, colors).blockingFirst();
+    public String createCustomization(
+            Payload logo,
+            Map<String, String> colors,
+            String consentText) {
+        return async.createCustomization(logo, colors, consentText).blockingFirst();
     }
 
     /**
