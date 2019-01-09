@@ -1654,8 +1654,10 @@ public class Member implements Representable {
      *
      * @param tokenToCancel old token to cancel
      * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @deprecated use {@link #replaceAccessToken} and {@link #endorseToken} instead
      * @return result of the replacement operation
      */
+    @Deprecated
     public Observable<TokenOperationResult> replaceAndEndorseAccessToken(
             Token tokenToCancel,
             AccessTokenBuilder tokenToCreate) {
@@ -1669,8 +1671,10 @@ public class Member implements Representable {
      *
      * @param tokenToCancel old token to cancel
      * @param tokenToCreate an {@link AccessTokenBuilder} to create new token from
+     * @deprecated use {@link #replaceAccessToken} and {@link #endorseToken} instead
      * @return result of the replacement operation
      */
+    @Deprecated
     public TokenOperationResult replaceAndEndorseAccessTokenBlocking(
             Token tokenToCancel,
             AccessTokenBuilder tokenToCreate) {
@@ -2459,10 +2463,14 @@ public class Member implements Representable {
      *
      * @param logo logo
      * @param colors map of ARGB colors #AARRGGBB
+     * @param consentText consent text
      * @return customization id
      */
-    public Observable<String> createCustomization(Payload logo, Map<String, String> colors) {
-        return client.createCustomization(logo, colors);
+    public Observable<String> createCustomization(
+            Payload logo,
+            Map<String, String> colors,
+            String consentText) {
+        return client.createCustomization(logo, colors, consentText);
     }
 
     /**
@@ -2470,10 +2478,14 @@ public class Member implements Representable {
      *
      * @param logo logo
      * @param colors map of ARGB colors #AARRGGBB
+     * @param consentText consent text
      * @return customization id
      */
-    public String createCustomizationBlocking(Payload logo, Map<String, String> colors) {
-        return createCustomization(logo, colors).blockingFirst();
+    public String createCustomizationBlocking(
+            Payload logo,
+            Map<String, String> colors,
+            String consentText) {
+        return createCustomization(logo, colors, consentText).blockingFirst();
     }
 
     /**
