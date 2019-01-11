@@ -110,12 +110,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * **DEPRECATED** Use api.Member instead.
- *
- * <p>Represents a Member in the Token system. Each member has an active secret
+ * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-@Deprecated
 public class MemberAsync implements RepresentableAsync {
     private static final Logger logger = LoggerFactory.getLogger(MemberAsync.class);
 

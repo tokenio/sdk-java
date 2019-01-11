@@ -1,0 +1,241 @@
+/**
+ * Copyright (c) 2019 Token, Inc.
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
+package io.token.util;
+
+import static io.token.proto.ProtoHasher.hashAndSerializeJson;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import com.google.common.hash.Hashing;
+import com.google.common.util.concurrent.ListenableFuture;
+import com.google.common.util.concurrent.MoreExecutors;
+import com.google.common.util.concurrent.Uninterruptibles;
+import com.google.protobuf.Message;
+import io.reactivex.Observable;
+import io.reactivex.Single;
+import io.reactivex.SingleEmitter;
+import io.reactivex.SingleOnSubscribe;
+import io.reactivex.functions.Function;
+import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.member.MemberProtos.Member;
+import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
+import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
+import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAliasMetadata;
+import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
+import io.token.proto.common.member.MemberProtos.RecoveryRule;
+import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.security.KeyNotFoundException;
+import io.token.security.crypto.Crypto;
+import io.token.security.crypto.CryptoRegistry;
+import io.token.util.codec.ByteEncoding;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLDecoder;
+import java.net.URLEncoder;
+import java.nio.charset.Charset;
+import java.security.PublicKey;
+import java.security.SecureRandom;
+import java.util.HashMap;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+import javax.annotation.Nullable;
+
+
+/**
+ * Utility methods.
+ */
+public abstract class Util {
+
+    /**
+     * The token realm.
+     */
+    public static final String TOKEN_REALM = "token";
+
+    /**
+     * The token alias.
+     */
+    public static final Alias TOKEN = Alias.newBuilder()
+            .setType(DOMAIN)
+            .setValue("token.io")
+            .setRealm(TOKEN_REALM)
+            .build();
+
+    private static final int NONCE_NUM_BYTES = 12;
+
+    private Util() {
+    }
+
+    /**
+     * Generates a random string.
+     *
+     * @return generated random string
+     */
+    public static String generateNonce() {
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[NONCE_NUM_BYTES];
+        random.nextBytes(bytes);
+        return ByteEncoding.serializeHumanReadable(bytes);
+    }
+
+    /**
+     * Converts Key to AddKey operation.
+     *
+     * @param key key to add
+     * @return member operation
+     */
+    public static MemberOperation toAddKeyOperation(Key key) {
+        return MemberOperation
+                .newBuilder()
+                .setAddKey(MemberAddKeyOperation
+                        .newBuilder()
+                        .setKey(key))
+                .build();
+    }
+
+    /**
+     * Converts agent id to AddKey operation.
+     *
+     * @param agentId agentId to add
+     * @return member operation
+     */
+    public static MemberOperation toRecoveryAgentOperation(String agentId) {
+        return MemberOperation
+                .newBuilder()
+                .setRecoveryRules(MemberRecoveryRulesOperation
+                        .newBuilder()
+                        .setRecoveryRule(RecoveryRule.newBuilder().setPrimaryAgent(agentId)))
+                .build();
+    }
+
+    /**
+     * Get alias with normalized value. E.g. "Captain@gmail.com" to "captain@gmail.com".
+     *
+     * @param rawAlias { EMAIL, "Captain@gmail.com" }
+     * @return alias with possibly-different value field
+     */
+    public static Alias normalizeAlias(Alias rawAlias) {
+        switch (rawAlias.getType()) {
+            case EMAIL:
+            case DOMAIN:
+                return rawAlias.toBuilder()
+                        .setValue(rawAlias.getValue().toLowerCase().trim())
+                        .build();
+
+            default:
+                return rawAlias.toBuilder()
+                        .build();
+        }
+    }
+
+    /**
+     * Converts alias to AddAlias operation.
+     *
+     * @param alias alias to add
+     * @return member operation
+     */
+    public static MemberOperation toAddAliasOperation(Alias alias) {
+        return MemberOperation
+                .newBuilder()
+                .setAddAlias(MemberAliasOperation
+                        .newBuilder()
+                        .setAliasHash(hashAlias(alias))
+                        .setRealm(alias.getRealm()))
+                .build();
+    }
+
+    /**
+     * Converts alias to MemberOperationMetadata.
+     *
+     * @param alias alias to add
+     * @return member operation metadata
+     */
+    public static MemberOperationMetadata toAddAliasOperationMetadata(Alias alias) {
+        return MemberOperationMetadata.newBuilder()
+                .setAddAliasMetadata(AddAliasMetadata.newBuilder()
+                        .setAlias(alias)
+                        .setAliasHash(hashAlias(alias)))
+                .build();
+    }
+
+    /**
+     * Hashes an alias to a String.
+     *
+     * @param alias alias to hash
+     * @return hashed alias
+     */
+    public static String hashAlias(Alias alias) {
+        if (alias.getType() == USERNAME) {
+            return alias.getValue();
+        }
+        Alias toHash = alias.toBuilder().clearRealm().build();
+        return hashAndSerializeJson(toHash);
+    }
+
+    /**
+     * Converts {@code future} to {@link Observable}.
+     *
+     * @param future future to convert
+     * @param <T> future result type
+     * @return Observable
+     */
+    public static <T> Observable<T> toObservable(final ListenableFuture<T> future) {
+        return Single
+                .create(new SingleOnSubscribe<T>() {
+                    @Override
+                    public void subscribe(final SingleEmitter<T> emitter) throws Exception {
+                        future.addListener(
+                                new Runnable() {
+                                    public void run() {
+                                        if (emitter.isDisposed()) {
+                                            return;
+                                        }
+                                        try {
+                                            emitter.onSuccess(Uninterruptibles
+                                                    .getUninterruptibly(future));
+                                        } catch (ExecutionException ex) {
+                                            // We are dealing with StatusRuntimeExceptions here,
+                                            // possibly wrapping the actual custom Token exceptions.
+                                            Throwable cause = ex.getCause().getCause();
+                                            if (cause != null) {
+                                                emitter.onError(cause);
+                                            } else {
+                                                emitter.onError(ex.getCause());
+                                            }
+                                        } catch (Throwable ex) {
+                                            emitter.onError(ex);
+                                        }
+                                    }
+                                },
+                                MoreExecutors.newDirectExecutorService()
+                        );
+                    }
+                })
+                .toObservable();
+    }
+}

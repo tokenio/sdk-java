@@ -87,15 +87,12 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 /**
- * **DEPRECATED** Use api.TokenClient instead.
- *
- * <p>An SDK Client that interacts with TokenOS.
+ * An SDK Client that interacts with TokenOS.
  *
  * <p>The class provides async API with {@link TokenIO} providing a synchronous
  * version. {@link TokenIO} instance can be obtained by calling {@link #sync}
  * method.</p>
  */
-@Deprecated
 public class TokenIOAsync implements Closeable {
     private static final String TOKEN_REQUEST_TEMPLATE =
             "https://%s/request-token/%s?state=%s";
@@ -360,7 +357,7 @@ public class TokenIOAsync implements Closeable {
      */
     public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.retrieveTokenRequestLegacy(requestId);
+        return unauthenticated.retrieveTokenRequest(requestId);
     }
 
     /**
@@ -412,7 +409,7 @@ public class TokenIOAsync implements Closeable {
             @Nullable DeviceMetadata deviceMetadata,
             @Nullable ReceiptContact receiptContact) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.notifyCreateAndEndorseTokenLegacy(
+        return unauthenticated.notifyCreateAndEndorseToken(
                 tokenRequestId,
                 AddKey.newBuilder()
                         .addAllKeys(keys)
@@ -433,7 +430,7 @@ public class TokenIOAsync implements Closeable {
      * @param state optional token request state for signing
      * @param receiptContact optional receipt contact
      * @return notify result of the notification request
-     * @deprecated use notifyCreateAndEndorseTokenLegacy instead
+     * @deprecated use notifyCreateAndEndorseToken instead
      */
     @Deprecated
     public Observable<NotifyResult> notifyEndorseAndAddKey(

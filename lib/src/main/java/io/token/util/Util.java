@@ -37,8 +37,8 @@ import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.functions.Function;
+import io.token.Account;
 import io.token.AccountAsync;
-import io.token.api.Account;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -366,12 +366,11 @@ public abstract class Util {
      * @param asyncAccounts async accounts
      * @return accounts
      */
-    @Deprecated
-    public static Observable<List<io.token.Account>> toAccountList(
+    public static Observable<List<Account>> toAccountList(
             Observable<List<AccountAsync>> asyncAccounts) {
-        return asyncAccounts.map(new Function<List<AccountAsync>, List<io.token.Account>>() {
-            public List<io.token.Account> apply(List<AccountAsync> asyncList) {
-                List<io.token.Account> accounts = new LinkedList<>();
+        return asyncAccounts.map(new Function<List<AccountAsync>, List<Account>>() {
+            public List<Account> apply(List<AccountAsync> asyncList) {
+                List<Account> accounts = new LinkedList<>();
                 for (AccountAsync async : asyncList) {
                     accounts.add(async.sync());
                 }

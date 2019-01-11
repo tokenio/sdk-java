@@ -27,7 +27,6 @@ import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 /**
  * Thrown when a transfer token creation fails.
  */
-@Deprecated
 public final class TransferTokenException extends RuntimeException {
     private final TransferTokenStatus status;
 

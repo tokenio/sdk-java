@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Token, Inc.
+ * Copyright (c) 2017 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,32 +20,17 @@
  * THE SOFTWARE.
  */
 
-package io.token.tokenrequest;
-
-import com.google.auto.value.AutoValue;
+package io.token.security;
 
 /**
- * Represents callback in Token Request Flow. Contains tokenID and state.
+ * Thrown when a key could not be loaded or stored due to an error.
  */
-
-@AutoValue
-public abstract class TokenRequestCallback {
-    public static TokenRequestCallback create(String tokenId, String state) {
-        return new AutoValue_TokenRequestCallback(tokenId, state);
+public class KeyIOException extends RuntimeException {
+    public KeyIOException(String msg) {
+        super(msg);
     }
 
-    /**
-     * Get the token ID returned at the end of the Token Request Flow.
-     *
-     * @return token id
-     */
-    public abstract String getTokenId();
-
-    /**
-     * Get the state returned at the end of the Token Request Flow. This corresponds to the state
-     * set at the beginning of the flow.
-     *
-     * @return state
-     */
-    public abstract String getState();
+    public KeyIOException(String msg, Throwable cause) {
+        super(msg, cause);
+    }
 }

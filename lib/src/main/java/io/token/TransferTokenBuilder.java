@@ -56,14 +56,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * **DEPRECATED** Use tokens.TransferTokenBuilder instead.
- *
- * <p>This class is used to build a transfer token. The required parameters are member, amount
- * (which is the lifetime amount of the token), and currency. One source of funds must be set:
- * either accountId or BankAuthorization. Finally, a redeemer must be set, specified by either
- * alias or memberId.
+ * This class is used to build a transfer token. The required parameters are member, amount (which
+ * is the lifetime amount of the token), and currency. One source of funds must be set: either
+ * accountId or BankAuthorization. Finally, a redeemer must be set, specified by either alias
+ * or memberId.
  */
-@Deprecated
 public final class TransferTokenBuilder {
     private static final Logger logger = LoggerFactory.getLogger(TransferTokenBuilder.class);
     private static final int REF_ID_MAX_LENGTH = 18;

@@ -32,11 +32,8 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import javax.annotation.Nullable;
 
 /**
- * **DEPRECATED** Use api.Account instead.
- *
- * <p>Represents a funding account in the Token system.
+ * Represents a funding account in the Token system.
  */
-@Deprecated
 public class Account {
     private final AccountAsync async;
 

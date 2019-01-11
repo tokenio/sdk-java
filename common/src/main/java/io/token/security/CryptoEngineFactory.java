@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Token, Inc.
+ * Copyright (c) 2017 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,45 +20,17 @@
  * THE SOFTWARE.
  */
 
-package io.token.api;
-
-import io.token.proto.common.security.SecurityProtos.Key;
-
-import java.util.List;
+package io.token.security;
 
 /**
- * Information about a device being provisioned.
+ * Creates {@link CryptoEngine} instances bound to a given member id.
  */
-public class DeviceInfo {
-    private final String memberId;
-    private final List<Key> keys;
-
+public interface CryptoEngineFactory {
     /**
-     * Creates an instance.
+     * Creates a new {@link CryptoEngine} for the given member.
      *
      * @param memberId member id
-     * @param keys list of keys
+     * @return crypto engine instance
      */
-    public DeviceInfo(String memberId, List<Key> keys) {
-        this.memberId = memberId;
-        this.keys = keys;
-    }
-
-    /**
-     * Gets member ID.
-     *
-     * @return member ID
-     */
-    public String getMemberId() {
-        return memberId;
-    }
-
-    /**
-     * Gets device keys.
-     *
-     * @return list of device keys
-     */
-    public List<Key> getKeys() {
-        return keys;
-    }
+    CryptoEngine create(String memberId);
 }

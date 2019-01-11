@@ -70,12 +70,9 @@ import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
- * **DEPRECATED** Use api.Member instead.
- *
- * <p>Represents a Member in the Token system. Each member has an active secret
+ * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-@Deprecated
 public class Member implements Representable {
     private final MemberAsync async;
 

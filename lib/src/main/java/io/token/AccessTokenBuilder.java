@@ -45,11 +45,8 @@ import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 
 /**
- * **DEPRECATED** Use tokens.AccessTokenBuilder instead.
- *
- * <p>Helps building an access token payload.
+ * Helps building an access token payload.
  */
-@Deprecated
 public final class AccessTokenBuilder {
     private final TokenPayload.Builder payload;
 

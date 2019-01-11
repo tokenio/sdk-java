@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Token, Inc.
+ * Copyright (c) 2019 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,67 +20,52 @@
  * THE SOFTWARE.
  */
 
-package io.token.api;
+package io.token;
 
-import static io.token.TokenIO.TokenCluster;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.TRANSIENT;
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+import static io.grpc.Status.NOT_FOUND;
+import static io.token.TokenClient.TokenCluster.SANDBOX;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
-import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.hashString;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toAddAliasOperation;
 import static io.token.util.Util.toAddAliasOperationMetadata;
 import static io.token.util.Util.toAddKeyOperation;
 import static io.token.util.Util.toRecoveryAgentOperation;
-import static io.token.util.Util.urlEncode;
-import static io.token.util.Util.verifySignature;
-import static java.lang.String.format;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
+import io.grpc.Metadata;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.browser.BrowserFactory;
-import io.token.exceptions.InvalidStateException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos;
-import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
-import io.token.proto.common.member.MemberProtos.ReceiptContact;
-import io.token.proto.common.notification.NotificationProtos.AddKey;
-import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
-import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos;
-import io.token.proto.common.token.TokenProtos;
-import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
+import io.token.rpc.SslConfig;
 import io.token.rpc.UnauthenticatedClient;
+import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
+import io.token.security.KeyStore;
 import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
-import io.token.tokenrequest.TokenRequest;
-import io.token.tokenrequest.TokenRequestCallback;
-import io.token.tokenrequest.TokenRequestCallbackParameters;
-import io.token.tokenrequest.TokenRequestResult;
-import io.token.tokenrequest.TokenRequestState;
+import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -88,41 +73,31 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 public class TokenClient implements Closeable {
-    private static final String TOKEN_REQUEST_TEMPLATE =
-            "https://%s/request-token/%s?state=%s";
     private static final long SHUTDOWN_DURATION_MS = 10000L;
 
     private final ManagedChannel channel;
     private final CryptoEngineFactory cryptoFactory;
-    private final String devKey;
     private final TokenCluster tokenCluster;
-    private final BrowserFactory browserFactory;
 
     /**
      * Creates an instance of a Token SDK.
      *
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
-     * @param developerKey developer key
      * @param tokenCluster token cluster
      */
     TokenClient(
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
-            String developerKey,
-            TokenCluster tokenCluster,
-            BrowserFactory browserFactory) {
+            TokenCluster tokenCluster) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
-        this.devKey = developerKey;
         this.tokenCluster = tokenCluster;
-        this.browserFactory = browserFactory;
     }
 
     @Override
     public void close() {
         channel.shutdown();
-
         try {
             channel.awaitTermination(SHUTDOWN_DURATION_MS, TimeUnit.MILLISECONDS);
         } catch (InterruptedException ex) {
@@ -161,75 +136,17 @@ public class TokenClient implements Closeable {
      * @return newly created member
      */
     public Observable<Member> createMember(
-            Alias alias,
-            CreateMemberType memberType) {
-        return createMember(alias, memberType, null);
-    }
-
-    /**
-     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
-     *
-     * @param alias nullable member alias to use, must be unique. If null, then no alias will
-     *     be created with the member.
-     * @param memberType the type of member to register
-     * @param tokenRequestId (optional) token request id. If used, then the member will be claimed
-     *     by the creator of the corresponding token request. Only works if memberType == TRANSIENT.
-     * @return newly created member
-     */
-    public Observable<Member> createMember(
             final Alias alias,
-            final CreateMemberType memberType,
-            @Nullable final String tokenRequestId) {
+            final CreateMemberType memberType) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .createMemberId(memberType, tokenRequestId)
+                .createMemberId(memberType, null)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
                         return setUpMember(alias, memberId);
                     }
                 });
     }
-
-    /**
-     * Creates a new personal-use Token member with a set of auto-generated keys and no alias.
-     *
-     * @return newly created member
-     */
-    public Observable<Member> createMember() {
-        return createMember(null, PERSONAL, null);
-    }
-
-    /**
-     * Creates a new personal-use Token member with a set of auto-generated keys and and an alias.
-     *
-     * @param alias alias to associate with member
-     * @return newly created member
-     */
-    public Observable<Member> createMember(Alias alias) {
-        return createMember(alias, PERSONAL, null);
-    }
-
-    /**
-     * Creates a new transient Token member and claims it for the creator of the token request
-     * corresponding to the given token request ID.
-     *
-     * @param tokenRequestId token request id
-     * @return newly created member
-     */
-    public Observable<Member> createClaimedMember(String tokenRequestId) {
-        return createMember(null, TRANSIENT, tokenRequestId);
-    }
-
-    /**
-     * Creates a new business-use Token member with a set of auto-generated keys and alias.
-     *
-     * @param alias alias to associated with member
-     * @return newly created member
-     */
-    public Observable<Member> createBusinessMember(Alias alias) {
-        return createMember(alias, BUSINESS, null);
-    }
-
 
     /**
      * Sets up a member given a specific ID of a member that already exists in the system. If
@@ -285,33 +202,7 @@ public class TokenClient implements Closeable {
                         return Observable.just(new Member(
                                 member,
                                 client,
-                                tokenCluster,
-                                browserFactory));
-                    }
-                });
-    }
-
-    /**
-     * Provisions a new device for an existing user. The call generates a set
-     * of keys that are returned back. The keys need to be approved by an
-     * existing device/keys.
-     *
-     * @param alias member id to provision the device for
-     * @return device information
-     */
-    public Observable<DeviceInfo> provisionDevice(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
-                .getMemberId(alias)
-                .map(new Function<String, DeviceInfo>() {
-                    public DeviceInfo apply(String memberId) {
-                        CryptoEngine crypto = cryptoFactory.create(memberId);
-                        return new DeviceInfo(
-                                memberId,
-                                asList(
-                                        crypto.generateKey(PRIVILEGED),
-                                        crypto.generateKey(STANDARD),
-                                        crypto.generateKey(LOW)));
+                                tokenCluster));
                     }
                 });
     }
@@ -329,100 +220,9 @@ public class TokenClient implements Closeable {
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, Member>() {
                     public Member apply(MemberProtos.Member member) {
-                        return new Member(member, client, tokenCluster, browserFactory);
+                        return new Member(member, client, tokenCluster);
                     }
                 });
-    }
-
-    /**
-     * Return a TokenRequest that was previously stored.
-     *
-     * @param requestId request id
-     * @return token request that was stored with the request id
-     */
-    public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.retrieveTokenRequest(requestId);
-    }
-
-    /**
-     * Notifies to add a key.
-     *
-     * @param alias alias to notify
-     * @param keys keys that need approval
-     * @param deviceMetadata device metadata of the keys
-     * @return status of the notification
-     */
-    public Observable<NotifyStatus> notifyAddKey(
-            Alias alias,
-            List<SecurityProtos.Key> keys,
-            DeviceMetadata deviceMetadata) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        AddKey addKey = AddKey.newBuilder()
-                .addAllKeys(keys)
-                .setDeviceMetadata(deviceMetadata)
-                .build();
-        return unauthenticated.notifyAddKey(alias, addKey);
-    }
-
-    /**
-     * Sends a notification to request a payment.
-     *
-     * @param tokenPayload the payload of a token to be sent
-     * @return status of the notification request
-     */
-    public Observable<NotifyStatus> notifyPaymentRequest(TokenPayload tokenPayload) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        if (tokenPayload.getRefId().isEmpty()) {
-            tokenPayload = tokenPayload.toBuilder().setRefId(generateNonce()).build();
-        }
-        return unauthenticated.notifyPaymentRequest(tokenPayload);
-    }
-
-    /**
-     * Notifies subscribed devices that a token should be created and endorsed.
-     *
-     * @param tokenRequestId the token request ID to send
-     * @param keys keys to be added
-     * @param deviceMetadata device metadata of the keys
-     * @param receiptContact optional receipt contact to send
-     * @return notify result of the notification request
-     */
-    public Observable<NotifyResult> notifyCreateAndEndorseToken(
-            String tokenRequestId,
-            @Nullable List<SecurityProtos.Key> keys,
-            @Nullable DeviceMetadata deviceMetadata,
-            @Nullable ReceiptContact receiptContact) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.notifyCreateAndEndorseToken(
-                tokenRequestId,
-                AddKey.newBuilder()
-                        .addAllKeys(keys)
-                        .setDeviceMetadata(deviceMetadata)
-                        .build(),
-                receiptContact);
-    }
-
-    /**
-     * Invalidate a notification.
-     *
-     * @param notificationId notification id to invalidate
-     * @return status of the invalidation request
-     */
-    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.invalidateNotification(notificationId);
-    }
-
-    /**
-     * Retrieves a blob from the server.
-     *
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Observable<BlobProtos.Blob> getBlob(String blobId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getBlob(blobId);
     }
 
     /**
@@ -490,7 +290,7 @@ public class TokenClient implements Closeable {
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new Member(member, client, tokenCluster, browserFactory);
+                        return new Member(member, client, tokenCluster);
                     }
                 });
     }
@@ -517,7 +317,7 @@ public class TokenClient implements Closeable {
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new Member(member, client, tokenCluster, browserFactory);
+                        return new Member(member, client, tokenCluster);
                     }
                 });
     }
@@ -596,107 +396,202 @@ public class TokenClient implements Closeable {
     }
 
     /**
-     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token
-     * or pass in a state.
-     *
-     * @param requestId request id
-     * @return token request url
+     * Defines Token cluster to connect to.
      */
-    public Observable<String> generateTokenRequestUrl(String requestId) {
-        return generateTokenRequestUrl(requestId, "", "");
+    public enum TokenCluster {
+        PRODUCTION("api-grpc.token.io", "web-app.token.io"),
+        INTEGRATION("api-grpc.int.token.io", "web-app.int.token.io"),
+        SANDBOX("api-grpc.sandbox.token.io", "web-app.sandbox.token.io"),
+        STAGING("api-grpc.stg.token.io", "web-app.stg.token.io"),
+        PERFORMANCE("api-grpc.perf.token.io", "web-app.perf.token.io"),
+        DEVELOPMENT("api-grpc.dev.token.io", "web-app.dev.token.io");
+
+        private final String envUrl;
+        private String webAppUrl;
+
+        TokenCluster(String url, String webAppUrl) {
+            this.envUrl = url;
+            this.webAppUrl = webAppUrl;
+        }
+
+        public String url() {
+            return envUrl;
+        }
+
+        public String webAppUrl() {
+            return webAppUrl;
+        }
     }
 
     /**
-     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token.
-     *
-     * @param requestId request id
-     * @param state state
-     * @return token request url
+     * Used to create a new {@link TokenClient} instances.
      */
-    public Observable<String> generateTokenRequestUrl(
-            String requestId,
-            String state) {
-        return generateTokenRequestUrl(requestId, state, "");
-    }
+    public static final class Builder {
+        private static final long DEFAULT_TIMEOUT_MS = 10_000L;
+        private static final int DEFAULT_SSL_PORT = 443;
 
-    /**
-     * Generate a Token request URL from a request ID, a state, and a CSRF token.
-     *
-     * @param requestId request id
-     * @param state state
-     * @param csrfToken csrf token
-     * @return token request url
-     */
-    public Observable<String> generateTokenRequestUrl(
-            String requestId,
-            String state,
-            String csrfToken) {
-        String csrfTokenHash = hashString(csrfToken);
-        TokenRequestState tokenRequestState = TokenRequestState.create(csrfTokenHash, state);
-        return Observable.just(format(TOKEN_REQUEST_TEMPLATE,
-                tokenCluster.webAppUrl(),
-                requestId,
-                urlEncode(tokenRequestState.serialize())));
-    }
+        private int port;
+        private boolean useSsl;
+        private TokenCluster tokenCluster;
+        private String hostName;
+        private long timeoutMs;
+        private CryptoEngineFactory cryptoEngine;
+        private String devKey;
+        private SslConfig sslConfig;
 
-    /**
-     * Parse the token request callback URL to extract the state and the token ID. This assumes
-     * that no CSRF token was set.
-     *
-     * @param callbackUrl token request callback url
-     * @return TokenRequestCallback object containing the token id and the original state
-     */
-    public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(final String callbackUrl) {
-        return parseTokenRequestCallbackUrl(callbackUrl, "");
-    }
+        /**
+         * Creates new builder instance with the defaults initialized.
+         */
+        public Builder() {
+            this.timeoutMs = DEFAULT_TIMEOUT_MS;
+            this.port = DEFAULT_SSL_PORT;
+            this.useSsl = true;
+        }
 
-    /**
-     * Parse the token request callback URL to extract the state and the token ID. Verify that the
-     * state contains the CSRF token hash and that the signature on the state and CSRF token is
-     * valid.
-     *
-     * @param callbackUrl token request callback url
-     * @param csrfToken csrfToken
-     * @return TokenRequestCallback object containing the token id and the original state
-     */
-    public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(
-            final String callbackUrl,
-            final String csrfToken) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenMember().map(new Function<MemberProtos.Member,
-                TokenRequestCallback>() {
-            @Override
-            public TokenRequestCallback apply(MemberProtos.Member tokenMember) throws Exception {
-                TokenRequestCallbackParameters params = TokenRequestCallbackParameters
-                        .create(new URL(callbackUrl).getQuery());
+        /**
+         * Sets the host name of the Token Gateway Service to connect to.
+         *
+         * @param hostName host name, e.g. 'api.token.io'
+         * @return this builder instance
+         */
+        public Builder hostName(String hostName) {
+            this.hostName = hostName;
+            return this;
+        }
 
-                // check that csrf token hashes match
-                TokenRequestState state = TokenRequestState.parse(params.getSerializedState());
-                if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
-                    throw new InvalidStateException(csrfToken);
-                }
+        /**
+         * Sets the port of the Token Gateway Service to connect to.
+         *
+         * @param port port number
+         * @return this builder instance
+         */
+        public Builder port(int port) {
+            this.port = port;
+            this.useSsl = port == DEFAULT_SSL_PORT;
+            return this;
+        }
 
-                verifySignature(
-                        tokenMember,
-                        TokenProtos.TokenRequestStatePayload.newBuilder()
-                                .setTokenId(params.getTokenId())
-                                .setState(urlEncode(params.getSerializedState()))
-                                .build(),
-                        params.getSignature());
+        /**
+         * Sets Token cluster to connect to.
+         *
+         * @param cluster {@link TokenCluster} instance.
+         * @return this builder instance
+         */
+        public Builder connectTo(TokenCluster cluster) {
+            this.tokenCluster = cluster;
+            this.hostName = cluster.url();
+            return this;
+        }
 
-                return TokenRequestCallback.create(params.getTokenId(), state.getInnerState());
+        /**
+         * Sets timeoutMs that is used for the RPC calls.
+         *
+         * @param timeoutMs RPC call timeoutMs
+         * @return this builder instance
+         */
+        public Builder timeout(long timeoutMs) {
+            this.timeoutMs = timeoutMs;
+            return this;
+        }
+
+        /**
+         * Sets the keystore to be used with the SDK.
+         *
+         * @param keyStore the keystore to be used
+         * @return this builder instance
+         */
+        public Builder withKeyStore(KeyStore keyStore) {
+            this.cryptoEngine = new TokenCryptoEngineFactory(keyStore);
+            return this;
+        }
+
+        /**
+         * Sets the crypto engine to be used with the SDK.
+         *
+         * @param cryptoEngineFactory the crypto engine factory to use
+         * @return this builder instance
+         */
+        public Builder withCryptoEngine(CryptoEngineFactory cryptoEngineFactory) {
+            this.cryptoEngine = cryptoEngineFactory;
+            return this;
+        }
+
+        /**
+         * Sets configuration parameters for tls client. Can be used to specify specific
+         * trusted certificates.
+         *
+         * @param sslConfig tls configuration to use
+         * @return this builder instance
+         */
+        public Builder withSslConfig(SslConfig sslConfig) {
+            this.sslConfig = sslConfig;
+            return this;
+        }
+
+        /**
+         * Sets the developer key to be used with the SDK.
+         *
+         * @param devKey developer key
+         * @return this builder instance
+         */
+        public Builder devKey(String devKey) {
+            this.devKey = devKey;
+            return this;
+        }
+
+        /**
+         * Builds and returns a new {@link TokenClient} instance.
+         *
+         * @return {@link TokenClient} instance
+         */
+        public TokenClient build() {
+            Metadata headers = getHeaders();
+            return new TokenClient(
+                    RpcChannelFactory
+                            .builder(hostName, port, useSsl)
+                            .withTimeout(timeoutMs)
+                            .withMetadata(headers)
+                            .withClientSsl(sslConfig)
+                            .build(),
+                    cryptoEngine != null
+                            ? cryptoEngine
+                            : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
+                    tokenCluster == null ? SANDBOX : tokenCluster);
+        }
+
+        private Metadata getHeaders() {
+            if (devKey == null || devKey.isEmpty()) {
+                throw new StatusRuntimeException(Status.INVALID_ARGUMENT
+                        .withDescription("Please provide a developer key."
+                                + " Contact Token for more details."));
             }
-        });
-    }
+            Metadata headers = new Metadata();
+            headers.put(
+                    Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
+                    devKey);
 
-    /**
-     * Get the token request result based on a token's tokenRequestId.
-     *
-     * @param tokenRequestId token request id
-     * @return token request result
-     */
-    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenRequestResult(tokenRequestId);
+            ClassLoader classLoader = TokenClient.class.getClassLoader();
+            try {
+                Class<?> projectClass = classLoader.loadClass("io.token.gradle.TokenProject");
+
+                String version = (String) projectClass
+                        .getMethod("getVersion")
+                        .invoke(null);
+                String platform = (String) projectClass
+                        .getMethod("getPlatform")
+                        .invoke(null);
+                headers.put(
+                        Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
+                        platform);
+                headers.put(
+                        Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
+                        version);
+            } catch (Exception e) {
+                throw new StatusRuntimeException(NOT_FOUND
+                        .withDescription("Plugin io.token.gradle.TokenProject is not found"
+                                + " in this module"));
+            }
+            return headers;
+        }
     }
 }

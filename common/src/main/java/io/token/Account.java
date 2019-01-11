@@ -20,14 +20,11 @@
  * THE SOFTWARE.
  */
 
-package io.token.api;
+package io.token;
 
-import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
-import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
@@ -65,42 +62,6 @@ public class Account {
      */
     public String id() {
         return account.getId();
-    }
-
-    /**
-     * Sets this account as a member's default account.
-     * Only 1 account can be default for each member.
-     *
-     * @return completable
-     */
-    public Completable setAsDefault() {
-        return client.setDefaultAccount(this.id());
-    }
-
-    /**
-     * Sets to be a default account for its member.
-     * Only 1 account can be default for each member.
-     */
-    public void setAsDefaultBlocking() {
-        setAsDefault().blockingAwait();
-    }
-
-    /**
-     * Checks whether this account is the default account.
-     *
-     * @return true if this account is default; otherwise false.
-     */
-    public Observable<Boolean> isDefault() {
-        return client.isDefault(this.id());
-    }
-
-    /**
-     * Checks whether this account is the default account.
-     *
-     * @return true if the account is default; otherwise false
-     */
-    public boolean isDefaultBlocking() {
-        return isDefault().blockingSingle();
     }
 
     /**
@@ -157,56 +118,6 @@ public class Account {
      */
     public Balance getBalanceBlocking(Key.Level keyLevel) {
         return getBalance(keyLevel).blockingSingle();
-    }
-
-    /**
-     * Looks up an account current balance.
-     *
-     * @param keyLevel key level
-     * @return account current balance
-     */
-    public Observable<Money> getCurrentBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
-            @Override
-            public Money apply(Balance balance) throws Exception {
-                return balance.getCurrent();
-            }
-        });
-    }
-
-    /**
-     * Looks up an account current balance.
-     *
-     * @param keyLevel key level
-     * @return account current balance
-     */
-    public Money getCurrentBalanceBlocking(Key.Level keyLevel) {
-        return getCurrentBalance(keyLevel).blockingSingle();
-    }
-
-    /**
-     * Looks up an account available balance.
-     *
-     * @param keyLevel key level
-     * @return account available balance
-     */
-    public Observable<Money> getAvailableBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
-            @Override
-            public Money apply(Balance balance) throws Exception {
-                return balance.getAvailable();
-            }
-        });
-    }
-
-    /**
-     * Looks up an account available balance.
-     *
-     * @param keyLevel key level
-     * @return account available balance
-     */
-    public Money getAvailableBalanceBlocking(Key.Level keyLevel) {
-        return getAvailableBalance(keyLevel).blockingSingle();
     }
 
     /**

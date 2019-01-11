@@ -29,10 +29,6 @@ import io.token.proto.common.account.AccountProtos.BankAccount.Swift;
 import io.token.proto.common.account.AccountProtos.BankAccount.Token;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
-/**
- * **DEPRECATED** Use tokens.Destinations instead.
- */
-@Deprecated
 public final class Destinations {
     private Destinations() {}
 

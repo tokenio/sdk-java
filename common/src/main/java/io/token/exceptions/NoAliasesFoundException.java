@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Token, Inc.
+ * Copyright (c) 2017 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,25 +20,17 @@
  * THE SOFTWARE.
  */
 
-package io.token.api;
+package io.token.exceptions;
 
-import com.google.auto.value.AutoValue;
-import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import static java.lang.String.format;
 
-@AutoValue
-public abstract class NotifyResult {
-    /**
-     * Create token request.
-     *
-     * @param notificationId notification id
-     * @param notifyStatus notify status
-     * @return notify result
-     */
-    public static NotifyResult create(String notificationId, NotifyStatus notifyStatus) {
-        return new AutoValue_NotifyResult(notificationId, notifyStatus);
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
+
+public class NoAliasesFoundException extends StatusRuntimeException {
+    public NoAliasesFoundException(String memberId) {
+        super(Status.NOT_FOUND.withDescription(
+                format("No aliases found for member : %s", memberId)));
     }
-
-    public abstract String getNotificationId();
-
-    public abstract NotifyStatus getNotifyStatus();
 }
+

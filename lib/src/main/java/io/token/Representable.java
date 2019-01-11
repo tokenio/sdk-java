@@ -34,11 +34,8 @@ import java.util.List;
 import javax.annotation.Nullable;
 
 /**
- * **DEPRECATED** Use api.Representable instead.
- *
- * <p>Represents the part of a token member that can be accessed through an access token.
+ * Represents the part of a token member that can be accessed through an access token.
  */
-@Deprecated
 public interface Representable {
     /**
      * Looks up member addresses.

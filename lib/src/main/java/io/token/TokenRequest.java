@@ -33,10 +33,6 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * **DEPRECATED** Use tokenrequest.TokenRequest instead.
- */
-@Deprecated
 @AutoValue
 public abstract class TokenRequest {
     @Deprecated

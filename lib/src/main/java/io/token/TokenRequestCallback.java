@@ -25,11 +25,9 @@ package io.token;
 import com.google.auto.value.AutoValue;
 
 /**
- * **DEPRECATED** Use tokenrequest.TokenRequestCallback instead.
- *
- * <p>Represents callback in Token Request Flow. Contains tokenID and state.
+ * Represents callback in Token Request Flow. Contains tokenID and state.
  */
-@Deprecated
+
 @AutoValue
 public abstract class TokenRequestCallback {
     public static TokenRequestCallback create(String tokenId, String state) {

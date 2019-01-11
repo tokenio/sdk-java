@@ -36,11 +36,8 @@ import io.token.rpc.Client;
 import javax.annotation.Nullable;
 
 /**
- * **DEPRECATED** Use api.Account instead.
- *
- * <p>Represents a funding account in the Token system.
+ * Represents a funding account in the Token system.
  */
-@Deprecated
 public class AccountAsync {
     private final MemberAsync member;
     private final AccountProtos.Account account;

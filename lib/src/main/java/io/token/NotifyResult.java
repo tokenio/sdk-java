@@ -25,10 +25,6 @@ package io.token;
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 
-/**
- * **DEPRECATED** Use api.NotifyResult instead.
- */
-@Deprecated
 @AutoValue
 public abstract class NotifyResult {
     /**
