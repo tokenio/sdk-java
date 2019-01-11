@@ -25,9 +25,9 @@ package io.token.rpc;
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.token.proto.ProtoJson.toJson;
 import static io.token.rpc.ContextKeys.SECURITY_METADATA_KEY;
-import static org.apache.commons.codec.binary.Base64.encodeBase64String;
 
 import com.google.common.base.Strings;
+import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import io.grpc.Metadata;
@@ -78,7 +78,8 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
         metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
         metadata.put(
                 SECURITY_METADATA_KEY.getMetadataKey(),
-                encodeBase64String(toJson(authenticationContext.getSecurityMetadata()).getBytes()));
+                BaseEncoding.base64().encode(
+                        toJson(authenticationContext.getSecurityMetadata()).getBytes()));
 
         String onBehalfOf = authenticationContext.getOnBehalfOf();
         if (!Strings.isNullOrEmpty(onBehalfOf)) {
