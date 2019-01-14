@@ -195,7 +195,6 @@ import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
-import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.proto.gateway.Gateway.VerifyAffiliateRequest;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
@@ -681,22 +680,6 @@ public final class Client {
                         return storeTokenRequestResponse.getTokenRequest().getId();
                     }
                 });
-    }
-
-    /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     * @return completable
-     */
-    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext())
-                .updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
-                        .setRequestId(requestId)
-                        .setRequestOptions(options)
-                        .build()));
     }
 
     /**

@@ -651,16 +651,6 @@ public class Member implements Representable {
     }
 
     /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     */
-    public void updateTokenRequest(String requestId, TokenRequestOptions options) {
-        async.updateTokenRequest(requestId, options).blockingAwait();
-    }
-
-    /**
      * Creates a new transfer token builder.
      *
      * @param amount transfer amount
