@@ -28,11 +28,13 @@ import static io.token.proto.common.alias.AliasProtos.VerificationStatus.SUCCESS
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.TOKEN;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.NotifyResult;
@@ -60,6 +62,7 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
@@ -90,6 +93,7 @@ import io.token.proto.gateway.Gateway.TriggerEndorseAndAddKeyNotificationRequest
 import io.token.proto.gateway.Gateway.TriggerEndorseAndAddKeyNotificationResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
+import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
@@ -230,6 +234,21 @@ public final class UnauthenticatedClient {
                         return response.getMember();
                     }
                 });
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     * @return completable
+     */
+    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
+        return toCompletable(gateway
+                .updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
+                        .setRequestId(requestId)
+                        .setRequestOptions(options)
+                        .build()));
     }
 
     /**

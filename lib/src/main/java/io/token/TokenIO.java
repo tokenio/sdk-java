@@ -44,6 +44,7 @@ import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.rpc.SslConfig;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
@@ -259,6 +260,16 @@ public class TokenIO implements Closeable {
         return async.getMember(memberId)
                 .map(new MemberFunction())
                 .blockingSingle();
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     */
+    public void updateTokenRequest(String requestId, TokenRequestOptions options) {
+        async.updateTokenRequest(requestId, options).blockingAwait();
     }
 
     /**
