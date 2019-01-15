@@ -35,6 +35,7 @@ import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toAddAliasOperation;
 import static io.token.util.Util.toAddAliasOperationMetadata;
 import static io.token.util.Util.toAddKeyOperation;
+import static io.token.util.Util.toObservable;
 import static io.token.util.Util.toRecoveryAgentOperation;
 import static io.token.util.Util.urlEncode;
 import static io.token.util.Util.verifySignature;
@@ -68,6 +69,8 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
+import io.token.proto.gateway.Gateway.GetBanksCountriesRequest;
+import io.token.proto.gateway.Gateway.GetBanksCountriesResponse;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
@@ -709,6 +712,18 @@ public class TokenIOAsync implements Closeable {
             @Nullable String provider)  {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getBanks(bankIds, search, country, page, perPage, sort, provider);
+    }
+
+    /**
+     * Returns a list of token enabled countries for banks.
+     *
+     * @param provider If specified, return banks whose 'provider' matches the given provider
+     *     (case insensitive).
+     * @return a list of country codes
+     */
+    public Observable<List<String>> getBanksCountries(String provider) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getBanksCountries(provider);
     }
 
     /**

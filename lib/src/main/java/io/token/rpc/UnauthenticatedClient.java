@@ -43,6 +43,7 @@ import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.bank.BankProtos.BankFilter;
 import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
@@ -70,6 +71,8 @@ import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
 import io.token.proto.gateway.Gateway.CompleteRecoveryResponse;
 import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
+import io.token.proto.gateway.Gateway.GetBanksCountriesRequest;
+import io.token.proto.gateway.Gateway.GetBanksCountriesResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
@@ -725,6 +728,28 @@ public final class UnauthenticatedClient {
                 .map(new Function<GetBanksResponse, List<Bank>>() {
                     public List<Bank> apply(GetBanksResponse response) {
                         return response.getBanksList();
+                    }
+                });
+    }
+
+    /**
+     * Returns a list of token enabled countries for banks.
+     *
+     * @param provider If specified, return banks whose 'provider' matches the given provider
+     *     (case insensitive).
+     * @return a list of country codes
+     */
+    public Observable<List<String>> getBanksCountries(String provider) {
+        GetBanksCountriesRequest.Builder request = GetBanksCountriesRequest.newBuilder();
+
+        if (provider != null) {
+            BankFilter filter = BankFilter.newBuilder().setProvider(provider).build();
+            request.setFilter(filter);
+        }
+        return toObservable(gateway.getBanksCountries(request.build()))
+                .map(new Function<GetBanksCountriesResponse, List<String>>() {
+                    public List<String> apply(GetBanksCountriesResponse response) {
+                        return response.getCountriesList();
                     }
                 });
     }
