@@ -30,6 +30,7 @@ import static io.token.TokenIO.TokenCluster.SANDBOX;
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.Metadata;
 import io.grpc.StatusRuntimeException;
+import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.browser.BrowserFactory;
 import io.token.exceptions.VerificationException;
@@ -45,7 +46,9 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
+import io.token.rpc.ClientFactory;
 import io.token.rpc.SslConfig;
+import io.token.rpc.UnauthenticatedClient;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
@@ -581,6 +584,17 @@ public class TokenIO implements Closeable {
         return async
                 .getBanks(bankIds, search, country, page, perPage, sort, provider)
                 .blockingSingle();
+    }
+
+    /**
+     * Returns a list of token enabled countries for banks.
+     *
+     * @param provider If specified, return banks whose 'provider' matches the given provider
+     *     (case insensitive).
+     * @return a list of country codes
+     */
+    public List<String> getBanksCountries(String provider) {
+        return async.getBanksCountries(provider).blockingSingle();
     }
 
     /**
