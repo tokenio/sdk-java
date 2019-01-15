@@ -45,8 +45,13 @@ import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.AddKey;
+import io.token.proto.common.notification.NotificationProtos.NotifyBody;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -75,7 +80,7 @@ import javax.annotation.Nullable;
  * don't require authentication. We use this client to create new member or
  * getMember an existing one and switch to the authenticated {@link Client}.
  */
-public final class UnauthenticatedClient {
+public class UnauthenticatedClient {
     private final GatewayServiceFutureStub gateway;
 
     /**
@@ -198,6 +203,28 @@ public final class UnauthenticatedClient {
                 .map(new Function<UpdateMemberResponse, Member>() {
                     public Member apply(UpdateMemberResponse response) {
                         return response.getMember();
+                    }
+                });
+    }
+
+    /**
+     * Notifies subscribed devices that a key should be added.
+     *
+     * @param alias alias of the member
+     * @param addKey the add key payload to be sent
+     * @return status status of the notification
+     */
+    public Observable<NotifyStatus> notifyAddKey(Alias alias, AddKey addKey) {
+        return toObservable(gateway.notify(
+                Gateway.NotifyRequest.newBuilder()
+                        .setAlias(alias)
+                        .setBody(NotifyBody.newBuilder()
+                                .setAddKey(addKey)
+                                .build())
+                        .build()))
+                .map(new Function<Gateway.NotifyResponse, NotifyStatus>() {
+                    public NotifyStatus apply(Gateway.NotifyResponse response) {
+                        return response.getStatus();
                     }
                 });
     }

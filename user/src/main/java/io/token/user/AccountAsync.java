@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 Token, Inc.
+ * Copyright (c) 2017 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,30 +20,49 @@
  * THE SOFTWARE.
  */
 
-package io.token;
+package io.token.user;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
+import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.rpc.Client;
+import io.token.user.rpc.Client;
 
 import javax.annotation.Nullable;
 
 /**
  * Represents a funding account in the Token system.
  */
-public class Account {
-    protected final Member member;
-    protected final AccountProtos.Account account;
-    protected final Client client;
+public class AccountAsync {
+    private final MemberAsync member;
+    private final AccountProtos.Account account;
+    private final Client client;
 
-    protected Account(Member member, AccountProtos.Account account, Client client) {
+    /**
+     * Creates an instance.
+     *
+     * @param member account owner
+     * @param account account information
+     * @param client RPC client used to perform operations against the server
+     */
+    AccountAsync(MemberAsync member, AccountProtos.Account account, Client client) {
         this.member = member;
         this.account = account;
         this.client = client;
+    }
+
+    /**
+     * Returns a sync version of the account API.
+     *
+     * @return synchronous version of the account API
+     */
+    public Account sync() {
+        return new Account(this);
     }
 
     /**
@@ -51,7 +70,7 @@ public class Account {
      *
      * @return account owner
      */
-    public Member member() {
+    public MemberAsync member() {
         return member;
     }
 
@@ -62,6 +81,24 @@ public class Account {
      */
     public String id() {
         return account.getId();
+    }
+
+    /**
+     * Sets this account as a member's default account.
+     *
+     * @return completable
+     */
+    public Completable setAsDefault() {
+        return client.setDefaultAccount(this.id());
+    }
+
+    /**
+     * Looks up if this account is default.
+     *
+     * @return true if this account is default; false otherwise.
+     */
+    public Observable<Boolean> isDefault() {
+        return client.isDefault(this.id());
     }
 
     /**
@@ -111,39 +148,50 @@ public class Account {
     }
 
     /**
-     * Looks up an account balance.
+     * Looks up an account current balance.
      *
      * @param keyLevel key level
-     * @return account balance
+     * @return account current balance
      */
-    public Balance getBalanceBlocking(Key.Level keyLevel) {
-        return getBalance(keyLevel).blockingSingle();
+    public Observable<Money> getCurrentBalance(Key.Level keyLevel) {
+        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
+            @Override
+            public Money apply(Balance balance) throws Exception {
+                return balance.getCurrent();
+            }
+        });
     }
 
     /**
-     * Looks up a transaction by ID.
+     * Looks up an account available balance.
      *
-     * @param transactionId transaction ID
+     * @param keyLevel key level
+     * @return account available balance
+     */
+    public Observable<Money> getAvailableBalance(Key.Level keyLevel) {
+        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
+            @Override
+            public Money apply(Balance balance) throws Exception {
+                return balance.getAvailable();
+            }
+        });
+    }
+
+    /**
+     * Lookup transaction.
+     *
+     * @param transactionId transaction id
      * @param keyLevel key level
      * @return transaction
      */
-    public Observable<Transaction> getTransaction(String transactionId, Key.Level keyLevel) {
+    public Observable<Transaction> getTransaction(
+            String transactionId,
+            Key.Level keyLevel) {
         return client.getTransaction(account.getId(), transactionId, keyLevel);
     }
 
     /**
-     * Looks up a transaction by ID.
-     *
-     * @param transactionId transaction ID
-     * @param keyLevel key level
-     * @return transaction
-     */
-    public Transaction getTransactionBlocking(String transactionId, Key.Level keyLevel) {
-        return getTransaction(transactionId, keyLevel).blockingSingle();
-    }
-
-    /**
-     * Looks up transactions.
+     * Lookup transactions.
      *
      * @param offset offset
      * @param limit limit
@@ -157,21 +205,6 @@ public class Account {
         return client.getTransactions(account.getId(), offset, limit, keyLevel);
     }
 
-    /**
-     * Looks up transactions.
-     *
-     * @param offset offset
-     * @param limit limit
-     * @param keyLevel key level
-     * @return paged list of transactions
-     */
-    public PagedList<Transaction, String> getTransactionsBlocking(
-            @Nullable String offset,
-            int limit,
-            Key.Level keyLevel) {
-        return getTransactions(offset, limit, keyLevel).blockingSingle();
-    }
-
     @Override
     public int hashCode() {
         return account.getId().hashCode();
@@ -179,11 +212,11 @@ public class Account {
 
     @Override
     public boolean equals(Object obj) {
-        if (!(obj instanceof Account)) {
+        if (!(obj instanceof AccountAsync)) {
             return false;
         }
 
-        Account other = (Account) obj;
+        AccountAsync other = (AccountAsync) obj;
         return account.equals(other.account);
     }
 }

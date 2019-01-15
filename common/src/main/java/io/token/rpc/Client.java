@@ -97,12 +97,12 @@ import javax.annotation.Nullable;
  * class is a thin wrapper on top of gRPC generated client. Makes the API
  * easier to use.
  */
-public final class Client {
+public class Client {
     private final String memberId;
     private final CryptoEngine crypto;
     private final GatewayProvider gateway;
     private boolean customerInitiated = false;
-    private SecurityMetadata securityMetadata = SecurityMetadata.getDefaultInstance();
+    private SecurityMetadata trackingMetadata = SecurityMetadata.getDefaultInstance();
 
     /**
      * Creates a client instance.
@@ -111,7 +111,7 @@ public final class Client {
      * @param crypto the crypto engine used to sign for authentication, request payloads, etc
      * @param gateway gateway gRPC stub
      */
-    Client(String memberId, CryptoEngine crypto, GatewayProvider gateway) {
+    protected Client(String memberId, CryptoEngine crypto, GatewayProvider gateway) {
         this.memberId = memberId;
         this.crypto = crypto;
         this.gateway = gateway;
@@ -527,20 +527,24 @@ public final class Client {
                 });
     }
 
-    /**
-     * Sets security metadata included in all requests.
-     *
-     * @param securityMetadata security metadata
-     */
-    public void setTrackingMetadata(SecurityMetadata securityMetadata) {
-        this.securityMetadata = securityMetadata;
+    public CryptoEngine getCryptoEngine() {
+        return crypto;
     }
 
     /**
-     * Clears security metadata.
+     * Sets tracking metadata included in all requests.
+     *
+     * @param trackingMetadata tracking metadata
+     */
+    public void setTrackingMetadata(SecurityMetadata trackingMetadata) {
+        this.trackingMetadata = trackingMetadata;
+    }
+
+    /**
+     * Clears tracking metadata.
      */
     public void clearTrackingMetadata() {
-        this.securityMetadata = SecurityMetadata.getDefaultInstance();
+        this.trackingMetadata = SecurityMetadata.getDefaultInstance();
     }
 
     @Override
@@ -559,19 +563,19 @@ public final class Client {
     }
 
     private AuthenticationContext authenticationContext() {
-        return AuthenticationContext.create(null, false, LOW, securityMetadata);
+        return AuthenticationContext.create(null, false, LOW, trackingMetadata);
     }
 
     private AuthenticationContext authenticationContext(Key.Level level) {
-        return AuthenticationContext.create(null, false, level, securityMetadata);
+        return AuthenticationContext.create(null, false, level, trackingMetadata);
     }
 
     private AuthenticationContext onBehalfOf() {
-        return AuthenticationContext.create(null, customerInitiated, LOW, securityMetadata);
+        return AuthenticationContext.create(null, customerInitiated, LOW, trackingMetadata);
     }
 
     private AuthenticationContext onBehalfOf(Key.Level level) {
-        return AuthenticationContext.create(null, customerInitiated, level, securityMetadata);
+        return AuthenticationContext.create(null, customerInitiated, level, trackingMetadata);
     }
 
     private Page.Builder pageBuilder(@Nullable String offset, int limit) {
@@ -595,7 +599,7 @@ public final class Client {
                 action.name().toLowerCase());
     }
 
-    interface GatewayProvider {
+    protected interface GatewayProvider {
         GatewayServiceFutureStub withAuthentication(AuthenticationContext context);
     }
 }
