@@ -22,6 +22,9 @@
 
 package io.token;
 
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
+import static io.grpc.Status.NOT_FOUND;
+import static io.token.TokenClient.TokenCluster.SANDBOX;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -35,6 +38,9 @@ import static java.util.Collections.singletonList;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
+import io.grpc.Metadata;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.VerificationException;
@@ -54,12 +60,16 @@ import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
+import io.token.rpc.SslConfig;
 import io.token.rpc.UnauthenticatedClient;
+import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
+import io.token.security.KeyStore;
 import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
+import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -99,6 +109,31 @@ public class TokenClient implements Closeable {
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
         }
+    }
+
+    /**
+     * Creates a new {@link Builder} instance that is used to configure and
+     * build a {@link TokenClient} instance.
+     *
+     * @return builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    /**
+     * Creates a new instance of {@link TokenClient} that's configured to use
+     * the specified environment.
+     *
+     * @param cluster token cluster to connect to
+     * @param developerKey developer key
+     * @return {@link TokenClient} instance
+     */
+    public static TokenClient create(TokenCluster cluster, String developerKey) {
+        return TokenClient.builder()
+                .connectTo(cluster)
+                .devKey(developerKey)
+                .build();
     }
 
     /**
@@ -716,6 +751,178 @@ public class TokenClient implements Closeable {
 
         public String url() {
             return url;
+        }
+    }
+
+    /**
+     * Used to create a new {@link TokenClient} instances.
+     */
+    public static class Builder<T extends Builder<T>> {
+        private static final long DEFAULT_TIMEOUT_MS = 10_000L;
+        private static final int DEFAULT_SSL_PORT = 443;
+
+        protected int port;
+        protected boolean useSsl;
+        protected TokenCluster tokenCluster;
+        protected String hostName;
+        protected long timeoutMs;
+        protected CryptoEngineFactory cryptoEngine;
+        protected String devKey;
+        protected SslConfig sslConfig;
+
+        /**
+         * Creates new builder instance with the defaults initialized.
+         */
+        public Builder() {
+            this.timeoutMs = DEFAULT_TIMEOUT_MS;
+            this.port = DEFAULT_SSL_PORT;
+            this.useSsl = true;
+        }
+
+        /**
+         * Sets the host name of the Token Gateway Service to connect to.
+         *
+         * @param hostName host name, e.g. 'api.token.io'
+         * @return this builder instance
+         */
+        public T hostName(String hostName) {
+            this.hostName = hostName;
+            return (T) this;
+        }
+
+        /**
+         * Sets the port of the Token Gateway Service to connect to.
+         *
+         * @param port port number
+         * @return this builder instance
+         */
+        public T port(int port) {
+            this.port = port;
+            this.useSsl = port == DEFAULT_SSL_PORT;
+            return (T) this;
+        }
+
+        /**
+         * Sets Token cluster to connect to.
+         *
+         * @param cluster {@link TokenCluster} instance.
+         * @return this builder instance
+         */
+        public T connectTo(TokenCluster cluster) {
+            this.tokenCluster = cluster;
+            this.hostName = cluster.url();
+            return (T) this;
+        }
+
+        /**
+         * Sets timeoutMs that is used for the RPC calls.
+         *
+         * @param timeoutMs RPC call timeoutMs
+         * @return this builder instance
+         */
+        public T timeout(long timeoutMs) {
+            this.timeoutMs = timeoutMs;
+            return (T) this;
+        }
+
+        /**
+         * Sets the keystore to be used with the SDK.
+         *
+         * @param keyStore the keystore to be used
+         * @return this builder instance
+         */
+        public T withKeyStore(KeyStore keyStore) {
+            this.cryptoEngine = new TokenCryptoEngineFactory(keyStore);
+            return (T) this;
+        }
+
+        /**
+         * Sets the crypto engine to be used with the SDK.
+         *
+         * @param cryptoEngineFactory the crypto engine factory to use
+         * @return this builder instance
+         */
+        public T withCryptoEngine(CryptoEngineFactory cryptoEngineFactory) {
+            this.cryptoEngine = cryptoEngineFactory;
+            return (T) this;
+        }
+
+        /**
+         * Sets configuration parameters for tls client. Can be used to specify specific
+         * trusted certificates.
+         *
+         * @param sslConfig tls configuration to use
+         * @return this builder instance
+         */
+        public T withSslConfig(SslConfig sslConfig) {
+            this.sslConfig = sslConfig;
+            return (T) this;
+        }
+
+        /**
+         * Sets the developer key to be used with the SDK.
+         *
+         * @param devKey developer key
+         * @return this builder instance
+         */
+        public T devKey(String devKey) {
+            this.devKey = devKey;
+            return (T) this;
+        }
+
+        /**
+         * Builds and returns a new {@link TokenClient} instance.
+         *
+         * @return {@link TokenClient} instance
+         */
+        public TokenClient build() {
+            Metadata headers = getHeaders();
+            return new TokenClient(
+                    RpcChannelFactory
+                            .builder(hostName, port, useSsl)
+                            .withTimeout(timeoutMs)
+                            .withMetadata(headers)
+                            .withClientSsl(sslConfig)
+                            .build(),
+                    cryptoEngine != null
+                            ? cryptoEngine
+                            : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
+                    tokenCluster == null ? SANDBOX : tokenCluster);
+        }
+
+        protected Metadata getHeaders() {
+            if (devKey == null || devKey.isEmpty()) {
+                throw new StatusRuntimeException(Status.INVALID_ARGUMENT
+                        .withDescription("Please provide a developer key."
+                                + " Contact Token for more details."));
+            }
+            Metadata headers = new Metadata();
+            headers.put(
+                    Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
+                    devKey);
+
+            ClassLoader classLoader = io.token.TokenClient.class.getClassLoader();
+            try {
+                Class<?> projectClass = classLoader.loadClass("io.token.gradle.TokenProject");
+
+                String version = (String) projectClass
+                        .getMethod("getVersion")
+                        .invoke(null);
+                String platform = (String) projectClass
+                        .getMethod("getPlatform")
+                        .invoke(null);
+                headers.put(
+                        Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
+                        platform);
+                headers.put(
+                        Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
+                        version);
+            } catch (Exception e) {
+                throw new StatusRuntimeException(NOT_FOUND
+                        .withDescription("Plugin io.token.gradle.TokenProject is not found"
+                                + " in this module"));
+            }
+            return headers;
         }
     }
 }
