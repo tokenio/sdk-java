@@ -533,7 +533,7 @@ public class UnauthenticatedClient {
                         .build()))
                 .map(new Function<ResolveAliasResponse, String>() {
                     @Override
-                    public String apply(ResolveAliasResponse response) throws Exception {
+                    public String apply(ResolveAliasResponse response) {
                         return response.getMember().getId();
                     }
                 });

@@ -42,6 +42,7 @@ import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos;
+import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
@@ -49,13 +50,16 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.UnauthenticatedClient;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
+import io.token.security.InMemoryKeyStore;
 import io.token.security.Signer;
+import io.token.security.TokenCryptoEngine;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -140,6 +144,41 @@ public class TokenClient implements Closeable {
     }
 
     /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param memberType the type of member to register
+     * @return newly created member
+     */
+    public Observable<? extends Member> createMember(
+            final Alias alias,
+            final CreateMemberType memberType) {
+        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated
+                .createMemberId(memberType, null)
+                .flatMap(new Function<String, Observable<? extends Member>>() {
+                    public Observable<? extends Member> apply(String memberId) {
+                        return setUpMember(alias, memberId);
+                    }
+                });
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param memberType the type of member to register
+     * @return newly created member
+     */
+    public Member createMemberBlocking(
+            final Alias alias,
+            final CreateMemberType memberType) {
+        return createMember(alias, memberType).blockingSingle();
+    }
+
+    /**
      * Sets up a member given a specific ID of a member that already exists in the system. If
      * the member ID already has keys, this will not succeed. Used for testing since this
      * gives more control over the member creation process.
@@ -152,7 +191,7 @@ public class TokenClient implements Closeable {
      * @return newly created member
      */
     @VisibleForTesting
-    public Observable<Member> setUpMember(final Alias alias, final String memberId) {
+    public Observable<? extends Member> setUpMember(final Alias alias, final String memberId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getDefaultAgent()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
@@ -196,6 +235,122 @@ public class TokenClient implements Closeable {
                                 tokenCluster));
                     }
                 });
+    }
+
+    /**
+     * Return a Member set up to use some Token member's keys (assuming we have them).
+     *
+     * @param memberId member id
+     * @return member
+     */
+    public Observable<? extends Member> getMember(String memberId) {
+        CryptoEngine crypto = cryptoFactory.create(memberId);
+        final Client client = ClientFactory.authenticated(channel, memberId, crypto);
+        return client
+                .getMember(memberId)
+                .map(new Function<MemberProtos.Member, Member>() {
+                    public Member apply(MemberProtos.Member member) {
+                        return new Member(member, client, tokenCluster);
+                    }
+                });
+    }
+
+    /**
+     * Return a Member set up to use some Token member's keys (assuming we have them).
+     *
+     * @param memberId member id
+     * @return member
+     */
+    public Member getMemberBlocking(String memberId) {
+        return getMember(memberId).blockingSingle();
+    }
+
+    /**
+     * Completes account recovery.
+     *
+     * @param memberId the member id
+     * @param recoveryOperations the member recovery operations
+     * @param privilegedKey the privileged public key in the member recovery operations
+     * @param cryptoEngine the new crypto engine
+     * @return an observable of the updated member
+     */
+    public Observable<? extends Member> completeRecovery(
+            String memberId,
+            List<MemberRecoveryOperation> recoveryOperations,
+            SecurityProtos.Key privilegedKey,
+            final CryptoEngine cryptoEngine) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated
+                .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
+                .map(new Function<MemberProtos.Member, Member>() {
+                    public Member apply(MemberProtos.Member member) {
+                        Client client = ClientFactory.authenticated(
+                                channel,
+                                member.getId(),
+                                cryptoEngine);
+                        return new Member(member, client, tokenCluster);
+                    }
+                });
+    }
+
+    /**
+     * Completes account recovery.
+     *
+     * @param memberId the member id
+     * @param recoveryOperations the member recovery operations
+     * @param privilegedKey the privileged public key in the member recovery operations
+     * @param cryptoEngine the new crypto engine
+     * @return an observable of the updated member
+     */
+    public Member completeRecoveryBlocking(
+            String memberId,
+            List<MemberRecoveryOperation> recoveryOperations,
+            SecurityProtos.Key privilegedKey,
+            final CryptoEngine cryptoEngine) {
+        return completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
+                .blockingSingle();
+    }
+
+    /**
+     * Completes account recovery if the default recovery rule was set.
+     *
+     * @param memberId the member id
+     * @param verificationId the verification id
+     * @param code the code
+     * @return the new member
+     */
+    public Observable<? extends Member> completeRecoveryWithDefaultRule(
+            String memberId,
+            String verificationId,
+            String code) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
+        return unauthenticated
+                .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
+                .map(new Function<MemberProtos.Member, Member>() {
+                    public Member apply(MemberProtos.Member member) {
+                        Client client = ClientFactory.authenticated(
+                                channel,
+                                member.getId(),
+                                cryptoEngine);
+                        return new Member(member, client, tokenCluster);
+                    }
+                });
+    }
+
+    /**
+     * Completes account recovery if the default recovery rule was set.
+     *
+     * @param memberId the member id
+     * @param verificationId the verification id
+     * @param code the code
+     * @return the new member
+     */
+    public Member completeRecoveryWithDefaultRuleBlocking(
+            String memberId,
+            String verificationId,
+            String code) {
+        return completeRecoveryWithDefaultRule(memberId, verificationId, code).blockingSingle();
     }
 
     /**

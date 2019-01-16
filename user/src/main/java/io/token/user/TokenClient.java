@@ -95,7 +95,7 @@ public class TokenClient extends io.token.TokenClient {
 
     /**
      * Creates a new {@link Builder} instance that is used to configure and
-     * build a {@link io.token.TokenClient} instance.
+     * build a {@link TokenClient} instance.
      *
      * @return builder
      */
@@ -126,6 +126,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param memberType the type of member to register
      * @return newly created member
      */
+    @Override
     public Observable<Member> createMember(
             final Alias alias,
             final CreateMemberType memberType) {
@@ -134,7 +135,7 @@ public class TokenClient extends io.token.TokenClient {
                 .createMemberId(memberType, null)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
-                        return setUpUserMember(alias, memberId);
+                        return setUpMember(alias, memberId);
                     }
                 });
     }
@@ -157,6 +158,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param memberType the type of member to register
      * @return newly created member
      */
+    @Override
     public Member createMemberBlocking(
             final Alias alias,
             final CreateMemberType memberType) {
@@ -185,8 +187,8 @@ public class TokenClient extends io.token.TokenClient {
      * @param memberId member id
      * @return newly created member
      */
-    @VisibleForTesting
-    public Observable<Member> setUpUserMember(final Alias alias, final String memberId) {
+    @Override
+    public Observable<Member> setUpMember(final Alias alias, final String memberId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getDefaultAgent()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
@@ -233,7 +235,6 @@ public class TokenClient extends io.token.TokenClient {
                 });
     }
 
-
     /**
      * Return a Member set up to use some Token member's keys (assuming we have them).
      *
@@ -271,6 +272,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param cryptoEngine the new crypto engine
      * @return an observable of the updated member
      */
+    @Override
     public Observable<Member> completeRecovery(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
@@ -299,6 +301,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param cryptoEngine the new crypto engine
      * @return an observable of the updated member
      */
+    @Override
     public Member completeRecoveryBlocking(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
@@ -316,6 +319,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param code the code
      * @return the new member
      */
+    @Override
     public Observable<Member> completeRecoveryWithDefaultRule(
             String memberId,
             String verificationId,
@@ -343,6 +347,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param code the code
      * @return the new member
      */
+    @Override
     public Member completeRecoveryWithDefaultRuleBlocking(
             String memberId,
             String verificationId,
@@ -417,7 +422,7 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Used to create a new {@link io.token.TokenClient} instances.
+     * Used to create a new {@link TokenClient} instances.
      */
     public static final class Builder {
         private static final long DEFAULT_TIMEOUT_MS = 10_000L;
@@ -545,9 +550,9 @@ public class TokenClient extends io.token.TokenClient {
         }
 
         /**
-         * Builds and returns a new {@link io.token.TokenClient} instance.
+         * Builds and returns a new {@link TokenClient} instance.
          *
-         * @return {@link io.token.TokenClient} instance
+         * @return {@link TokenClient} instance
          */
         public TokenClient build() {
             Metadata headers = getHeaders();

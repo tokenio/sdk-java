@@ -113,6 +113,7 @@ public class Member extends io.token.Member {
      *
      * @return list of accounts
      */
+    @Override
     public Observable<List<Account>> getAccounts() {
         return client
                 .getAccounts()
@@ -133,6 +134,7 @@ public class Member extends io.token.Member {
      *
      * @return list of linked accounts
      */
+    @Override
     public List<Account> getAccountsBlocking() {
         return getAccounts().blockingSingle();
     }
@@ -143,6 +145,7 @@ public class Member extends io.token.Member {
      * @param accountId account id
      * @return looked up account
      */
+    @Override
     public Observable<Account> getAccount(String accountId) {
         return client
                 .getAccount(accountId)
@@ -159,7 +162,8 @@ public class Member extends io.token.Member {
      * @param accountId account id
      * @return looked up account
      */
-    public io.token.Account getAccountBlocking(String accountId) {
+    @Override
+    public Account getAccountBlocking(String accountId) {
         return getAccount(accountId).blockingSingle();
     }
 
@@ -993,7 +997,7 @@ public class Member extends io.token.Member {
     public Observable<Money> getCurrentBalance(String accountId, Key.Level keyLevel) {
         return client.getBalance(accountId, keyLevel).map(new Function<Balance, Money>() {
             @Override
-            public Money apply(Balance balance) throws Exception {
+            public Money apply(Balance balance) {
                 return balance.getCurrent();
             }
         });
@@ -1020,7 +1024,7 @@ public class Member extends io.token.Member {
     public Observable<Money> getAvailableBalance(String accountId, Key.Level keyLevel) {
         return client.getBalance(accountId, keyLevel).map(new Function<Balance, Money>() {
             @Override
-            public Money apply(Balance balance) throws Exception {
+            public Money apply(Balance balance) {
                 return balance.getAvailable();
             }
         });

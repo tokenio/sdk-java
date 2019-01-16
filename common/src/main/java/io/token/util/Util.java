@@ -199,7 +199,7 @@ public abstract class Util {
         return Single
                 .create(new SingleOnSubscribe<T>() {
                     @Override
-                    public void subscribe(final SingleEmitter<T> emitter) throws Exception {
+                    public void subscribe(final SingleEmitter<T> emitter) {
                         future.addListener(
                                 new Runnable() {
                                     public void run() {

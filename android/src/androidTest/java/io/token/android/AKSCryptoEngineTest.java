@@ -33,7 +33,7 @@ import static org.junit.Assert.*;
 public class AKSCryptoEngineTest {
     private static final long ONE_DAY = 86400000L;
     @Test
-    public void useAppContext() throws Exception {
+    public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 

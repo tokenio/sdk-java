@@ -115,7 +115,7 @@ public class Member {
         return client
                 .getMember(member.getId())
                 .map(new Function<MemberProtos.Member, String>() {
-                    public String apply(MemberProtos.Member member) throws Exception {
+                    public String apply(MemberProtos.Member member) {
                         return member.getLastHash();
                     }
                 });
@@ -138,7 +138,7 @@ public class Member {
     public Observable<Alias> firstAlias() {
         return client.getAliases()
                 .map(new Function<List<Alias>, Alias>() {
-                    public Alias apply(List<Alias> aliases) throws Exception {
+                    public Alias apply(List<Alias> aliases) {
                         if (aliases.isEmpty()) {
                             throw new NoAliasesFoundException(memberId());
                         } else {
@@ -184,7 +184,7 @@ public class Member {
         return client.getMember(memberId())
                 .map(new Function<MemberProtos.Member, List<Key>>() {
                     @Override
-                    public List<Key> apply(MemberProtos.Member updated) throws Exception {
+                    public List<Key> apply(MemberProtos.Member updated) {
                         return member.clear().mergeFrom(updated).getKeysList();
                     }
                 });
@@ -197,6 +197,61 @@ public class Member {
      */
     public List<Key> getKeysBlocking() {
         return getKeys().blockingSingle();
+    }
+
+    /**
+     * Links a funding bank account to Token and returns it to the caller.
+     *
+     * @return list of accounts
+     */
+    public Observable<? extends List<? extends Account>> getAccounts() {
+        return client
+                .getAccounts()
+                .map(new Function<List<AccountProtos.Account>, List<Account>>() {
+                    @Override
+                    public List<Account> apply(List<AccountProtos.Account> accounts) {
+                        List<Account> result = new LinkedList<>();
+                        for (AccountProtos.Account account : accounts) {
+                            result.add(new Account(Member.this, account, client));
+                        }
+                        return result;
+                    }
+                });
+    }
+
+    /**
+     * Looks up funding bank accounts linked to Token.
+     *
+     * @return list of linked accounts
+     */
+    public List<? extends Account> getAccountsBlocking() {
+        return getAccounts().blockingSingle();
+    }
+
+    /**
+     * Looks up a funding bank account linked to Token.
+     *
+     * @param accountId account id
+     * @return looked up account
+     */
+    public Observable<? extends Account> getAccount(String accountId) {
+        return client
+                .getAccount(accountId)
+                .map(new Function<AccountProtos.Account, Account>() {
+                    public Account apply(AccountProtos.Account account) {
+                        return new Account(Member.this, account, client);
+                    }
+                });
+    }
+
+    /**
+     * Looks up a funding bank account linked to Token.
+     *
+     * @param accountId account id
+     * @return looked up account
+     */
+    public Account getAccountBlocking(String accountId) {
+        return getAccount(accountId).blockingSingle();
     }
 
     /**
@@ -310,7 +365,6 @@ public class Member {
                     }
                 });
     }
-
 
     /**
      * Adds the recovery rule.
@@ -591,7 +645,7 @@ public class Member {
         return fromObservable(client.getMember(memberId())
                 .flatMap(new Function<MemberProtos.Member, ObservableSource<?>>() {
                     @Override
-                    public ObservableSource<?> apply(MemberProtos.Member member) throws Exception {
+                    public ObservableSource<?> apply(MemberProtos.Member member) {
                         List<String> toRemoveIds = new LinkedList<>();
                         for (Key key : member.getKeysList()) {
                             if (!storedKeys.contains(key)) {

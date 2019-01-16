@@ -86,7 +86,7 @@ public class Account extends io.token.Account {
     public Observable<Money> getCurrentBalance(Key.Level keyLevel) {
         return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
             @Override
-            public Money apply(Balance balance) throws Exception {
+            public Money apply(Balance balance) {
                 return balance.getCurrent();
             }
         });
@@ -111,7 +111,7 @@ public class Account extends io.token.Account {
     public Observable<Money> getAvailableBalance(Key.Level keyLevel) {
         return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
             @Override
-            public Money apply(Balance balance) throws Exception {
+            public Money apply(Balance balance) {
                 return balance.getAvailable();
             }
         });
