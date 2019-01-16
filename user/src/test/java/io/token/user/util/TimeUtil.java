@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Token, Inc.
+ * Copyright (c) 2019 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,9 +22,25 @@
 
 package io.token.user.util;
 
-public class SystemTimeClock implements Clock {
-    @Override
-    public long getTime() {
-        return System.currentTimeMillis();
+public class TimeUtil {
+    /**
+     * Returns the time after a specified number of days.
+     *
+     * @param time the baseline time
+     * @param days number of days
+     * @return time after the inputted days have elapsed
+     */
+    public static long daysAfter(long time, int days) {
+        return time + daysToMs(days);
+    }
+
+    /**
+     * Converts days to milliseconds.
+     *
+     * @param days number of days
+     * @return number of milliseconds
+     */
+    public static long daysToMs(int days) {
+        return 86400000L * days;
     }
 }

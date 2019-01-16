@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2018 Token, Inc.
+ * Copyright (c) 2019 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -63,10 +63,10 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
-import io.token.user.rpc.Client;
 import io.token.user.browser.Browser;
 import io.token.user.browser.BrowserFactory;
 import io.token.user.exceptions.BankAuthorizationRequiredException;
+import io.token.user.rpc.Client;
 
 import java.net.URL;
 import java.net.URLEncoder;

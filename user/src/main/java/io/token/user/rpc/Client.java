@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2019 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -106,8 +106,8 @@ import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
-import io.token.user.TransferTokenException;
 import io.token.user.exceptions.BankAuthorizationRequiredException;
+import io.token.user.exceptions.TransferTokenException;
 
 import java.util.List;
 import java.util.Map;

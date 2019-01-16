@@ -77,15 +77,6 @@ public abstract class Util {
      */
     public static final String TOKEN_REALM = "token";
 
-    /**
-     * The token alias.
-     */
-    public static final Alias TOKEN = Alias.newBuilder()
-            .setType(DOMAIN)
-            .setValue("token.io")
-            .setRealm(TOKEN_REALM)
-            .build();
-
     private static final int NONCE_NUM_BYTES = 12;
 
     private Util() {

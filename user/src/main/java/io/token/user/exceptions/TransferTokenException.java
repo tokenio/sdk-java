@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2017 Token, Inc.
- * <p>
+ * Copyright (c) 2019 Token, Inc.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,33 +20,22 @@
  * THE SOFTWARE.
  */
 
-package io.token.user;
+package io.token.user.exceptions;
 
-import com.google.auto.value.AutoValue;
-import io.token.AutoValue_TokenRequestCallback;
+import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 
 /**
- * Represents callback in Token Request Flow. Contains tokenID and state.
+ * Thrown when a transfer token creation fails.
  */
+public final class TransferTokenException extends RuntimeException {
+    private final TransferTokenStatus status;
 
-@AutoValue
-public abstract class TokenRequestCallback {
-    public static TokenRequestCallback create(String tokenId, String state) {
-        return new AutoValue_TokenRequestCallback(tokenId, state);
+    public TransferTokenException(TransferTokenStatus status) {
+        super("Failed to create token: " + status);
+        this.status = status;
     }
 
-    /**
-     * Get the token ID returned at the end of the Token Request Flow.
-     *
-     * @return token id
-     */
-    public abstract String getTokenId();
-
-    /**
-     * Get the state returned at the end of the Token Request Flow. This corresponds to the state
-     * set at the beginning of the flow.
-     *
-     * @return state
-     */
-    public abstract String getState();
+    public TransferTokenStatus getStatus() {
+        return status;
+    }
 }

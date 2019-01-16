@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2019 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,19 +20,24 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.tokenrequest;
+package io.token.user.util;
 
-import com.google.auto.value.AutoValue;
-import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.tokenrequest.AutoValue_TokenRequestResult;
+import io.token.util.Clock;
 
-@AutoValue
-public abstract class TokenRequestResult {
-    public static TokenRequestResult create(String tokenId, Signature signature) {
-        return new AutoValue_TokenRequestResult(tokenId, signature);
+public class TestClock implements Clock {
+    private long offset = 0L;
+
+    @Override
+    public long getTime() {
+        return System.currentTimeMillis() + offset;
     }
 
-    public abstract String getTokenId();
-
-    public abstract Signature getSignature();
+    /**
+     * Tick the clock by a specified duration.
+     *
+     * @param duration duration in epoch milliseconds
+     */
+    public void tick(long duration) {
+        offset += duration;
+    }
 }

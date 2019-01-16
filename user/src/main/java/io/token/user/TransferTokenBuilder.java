@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2019 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -24,13 +24,11 @@ package io.token.user;
 
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.BANK;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
-import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN_AUTHORIZATION;
-import static io.token.user.util.Util.generateNonce;
+import static io.token.util.Util.generateNonce;
 
 import com.google.protobuf.ByteString;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.user.exceptions.TokenArgumentsException;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -44,6 +42,7 @@ import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.user.exceptions.TokenArgumentsException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -420,7 +419,7 @@ public final class TransferTokenBuilder {
     public Observable<Token> executeAsync() {
         AccountCase sourceCase =
                 payload.getTransfer().getInstructions().getSource().getAccount().getAccountCase();
-        if (!Arrays.asList(TOKEN_AUTHORIZATION, TOKEN, BANK).contains(sourceCase)) {
+        if (!Arrays.asList(TOKEN, BANK).contains(sourceCase)) {
             throw new TokenArgumentsException("No source on token");
         }
 

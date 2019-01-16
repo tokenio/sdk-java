@@ -1,4 +1,4 @@
-package io.token;
+package io.token.user;
 
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
 import static org.assertj.core.api.Assertions.assertThat;

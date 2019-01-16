@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2019 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,7 +22,7 @@
 
 package io.token.user;
 
-import static io.token.user.util.Util.generateNonce;
+import static io.token.util.Util.generateNonce;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.AccessBody;

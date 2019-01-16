@@ -36,7 +36,14 @@ public final class ClientAuthenticatorFactory implements InterceptorFactory {
     private final CryptoEngine crypto;
     private final AuthenticationContext authenticationContext;
 
-    ClientAuthenticatorFactory(
+    /**
+     * Creates an instance.
+     *
+     * @param memberId Token member ID
+     * @param crypto crypto engine
+     * @param authenticationContext authentication context
+     */
+    public ClientAuthenticatorFactory(
             String memberId,
             CryptoEngine crypto,
             AuthenticationContext authenticationContext) {
