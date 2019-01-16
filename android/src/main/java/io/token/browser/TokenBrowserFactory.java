@@ -6,20 +6,18 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 
-import java.io.BufferedReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.Callable;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.subjects.PublishSubject;
 import io.reactivex.subjects.Subject;
+import io.token.user.browser.Browser;
+import io.token.user.browser.BrowserFactory;
 
 import static io.token.browser.TokenBrowserService.MSG_CLOSE;
 import static io.token.browser.TokenBrowserService.MSG_COMPLETE;
@@ -28,7 +26,6 @@ import static io.token.browser.TokenBrowserService.MSG_KEY_SID;
 import static io.token.browser.TokenBrowserService.MSG_KEY_URL;
 import static io.token.browser.TokenBrowserService.MSG_ON_URL;
 import static io.token.browser.TokenBrowserService.MSG_REGISTER_CLIENT;
-import static io.token.browser.TokenBrowserService.MSG_UNREGISTER_CLIENT;
 
 public class TokenBrowserFactory implements BrowserFactory {
     private Context parent;

@@ -23,7 +23,7 @@ public class DeleteMemberSampleTest {
             member.deleteMemberBlocking();
 
             assertThatExceptionOfType(StatusRuntimeException.class).isThrownBy(() ->
-                    tokenClient.getMember(member.memberId()));
+                    tokenClient.getMemberBlocking(member.memberId()));
         }
     }
 }

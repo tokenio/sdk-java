@@ -76,7 +76,7 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    api(project(':lib')){
+    api(project(':user')){
         exclude group: "com.google.api.grpc", module:"proto-google-common-protos"
     }
     api(group: 'io.token.rpc', name: 'tokenio-rpc-client-okhttp', version: ver.tokenRpc){

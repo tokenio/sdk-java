@@ -2,7 +2,6 @@ rootProject.name='sdk'
 
 include 'common'
 include 'user'
-include 'lib' // to remove
 include 'java'
 include 'android'
 include 'user-sample'
