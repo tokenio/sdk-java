@@ -101,6 +101,20 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param memberType the type of member to register
+     * @return newly created member
+     */
+    public Member createUserMemberBlocking(
+            final Alias alias,
+            final CreateMemberType memberType) {
+        return createUserMember(alias, memberType).blockingSingle();
+    }
+
+    /**
      * Sets up a member given a specific ID of a member that already exists in the system. If
      * the member ID already has keys, this will not succeed. Used for testing since this
      * gives more control over the member creation process.
@@ -175,6 +189,16 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
+     * Sends a notification to request a payment.
+     *
+     * @param tokenPayload the payload of a token to be sent
+     * @return status of the notification request
+     */
+    public NotifyStatus notifyPaymentRequestBlocking(TokenPayload tokenPayload) {
+        return notifyPaymentRequest(tokenPayload).blockingSingle();
+    }
+
+    /**
      * Notifies subscribed devices that a token should be created and endorsed.
      *
      * @param tokenRequestId the token request ID to send
@@ -196,5 +220,23 @@ public class TokenClient extends io.token.TokenClient {
                         .setDeviceMetadata(deviceMetadata)
                         .build(),
                 receiptContact);
+    }
+
+    /**
+     * Notifies subscribed devices that a token should be created and endorsed.
+     *
+     * @param tokenRequestId the token request ID to send
+     * @param keys keys to be added
+     * @param deviceMetadata device metadata of the keys
+     * @param receiptContact optional receipt contact to send
+     * @return notify result of the notification request
+     */
+    public NotifyResult notifyCreateAndEndorseTokenBlocking(
+            String tokenRequestId,
+            @Nullable List<SecurityProtos.Key> keys,
+            @Nullable DeviceMetadata deviceMetadata,
+            @Nullable ReceiptContact receiptContact) {
+        return notifyCreateAndEndorseToken(tokenRequestId, keys, deviceMetadata, receiptContact)
+                .blockingSingle();
     }
 }

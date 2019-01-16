@@ -46,6 +46,7 @@ import io.reactivex.functions.Function;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos;
+import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
@@ -57,6 +58,7 @@ import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.SslConfig;
@@ -122,6 +124,16 @@ public class TokenClient implements Closeable {
     }
 
     /**
+     * Checks if a given alias already exists.
+     *
+     * @param alias alias to check
+     * @return {@code true} if alias exists, {@code false} otherwise
+     */
+    public boolean aliasExistsBlocking(Alias alias) {
+        return aliasExists(alias).blockingSingle();
+    }
+
+    /**
      * Looks up member id for a given alias.
      *
      * @param alias alias to check
@@ -130,6 +142,16 @@ public class TokenClient implements Closeable {
     public Observable<String> getMemberId(Alias alias) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getMemberId(alias);
+    }
+
+    /**
+     * Looks up member id for a given alias.
+     *
+     * @param alias alias to check
+     * @return member id, or throws exception if member not found
+     */
+    public String getMemberIdBlocking(Alias alias) {
+        return getMemberId(alias).blockingSingle();
     }
 
     /**
@@ -151,6 +173,20 @@ public class TokenClient implements Closeable {
                         return setUpMember(alias, memberId);
                     }
                 });
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param memberType the type of member to register
+     * @return newly created member
+     */
+    public Observable<Member> createMemberBlocking(
+            final Alias alias,
+            final CreateMemberType memberType) {
+        return createMember(alias, memberType);
     }
 
     /**
@@ -238,6 +274,18 @@ public class TokenClient implements Closeable {
     }
 
     /**
+     * Provisions a new device for an existing user. The call generates a set
+     * of keys that are returned back. The keys need to be approved by an
+     * existing device/keys.
+     *
+     * @param alias member id to provision the device for
+     * @return device information
+     */
+    public DeviceInfo provisionDeviceBlocking(Alias alias) {
+        return provisionDevice(alias).blockingSingle();
+    }
+
+    /**
      * Return a Member set up to use some Token member's keys (assuming we have them).
      *
      * @param memberId member id
@@ -256,6 +304,16 @@ public class TokenClient implements Closeable {
     }
 
     /**
+     * Return a Member set up to use some Token member's keys (assuming we have them).
+     *
+     * @param memberId member id
+     * @return member
+     */
+    public Member getMemberBlocking(String memberId) {
+        return getMember(memberId).blockingSingle();
+    }
+
+    /**
      * Notifies to add a key.
      *
      * @param alias alias to notify
@@ -265,7 +323,7 @@ public class TokenClient implements Closeable {
      */
     public Observable<NotifyStatus> notifyAddKey(
             Alias alias,
-            List<SecurityProtos.Key> keys,
+            List<Key> keys,
             DeviceMetadata deviceMetadata) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         AddKey addKey = AddKey.newBuilder()
@@ -273,6 +331,21 @@ public class TokenClient implements Closeable {
                 .setDeviceMetadata(deviceMetadata)
                 .build();
         return unauthenticated.notifyAddKey(alias, addKey);
+    }
+
+    /**
+     * Notifies to add a key.
+     *
+     * @param alias alias to notify
+     * @param keys keys that need approval
+     * @param deviceMetadata device metadata of the keys
+     * @return status of the notification
+     */
+    public Observable<NotifyStatus> notifyAddKeyBlocking(
+            Alias alias,
+            List<Key> keys,
+            DeviceMetadata deviceMetadata) {
+        return notifyAddKey(alias, keys, deviceMetadata);
     }
 
     /**
@@ -287,6 +360,16 @@ public class TokenClient implements Closeable {
     }
 
     /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public NotifyStatus invalidateNotificationBlocking(String notificationId) {
+        return invalidateNotification(notificationId).blockingSingle();
+    }
+
+    /**
      * Retrieves a blob from the server.
      *
      * @param blobId id of the blob
@@ -295,6 +378,16 @@ public class TokenClient implements Closeable {
     public Observable<Blob> getBlob(String blobId) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getBlob(blobId);
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Blob getBlobBlocking(String blobId) {
+        return getBlob(blobId).blockingSingle();
     }
 
     /**
@@ -309,6 +402,16 @@ public class TokenClient implements Closeable {
     }
 
     /**
+     * Begins account recovery.
+     *
+     * @param alias the alias used to recover
+     * @return the verification id
+     */
+    public String beginRecoveryBlocking(Alias alias) {
+        return beginRecovery(alias).blockingSingle();
+    }
+
+    /**
      * Create a recovery authorization for some agent to sign.
      *
      * @param memberId Id of member we claim to be.
@@ -317,9 +420,23 @@ public class TokenClient implements Closeable {
      */
     public Observable<Authorization> createRecoveryAuthorization(
             String memberId,
-            SecurityProtos.Key privilegedKey) {
+            Key privilegedKey) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.createRecoveryAuthorization(memberId, privilegedKey);
+    }
+
+
+    /**
+     * Create a recovery authorization for some agent to sign.
+     *
+     * @param memberId Id of member we claim to be.
+     * @param privilegedKey new privileged key we want to use.
+     * @return authorization structure for agent to sign
+     */
+    public Authorization createRecoveryAuthorizationBlocking(
+            String memberId,
+            Key privilegedKey) {
+        return createRecoveryAuthorization(memberId, privilegedKey).blockingSingle();
     }
 
     /**
@@ -334,9 +451,26 @@ public class TokenClient implements Closeable {
     public Observable<MemberRecoveryOperation> getRecoveryAuthorization(
             String verificationId,
             String code,
-            SecurityProtos.Key key) throws VerificationException {
+            Key key) throws VerificationException {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getRecoveryAuthorization(verificationId, code, key);
+    }
+
+
+    /**
+     * Gets recovery authorization from Token.
+     *
+     * @param verificationId the verification id
+     * @param code the code
+     * @param key the privileged key
+     * @return the member recovery operation
+     * @throws VerificationException if the code verification fails
+     */
+    public MemberRecoveryOperation getRecoveryAuthorizationBlocking(
+            String verificationId,
+            String code,
+            Key key) throws VerificationException {
+        return getRecoveryAuthorization(verificationId, code, key).blockingSingle();
     }
 
     /**
@@ -351,7 +485,7 @@ public class TokenClient implements Closeable {
     public Observable<Member> completeRecovery(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
-            SecurityProtos.Key privilegedKey,
+            Key privilegedKey,
             final CryptoEngine cryptoEngine) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
@@ -365,6 +499,24 @@ public class TokenClient implements Closeable {
                         return new Member(member, client, tokenCluster);
                     }
                 });
+    }
+
+    /**
+     * Completes account recovery.
+     *
+     * @param memberId the member id
+     * @param recoveryOperations the member recovery operations
+     * @param privilegedKey the privileged public key in the member recovery operations
+     * @param cryptoEngine the new crypto engine
+     * @return an observable of the updated member
+     */
+    public Member completeRecoveryBlocking(
+            String memberId,
+            List<MemberRecoveryOperation> recoveryOperations,
+            Key privilegedKey,
+            final CryptoEngine cryptoEngine) {
+        return completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
+                .blockingSingle();
     }
 
     /**
@@ -395,6 +547,21 @@ public class TokenClient implements Closeable {
     }
 
     /**
+     * Completes account recovery if the default recovery rule was set.
+     *
+     * @param memberId the member id
+     * @param verificationId the verification id
+     * @param code the code
+     * @return the new member
+     */
+    public Member completeRecoveryWithDefaultRuleBlocking(
+            String memberId,
+            String verificationId,
+            String code) {
+        return completeRecoveryWithDefaultRule(memberId, verificationId, code).blockingSingle();
+    }
+
+    /**
      * Returns a list of token enabled banks.
      *
      * @param bankIds If specified, return banks whose 'id' matches any one of the given ids
@@ -404,7 +571,7 @@ public class TokenClient implements Closeable {
      *     if not specified.
      * @return a list of banks
      */
-    public Observable<List<BankProtos.Bank>> getBanks(
+    public Observable<List<Bank>> getBanks(
             @Nullable List<String> bankIds,
             @Nullable Integer page,
             @Nullable Integer perPage)  {
@@ -427,7 +594,7 @@ public class TokenClient implements Closeable {
      *     (case insensitive).
      * @return a list of banks
      */
-    public Observable<List<BankProtos.Bank>> getBanks(
+    public Observable<List<Bank>> getBanks(
             @Nullable String search,
             @Nullable String country,
             @Nullable Integer page,
@@ -455,16 +622,90 @@ public class TokenClient implements Closeable {
      *     (case insensitive).
      * @return a list of banks
      */
-    public Observable<List<BankProtos.Bank>> getBanks(
+    public Observable<List<Bank>> getBanks(
             @Nullable List<String> bankIds,
             @Nullable String search,
             @Nullable String country,
             @Nullable Integer page,
             @Nullable Integer perPage,
             @Nullable String sort,
-            @Nullable String provider)  {
+            @Nullable String provider) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getBanks(bankIds, search, country, page, perPage, sort, provider);
+    }
+
+    /**
+     * Returns a list of token enabled banks.
+     *
+     * @param bankIds If specified, return banks whose 'id' matches any one of the given ids
+     *     (case-insensitive). Can be at most 1000.
+     * @param page Result page to retrieve. Default to 1 if not specified.
+     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
+     *     if not specified.
+     * @return a list of banks
+     */
+    public List<Bank> getBanksBlocking(
+            @Nullable List<String> bankIds,
+            @Nullable Integer page,
+            @Nullable Integer perPage)  {
+        return getBanks(bankIds, page, perPage).blockingSingle();
+    }
+
+    /**
+     * Returns a list of token enabled banks.
+     *
+     * @param search If specified, return banks whose 'name' or 'identifier' contains the given
+     *     search string (case-insensitive)
+     * @param country If specified, return banks whose 'country' matches the given ISO 3166-1
+     *     alpha-2 country code (case-insensitive)
+     * @param page Result page to retrieve. Default to 1 if not specified.
+     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
+     *     if not specified.
+     * @param sort The key to sort the results. Could be one of: name, provider and country.
+     *     Defaults to name if not specified.
+     * @param provider If specified, return banks whose 'provider' matches the given provider
+     *     (case insensitive).
+     * @return a list of banks
+     */
+    public List<Bank> getBanksBlocking(
+            @Nullable String search,
+            @Nullable String country,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort,
+            @Nullable String provider) {
+        return getBanks(search, country, page, perPage, sort, provider)
+                .blockingSingle();
+    }
+
+    /**
+     * Returns a list of token enabled banks.
+     *
+     * @param bankIds If specified, return banks whose 'id' matches any one of the given ids
+     *     (case-insensitive). Can be at most 1000.
+     * @param search If specified, return banks whose 'name' or 'identifier' contains the given
+     *     search string (case-insensitive)
+     * @param country If specified, return banks whose 'country' matches the given ISO 3166-1
+     *     alpha-2 country code (case-insensitive)
+     * @param page Result page to retrieve. Default to 1 if not specified.
+     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
+     *     if not specified.
+     * @param sort The key to sort the results. Could be one of: name, provider and country.
+     *     Defaults to name if not specified.
+     * @param provider If specified, return banks whose 'provider' matches the given provider
+     *     (case insensitive).
+     * @return a list of banks
+     */
+    public List<Bank> getBanksBlocking(
+            @Nullable List<String> bankIds,
+            @Nullable String search,
+            @Nullable String country,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort,
+            @Nullable String provider) {
+        return getBanks(bankIds, search, country, page, perPage, sort, provider)
+                .blockingSingle();
     }
 
     /**
