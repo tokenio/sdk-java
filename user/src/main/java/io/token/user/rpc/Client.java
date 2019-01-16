@@ -452,6 +452,32 @@ public final class Client extends io.token.rpc.Client {
                 });
     }
 
+    /**
+     * Creates a test bank account and links it.
+     *
+     * @param balance account balance to set
+     * @return linked account
+     */
+    public Observable<Account> createAndLinkTestBankAccount(MoneyProtos.Money balance) {
+        return createTestBankAccount(balance)
+                .flatMap(new Function<OauthBankAuthorization, Observable<Account>>() {
+                    @Override
+                    public Observable<Account> apply(OauthBankAuthorization authorization) {
+                        return linkAccounts(authorization)
+                                .map(new Function<List<Account>, Account>() {
+                                    @Override
+                                    public Account apply(List<Account> accounts) {
+                                        if (accounts.size() != 1) {
+                                            throw new RuntimeException(
+                                                    "Expected 1 account; found "
+                                                            + accounts.size());
+                                        }
+                                        return accounts.get(0);
+                                    }
+                                });
+                    }
+                });
+    }
 
     /**
      * Looks up a existing access token where the calling member is the grantor and given member is

@@ -5,4 +5,4 @@ include 'user'
 include 'lib' // to remove
 include 'java'
 include 'android'
-include 'samples'
+include 'user-sample'

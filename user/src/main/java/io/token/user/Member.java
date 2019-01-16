@@ -109,6 +109,61 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Links a funding bank account to Token and returns it to the caller.
+     *
+     * @return list of accounts
+     */
+    public Observable<List<Account>> getAccounts() {
+        return client
+                .getAccounts()
+                .map(new Function<List<AccountProtos.Account>, List<Account>>() {
+                    @Override
+                    public List<Account> apply(List<AccountProtos.Account> accounts) {
+                        List<Account> result = new LinkedList<>();
+                        for (AccountProtos.Account account : accounts) {
+                            result.add(new Account(Member.this, account, client));
+                        }
+                        return result;
+                    }
+                });
+    }
+
+    /**
+     * Looks up funding bank accounts linked to Token.
+     *
+     * @return list of linked accounts
+     */
+    public List<Account> getAccountsBlocking() {
+        return getAccounts().blockingSingle();
+    }
+
+    /**
+     * Looks up a funding bank account linked to Token.
+     *
+     * @param accountId account id
+     * @return looked up account
+     */
+    public Observable<Account> getAccount(String accountId) {
+        return client
+                .getAccount(accountId)
+                .map(new Function<AccountProtos.Account, Account>() {
+                    public Account apply(AccountProtos.Account account) {
+                        return new Account(Member.this, account, client);
+                    }
+                });
+    }
+
+    /**
+     * Looks up a funding bank account linked to Token.
+     *
+     * @param accountId account id
+     * @return looked up account
+     */
+    public io.token.Account getAccountBlocking(String accountId) {
+        return getAccount(accountId).blockingSingle();
+    }
+
+    /**
      * Replaces auth'd member's public profile.
      *
      * @param profile profile to set
@@ -995,6 +1050,33 @@ public class Member extends io.token.Member {
                 .setCurrency(currency)
                 .setValue(Double.toString(balance))
                 .build());
+    }
+
+    /**
+     * Creates a test bank account in a fake bank and links the account.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return the linked account
+     */
+    public Observable<Account> createAndLinkTestBankAccount(double balance, String currency) {
+        return toAccount(client.createAndLinkTestBankAccount(
+                Money.newBuilder()
+                        .setValue(Double.toString(balance))
+                        .setCurrency(currency)
+                        .build()
+        ));
+    }
+
+    /**
+     * Creates a test bank account in a fake bank and links the account.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return the linked account
+     */
+    public Account createAndLinkTestBankAccountBlocking(double balance, String currency) {
+        return createAndLinkTestBankAccount(balance, currency).blockingSingle();
     }
 
     /**

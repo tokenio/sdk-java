@@ -612,61 +612,6 @@ public class Member {
     }
 
     /**
-     * Links a funding bank account to Token and returns it to the caller.
-     *
-     * @return list of accounts
-     */
-    public Observable<List<io.token.Account>> getAccounts() {
-        return client
-                .getAccounts()
-                .map(new Function<List<AccountProtos.Account>, List<io.token.Account>>() {
-                    @Override
-                    public List<io.token.Account> apply(List<AccountProtos.Account> accounts) {
-                        List<io.token.Account> result = new LinkedList<>();
-                        for (AccountProtos.Account account : accounts) {
-                            result.add(new io.token.Account(Member.this, account, client));
-                        }
-                        return result;
-                    }
-                });
-    }
-
-    /**
-     * Looks up funding bank accounts linked to Token.
-     *
-     * @return list of linked accounts
-     */
-    public List<io.token.Account> getAccountsBlocking() {
-        return getAccounts().blockingSingle();
-    }
-
-    /**
-     * Looks up a funding bank account linked to Token.
-     *
-     * @param accountId account id
-     * @return looked up account
-     */
-    public Observable<io.token.Account> getAccount(String accountId) {
-        return client
-                .getAccount(accountId)
-                .map(new Function<AccountProtos.Account, io.token.Account>() {
-                    public io.token.Account apply(AccountProtos.Account account) {
-                        return new io.token.Account(Member.this, account, client);
-                    }
-                });
-    }
-
-    /**
-     * Looks up a funding bank account linked to Token.
-     *
-     * @param accountId account id
-     * @return looked up account
-     */
-    public io.token.Account getAccountBlocking(String accountId) {
-        return getAccount(accountId).blockingSingle();
-    }
-
-    /**
      * Replaces auth'd member's public profile.
      *
      * @param profile profile to set
