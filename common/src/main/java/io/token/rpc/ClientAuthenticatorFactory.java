@@ -31,7 +31,7 @@ import io.token.security.CryptoEngine;
  * Responsible for creation of {@link ClientAuthenticator} instances which
  * are created per RPC method call.
  */
-final class ClientAuthenticatorFactory implements InterceptorFactory {
+public final class ClientAuthenticatorFactory implements InterceptorFactory {
     private final String memberId;
     private final CryptoEngine crypto;
     private final AuthenticationContext authenticationContext;

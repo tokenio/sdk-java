@@ -62,7 +62,7 @@ public final class TransferTokenBuilder {
     private static final Logger logger = LoggerFactory.getLogger(TransferTokenBuilder.class);
     private static final int REF_ID_MAX_LENGTH = 18;
 
-    private final MemberAsync member;
+    private final Member member;
     private final TokenPayload.Builder payload;
 
     // Used for attaching files / data to tokens
@@ -79,7 +79,7 @@ public final class TransferTokenBuilder {
      * @param currency currency of the token
      */
     public TransferTokenBuilder(
-            MemberAsync member,
+            Member member,
             double amount,
             String currency) {
         this.member = member;

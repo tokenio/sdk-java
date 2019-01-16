@@ -22,9 +22,6 @@
 
 package io.token.user;
 
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.TRANSIENT;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
@@ -34,53 +31,36 @@ import static io.token.util.Util.toAddAliasOperation;
 import static io.token.util.Util.toAddAliasOperationMetadata;
 import static io.token.util.Util.toAddKeyOperation;
 import static io.token.util.Util.toRecoveryAgentOperation;
-import static java.util.Arrays.asList;
 import static java.util.Collections.singletonList;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.Member;
-import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.bank.BankProtos;
-import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
-import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
-import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
-import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.rpc.Client;
-import io.token.rpc.ClientFactory;
-import io.token.rpc.UnauthenticatedClient;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
-import io.token.security.InMemoryKeyStore;
 import io.token.security.Signer;
-import io.token.security.TokenCryptoEngine;
 import io.token.user.browser.BrowserFactory;
-import io.token.user.tokenrequest.TokenRequestCallbackParameters;
-import io.token.user.tokenrequest.TokenRequestResult;
-import io.token.user.tokenrequest.TokenRequestState;
+import io.token.user.rpc.Client;
+import io.token.user.rpc.ClientFactory;
+import io.token.user.rpc.UnauthenticatedClient;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 public class TokenClient extends io.token.TokenClient {
-    private final String devKey;
     private final BrowserFactory browserFactory;
 
     /**
@@ -88,29 +68,133 @@ public class TokenClient extends io.token.TokenClient {
      *
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
-     * @param developerKey developer key
      * @param tokenCluster token cluster
      */
     TokenClient(
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
-            String developerKey,
             TokenCluster tokenCluster,
             BrowserFactory browserFactory) {
         super(channel, cryptoFactory, tokenCluster);
-        this.devKey = developerKey;
         this.browserFactory = browserFactory;
     }
 
     /**
-     * Retrieves a blob from the server.
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
      *
-     * @param blobId id of the blob
-     * @return Blob
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param memberType the type of member to register
+     * @return newly created member
      */
-    public Observable<BlobProtos.Blob> getBlob(String blobId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getBlob(blobId);
+    public Observable<Member> createUserMember(
+            final Alias alias,
+            final CreateMemberType memberType) {
+        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated
+                .createMemberId(memberType, null)
+                .flatMap(new Function<String, Observable<Member>>() {
+                    public Observable<Member> apply(String memberId) {
+                        return setUpUserMember(alias, memberId);
+                    }
+                });
     }
 
+    /**
+     * Sets up a member given a specific ID of a member that already exists in the system. If
+     * the member ID already has keys, this will not succeed. Used for testing since this
+     * gives more control over the member creation process.
+     *
+     * <p>Adds an alias and a set of auto-generated keys to the member.</p>
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member
+     * @param memberId member id
+     * @return newly created member
+     */
+    @VisibleForTesting
+    public Observable<Member> setUpUserMember(final Alias alias, final String memberId) {
+        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getDefaultAgent()
+                .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
+                    public Observable<MemberProtos.Member> apply(String agentId) {
+                        CryptoEngine crypto = cryptoFactory.create(memberId);
+                        List<MemberOperation> operations = new ArrayList<>();
+                        operations.add(
+                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
+                        operations.add(
+                                toAddKeyOperation(crypto.generateKey(STANDARD)));
+                        operations.add(
+                                toAddKeyOperation(crypto.generateKey(LOW)));
+                        operations.add(toRecoveryAgentOperation(agentId));
+
+                        if (alias != null) {
+                            operations.add(toAddAliasOperation(
+                                    normalizeAlias(alias)));
+                        }
+                        List<MemberProtos.MemberOperationMetadata> metadata = alias == null
+                                ? Collections.<MemberProtos.MemberOperationMetadata>emptyList()
+                                : singletonList(toAddAliasOperationMetadata(
+                                        normalizeAlias(alias)));
+                        Signer signer = crypto.createSigner(PRIVILEGED);
+                        return unauthenticated.createMember(
+                                memberId,
+                                operations,
+                                metadata,
+                                signer);
+                    }
+                })
+                .flatMap(new Function<MemberProtos.Member, Observable<Member>>() {
+                    public Observable<Member> apply(MemberProtos.Member member) {
+                        CryptoEngine crypto = cryptoFactory.create(member.getId());
+                        Client client = ClientFactory.authenticated(
+                                channel,
+                                member.getId(),
+                                crypto);
+                        return Observable.just(new Member(
+                                member,
+                                client,
+                                tokenCluster,
+                                browserFactory));
+                    }
+                });
+    }
+
+    /**
+     * Sends a notification to request a payment.
+     *
+     * @param tokenPayload the payload of a token to be sent
+     * @return status of the notification request
+     */
+    public Observable<NotifyStatus> notifyPaymentRequest(TokenPayload tokenPayload) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        if (tokenPayload.getRefId().isEmpty()) {
+            tokenPayload = tokenPayload.toBuilder().setRefId(generateNonce()).build();
+        }
+        return unauthenticated.notifyPaymentRequest(tokenPayload);
+    }
+
+    /**
+     * Notifies subscribed devices that a token should be created and endorsed.
+     *
+     * @param tokenRequestId the token request ID to send
+     * @param keys keys to be added
+     * @param deviceMetadata device metadata of the keys
+     * @param receiptContact optional receipt contact to send
+     * @return notify result of the notification request
+     */
+    public Observable<NotifyResult> notifyCreateAndEndorseToken(
+            String tokenRequestId,
+            @Nullable List<SecurityProtos.Key> keys,
+            @Nullable DeviceMetadata deviceMetadata,
+            @Nullable ReceiptContact receiptContact) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.notifyCreateAndEndorseToken(
+                tokenRequestId,
+                AddKey.newBuilder()
+                        .addAllKeys(keys)
+                        .setDeviceMetadata(deviceMetadata)
+                        .build(),
+                receiptContact);
+    }
 }

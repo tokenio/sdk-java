@@ -29,7 +29,7 @@ import io.token.rpc.interceptor.SimpleInterceptor;
 /**
  * Responsible for creation of {@link ErrorHandler} instances which are created per RPC method call.
  */
-final class ErrorHandlerFactory implements InterceptorFactory {
+public final class ErrorHandlerFactory implements InterceptorFactory {
     @Override
     public <ReqT, ResT> SimpleInterceptor<ReqT, ResT> create(MethodDescriptor<ReqT, ResT> ignore) {
         return new ErrorHandler<>();

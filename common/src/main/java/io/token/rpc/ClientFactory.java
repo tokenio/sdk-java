@@ -25,7 +25,6 @@ package io.token.rpc;
 import io.grpc.ManagedChannel;
 import io.token.proto.gateway.GatewayServiceGrpc;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.rpc.Client.GatewayProvider;
 import io.token.rpc.client.Interceptor;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;

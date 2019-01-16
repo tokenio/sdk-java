@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2019 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,38 +20,10 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.rpc;
+package io.token.rpc;
 
-import com.google.auto.value.AutoValue;
-import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
-import io.token.rpc.AutoValue_AuthenticationContext;
+import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 
-import javax.annotation.Nullable;
-
-/**
- * Authentication context. Stores the values of On-Behalf-Of and Key-Level to be used for request
- * authentication and signing.
- */
-@AutoValue
-abstract class AuthenticationContext {
-    static AuthenticationContext create(
-            @Nullable String onBehalfOf,
-            boolean customerInitiated,
-            Key.Level keyLevel,
-            SecurityMetadata securityMetadata) {
-        return new AutoValue_AuthenticationContext(
-                onBehalfOf,
-                customerInitiated,
-                keyLevel,
-                securityMetadata);
-    }
-
-    abstract @Nullable String getOnBehalfOf();
-
-    abstract boolean getCustomerInitiated();
-
-    abstract Key.Level getKeyLevel();
-
-    abstract SecurityMetadata getSecurityMetadata();
+public interface GatewayProvider {
+    GatewayServiceFutureStub withAuthentication(AuthenticationContext context);
 }

@@ -46,7 +46,6 @@ import io.reactivex.functions.Function;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos;
-import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
@@ -54,7 +53,6 @@ import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -83,8 +81,8 @@ public class TokenClient implements Closeable {
     private static final long SHUTDOWN_DURATION_MS = 10000L;
 
     protected final ManagedChannel channel;
-    private final CryptoEngineFactory cryptoFactory;
-    private final TokenCluster tokenCluster;
+    protected final CryptoEngineFactory cryptoFactory;
+    protected final TokenCluster tokenCluster;
 
     /**
      * Creates an instance of a Token SDK.

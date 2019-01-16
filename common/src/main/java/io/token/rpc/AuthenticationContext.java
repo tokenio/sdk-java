@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
  * authentication and signing.
  */
 @AutoValue
-abstract class AuthenticationContext {
+public abstract class AuthenticationContext {
     static AuthenticationContext create(
             @Nullable String onBehalfOf,
             boolean customerInitiated,

@@ -37,6 +37,7 @@ import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -60,8 +61,11 @@ import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
+import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.InvalidateNotificationRequest;
+import io.token.proto.gateway.Gateway.InvalidateNotificationResponse;
 import io.token.proto.gateway.Gateway.ResolveAliasRequest;
 import io.token.proto.gateway.Gateway.ResolveAliasResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
@@ -81,7 +85,7 @@ import javax.annotation.Nullable;
  * getMember an existing one and switch to the authenticated {@link Client}.
  */
 public class UnauthenticatedClient {
-    private final GatewayServiceFutureStub gateway;
+    protected final GatewayServiceFutureStub gateway;
 
     /**
      * Creates an instance.
@@ -225,6 +229,43 @@ public class UnauthenticatedClient {
                 .map(new Function<Gateway.NotifyResponse, NotifyStatus>() {
                     public NotifyStatus apply(Gateway.NotifyResponse response) {
                         return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
+        return toObservable(gateway.invalidateNotification(
+                InvalidateNotificationRequest.newBuilder()
+                        .setNotificationId(notificationId)
+                        .build()))
+                .map(new Function<InvalidateNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(InvalidateNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<BlobProtos.Blob> getBlob(String blobId) {
+        return toObservable(gateway
+                .getBlob(Gateway.GetBlobRequest
+                        .newBuilder()
+                        .setBlobId(blobId)
+                        .build()))
+                .map(new Function<GetBlobResponse, BlobProtos.Blob>() {
+                    public BlobProtos.Blob apply(GetBlobResponse response) {
+                        return response.getBlob();
                     }
                 });
     }

@@ -30,14 +30,17 @@ import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
-import io.token.rpc.Client;
+import io.token.user.rpc.Client;
 
 /**
  * Represents a funding account in the Token system.
  */
 public class Account extends io.token.Account {
+    private final Client client;
+
     Account(Member member, AccountProtos.Account account, Client client) {
         super(member, account, client);
+        this.client = client;
     }
 
     /**

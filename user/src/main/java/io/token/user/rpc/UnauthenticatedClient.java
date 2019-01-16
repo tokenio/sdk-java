@@ -22,80 +22,21 @@
 
 package io.token.user.rpc;
 
-import static com.google.common.base.Strings.emptyToNull;
-import static com.google.common.base.Strings.nullToEmpty;
-import static io.token.proto.common.alias.AliasProtos.VerificationStatus.SUCCESS;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
-import static io.token.user.util.Util.TOKEN;
-import static io.token.user.util.Util.generateNonce;
-import static io.token.user.util.Util.normalizeAlias;
-import static io.token.user.util.Util.toObservable;
+import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.user.NotifyResult;
-import io.token.user.TokenRequest;
-import io.token.user.exceptions.MemberNotFoundException;
-import io.token.user.exceptions.VerificationException;
-import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.bank.BankProtos.Bank;
-import io.token.proto.common.blob.BlobProtos.Blob;
-import io.token.proto.common.member.MemberProtos.CreateMemberType;
-import io.token.proto.common.member.MemberProtos.Member;
-import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
-import io.token.proto.common.member.MemberProtos.MemberOperation;
-import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
-import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
-import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
-import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
-import io.token.proto.common.notification.NotificationProtos.EndorseAndAddKey;
-import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.proto.gateway.Gateway;
-import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
-import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
-import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
-import io.token.proto.gateway.Gateway.CompleteRecoveryResponse;
-import io.token.proto.gateway.Gateway.CreateMemberRequest;
-import io.token.proto.gateway.Gateway.CreateMemberResponse;
-import io.token.proto.gateway.Gateway.GetBanksRequest;
-import io.token.proto.gateway.Gateway.GetBanksResponse;
-import io.token.proto.gateway.Gateway.GetBlobResponse;
-import io.token.proto.gateway.Gateway.GetMemberRequest;
-import io.token.proto.gateway.Gateway.GetMemberResponse;
-import io.token.proto.gateway.Gateway.GetTokenRequestResultRequest;
-import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
-import io.token.proto.gateway.Gateway.InvalidateNotificationRequest;
-import io.token.proto.gateway.Gateway.InvalidateNotificationResponse;
-import io.token.proto.gateway.Gateway.NotifyRequest;
-import io.token.proto.gateway.Gateway.NotifyResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
 import io.token.proto.gateway.Gateway.RequestTransferResponse;
-import io.token.proto.gateway.Gateway.ResolveAliasRequest;
-import io.token.proto.gateway.Gateway.ResolveAliasResponse;
-import io.token.proto.gateway.Gateway.RetrieveTokenRequestRequest;
-import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.TriggerCreateAndEndorseTokenNotificationRequest;
 import io.token.proto.gateway.Gateway.TriggerCreateAndEndorseTokenNotificationResponse;
-import io.token.proto.gateway.Gateway.TriggerEndorseAndAddKeyNotificationRequest;
-import io.token.proto.gateway.Gateway.TriggerEndorseAndAddKeyNotificationResponse;
-import io.token.proto.gateway.Gateway.UpdateMemberRequest;
-import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.rpc.util.Converters;
-import io.token.user.security.CryptoEngine;
-import io.token.security.Signer;
-import io.token.user.tokenrequest.TokenRequestResult;
+import io.token.user.NotifyResult;
 
-import java.util.LinkedList;
-import java.util.List;
 import javax.annotation.Nullable;
 
 /**
@@ -111,5 +52,60 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      */
     public UnauthenticatedClient(GatewayServiceFutureStub gateway) {
         super(gateway);
+    }
+
+    /**
+     * Notifies subscribed devices of payment requests.
+     *
+     * @param tokenPayload the payload of a token to be sent
+     * @return status of the notification request
+     */
+    public Observable<NotifyStatus> notifyPaymentRequest(TokenPayload tokenPayload) {
+        return toObservable(gateway.requestTransfer(
+                RequestTransferRequest.newBuilder()
+                        .setTokenPayload(tokenPayload)
+                        .build()))
+                .map(new Function<RequestTransferResponse, NotifyStatus>() {
+                    public NotifyStatus apply(RequestTransferResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Notifies subscribed devices that a token should be created and endorsed.
+     *
+     * @param tokenRequestId the token request ID to send
+     * @param addKey optional add key payload to send
+     * @param receiptContact optional receipt contact to send
+     * @return notify result of the notification request
+     */
+    public Observable<NotifyResult> notifyCreateAndEndorseToken(
+            String tokenRequestId,
+            @Nullable AddKey addKey,
+            @Nullable ReceiptContact receiptContact) {
+        TriggerCreateAndEndorseTokenNotificationRequest.Builder builder =
+                TriggerCreateAndEndorseTokenNotificationRequest.newBuilder()
+                        .setTokenRequestId(tokenRequestId);
+
+        if (addKey != null) {
+            builder.setAddKey(addKey);
+        }
+
+        if (receiptContact != null) {
+            builder.setContact(receiptContact);
+        }
+
+        return toObservable(gateway.triggerCreateAndEndorseTokenNotification(builder.build()))
+                .map(new Function<
+                        TriggerCreateAndEndorseTokenNotificationResponse,
+                        NotifyResult>() {
+                    public NotifyResult apply(
+                            TriggerCreateAndEndorseTokenNotificationResponse response) {
+                        return NotifyResult.create(
+                                response.getNotificationId(),
+                                response.getStatus());
+                    }
+                });
     }
 }

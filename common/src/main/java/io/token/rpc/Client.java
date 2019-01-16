@@ -37,13 +37,18 @@ import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -53,6 +58,9 @@ import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.gateway.Gateway;
+import io.token.proto.gateway.Gateway.CreateBlobRequest;
+import io.token.proto.gateway.Gateway.CreateBlobResponse;
 import io.token.proto.gateway.Gateway.DeleteMemberRequest;
 import io.token.proto.gateway.Gateway.GetAccountRequest;
 import io.token.proto.gateway.Gateway.GetAccountResponse;
@@ -66,10 +74,16 @@ import io.token.proto.gateway.Gateway.GetBalancesRequest;
 import io.token.proto.gateway.Gateway.GetBalancesResponse;
 import io.token.proto.gateway.Gateway.GetBankInfoRequest;
 import io.token.proto.gateway.Gateway.GetBankInfoResponse;
+import io.token.proto.gateway.Gateway.GetBlobRequest;
+import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAgentResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.GetProfilePictureRequest;
+import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
+import io.token.proto.gateway.Gateway.GetProfileRequest;
+import io.token.proto.gateway.Gateway.GetProfileResponse;
 import io.token.proto.gateway.Gateway.GetTransactionRequest;
 import io.token.proto.gateway.Gateway.GetTransactionResponse;
 import io.token.proto.gateway.Gateway.GetTransactionsRequest;
@@ -79,10 +93,14 @@ import io.token.proto.gateway.Gateway.ResolveTransferDestinationsRequest;
 import io.token.proto.gateway.Gateway.ResolveTransferDestinationsResponse;
 import io.token.proto.gateway.Gateway.RetryVerificationRequest;
 import io.token.proto.gateway.Gateway.RetryVerificationResponse;
+import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
+import io.token.proto.gateway.Gateway.SetProfileRequest;
+import io.token.proto.gateway.Gateway.SetProfileResponse;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
-import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
@@ -98,11 +116,11 @@ import javax.annotation.Nullable;
  * easier to use.
  */
 public class Client {
-    private final String memberId;
-    private final CryptoEngine crypto;
-    private final GatewayProvider gateway;
-    private boolean customerInitiated = false;
-    private SecurityMetadata trackingMetadata = SecurityMetadata.getDefaultInstance();
+    protected final String memberId;
+    protected final CryptoEngine crypto;
+    protected final GatewayProvider gateway;
+    protected boolean customerInitiated = false;
+    protected SecurityMetadata trackingMetadata = SecurityMetadata.getDefaultInstance();
 
     /**
      * Creates a client instance.
@@ -391,6 +409,120 @@ public class Client {
     }
 
     /**
+     * Creates and uploads a blob.
+     *
+     * @param payload payload of the blob
+     * @return id of the blob
+     */
+    public Observable<String> createBlob(Blob.Payload payload) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .createBlob(CreateBlobRequest
+                        .newBuilder()
+                        .setPayload(payload)
+                        .build()))
+                .map(new Function<CreateBlobResponse, String>() {
+                    public String apply(CreateBlobResponse response) {
+                        return response.getBlobId();
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getBlob(String blobId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getBlob(GetBlobRequest
+                        .newBuilder()
+                        .setBlobId(blobId)
+                        .build()))
+                .map(new Function<GetBlobResponse, Blob>() {
+                    public Blob apply(GetBlobResponse response) {
+                        return response.getBlob();
+                    }
+                });
+    }
+
+
+    /**
+     * Replaces a member's public profile.
+     *
+     * @param profile Profile to set
+     * @return observable that completes when request handled
+     */
+    public Observable<Profile> setProfile(Profile profile) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfile(SetProfileRequest.newBuilder()
+                        .setProfile(profile)
+                        .build()))
+                .map(new Function<SetProfileResponse, Profile>() {
+                    public Profile apply(SetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
+    }
+
+    /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member Id whose profile we want
+     * @return their profile text
+     */
+    public Observable<Profile> getProfile(String memberId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfile(GetProfileRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetProfileResponse, Profile>() {
+                    public Profile apply(GetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
+    }
+
+    /**
+     * Replaces a member's public profile picture.
+     *
+     * @param payload Picture data
+     * @return observable that completes when request handled
+     */
+    public Completable setProfilePicture(Blob.Payload payload) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfilePicture(SetProfilePictureRequest.newBuilder()
+                        .setPayload(payload)
+                        .build()));
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member Id whose profile we want
+     * @param size size category we want (small, medium, large, original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfilePicture(GetProfilePictureRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .setSize(size)
+                        .build()))
+                .map(new Function<GetProfilePictureResponse, Blob>() {
+                    public Blob apply(GetProfilePictureResponse response) {
+                        return response.getBlob();
+                    }
+                });
+    }
+
+    /**
      * Returns linking information for the specified bank id.
      *
      * @param bankId the bank id
@@ -547,6 +679,26 @@ public class Client {
         this.trackingMetadata = SecurityMetadata.getDefaultInstance();
     }
 
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest.newBuilder()
+                        .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
+                                .addAllAccountId(accountIds))
+                        .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Client)) {
@@ -562,11 +714,11 @@ public class Client {
         return memberId.hashCode();
     }
 
-    private AuthenticationContext authenticationContext() {
+    protected AuthenticationContext authenticationContext() {
         return AuthenticationContext.create(null, false, LOW, trackingMetadata);
     }
 
-    private AuthenticationContext authenticationContext(Key.Level level) {
+    protected AuthenticationContext authenticationContext(Key.Level level) {
         return AuthenticationContext.create(null, false, level, trackingMetadata);
     }
 
@@ -578,7 +730,7 @@ public class Client {
         return AuthenticationContext.create(null, customerInitiated, level, trackingMetadata);
     }
 
-    private Page.Builder pageBuilder(@Nullable String offset, int limit) {
+    protected Page.Builder pageBuilder(@Nullable String offset, int limit) {
         Page.Builder page = Page.newBuilder()
                 .setLimit(limit);
         if (offset != null) {
@@ -588,7 +740,7 @@ public class Client {
         return page;
     }
 
-    private String tokenAction(Token token, Action action) {
+    protected String tokenAction(Token token, Action action) {
         return tokenAction(token.getPayload(), action);
     }
 
@@ -597,9 +749,5 @@ public class Client {
                 "%s.%s",
                 toJson(tokenPayload),
                 action.name().toLowerCase());
-    }
-
-    protected interface GatewayProvider {
-        GatewayServiceFutureStub withAuthentication(AuthenticationContext context);
     }
 }

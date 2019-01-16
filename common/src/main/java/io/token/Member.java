@@ -23,6 +23,7 @@
 package io.token;
 
 import static io.reactivex.Completable.fromObservable;
+import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.util.Util.TOKEN_REALM;
 import static io.token.util.Util.hashAlias;
 import static io.token.util.Util.normalizeAlias;
@@ -41,6 +42,10 @@ import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.blob.BlobProtos.Attachment;
+import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
+import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Member.Builder;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
@@ -49,8 +54,9 @@ import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
+import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
@@ -882,6 +888,117 @@ public class Member {
     }
 
     /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @return attachment
+     */
+    public Observable<Attachment> createBlob(
+            String ownerId,
+            final String type,
+            final String name,
+            byte[] data) {
+        return createBlob(ownerId, type, name, data, AccessMode.DEFAULT);
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @param accessMode Normal access or public
+     * @return attachment
+     */
+    public Observable<Attachment> createBlob(
+            String ownerId,
+            final String type,
+            final String name,
+            byte[] data,
+            AccessMode accessMode) {
+        Payload payload = Payload
+                .newBuilder()
+                .setOwnerId(ownerId)
+                .setType(type)
+                .setName(name)
+                .setData(ByteString.copyFrom(data))
+                .setAccessMode(accessMode)
+                .build();
+        return client.createBlob(payload)
+                .map(new Function<String, Attachment>() {
+                    public Attachment apply(String id) {
+                        return Attachment.newBuilder()
+                                .setBlobId(id)
+                                .setName(name)
+                                .setType(type)
+                                .build();
+                    }
+                });
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @param accessMode Default or public
+     * @return blob Id
+     */
+    public Attachment createBlobBlocking(
+            String ownerId,
+            String type,
+            String name,
+            byte[] data,
+            AccessMode accessMode) {
+        return createBlob(ownerId, type, name, data, accessMode).blockingSingle();
+    }
+
+    /**
+     * Creates and uploads a blob.
+     *
+     * @param ownerId id of the owner of the blob
+     * @param type MIME type of the file
+     * @param name name
+     * @param data file data
+     * @return blob Id
+     */
+    public Attachment createBlobBlocking(
+            String ownerId,
+            String type,
+            String name,
+            byte[] data) {
+        return createBlob(ownerId, type, name, data, AccessMode.DEFAULT)
+                .blockingSingle();
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<Blob> getBlob(String blobId) {
+        return client.getBlob(blobId);
+    }
+
+    /**
+     * Gets a blob from the server.
+     *
+     * @param blobId blob Id
+     * @return Blob
+     */
+    public Blob getBlobBlocking(String blobId) {
+        return getBlob(blobId).blockingSingle();
+    }
+
+
+    /**
      * Delete the member.
      *
      * @return completable
@@ -942,7 +1059,6 @@ public class Member {
     public void clearTrackingMetadata() {
         client.clearTrackingMetadata();
     }
-
 
     /**
      * Trigger a step up notification for balance requests.

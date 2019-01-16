@@ -22,14 +22,10 @@
 
 package io.token.user;
 
-import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
-import static io.token.util.Util.TOKEN_REALM;
+import static io.token.user.util.Util.getWebAppUrl;
+import static io.token.user.util.Util.parseOauthAccessToken;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.hashAlias;
-import static io.token.util.Util.normalizeAlias;
-import static java.util.Collections.singletonList;
-import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
@@ -42,59 +38,35 @@ import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
-import io.token.TokenClient;
 import io.token.TokenClient.TokenCluster;
-import io.token.exceptions.InvalidRealmException;
-import io.token.exceptions.NoAliasesFoundException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
-import io.token.proto.common.address.AddressProtos.Address;
-import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
-import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
-import io.token.proto.common.blob.BlobProtos.Blob.AccessMode;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.member.MemberProtos.AddressRecord;
-import io.token.proto.common.member.MemberProtos.Device;
-import io.token.proto.common.member.MemberProtos.Member.Builder;
-import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
-import io.token.proto.common.member.MemberProtos.MemberOperation;
-import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
-import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
-import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
-import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
-import io.token.proto.common.member.MemberProtos.RecoveryRule;
-import io.token.proto.common.member.MemberProtos.TrustedBeneficiary;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
-import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
-import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
-import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
-import io.token.rpc.Client;
-import io.token.security.keystore.SecretKeyPair;
+import io.token.user.rpc.Client;
 import io.token.user.browser.Browser;
 import io.token.user.browser.BrowserFactory;
 import io.token.user.exceptions.BankAuthorizationRequiredException;
-import io.token.util.Util;
 
 import java.net.URL;
 import java.net.URLEncoder;
@@ -113,6 +85,9 @@ import org.slf4j.LoggerFactory;
  * and public key pair that is used to perform authentication.
  */
 public class Member extends io.token.Member {
+    private static final Logger logger = LoggerFactory.getLogger(Member.class);
+
+    private final Client client;
     private final BrowserFactory browserFactory;
 
     /**
@@ -129,6 +104,7 @@ public class Member extends io.token.Member {
             TokenCluster cluster,
             BrowserFactory browserFactory) {
         super(member, client, cluster);
+        this.client = client;
         this.browserFactory = browserFactory;
     }
 
@@ -483,108 +459,6 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates an access token built from a given {@link AccessTokenBuilder}.
-     *
-     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
-     * @return the access token created
-     */
-    public Observable<Token> createAccessToken(AccessTokenBuilder accessTokenBuilder) {
-        return client.createAccessToken(accessTokenBuilder.from(memberId()).build());
-    }
-
-    /**
-     * Creates an access token built from a given {@link AccessTokenBuilder}.
-     *
-     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
-     * @param tokenRequestId token request id
-     * @return the access token created
-     */
-    public Observable<Token> createAccessToken(
-            AccessTokenBuilder accessTokenBuilder,
-            String tokenRequestId) {
-        return client.createAccessToken(
-                accessTokenBuilder.from(memberId()).build(),
-                tokenRequestId);
-    }
-
-
-    /**
-     * Creates an access token built from a given {@link AccessTokenBuilder}.
-     *
-     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
-     * @return the access token created
-     */
-    public Token createAccessTokenBlocking(AccessTokenBuilder accessTokenBuilder) {
-        return createAccessToken(accessTokenBuilder).blockingSingle();
-    }
-
-    /**
-     * Creates an access token built from a given {@link AccessTokenBuilder}.
-     *
-     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
-     * @param tokenRequestId token request id
-     * @return the access token created
-     */
-    public Token createAccessTokenBlocking(
-            AccessTokenBuilder accessTokenBuilder,
-            String tokenRequestId) {
-        return createAccessToken(accessTokenBuilder, tokenRequestId).blockingSingle();
-    }
-
-    /**
-     * Creates a new transfer token builder.
-     *
-     * @param amount transfer amount
-     * @param currency currency code, e.g. "USD"
-     * @return transfer token returned by the server
-     */
-    public TransferTokenBuilder createTransferToken(double amount, String currency) {
-        return new TransferTokenBuilder(this, amount, currency);
-    }
-
-    /**
-     * Creates a new transfer token from a token payload.
-     *
-     * @param payload transfer token payload
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createTransferToken(TokenPayload payload) {
-        return client.createTransferToken(payload);
-    }
-
-    /**
-     * Creates a new transfer token from a token payload.
-     *
-     * @param payload transfer token payload
-     * @param tokenRequestId token request id
-     * @return transfer token returned by the server
-     */
-    public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
-        return client.createTransferToken(payload, tokenRequestId);
-    }
-
-    /**
-     * Creates a new transfer token from a token payload.
-     *
-     * @param payload transfer token payload
-     * @return transfer token returned by the server
-     */
-    public Token createTransferTokenBlocking(TokenPayload payload) {
-        return createTransferToken(payload).blockingSingle();
-    }
-
-    /**
-     * Creates a new transfer token from a token payload.
-     *
-     * @param payload transfer token payload
-     * @param tokenRequestId token request id
-     * @return transfer token returned by the server
-     */
-    public Token createTransferTokenBlocking(TokenPayload payload, String tokenRequestId) {
-        return createTransferToken(payload, tokenRequestId).blockingSingle();
-    }
-
-    /**
      * Replaces the member's receipt contact.
      *
      * @param contact receipt contact to set
@@ -905,7 +779,7 @@ public class Member extends io.token.Member {
             throws BankAuthorizationRequiredException {
         final String callbackUrl = String.format(
                 "https://%s/auth/callback",
-                getTokenCluster().webAppUrl());
+                getWebAppUrl(getTokenCluster()));
         final Browser browser = browserFactory.create();
         final Observable<List<Account>> accountLinkingObservable = browser.url()
                 .filter(new Predicate<URL>() {
@@ -1322,5 +1196,29 @@ public class Member extends io.token.Member {
      */
     public void applyScaBlocking(List<String> accountIds) {
         applySca(accountIds).blockingAwait();
+    }
+
+    private Observable<List<Account>> toAccountList(
+            Observable<List<AccountProtos.Account>> accounts) {
+        return accounts.map(new Function<List<AccountProtos.Account>, List<Account>>() {
+            @Override
+            public List<Account> apply(List<AccountProtos.Account> accounts) {
+                List<Account> result = new LinkedList<>();
+                for (AccountProtos.Account account : accounts) {
+                    result.add(new Account(Member.this, account, client));
+                }
+                return result;
+            }
+        });
+    }
+
+    private Observable<Account> toAccount(Observable<AccountProtos.Account> account) {
+        return account
+                .map(new Function<AccountProtos.Account, Account>() {
+                    @Override
+                    public Account apply(AccountProtos.Account account) {
+                        return new Account(Member.this, account, client);
+                    }
+                });
     }
 }

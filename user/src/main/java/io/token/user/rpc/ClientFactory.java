@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2017 Token, Inc.
+ * Copyright (c) 2019 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +25,16 @@ package io.token.user.rpc;
 import io.grpc.ManagedChannel;
 import io.token.proto.gateway.GatewayServiceGrpc;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.user.rpc.Client.GatewayProvider;
+import io.token.rpc.AuthenticationContext;
+import io.token.rpc.GatewayProvider;
+import io.token.rpc.ClientAuthenticatorFactory;
+import io.token.rpc.ErrorHandlerFactory;
 import io.token.rpc.client.Interceptor;
 import io.token.rpc.client.RpcChannelFactory;
-import io.token.user.security.CryptoEngine;
+import io.token.security.CryptoEngine;
 
 /**
- * A factory class that is used to create {@link io.token.user.rpc.Client} and {@link io.token.user.rpc.UnauthenticatedClient}
+ * A factory class that is used to create {@link Client} and {@link UnauthenticatedClient}
  * instances.
  */
 public abstract class ClientFactory {
@@ -44,11 +47,11 @@ public abstract class ClientFactory {
      * @param channel RPC channel to use
      * @return newly created client
      */
-    public static io.token.user.rpc.UnauthenticatedClient unauthenticated(ManagedChannel channel) {
+    public static UnauthenticatedClient unauthenticated(ManagedChannel channel) {
         return new UnauthenticatedClient(GatewayServiceGrpc.newFutureStub(
                 RpcChannelFactory.intercept(
                         channel,
-                        new io.token.user.rpc.ErrorHandlerFactory())));
+                        new ErrorHandlerFactory())));
     }
 
     /**
@@ -60,18 +63,18 @@ public abstract class ClientFactory {
      * @param crypto crypto engine to use for signing requests, tokens, etc
      * @return newly created client
      */
-    public static io.token.user.rpc.Client authenticated(
+    public static Client authenticated(
             final ManagedChannel channel,
             final String memberId,
             final CryptoEngine crypto) {
         final GatewayServiceFutureStub stub = GatewayServiceGrpc.newFutureStub(
                 RpcChannelFactory.intercept(
                         channel,
-                        new io.token.user.rpc.ErrorHandlerFactory()));
+                        new ErrorHandlerFactory()));
 
         GatewayProvider provider = new GatewayProvider() {
             @Override
-            public GatewayServiceFutureStub withAuthentication(io.token.user.rpc.AuthenticationContext context) {
+            public GatewayServiceFutureStub withAuthentication(AuthenticationContext context) {
                 return stub.withInterceptors(new Interceptor(new ClientAuthenticatorFactory(
                         memberId,
                         crypto,

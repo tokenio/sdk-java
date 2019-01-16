@@ -67,7 +67,6 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.user.rpc.Client;
-import io.token.user.rpc.ClientFactory;
 import io.token.user.rpc.UnauthenticatedClient;
 import io.token.user.security.CryptoEngine;
 import io.token.user.security.CryptoEngineFactory;
