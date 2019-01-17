@@ -207,7 +207,7 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param memberType the type of member to register
      * @return newly created member
      */
-    public Member createMemberBlocking(
+    public MemT createMemberBlocking(
             final Alias alias,
             final CreateMemberType memberType) {
         return createMember(alias, memberType).blockingSingle();
@@ -278,14 +278,14 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param memberId member id
      * @return member
      */
-    public Observable<? extends Member> getMember(String memberId) {
+    public Observable<MemT> getMember(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client
                 .getMember(memberId)
-                .map(new Function<MemberProtos.Member, Member>() {
-                    public Member apply(MemberProtos.Member member) {
-                        return new Member(member, client, tokenCluster);
+                .map(new Function<MemberProtos.Member, MemT>() {
+                    public MemT apply(MemberProtos.Member member) {
+                        return (MemT) new Member(member, client, tokenCluster);
                     }
                 });
     }
@@ -296,7 +296,7 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param memberId member id
      * @return member
      */
-    public Member getMemberBlocking(String memberId) {
+    public MemT getMemberBlocking(String memberId) {
         return getMember(memberId).blockingSingle();
     }
 
@@ -309,7 +309,7 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param cryptoEngine the new crypto engine
      * @return an observable of the updated member
      */
-    public Observable<? extends Member> completeRecovery(
+    public Observable<MemT> completeRecovery(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
             SecurityProtos.Key privilegedKey,
@@ -317,13 +317,13 @@ public class TokenClient<MemT extends Member> implements Closeable {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
-                .map(new Function<MemberProtos.Member, Member>() {
-                    public Member apply(MemberProtos.Member member) {
+                .map(new Function<MemberProtos.Member, MemT>() {
+                    public MemT apply(MemberProtos.Member member) {
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new Member(member, client, tokenCluster);
+                        return (MemT) new Member(member, client, tokenCluster);
                     }
                 });
     }
@@ -337,7 +337,7 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param cryptoEngine the new crypto engine
      * @return an observable of the updated member
      */
-    public Member completeRecoveryBlocking(
+    public MemT completeRecoveryBlocking(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
             SecurityProtos.Key privilegedKey,
@@ -354,7 +354,7 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param code the code
      * @return the new member
      */
-    public Observable<? extends Member> completeRecoveryWithDefaultRule(
+    public Observable<MemT> completeRecoveryWithDefaultRule(
             String memberId,
             String verificationId,
             String code) {
@@ -362,13 +362,13 @@ public class TokenClient<MemT extends Member> implements Closeable {
         final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
         return unauthenticated
                 .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
-                .map(new Function<MemberProtos.Member, Member>() {
-                    public Member apply(MemberProtos.Member member) {
+                .map(new Function<MemberProtos.Member, MemT>() {
+                    public MemT apply(MemberProtos.Member member) {
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return new Member(member, client, tokenCluster);
+                        return (MemT) new Member(member, client, tokenCluster);
                     }
                 });
     }
@@ -381,7 +381,7 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param code the code
      * @return the new member
      */
-    public Member completeRecoveryWithDefaultRuleBlocking(
+    public MemT completeRecoveryWithDefaultRuleBlocking(
             String memberId,
             String verificationId,
             String code) {

@@ -210,11 +210,11 @@ public class Member<AccT extends Account> {
                 .map(new Function<List<AccountProtos.Account>, List<AccT>>() {
                     @Override
                     public List<AccT> apply(List<AccountProtos.Account> accounts) {
-                        List<AccT> result = new LinkedList<>();
+                        List<Account> result = new LinkedList<>();
                         for (AccountProtos.Account account : accounts) {
-                            result.add((AccT) new Account(Member.this, account, client));
+                            result.add(new Account(Member.this, account, client));
                         }
-                        return result;
+                        return (List<AccT>) result;
                     }
                 });
     }
