@@ -37,6 +37,8 @@ import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.reactivex.functions.Function;
+import io.token.TokenClient;
+import io.token.TokenClient.TokenCluster;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -228,5 +230,30 @@ public abstract class Util {
                     }
                 })
                 .toObservable();
+    }
+
+    /**
+     * Get the cluster-dependent url to the web-app.
+     *
+     * @param cluster Token cluster
+     * @return web-app url
+     */
+    public static String getWebAppUrl(TokenCluster cluster) {
+        switch (cluster) {
+            case PRODUCTION:
+                return "web-app.token.io";
+            case INTEGRATION:
+                return "web-app.int.token.io";
+            case SANDBOX:
+                return "web-app.sandbox.token.io";
+            case STAGING:
+                return "web-app.stg.token.io";
+            case PERFORMANCE:
+                return "web-app.perf.token.io";
+            case DEVELOPMENT:
+                return "web-app.dev.token.io";
+            default:
+                throw new IllegalArgumentException("Unrecognized cluster: " + cluster);
+        }
     }
 }

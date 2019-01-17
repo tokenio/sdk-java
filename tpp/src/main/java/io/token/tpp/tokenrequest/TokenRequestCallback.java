@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 Token, Inc.
+ * Copyright (c) 2017 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,36 +20,32 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.util;
+package io.token.tpp.tokenrequest;
 
-import javax.annotation.Nullable;
+import com.google.auto.value.AutoValue;
 
 /**
- * Utility methods.
+ * Represents callback in Token Request Flow. Contains tokenID and state.
  */
-public abstract class Util {
 
-    /**
-     * The token realm.
-     */
-    public static final String TOKEN_REALM = "token";
-
-    private Util() {
+@AutoValue
+public abstract class TokenRequestCallback {
+    public static TokenRequestCallback create(String tokenId, String state) {
+        return new AutoValue_TokenRequestCallback(tokenId, state);
     }
 
     /**
-     * Retrieve the access token from the URL fragment, given the full URL.
+     * Get the token ID returned at the end of the Token Request Flow.
      *
-     * @param fullUrl full url
-     * @return oauth access token, or null if not found
+     * @return token id
      */
-    public static @Nullable String parseOauthAccessToken(String fullUrl) {
-        String[] urlParts = fullUrl.split("#|&");
-        for (int i = urlParts.length - 1; i >= 0; i--) {
-            if (urlParts[i].contains("access_token=")) {
-                return urlParts[i].substring(13);
-            }
-        }
-        return null;
-    }
+    public abstract String getTokenId();
+
+    /**
+     * Get the state returned at the end of the Token Request Flow. This corresponds to the state
+     * set at the beginning of the flow.
+     *
+     * @return state
+     */
+    public abstract String getState();
 }

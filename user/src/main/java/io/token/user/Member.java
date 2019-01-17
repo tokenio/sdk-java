@@ -24,9 +24,9 @@ package io.token.user;
 
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
-import static io.token.user.util.Util.getWebAppUrl;
 import static io.token.user.util.Util.parseOauthAccessToken;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.getWebAppUrl;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
@@ -563,22 +563,22 @@ public class Member extends io.token.Member {
      * Retrieves a blob that is attached to a transfer token.
      *
      * @param tokenId id of the token
-     * @param blobId id of the blob
+     * @param attachmentId id of the attachment
      * @return Blob
      */
-    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
-        return client.getTokenBlob(tokenId, blobId);
+    public Observable<Blob> getTokenAttachment(String tokenId, String attachmentId) {
+        return client.getTokenAttachment(tokenId, attachmentId);
     }
 
     /**
      * Retrieves a blob that is attached to a token.
      *
      * @param tokenId id of the token
-     * @param blobId id of the blob
+     * @param attachmentId id of the attachment
      * @return Blob
      */
-    public Blob getTokenBlobBlocking(String tokenId, String blobId) {
-        return getTokenBlob(tokenId, blobId).blockingSingle();
+    public Blob getTokenAttachmentBlocking(String tokenId, String attachmentId) {
+        return getTokenAttachment(tokenId, attachmentId).blockingSingle();
     }
 
     /**

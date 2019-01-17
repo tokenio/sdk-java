@@ -20,36 +20,24 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.util;
+package io.token.tpp.util;
 
-import javax.annotation.Nullable;
+import io.token.util.Clock;
 
-/**
- * Utility methods.
- */
-public abstract class Util {
+public class TestClock implements Clock {
+    private long offset = 0L;
 
-    /**
-     * The token realm.
-     */
-    public static final String TOKEN_REALM = "token";
-
-    private Util() {
+    @Override
+    public long getTime() {
+        return System.currentTimeMillis() + offset;
     }
 
     /**
-     * Retrieve the access token from the URL fragment, given the full URL.
+     * Tick the clock by a specified duration.
      *
-     * @param fullUrl full url
-     * @return oauth access token, or null if not found
+     * @param duration duration in epoch milliseconds
      */
-    public static @Nullable String parseOauthAccessToken(String fullUrl) {
-        String[] urlParts = fullUrl.split("#|&");
-        for (int i = urlParts.length - 1; i >= 0; i--) {
-            if (urlParts[i].contains("access_token=")) {
-                return urlParts[i].substring(13);
-            }
-        }
-        return null;
+    public void tick(long duration) {
+        offset += duration;
     }
 }

@@ -20,36 +20,27 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.util;
+package io.token.tpp.util;
 
-import javax.annotation.Nullable;
-
-/**
- * Utility methods.
- */
-public abstract class Util {
-
+public class TimeUtil {
     /**
-     * The token realm.
+     * Returns the time after a specified number of days.
+     *
+     * @param time the baseline time
+     * @param days number of days
+     * @return time after the inputted days have elapsed
      */
-    public static final String TOKEN_REALM = "token";
-
-    private Util() {
+    public static long daysAfter(long time, int days) {
+        return time + daysToMs(days);
     }
 
     /**
-     * Retrieve the access token from the URL fragment, given the full URL.
+     * Converts days to milliseconds.
      *
-     * @param fullUrl full url
-     * @return oauth access token, or null if not found
+     * @param days number of days
+     * @return number of milliseconds
      */
-    public static @Nullable String parseOauthAccessToken(String fullUrl) {
-        String[] urlParts = fullUrl.split("#|&");
-        for (int i = urlParts.length - 1; i >= 0; i--) {
-            if (urlParts[i].contains("access_token=")) {
-                return urlParts[i].substring(13);
-            }
-        }
-        return null;
+    public static long daysToMs(int days) {
+        return 86400000L * days;
     }
 }

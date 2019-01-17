@@ -1,16 +1,16 @@
 /**
- * Copyright (c) 2019 Token, Inc.
- * <p>
+ * Copyright (c) 2017 Token, Inc.
+ *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
  * in the Software without restriction, including without limitation the rights
  * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
  * copies of the Software, and to permit persons to whom the Software is
  * furnished to do so, subject to the following conditions:
- * <p>
+ *
  * The above copyright notice and this permission notice shall be included in
  * all copies or substantial portions of the Software.
- * <p>
+ *
  * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
  * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
  * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -20,36 +20,22 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.util;
+package io.token.tpp.exceptions;
 
-import javax.annotation.Nullable;
+import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 
 /**
- * Utility methods.
+ * Thrown when a transfer token creation fails.
  */
-public abstract class Util {
+public final class TransferTokenException extends RuntimeException {
+    private final TransferTokenStatus status;
 
-    /**
-     * The token realm.
-     */
-    public static final String TOKEN_REALM = "token";
-
-    private Util() {
+    public TransferTokenException(TransferTokenStatus status) {
+        super("Failed to create token: " + status);
+        this.status = status;
     }
 
-    /**
-     * Retrieve the access token from the URL fragment, given the full URL.
-     *
-     * @param fullUrl full url
-     * @return oauth access token, or null if not found
-     */
-    public static @Nullable String parseOauthAccessToken(String fullUrl) {
-        String[] urlParts = fullUrl.split("#|&");
-        for (int i = urlParts.length - 1; i >= 0; i--) {
-            if (urlParts[i].contains("access_token=")) {
-                return urlParts[i].substring(13);
-            }
-        }
-        return null;
+    public TransferTokenStatus getStatus() {
+        return status;
     }
 }

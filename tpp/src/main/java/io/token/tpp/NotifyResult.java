@@ -20,36 +20,25 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.util;
+package io.token.tpp;
 
-import javax.annotation.Nullable;
+import com.google.auto.value.AutoValue;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 
-/**
- * Utility methods.
- */
-public abstract class Util {
-
+@AutoValue
+public abstract class NotifyResult {
     /**
-     * The token realm.
-     */
-    public static final String TOKEN_REALM = "token";
-
-    private Util() {
-    }
-
-    /**
-     * Retrieve the access token from the URL fragment, given the full URL.
+     * Create token request.
      *
-     * @param fullUrl full url
-     * @return oauth access token, or null if not found
+     * @param notificationId notification id
+     * @param notifyStatus notify status
+     * @return notify result
      */
-    public static @Nullable String parseOauthAccessToken(String fullUrl) {
-        String[] urlParts = fullUrl.split("#|&");
-        for (int i = urlParts.length - 1; i >= 0; i--) {
-            if (urlParts[i].contains("access_token=")) {
-                return urlParts[i].substring(13);
-            }
-        }
-        return null;
+    public static NotifyResult create(String notificationId, NotifyStatus notifyStatus) {
+        return new AutoValue_NotifyResult(notificationId, notifyStatus);
     }
+
+    public abstract String getNotificationId();
+
+    public abstract NotifyStatus getNotifyStatus();
 }
