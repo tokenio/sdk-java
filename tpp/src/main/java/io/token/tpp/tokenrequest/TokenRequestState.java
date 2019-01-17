@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 Token, Inc.
+ * Copyright (c) 2017 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,39 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.util;
+package io.token.tpp.tokenrequest;
 
-import javax.annotation.Nullable;
+import com.google.auto.value.AutoValue;
+import com.google.gson.Gson;
 
-/**
- * Utility methods.
- */
-public class Util extends io.token.util.Util {
+@AutoValue
+public abstract class TokenRequestState {
+    public static TokenRequestState create(String csrfTokenHash, String state) {
+        return new AutoValue_TokenRequestState(csrfTokenHash, state);
+    }
+
     /**
-     * Retrieve the access token from the URL fragment, given the full URL.
+     * Parse a serialized state into a TokenRequestState instance.
      *
-     * @param fullUrl full url
-     * @return oauth access token, or null if not found
+     * @param serialized serialized token request state
+     * @return TokenRequestState instance
      */
-    public static @Nullable String parseOauthAccessToken(String fullUrl) {
-        String[] urlParts = fullUrl.split("#|&");
-        for (int i = urlParts.length - 1; i >= 0; i--) {
-            if (urlParts[i].contains("access_token=")) {
-                return urlParts[i].substring(13);
-            }
-        }
-        return null;
+    public static TokenRequestState parse(String serialized) {
+        Gson gson = new Gson();
+        return gson.fromJson(serialized, AutoValue_TokenRequestState.class);
+    }
+
+    public abstract String getCsrfTokenHash();
+
+    public abstract String getInnerState();
+
+    /**
+     * Serialize into JSON format and encode.
+     *
+     * @return serialized state
+     */
+    public String serialize() {
+        Gson gson = new Gson();
+        return gson.toJson(this);
     }
 }

@@ -562,22 +562,22 @@ public class Member extends io.token.Member {
      * Retrieves a blob that is attached to a transfer token.
      *
      * @param tokenId id of the token
-     * @param blobId id of the blob
+     * @param attachmentId id of the attachment
      * @return Blob
      */
-    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
-        return client.getTokenBlob(tokenId, blobId);
+    public Observable<Blob> getTokenAttachment(String tokenId, String attachmentId) {
+        return client.getTokenAttachment(tokenId, attachmentId);
     }
 
     /**
      * Retrieves a blob that is attached to a token.
      *
      * @param tokenId id of the token
-     * @param blobId id of the blob
+     * @param attachmentId id of the attachment
      * @return Blob
      */
-    public Blob getTokenBlobBlocking(String tokenId, String blobId) {
-        return getTokenBlob(tokenId, blobId).blockingSingle();
+    public Blob getTokenAttachmentBlocking(String tokenId, String attachmentId) {
+        return getTokenAttachment(tokenId, attachmentId).blockingSingle();
     }
 
     /**

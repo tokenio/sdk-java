@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 Token, Inc.
+ * Copyright (c) 2017 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,18 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.util;
+package io.token.tpp.tokenrequest;
 
-import javax.annotation.Nullable;
+import com.google.auto.value.AutoValue;
+import io.token.proto.common.security.SecurityProtos.Signature;
 
-/**
- * Utility methods.
- */
-public class Util extends io.token.util.Util {
-    /**
-     * Retrieve the access token from the URL fragment, given the full URL.
-     *
-     * @param fullUrl full url
-     * @return oauth access token, or null if not found
-     */
-    public static @Nullable String parseOauthAccessToken(String fullUrl) {
-        String[] urlParts = fullUrl.split("#|&");
-        for (int i = urlParts.length - 1; i >= 0; i--) {
-            if (urlParts[i].contains("access_token=")) {
-                return urlParts[i].substring(13);
-            }
-        }
-        return null;
+@AutoValue
+public abstract class TokenRequestResult {
+    public static TokenRequestResult create(String tokenId, Signature signature) {
+        return new AutoValue_TokenRequestResult(tokenId, signature);
     }
+
+    public abstract String getTokenId();
+
+    public abstract Signature getSignature();
 }

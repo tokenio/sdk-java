@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 Token, Inc.
+ * Copyright (c) 2017 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -20,27 +20,10 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.util;
+package io.token.tpp.exceptions;
 
-import javax.annotation.Nullable;
-
-/**
- * Utility methods.
- */
-public class Util extends io.token.util.Util {
-    /**
-     * Retrieve the access token from the URL fragment, given the full URL.
-     *
-     * @param fullUrl full url
-     * @return oauth access token, or null if not found
-     */
-    public static @Nullable String parseOauthAccessToken(String fullUrl) {
-        String[] urlParts = fullUrl.split("#|&");
-        for (int i = urlParts.length - 1; i >= 0; i--) {
-            if (urlParts[i].contains("access_token=")) {
-                return urlParts[i].substring(13);
-            }
-        }
-        return null;
+public class InvalidTokenRequestQuery extends RuntimeException {
+    public InvalidTokenRequestQuery() {
+        super("Invalid or missing parameters in token request query.");
     }
 }

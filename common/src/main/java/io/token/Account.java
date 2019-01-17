@@ -40,16 +40,21 @@ public class Account {
     protected final AccountProtos.Account account;
     protected final Client client;
 
+    /**
+     * Copy constructor. For internal use.
+     *
+     * @param account account
+     */
+    public Account(Account account) {
+        this.member = account.member;
+        this.account = account.account;
+        this.client = account.client;
+    }
+
     protected Account(Member member, AccountProtos.Account account, Client client) {
         this.member = member;
         this.account = account;
         this.client = client;
-    }
-
-    protected Account(Account account) {
-        this.member = account.member;
-        this.account = account.account;
-        this.client = account.client;
     }
 
     /**

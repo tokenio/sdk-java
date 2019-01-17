@@ -35,7 +35,7 @@ import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.blob.BlobProtos.Blob;
-import io.token.proto.common.member.MemberProtos;
+import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.notification.NotificationProtos;
@@ -146,14 +146,14 @@ public final class Client extends io.token.rpc.Client {
      * @param profile Profile to set
      * @return observable that completes when request handled
      */
-    public Observable<MemberProtos.Profile> setProfile(MemberProtos.Profile profile) {
+    public Observable<Profile> setProfile(Profile profile) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .setProfile(SetProfileRequest.newBuilder()
                         .setProfile(profile)
                         .build()))
-                .map(new Function<SetProfileResponse, MemberProtos.Profile>() {
-                    public MemberProtos.Profile apply(SetProfileResponse response) {
+                .map(new Function<SetProfileResponse, Profile>() {
+                    public Profile apply(SetProfileResponse response) {
                         return response.getProfile();
                     }
                 });
@@ -165,14 +165,14 @@ public final class Client extends io.token.rpc.Client {
      * @param memberId member Id whose profile we want
      * @return their profile text
      */
-    public Observable<MemberProtos.Profile> getProfile(String memberId) {
+    public Observable<Profile> getProfile(String memberId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getProfile(GetProfileRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
-                .map(new Function<GetProfileResponse, MemberProtos.Profile>() {
-                    public MemberProtos.Profile apply(GetProfileResponse response) {
+                .map(new Function<GetProfileResponse, Profile>() {
+                    public Profile apply(GetProfileResponse response) {
                         return response.getProfile();
                     }
                 });
@@ -627,16 +627,16 @@ public final class Client extends io.token.rpc.Client {
      * Retrieves a blob that is attached to a token.
      *
      * @param tokenId id of the token
-     * @param blobId id of the blob
+     * @param attachmentId id of the attachment
      * @return Blob
      */
-    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
+    public Observable<Blob> getTokenAttachment(String tokenId, String attachmentId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getTokenBlob(GetTokenBlobRequest
                         .newBuilder()
                         .setTokenId(tokenId)
-                        .setBlobId(blobId)
+                        .setBlobId(attachmentId)
                         .build()))
                 .map(new Function<GetTokenBlobResponse, Blob>() {
                     public Blob apply(GetTokenBlobResponse response) {

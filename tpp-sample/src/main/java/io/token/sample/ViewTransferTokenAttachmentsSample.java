@@ -3,7 +3,7 @@ package io.token.sample;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.user.Member;
+import io.token.tpp.Member;
 
 import java.util.List;
 
