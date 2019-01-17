@@ -78,7 +78,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
-public class TokenClient implements Closeable {
+public class TokenClient<MemT extends Member> implements Closeable {
     private static final long SHUTDOWN_DURATION_MS = 10000L;
 
     protected final ManagedChannel channel;
@@ -186,14 +186,14 @@ public class TokenClient implements Closeable {
      * @param memberType the type of member to register
      * @return newly created member
      */
-    public Observable<? extends Member> createMember(
+    public Observable<MemT> createMember(
             final Alias alias,
             final CreateMemberType memberType) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType, null)
-                .flatMap(new Function<String, Observable<? extends Member>>() {
-                    public Observable<? extends Member> apply(String memberId) {
+                .flatMap(new Function<String, Observable<MemT>>() {
+                    public Observable<MemT> apply(String memberId) {
                         return setUpMember(alias, memberId);
                     }
                 });
@@ -226,7 +226,7 @@ public class TokenClient implements Closeable {
      * @return newly created member
      */
     @VisibleForTesting
-    public Observable<? extends Member> setUpMember(final Alias alias, final String memberId) {
+    public Observable<MemT> setUpMember(final Alias alias, final String memberId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getDefaultAgent()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
@@ -257,14 +257,14 @@ public class TokenClient implements Closeable {
                                 signer);
                     }
                 })
-                .flatMap(new Function<MemberProtos.Member, Observable<Member>>() {
-                    public Observable<Member> apply(MemberProtos.Member member) {
+                .flatMap(new Function<MemberProtos.Member, Observable<MemT>>() {
+                    public Observable<MemT> apply(MemberProtos.Member member) {
                         CryptoEngine crypto = cryptoFactory.create(member.getId());
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
                                 crypto);
-                        return Observable.just(new Member(
+                        return Observable.just((MemT) new Member(
                                 member,
                                 client,
                                 tokenCluster));

@@ -84,7 +84,7 @@ import org.slf4j.LoggerFactory;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public class Member extends io.token.Member {
+public class Member extends io.token.Member<Account> {
     private static final Logger logger = LoggerFactory.getLogger(Member.class);
 
     private final Client client;

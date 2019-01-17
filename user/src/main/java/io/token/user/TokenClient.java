@@ -67,7 +67,7 @@ import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 
-public class TokenClient extends io.token.TokenClient {
+public class TokenClient extends io.token.TokenClient<Member> {
     private final BrowserFactory browserFactory;
 
     /**

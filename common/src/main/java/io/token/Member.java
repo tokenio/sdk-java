@@ -76,7 +76,7 @@ import javax.annotation.Nullable;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public class Member {
+public class Member<AccT extends Account> {
     protected final Client client;
     protected final Builder member;
     protected final TokenCluster cluster;
@@ -204,15 +204,15 @@ public class Member {
      *
      * @return list of accounts
      */
-    public Observable<? extends List<? extends Account>> getAccounts() {
+    public Observable<List<AccT>> getAccounts() {
         return client
                 .getAccounts()
-                .map(new Function<List<AccountProtos.Account>, List<Account>>() {
+                .map(new Function<List<AccountProtos.Account>, List<AccT>>() {
                     @Override
-                    public List<Account> apply(List<AccountProtos.Account> accounts) {
-                        List<Account> result = new LinkedList<>();
+                    public List<AccT> apply(List<AccountProtos.Account> accounts) {
+                        List<AccT> result = new LinkedList<>();
                         for (AccountProtos.Account account : accounts) {
-                            result.add(new Account(Member.this, account, client));
+                            result.add((AccT) new Account(Member.this, account, client));
                         }
                         return result;
                     }
@@ -224,7 +224,7 @@ public class Member {
      *
      * @return list of linked accounts
      */
-    public List<? extends Account> getAccountsBlocking() {
+    public List<AccT> getAccountsBlocking() {
         return getAccounts().blockingSingle();
     }
 
@@ -234,12 +234,12 @@ public class Member {
      * @param accountId account id
      * @return looked up account
      */
-    public Observable<? extends Account> getAccount(String accountId) {
+    public Observable<AccT> getAccount(String accountId) {
         return client
                 .getAccount(accountId)
-                .map(new Function<AccountProtos.Account, Account>() {
-                    public Account apply(AccountProtos.Account account) {
-                        return new Account(Member.this, account, client);
+                .map(new Function<AccountProtos.Account, AccT>() {
+                    public AccT apply(AccountProtos.Account account) {
+                        return (AccT) new Account(Member.this, account, client);
                     }
                 });
     }
