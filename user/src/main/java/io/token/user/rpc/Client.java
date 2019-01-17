@@ -22,7 +22,6 @@
 
 package io.token.user.rpc;
 
-import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
@@ -34,11 +33,9 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
-import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
-import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -55,8 +52,6 @@ import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
 import io.token.proto.gateway.Gateway.CreateAccessTokenResponse;
-import io.token.proto.gateway.Gateway.CreateTestBankAccountRequest;
-import io.token.proto.gateway.Gateway.CreateTestBankAccountResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
 import io.token.proto.gateway.Gateway.CreateTransferResponse;
 import io.token.proto.gateway.Gateway.CreateTransferTokenRequest;
@@ -87,8 +82,6 @@ import io.token.proto.gateway.Gateway.GetTransferRequest;
 import io.token.proto.gateway.Gateway.GetTransferResponse;
 import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetTransfersResponse;
-import io.token.proto.gateway.Gateway.LinkAccountsOauthRequest;
-import io.token.proto.gateway.Gateway.LinkAccountsOauthResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsResponse;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
@@ -106,7 +99,6 @@ import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
-import io.token.user.exceptions.BankAuthorizationRequiredException;
 import io.token.user.exceptions.TransferTokenException;
 
 import java.util.List;
@@ -434,52 +426,6 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
-     * Creates a test bank account and returns the authorization for it.
-     *
-     * @param balance account balance to set
-     * @return OAuth bank authorization
-     */
-    public Observable<OauthBankAuthorization> createTestBankAccount(MoneyProtos.Money balance) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
-                        .setBalance(balance)
-                        .build()))
-                .map(new Function<CreateTestBankAccountResponse, OauthBankAuthorization>() {
-                    public OauthBankAuthorization apply(CreateTestBankAccountResponse response) {
-                        return response.getAuthorization();
-                    }
-                });
-    }
-
-    /**
-     * Creates a test bank account and links it.
-     *
-     * @param balance account balance to set
-     * @return linked account
-     */
-    public Observable<Account> createAndLinkTestBankAccount(MoneyProtos.Money balance) {
-        return createTestBankAccount(balance)
-                .flatMap(new Function<OauthBankAuthorization, Observable<Account>>() {
-                    @Override
-                    public Observable<Account> apply(OauthBankAuthorization authorization) {
-                        return linkAccounts(authorization)
-                                .map(new Function<List<Account>, Account>() {
-                                    @Override
-                                    public Account apply(List<Account> accounts) {
-                                        if (accounts.size() != 1) {
-                                            throw new RuntimeException(
-                                                    "Expected 1 account; found "
-                                                            + accounts.size());
-                                        }
-                                        return accounts.get(0);
-                                    }
-                                });
-                    }
-                });
-    }
-
-    /**
      * Looks up a existing access token where the calling member is the grantor and given member is
      * the grantee.
      *
@@ -591,32 +537,6 @@ public final class Client extends io.token.rpc.Client {
                 .map(new Function<CreateTransferResponse, Transfer>() {
                     public Transfer apply(CreateTransferResponse response) {
                         return response.getTransfer();
-                    }
-                });
-    }
-
-    /**
-     * Links a funding bank account to Token.
-     *
-     * @param authorization OAuth authorization for linking
-     * @return list of linked accounts
-     * @throws BankAuthorizationRequiredException if bank authorization payload
-     *                                            is required to link accounts
-     */
-    public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
-            throws BankAuthorizationRequiredException {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .linkAccountsOauth(LinkAccountsOauthRequest
-                        .newBuilder()
-                        .setAuthorization(authorization)
-                        .build()))
-                .map(new Function<LinkAccountsOauthResponse, List<Account>>() {
-                    public List<Account> apply(LinkAccountsOauthResponse response) {
-                        if (response.getStatus() == FAILURE_BANK_AUTHORIZATION_REQUIRED) {
-                            throw new BankAuthorizationRequiredException();
-                        }
-                        return response.getAccountsList();
                     }
                 });
     }

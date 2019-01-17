@@ -39,6 +39,7 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.token.TokenClient.TokenCluster;
+import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
@@ -50,6 +51,7 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
+import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -65,7 +67,6 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.user.browser.Browser;
 import io.token.user.browser.BrowserFactory;
-import io.token.user.exceptions.BankAuthorizationRequiredException;
 import io.token.user.rpc.Client;
 
 import java.net.URL;
@@ -1042,60 +1043,6 @@ public class Member extends io.token.Member<Account> {
     }
 
     /**
-     * Creates a test bank account in a fake bank.
-     *
-     * @param balance account balance to set
-     * @param currency currency code, e.g. "EUR"
-     * @return OAuth bank authorization
-     */
-    public Observable<OauthBankAuthorization> createTestBankAccount(
-            double balance, String currency) {
-        return client.createTestBankAccount(Money.newBuilder()
-                .setCurrency(currency)
-                .setValue(Double.toString(balance))
-                .build());
-    }
-
-    /**
-     * Creates a test bank account in a fake bank and links the account.
-     *
-     * @param balance account balance to set
-     * @param currency currency code, e.g. "EUR"
-     * @return the linked account
-     */
-    public Observable<Account> createAndLinkTestBankAccount(double balance, String currency) {
-        return toAccount(client.createAndLinkTestBankAccount(
-                Money.newBuilder()
-                        .setValue(Double.toString(balance))
-                        .setCurrency(currency)
-                        .build()
-        ));
-    }
-
-    /**
-     * Creates a test bank account in a fake bank and links the account.
-     *
-     * @param balance account balance to set
-     * @param currency currency code, e.g. "EUR"
-     * @return the linked account
-     */
-    public Account createAndLinkTestBankAccountBlocking(double balance, String currency) {
-        return createAndLinkTestBankAccount(balance, currency).blockingSingle();
-    }
-
-    /**
-     * Creates a test bank account in a fake bank.
-     *
-     * @param balance account balance to set
-     * @param currency currency code, e.g. "EUR"
-     * @return OAuth bank authorization
-     */
-    public OauthBankAuthorization createTestBankAccountBlocking(double balance, String currency) {
-        return createTestBankAccount(balance, currency).blockingSingle();
-    }
-
-
-    /**
      * Gets a list of the member's notifications.
      *
      * @param offset offset to start
@@ -1282,6 +1229,35 @@ public class Member extends io.token.Member<Account> {
      */
     public void applyScaBlocking(List<String> accountIds) {
         applySca(accountIds).blockingAwait();
+    }
+
+    /**
+     * Creates a test bank account in a fake bank and links the account.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return the linked account
+     */
+    @Override
+    public Observable<Account> createAndLinkTestBankAccount(double balance, String currency) {
+        return toAccount(client.createAndLinkTestBankAccount(
+                MoneyProtos.Money.newBuilder()
+                        .setValue(Double.toString(balance))
+                        .setCurrency(currency)
+                        .build()
+        ));
+    }
+
+    /**
+     * Creates a test bank account in a fake bank and links the account.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return the linked account
+     */
+    @Override
+    public Account createAndLinkTestBankAccountBlocking(double balance, String currency) {
+        return createAndLinkTestBankAccount(balance, currency).blockingSingle();
     }
 
     private Observable<List<Account>> toAccountList(

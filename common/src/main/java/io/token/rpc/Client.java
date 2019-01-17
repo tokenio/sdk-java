@@ -23,6 +23,7 @@
 package io.token.rpc;
 
 import static io.token.proto.ProtoJson.toJson;
+import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.transaction.TransactionProtos.RequestStatus.SUCCESSFUL_REQUEST;
@@ -32,8 +33,11 @@ import static io.token.util.Util.toObservable;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.exceptions.StepUpRequiredException;
 import io.token.proto.PagedList;
+import io.token.proto.banklink.Banklink;
+import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
@@ -47,6 +51,7 @@ import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
+import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -61,6 +66,8 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CreateBlobRequest;
 import io.token.proto.gateway.Gateway.CreateBlobResponse;
+import io.token.proto.gateway.Gateway.CreateTestBankAccountRequest;
+import io.token.proto.gateway.Gateway.CreateTestBankAccountResponse;
 import io.token.proto.gateway.Gateway.DeleteMemberRequest;
 import io.token.proto.gateway.Gateway.GetAccountRequest;
 import io.token.proto.gateway.Gateway.GetAccountResponse;
@@ -88,6 +95,7 @@ import io.token.proto.gateway.Gateway.GetTransactionRequest;
 import io.token.proto.gateway.Gateway.GetTransactionResponse;
 import io.token.proto.gateway.Gateway.GetTransactionsRequest;
 import io.token.proto.gateway.Gateway.GetTransactionsResponse;
+import io.token.proto.gateway.Gateway.LinkAccountsOauthRequest;
 import io.token.proto.gateway.Gateway.Page;
 import io.token.proto.gateway.Gateway.ResolveTransferDestinationsRequest;
 import io.token.proto.gateway.Gateway.ResolveTransferDestinationsResponse;
@@ -538,6 +546,78 @@ public class Client {
                 .map(new Function<GetBankInfoResponse, BankInfo>() {
                     public BankInfo apply(GetBankInfoResponse response) {
                         return response.getInfo();
+                    }
+                });
+    }
+
+    /**
+     * Links a funding bank account to Token.
+     *
+     * @param authorization OAuth authorization for linking
+     * @return list of linked accounts
+     * @throws BankAuthorizationRequiredException if bank authorization payload
+     *     is required to link accounts
+     */
+    public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
+            throws BankAuthorizationRequiredException {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .linkAccountsOauth(LinkAccountsOauthRequest
+                        .newBuilder()
+                        .setAuthorization(authorization)
+                        .build()))
+                .map(new Function<Gateway.LinkAccountsOauthResponse, List<Account>>() {
+                    public List<Account> apply(Gateway.LinkAccountsOauthResponse response) {
+                        if (response.getStatus() == FAILURE_BANK_AUTHORIZATION_REQUIRED) {
+                            throw new BankAuthorizationRequiredException();
+                        }
+                        return response.getAccountsList();
+                    }
+                });
+    }
+
+    /**
+     * Creates a test bank account and links it.
+     *
+     * @param balance account balance to set
+     * @return linked account
+     */
+    public Observable<Account> createAndLinkTestBankAccount(MoneyProtos.Money balance) {
+        return createTestBankAccount(balance)
+                .flatMap(new Function<OauthBankAuthorization, Observable<Account>>() {
+                    @Override
+                    public Observable<Account> apply(OauthBankAuthorization authorization) {
+                        return linkAccounts(authorization)
+                                .map(new Function<List<Account>, Account>() {
+                                    @Override
+                                    public Account apply(List<Account> accounts) {
+                                        if (accounts.size() != 1) {
+                                            throw new RuntimeException(
+                                                    "Expected 1 account; found "
+                                                            + accounts.size());
+                                        }
+                                        return accounts.get(0);
+                                    }
+                                });
+                    }
+                });
+    }
+
+    /**
+     * Creates a test bank account and returns the authorization for it.
+     *
+     * @param balance account balance to set
+     * @return OAuth bank authorization
+     */
+    public Observable<OauthBankAuthorization> createTestBankAccount(MoneyProtos.Money balance) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
+                        .setBalance(balance)
+                        .build()))
+                .map(new Function<CreateTestBankAccountResponse, OauthBankAuthorization>() {
+                    public OauthBankAuthorization apply(CreateTestBankAccountResponse response) {
+                        return response.getAuthorization();
                     }
                 });
     }

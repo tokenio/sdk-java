@@ -39,6 +39,8 @@ import io.token.TokenClient.TokenCluster;
 import io.token.exceptions.InvalidRealmException;
 import io.token.exceptions.NoAliasesFoundException;
 import io.token.proto.PagedList;
+import io.token.proto.banklink.Banklink;
+import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
@@ -57,6 +59,7 @@ import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
+import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
@@ -1079,6 +1082,59 @@ public class Member<AccT extends Account> {
         return triggerBalanceStepUpNotification(accountIds).blockingSingle();
     }
 
+    /**
+     * Creates a test bank account in a fake bank.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return OAuth bank authorization
+     */
+    public Observable<OauthBankAuthorization> createTestBankAccount(
+            double balance, String currency) {
+        return client.createTestBankAccount(MoneyProtos.Money.newBuilder()
+                .setCurrency(currency)
+                .setValue(Double.toString(balance))
+                .build());
+    }
+
+    /**
+     * Creates a test bank account in a fake bank and links the account.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return the linked account
+     */
+    public Observable<AccT> createAndLinkTestBankAccount(double balance, String currency) {
+        return toAccount(client.createAndLinkTestBankAccount(
+                MoneyProtos.Money.newBuilder()
+                        .setValue(Double.toString(balance))
+                        .setCurrency(currency)
+                        .build()
+        ));
+    }
+
+    /**
+     * Creates a test bank account in a fake bank and links the account.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return the linked account
+     */
+    public AccT createAndLinkTestBankAccountBlocking(double balance, String currency) {
+        return createAndLinkTestBankAccount(balance, currency).blockingSingle();
+    }
+
+    /**
+     * Creates a test bank account in a fake bank.
+     *
+     * @param balance account balance to set
+     * @param currency currency code, e.g. "EUR"
+     * @return OAuth bank authorization
+     */
+    public OauthBankAuthorization createTestBankAccountBlocking(double balance, String currency) {
+        return createTestBankAccount(balance, currency).blockingSingle();
+    }
+
     @Override
     public int hashCode() {
         return client.hashCode();
@@ -1114,6 +1170,16 @@ public class Member<AccT extends Account> {
                                         return member.clear().mergeFrom(proto);
                                     }
                                 });
+                    }
+                });
+    }
+
+    private Observable<AccT> toAccount(Observable<AccountProtos.Account> account) {
+        return account
+                .map(new Function<AccountProtos.Account, AccT>() {
+                    @Override
+                    public AccT apply(AccountProtos.Account account) {
+                        return (AccT) new Account(Member.this, account, client);
                     }
                 });
     }

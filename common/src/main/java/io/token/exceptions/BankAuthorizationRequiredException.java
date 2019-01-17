@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package io.token.user.exceptions;
+package io.token.exceptions;
 
 public class BankAuthorizationRequiredException extends RuntimeException {
     public BankAuthorizationRequiredException() {
