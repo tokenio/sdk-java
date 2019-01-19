@@ -43,6 +43,11 @@ public class Account extends io.token.Account {
         this.client = client;
     }
 
+    Account(io.token.Account account, Client client) {
+        super(account);
+        this.client = client;
+    }
+
     /**
      * Sets this account as a member's default account.
      *

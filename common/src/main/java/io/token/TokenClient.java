@@ -78,7 +78,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
-public class TokenClient<MemT extends Member> implements Closeable {
+public class TokenClient implements Closeable {
     private static final long SHUTDOWN_DURATION_MS = 10000L;
 
     protected final ManagedChannel channel;
@@ -186,31 +186,17 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param memberType the type of member to register
      * @return newly created member
      */
-    public Observable<MemT> createMember(
+    protected Observable<Member> createMemberImpl(
             final Alias alias,
             final CreateMemberType memberType) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType, null)
-                .flatMap(new Function<String, Observable<MemT>>() {
-                    public Observable<MemT> apply(String memberId) {
-                        return setUpMember(alias, memberId);
+                .flatMap(new Function<String, Observable<Member>>() {
+                    public Observable<Member> apply(String memberId) {
+                        return setUpMemberImpl(alias, memberId);
                     }
                 });
-    }
-
-    /**
-     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
-     *
-     * @param alias nullable member alias to use, must be unique. If null, then no alias will
-     *     be created with the member.
-     * @param memberType the type of member to register
-     * @return newly created member
-     */
-    public MemT createMemberBlocking(
-            final Alias alias,
-            final CreateMemberType memberType) {
-        return createMember(alias, memberType).blockingSingle();
     }
 
     /**
@@ -225,8 +211,7 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param memberId member id
      * @return newly created member
      */
-    @VisibleForTesting
-    public Observable<MemT> setUpMember(final Alias alias, final String memberId) {
+    protected Observable<Member> setUpMemberImpl(final Alias alias, final String memberId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getDefaultAgent()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
@@ -257,14 +242,14 @@ public class TokenClient<MemT extends Member> implements Closeable {
                                 signer);
                     }
                 })
-                .flatMap(new Function<MemberProtos.Member, Observable<MemT>>() {
-                    public Observable<MemT> apply(MemberProtos.Member member) {
+                .flatMap(new Function<MemberProtos.Member, Observable<Member>>() {
+                    public Observable<Member> apply(MemberProtos.Member member) {
                         CryptoEngine crypto = cryptoFactory.create(member.getId());
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
                                 crypto);
-                        return Observable.just((MemT) new Member(
+                        return Observable.just(new Member(
                                 member,
                                 client,
                                 tokenCluster));
@@ -278,26 +263,16 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param memberId member id
      * @return member
      */
-    public Observable<MemT> getMember(String memberId) {
+    protected Observable<Member> getMemberImpl(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return client
                 .getMember(memberId)
-                .map(new Function<MemberProtos.Member, MemT>() {
-                    public MemT apply(MemberProtos.Member member) {
-                        return (MemT) new Member(member, client, tokenCluster);
+                .map(new Function<MemberProtos.Member, Member>() {
+                    public Member apply(MemberProtos.Member member) {
+                        return new Member(member, client, tokenCluster);
                     }
                 });
-    }
-
-    /**
-     * Return a Member set up to use some Token member's keys (assuming we have them).
-     *
-     * @param memberId member id
-     * @return member
-     */
-    public MemT getMemberBlocking(String memberId) {
-        return getMember(memberId).blockingSingle();
     }
 
     /**
@@ -309,7 +284,7 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param cryptoEngine the new crypto engine
      * @return an observable of the updated member
      */
-    public Observable<MemT> completeRecovery(
+    public Observable<Member> completeRecoveryImpl(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
             SecurityProtos.Key privilegedKey,
@@ -317,33 +292,15 @@ public class TokenClient<MemT extends Member> implements Closeable {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
-                .map(new Function<MemberProtos.Member, MemT>() {
-                    public MemT apply(MemberProtos.Member member) {
+                .map(new Function<MemberProtos.Member, Member>() {
+                    public Member apply(MemberProtos.Member member) {
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return (MemT) new Member(member, client, tokenCluster);
+                        return new Member(member, client, tokenCluster);
                     }
                 });
-    }
-
-    /**
-     * Completes account recovery.
-     *
-     * @param memberId the member id
-     * @param recoveryOperations the member recovery operations
-     * @param privilegedKey the privileged public key in the member recovery operations
-     * @param cryptoEngine the new crypto engine
-     * @return an observable of the updated member
-     */
-    public MemT completeRecoveryBlocking(
-            String memberId,
-            List<MemberRecoveryOperation> recoveryOperations,
-            SecurityProtos.Key privilegedKey,
-            final CryptoEngine cryptoEngine) {
-        return completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
-                .blockingSingle();
     }
 
     /**
@@ -354,7 +311,7 @@ public class TokenClient<MemT extends Member> implements Closeable {
      * @param code the code
      * @return the new member
      */
-    public Observable<MemT> completeRecoveryWithDefaultRule(
+    public Observable<Member> completeRecoveryWithDefaultRuleImpl(
             String memberId,
             String verificationId,
             String code) {
@@ -362,30 +319,15 @@ public class TokenClient<MemT extends Member> implements Closeable {
         final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
         return unauthenticated
                 .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
-                .map(new Function<MemberProtos.Member, MemT>() {
-                    public MemT apply(MemberProtos.Member member) {
+                .map(new Function<MemberProtos.Member, Member>() {
+                    public Member apply(MemberProtos.Member member) {
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
                                 cryptoEngine);
-                        return (MemT) new Member(member, client, tokenCluster);
+                        return new Member(member, client, tokenCluster);
                     }
                 });
-    }
-
-    /**
-     * Completes account recovery if the default recovery rule was set.
-     *
-     * @param memberId the member id
-     * @param verificationId the verification id
-     * @param code the code
-     * @return the new member
-     */
-    public MemT completeRecoveryWithDefaultRuleBlocking(
-            String memberId,
-            String verificationId,
-            String code) {
-        return completeRecoveryWithDefaultRule(memberId, verificationId, code).blockingSingle();
     }
 
     /**

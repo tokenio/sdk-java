@@ -24,9 +24,9 @@ public class MemberRecoverySampleTest {
             Member originalMember = tokenClient.createMemberBlocking(originalAlias);
             mrs.setUpDefaultRecoveryRule(originalMember);
 
-            TokenClient otherTokenIO = createClient();
+            TokenClient otherTokenClient = createClient();
             Member recoveredMember = mrs.recoverWithDefaultRule(
-                    otherTokenIO,
+                    otherTokenClient,
                     originalAlias);
             Alias recoveredAlias = recoveredMember.firstAliasBlocking();
             assertThat(recoveredAlias).isEqualTo(originalAlias);

@@ -24,17 +24,9 @@ package io.token.user;
 
 import static io.token.TokenClient.TokenCluster.SANDBOX;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.normalizeAlias;
-import static io.token.util.Util.toAddAliasOperation;
-import static io.token.util.Util.toAddAliasOperationMetadata;
-import static io.token.util.Util.toAddKeyOperation;
-import static io.token.util.Util.toRecoveryAgentOperation;
-import static java.util.Collections.singletonList;
 
+import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.reactivex.Observable;
@@ -42,7 +34,6 @@ import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
-import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
@@ -54,7 +45,6 @@ import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
-import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
 import io.token.user.browser.BrowserFactory;
@@ -62,12 +52,10 @@ import io.token.user.rpc.Client;
 import io.token.user.rpc.ClientFactory;
 import io.token.user.rpc.UnauthenticatedClient;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
 
-public class TokenClient extends io.token.TokenClient<Member> {
+public class TokenClient extends io.token.TokenClient {
     private final BrowserFactory browserFactory;
 
     /**
@@ -119,16 +107,19 @@ public class TokenClient extends io.token.TokenClient<Member> {
      * @param memberType the type of member to register
      * @return newly created member
      */
-    @Override
     public Observable<Member> createMember(
             final Alias alias,
             final CreateMemberType memberType) {
-        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
-                .createMemberId(memberType, null)
-                .flatMap(new Function<String, Observable<Member>>() {
-                    public Observable<Member> apply(String memberId) {
-                        return setUpMember(alias, memberId);
+        return createMemberImpl(alias, memberType)
+                .map(new Function<io.token.Member, Member>() {
+                    @Override
+                    public Member apply(io.token.Member mem) {
+                        CryptoEngine crypto = cryptoFactory.create(mem.memberId());
+                        final Client client = ClientFactory.authenticated(
+                                channel,
+                                mem.memberId(),
+                                crypto);
+                        return new Member(mem, client, browserFactory);
                     }
                 });
     }
@@ -151,7 +142,6 @@ public class TokenClient extends io.token.TokenClient<Member> {
      * @param memberType the type of member to register
      * @return newly created member
      */
-    @Override
     public Member createMemberBlocking(
             final Alias alias,
             final CreateMemberType memberType) {
@@ -180,50 +170,15 @@ public class TokenClient extends io.token.TokenClient<Member> {
      * @param memberId member id
      * @return newly created member
      */
-    @Override
+    @VisibleForTesting
     public Observable<Member> setUpMember(final Alias alias, final String memberId) {
-        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getDefaultAgent()
-                .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
-                    public Observable<MemberProtos.Member> apply(String agentId) {
-                        CryptoEngine crypto = cryptoFactory.create(memberId);
-                        List<MemberOperation> operations = new ArrayList<>();
-                        operations.add(
-                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
-                        operations.add(
-                                toAddKeyOperation(crypto.generateKey(STANDARD)));
-                        operations.add(
-                                toAddKeyOperation(crypto.generateKey(LOW)));
-                        operations.add(toRecoveryAgentOperation(agentId));
-
-                        if (alias != null) {
-                            operations.add(toAddAliasOperation(
-                                    normalizeAlias(alias)));
-                        }
-                        List<MemberProtos.MemberOperationMetadata> metadata = alias == null
-                                ? Collections.<MemberProtos.MemberOperationMetadata>emptyList()
-                                : singletonList(toAddAliasOperationMetadata(
-                                        normalizeAlias(alias)));
-                        Signer signer = crypto.createSigner(PRIVILEGED);
-                        return unauthenticated.createMember(
-                                memberId,
-                                operations,
-                                metadata,
-                                signer);
-                    }
-                })
-                .flatMap(new Function<MemberProtos.Member, Observable<Member>>() {
-                    public Observable<Member> apply(MemberProtos.Member member) {
-                        CryptoEngine crypto = cryptoFactory.create(member.getId());
-                        Client client = ClientFactory.authenticated(
-                                channel,
-                                member.getId(),
-                                crypto);
-                        return Observable.just(new Member(
-                                member,
-                                client,
-                                tokenCluster,
-                                browserFactory));
+        CryptoEngine crypto = cryptoFactory.create(memberId);
+        final Client client = ClientFactory.authenticated(channel, memberId, crypto);
+        return setUpMemberImpl(alias, memberId)
+                .map(new Function<io.token.Member, Member>() {
+                    @Override
+                    public Member apply(io.token.Member mem) {
+                        return new Member(mem, client, browserFactory);
                     }
                 });
     }
@@ -265,22 +220,20 @@ public class TokenClient extends io.token.TokenClient<Member> {
      * @param cryptoEngine the new crypto engine
      * @return an observable of the updated member
      */
-    @Override
     public Observable<Member> completeRecovery(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
             SecurityProtos.Key privilegedKey,
             final CryptoEngine cryptoEngine) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
-                .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
-                .map(new Function<MemberProtos.Member, Member>() {
-                    public Member apply(MemberProtos.Member member) {
-                        Client client = ClientFactory.authenticated(
+        return completeRecoveryImpl(memberId, recoveryOperations, privilegedKey, cryptoEngine)
+                .map(new Function<io.token.Member, Member>() {
+                    @Override
+                    public Member apply(io.token.Member mem) {
+                        final Client client = ClientFactory.authenticated(
                                 channel,
-                                member.getId(),
+                                mem.memberId(),
                                 cryptoEngine);
-                        return new Member(member, client, tokenCluster, browserFactory);
+                        return new Member(mem, client, browserFactory);
                     }
                 });
     }
@@ -294,7 +247,6 @@ public class TokenClient extends io.token.TokenClient<Member> {
      * @param cryptoEngine the new crypto engine
      * @return an observable of the updated member
      */
-    @Override
     public Member completeRecoveryBlocking(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
@@ -312,22 +264,20 @@ public class TokenClient extends io.token.TokenClient<Member> {
      * @param code the code
      * @return the new member
      */
-    @Override
     public Observable<Member> completeRecoveryWithDefaultRule(
             String memberId,
             String verificationId,
             String code) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
-        return unauthenticated
-                .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
-                .map(new Function<MemberProtos.Member, Member>() {
-                    public Member apply(MemberProtos.Member member) {
-                        Client client = ClientFactory.authenticated(
+        return completeRecoveryWithDefaultRuleImpl(memberId, verificationId, code)
+                .map(new Function<io.token.Member, Member>() {
+                    @Override
+                    public Member apply(io.token.Member mem) {
+                        final Client client = ClientFactory.authenticated(
                                 channel,
-                                member.getId(),
+                                mem.memberId(),
                                 cryptoEngine);
-                        return new Member(member, client, tokenCluster, browserFactory);
+                        return new Member(mem, client, browserFactory);
                     }
                 });
     }
@@ -340,7 +290,6 @@ public class TokenClient extends io.token.TokenClient<Member> {
      * @param code the code
      * @return the new member
      */
-    @Override
     public Member completeRecoveryWithDefaultRuleBlocking(
             String memberId,
             String verificationId,

@@ -802,12 +802,24 @@ public class Client {
         return AuthenticationContext.create(null, false, level, trackingMetadata);
     }
 
+    protected String getOnBehalfOf() {
+        return null;
+    }
+
     private AuthenticationContext onBehalfOf() {
-        return AuthenticationContext.create(null, customerInitiated, LOW, trackingMetadata);
+        return AuthenticationContext.create(
+                getOnBehalfOf(),
+                customerInitiated,
+                LOW,
+                trackingMetadata);
     }
 
     private AuthenticationContext onBehalfOf(Key.Level level) {
-        return AuthenticationContext.create(null, customerInitiated, level, trackingMetadata);
+        return AuthenticationContext.create(
+                getOnBehalfOf(),
+                customerInitiated,
+                level,
+                trackingMetadata);
     }
 
     protected Page.Builder pageBuilder(@Nullable String offset, int limit) {

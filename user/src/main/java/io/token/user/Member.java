@@ -27,6 +27,7 @@ import static io.token.user.util.Util.getWebAppUrl;
 import static io.token.user.util.Util.parseOauthAccessToken;
 import static io.token.util.Util.generateNonce;
 
+import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
@@ -51,7 +52,6 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
-import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -85,7 +85,7 @@ import org.slf4j.LoggerFactory;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public class Member extends io.token.Member<Account> {
+public class Member extends io.token.Member {
     private static final Logger logger = LoggerFactory.getLogger(Member.class);
 
     private final Client client;
@@ -109,23 +109,27 @@ public class Member extends io.token.Member<Account> {
         this.browserFactory = browserFactory;
     }
 
+    Member(io.token.Member member, Client client, BrowserFactory browserFactory) {
+        super(member);
+        this.client = client;
+        this.browserFactory = browserFactory;
+    }
+
     /**
      * Links a funding bank account to Token and returns it to the caller.
      *
      * @return list of accounts
      */
-    @Override
     public Observable<List<Account>> getAccounts() {
-        return client
-                .getAccounts()
-                .map(new Function<List<AccountProtos.Account>, List<Account>>() {
+        return super.getAccountsImpl()
+                .map(new Function<List<io.token.Account>, List<Account>>() {
                     @Override
-                    public List<Account> apply(List<AccountProtos.Account> accounts) {
-                        List<Account> result = new LinkedList<>();
-                        for (AccountProtos.Account account : accounts) {
-                            result.add(new Account(Member.this, account, client));
+                    public List<Account> apply(List<io.token.Account> accs) {
+                        List<Account> accounts = Lists.newArrayList();
+                        for (io.token.Account acc : accs) {
+                            accounts.add(new Account(acc, client));
                         }
-                        return result;
+                        return accounts;
                     }
                 });
     }
@@ -135,7 +139,6 @@ public class Member extends io.token.Member<Account> {
      *
      * @return list of linked accounts
      */
-    @Override
     public List<Account> getAccountsBlocking() {
         return getAccounts().blockingSingle();
     }
@@ -146,7 +149,6 @@ public class Member extends io.token.Member<Account> {
      * @param accountId account id
      * @return looked up account
      */
-    @Override
     public Observable<Account> getAccount(String accountId) {
         return client
                 .getAccount(accountId)
@@ -163,7 +165,6 @@ public class Member extends io.token.Member<Account> {
      * @param accountId account id
      * @return looked up account
      */
-    @Override
     public Account getAccountBlocking(String accountId) {
         return getAccount(accountId).blockingSingle();
     }
@@ -410,7 +411,6 @@ public class Member extends io.token.Member<Account> {
                 accessTokenBuilder.from(memberId()).build(),
                 tokenRequestId);
     }
-
 
     /**
      * Creates an access token built from a given {@link AccessTokenBuilder}.
@@ -1238,14 +1238,14 @@ public class Member extends io.token.Member<Account> {
      * @param currency currency code, e.g. "EUR"
      * @return the linked account
      */
-    @Override
     public Observable<Account> createAndLinkTestBankAccount(double balance, String currency) {
-        return toAccount(client.createAndLinkTestBankAccount(
-                MoneyProtos.Money.newBuilder()
-                        .setValue(Double.toString(balance))
-                        .setCurrency(currency)
-                        .build()
-        ));
+        return createAndLinkTestBankAccountImpl(balance, currency)
+                .map(new Function<io.token.Account, Account>() {
+                    @Override
+                    public Account apply(io.token.Account acc) {
+                        return new Account(acc, client);
+                    }
+                });
     }
 
     /**
@@ -1255,7 +1255,6 @@ public class Member extends io.token.Member<Account> {
      * @param currency currency code, e.g. "EUR"
      * @return the linked account
      */
-    @Override
     public Account createAndLinkTestBankAccountBlocking(double balance, String currency) {
         return createAndLinkTestBankAccount(balance, currency).blockingSingle();
     }

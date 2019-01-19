@@ -39,7 +39,6 @@ import io.token.TokenClient.TokenCluster;
 import io.token.exceptions.InvalidRealmException;
 import io.token.exceptions.NoAliasesFoundException;
 import io.token.proto.PagedList;
-import io.token.proto.banklink.Banklink;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -79,7 +78,7 @@ import javax.annotation.Nullable;
  * Represents a Member in the Token system. Each member has an active secret
  * and public key pair that is used to perform authentication.
  */
-public class Member<AccT extends Account> {
+public class Member {
     protected final Client client;
     protected final Builder member;
     protected final TokenCluster cluster;
@@ -98,6 +97,12 @@ public class Member<AccT extends Account> {
         this.client = client;
         this.member = member.toBuilder();
         this.cluster = cluster;
+    }
+
+    protected Member(Member member) {
+        this.client = member.client;
+        this.member = member.member;
+        this.cluster = member.cluster;
     }
 
     /**
@@ -207,28 +212,19 @@ public class Member<AccT extends Account> {
      *
      * @return list of accounts
      */
-    public Observable<List<AccT>> getAccounts() {
+    protected Observable<List<Account>> getAccountsImpl() {
         return client
                 .getAccounts()
-                .map(new Function<List<AccountProtos.Account>, List<AccT>>() {
+                .map(new Function<List<AccountProtos.Account>, List<Account>>() {
                     @Override
-                    public List<AccT> apply(List<AccountProtos.Account> accounts) {
+                    public List<Account> apply(List<AccountProtos.Account> accounts) {
                         List<Account> result = new LinkedList<>();
                         for (AccountProtos.Account account : accounts) {
                             result.add(new Account(Member.this, account, client));
                         }
-                        return (List<AccT>) result;
+                        return result;
                     }
                 });
-    }
-
-    /**
-     * Looks up funding bank accounts linked to Token.
-     *
-     * @return list of linked accounts
-     */
-    public List<AccT> getAccountsBlocking() {
-        return getAccounts().blockingSingle();
     }
 
     /**
@@ -237,24 +233,14 @@ public class Member<AccT extends Account> {
      * @param accountId account id
      * @return looked up account
      */
-    public Observable<AccT> getAccount(String accountId) {
+    protected Observable<Account> getAccountImpl(String accountId) {
         return client
                 .getAccount(accountId)
-                .map(new Function<AccountProtos.Account, AccT>() {
-                    public AccT apply(AccountProtos.Account account) {
-                        return (AccT) new Account(Member.this, account, client);
+                .map(new Function<AccountProtos.Account, Account>() {
+                    public Account apply(AccountProtos.Account account) {
+                        return new Account(Member.this, account, client);
                     }
                 });
-    }
-
-    /**
-     * Looks up a funding bank account linked to Token.
-     *
-     * @param accountId account id
-     * @return looked up account
-     */
-    public Account getAccountBlocking(String accountId) {
-        return getAccount(accountId).blockingSingle();
     }
 
     /**
@@ -1104,24 +1090,15 @@ public class Member<AccT extends Account> {
      * @param currency currency code, e.g. "EUR"
      * @return the linked account
      */
-    public Observable<AccT> createAndLinkTestBankAccount(double balance, String currency) {
+    protected Observable<Account> createAndLinkTestBankAccountImpl(
+            double balance,
+            String currency) {
         return toAccount(client.createAndLinkTestBankAccount(
                 MoneyProtos.Money.newBuilder()
                         .setValue(Double.toString(balance))
                         .setCurrency(currency)
                         .build()
         ));
-    }
-
-    /**
-     * Creates a test bank account in a fake bank and links the account.
-     *
-     * @param balance account balance to set
-     * @param currency currency code, e.g. "EUR"
-     * @return the linked account
-     */
-    public AccT createAndLinkTestBankAccountBlocking(double balance, String currency) {
-        return createAndLinkTestBankAccount(balance, currency).blockingSingle();
     }
 
     /**
@@ -1174,12 +1151,12 @@ public class Member<AccT extends Account> {
                 });
     }
 
-    private Observable<AccT> toAccount(Observable<AccountProtos.Account> account) {
+    private Observable<Account> toAccount(Observable<AccountProtos.Account> account) {
         return account
-                .map(new Function<AccountProtos.Account, AccT>() {
+                .map(new Function<AccountProtos.Account, Account>() {
                     @Override
-                    public AccT apply(AccountProtos.Account account) {
-                        return (AccT) new Account(Member.this, account, client);
+                    public Account apply(AccountProtos.Account account) {
+                        return new Account(Member.this, account, client);
                     }
                 });
     }

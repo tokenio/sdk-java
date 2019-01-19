@@ -46,6 +46,12 @@ public class Account {
         this.client = client;
     }
 
+    protected Account(Account account) {
+        this.member = account.member;
+        this.account = account.account;
+        this.client = account.client;
+    }
+
     /**
      * Gets an account owner.
      *
