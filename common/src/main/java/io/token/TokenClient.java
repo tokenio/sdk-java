@@ -58,6 +58,8 @@ import io.token.proto.common.notification.NotificationProtos.DeviceMetadata;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.SslConfig;
@@ -137,24 +139,26 @@ public class TokenClient implements Closeable {
     }
 
     /**
-     * Checks if a given alias already exists.
+     * Resolve an alias to a TokenMember object, containing member ID and the alias with
+     * the correct type.
      *
-     * @param alias alias to check
-     * @return {@code true} if alias exists, {@code false} otherwise
+     * @param alias alias to resolve
+     * @return TokenMember
      */
-    public Observable<Boolean> aliasExists(Alias alias) {
+    public Observable<TokenMember> resolveAlias(Alias alias) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.aliasExists(alias);
+        return unauthenticated.resolveAlias(alias);
     }
 
     /**
-     * Checks if a given alias already exists.
+     * Resolve an alias to a TokenMember object, containing member ID and the alias with
+     * the correct type.
      *
-     * @param alias alias to check
-     * @return {@code true} if alias exists, {@code false} otherwise
+     * @param alias alias to resolve
+     * @return TokenMember
      */
-    public boolean aliasExistsBlocking(Alias alias) {
-        return aliasExists(alias).blockingSingle();
+    public TokenMember resolveAliasBlocking(Alias alias) {
+        return resolveAlias(alias).blockingSingle();
     }
 
     /**
@@ -328,120 +332,6 @@ public class TokenClient implements Closeable {
                         return new Member(member, client, tokenCluster);
                     }
                 });
-    }
-
-    /**
-     * Provisions a new device for an existing user. The call generates a set
-     * of keys that are returned back. The keys need to be approved by an
-     * existing device/keys.
-     *
-     * @param alias member id to provision the device for
-     * @return device information
-     */
-    public Observable<DeviceInfo> provisionDevice(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
-                .getMemberId(alias)
-                .map(new Function<String, DeviceInfo>() {
-                    public DeviceInfo apply(String memberId) {
-                        CryptoEngine crypto = cryptoFactory.create(memberId);
-                        return new DeviceInfo(
-                                memberId,
-                                asList(
-                                        crypto.generateKey(PRIVILEGED),
-                                        crypto.generateKey(STANDARD),
-                                        crypto.generateKey(LOW)));
-                    }
-                });
-    }
-
-    /**
-     * Provisions a new device for an existing user. The call generates a set
-     * of keys that are returned back. The keys need to be approved by an
-     * existing device/keys.
-     *
-     * @param alias member id to provision the device for
-     * @return device information
-     */
-    public DeviceInfo provisionDeviceBlocking(Alias alias) {
-        return provisionDevice(alias).blockingSingle();
-    }
-
-    /**
-     * Notifies to add a key.
-     *
-     * @param alias alias to notify
-     * @param keys keys that need approval
-     * @param deviceMetadata device metadata of the keys
-     * @return status of the notification
-     */
-    public Observable<NotifyStatus> notifyAddKey(
-            Alias alias,
-            List<Key> keys,
-            DeviceMetadata deviceMetadata) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        AddKey addKey = AddKey.newBuilder()
-                .addAllKeys(keys)
-                .setDeviceMetadata(deviceMetadata)
-                .build();
-        return unauthenticated.notifyAddKey(alias, addKey);
-    }
-
-    /**
-     * Notifies to add a key.
-     *
-     * @param alias alias to notify
-     * @param keys keys that need approval
-     * @param deviceMetadata device metadata of the keys
-     * @return status of the notification
-     */
-    public NotifyStatus notifyAddKeyBlocking(
-            Alias alias,
-            List<Key> keys,
-            DeviceMetadata deviceMetadata) {
-        return notifyAddKey(alias, keys, deviceMetadata).blockingSingle();
-    }
-
-    /**
-     * Invalidate a notification.
-     *
-     * @param notificationId notification id to invalidate
-     * @return status of the invalidation request
-     */
-    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.invalidateNotification(notificationId);
-    }
-
-    /**
-     * Invalidate a notification.
-     *
-     * @param notificationId notification id to invalidate
-     * @return status of the invalidation request
-     */
-    public NotifyStatus invalidateNotificationBlocking(String notificationId) {
-        return invalidateNotification(notificationId).blockingSingle();
-    }
-
-    /**
-     * Retrieves a blob from the server.
-     *
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Observable<Blob> getBlob(String blobId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getBlob(blobId);
-    }
-
-    /**
-     * Retrieves a blob from the server.
-     *
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Blob getBlobBlocking(String blobId) {
-        return getBlob(blobId).blockingSingle();
     }
 
     /**

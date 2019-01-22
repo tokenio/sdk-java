@@ -37,7 +37,6 @@ import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
-import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -46,13 +45,9 @@ import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
-import io.token.proto.common.notification.NotificationProtos;
-import io.token.proto.common.notification.NotificationProtos.AddKey;
-import io.token.proto.common.notification.NotificationProtos.NotifyBody;
-import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.gateway.Gateway;
+import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -61,17 +56,13 @@ import io.token.proto.gateway.Gateway.CreateMemberRequest;
 import io.token.proto.gateway.Gateway.CreateMemberResponse;
 import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
-import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
-import io.token.proto.gateway.Gateway.InvalidateNotificationRequest;
-import io.token.proto.gateway.Gateway.InvalidateNotificationResponse;
 import io.token.proto.gateway.Gateway.ResolveAliasRequest;
 import io.token.proto.gateway.Gateway.ResolveAliasResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
@@ -97,20 +88,21 @@ public class UnauthenticatedClient {
     }
 
     /**
-     * Checks if a given alias already exists.
+     * Resolve an alias to a TokenMember object, containing member ID and the alias with
+     * the correct type.
      *
-     * @param alias alias to check
-     * @return {@code true} if alias already exists, {@code false} otherwise
+     * @param alias alias to resolve
+     * @return TokenMember
      */
-    public Observable<Boolean> aliasExists(Alias alias) {
+    public Observable<TokenMember> resolveAlias(Alias alias) {
         return toObservable(gateway
                 .resolveAlias(ResolveAliasRequest
                         .newBuilder()
                         .setAlias(alias)
                         .build()))
-                .map(new Function<ResolveAliasResponse, Boolean>() {
-                    public Boolean apply(ResolveAliasResponse response) {
-                        return response.hasMember();
+                .map(new Function<ResolveAliasResponse, TokenMember>() {
+                    public TokenMember apply(ResolveAliasResponse response) {
+                        return response.getMember();
                     }
                 });
     }
@@ -133,25 +125,6 @@ public class UnauthenticatedClient {
                         } else {
                             throw new MemberNotFoundException(alias);
                         }
-                    }
-                });
-    }
-
-    /**
-     * Looks up member information for the given member ID. The user is defined by
-     * the key used for authentication.
-     *
-     * @param memberId member id
-     * @return an observable of member
-     */
-    public Observable<Member> getMember(String memberId) {
-        return Converters
-                .toObservable(gateway.getMember(GetMemberRequest.newBuilder()
-                        .setMemberId(memberId)
-                        .build()))
-                .map(new Function<GetMemberResponse, Member>() {
-                    public Member apply(GetMemberResponse response) {
-                        return response.getMember();
                     }
                 });
     }
@@ -207,65 +180,6 @@ public class UnauthenticatedClient {
                 .map(new Function<UpdateMemberResponse, Member>() {
                     public Member apply(UpdateMemberResponse response) {
                         return response.getMember();
-                    }
-                });
-    }
-
-    /**
-     * Notifies subscribed devices that a key should be added.
-     *
-     * @param alias alias of the member
-     * @param addKey the add key payload to be sent
-     * @return status status of the notification
-     */
-    public Observable<NotifyStatus> notifyAddKey(Alias alias, AddKey addKey) {
-        return toObservable(gateway.notify(
-                Gateway.NotifyRequest.newBuilder()
-                        .setAlias(alias)
-                        .setBody(NotifyBody.newBuilder()
-                                .setAddKey(addKey)
-                                .build())
-                        .build()))
-                .map(new Function<Gateway.NotifyResponse, NotifyStatus>() {
-                    public NotifyStatus apply(Gateway.NotifyResponse response) {
-                        return response.getStatus();
-                    }
-                });
-    }
-
-    /**
-     * Invalidate a notification.
-     *
-     * @param notificationId notification id to invalidate
-     * @return status of the invalidation request
-     */
-    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
-        return toObservable(gateway.invalidateNotification(
-                InvalidateNotificationRequest.newBuilder()
-                        .setNotificationId(notificationId)
-                        .build()))
-                .map(new Function<InvalidateNotificationResponse, NotifyStatus>() {
-                    public NotifyStatus apply(InvalidateNotificationResponse response) {
-                        return response.getStatus();
-                    }
-                });
-    }
-
-    /**
-     * Retrieves a blob from the server.
-     *
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Observable<BlobProtos.Blob> getBlob(String blobId) {
-        return toObservable(gateway
-                .getBlob(Gateway.GetBlobRequest
-                        .newBuilder()
-                        .setBlobId(blobId)
-                        .build()))
-                .map(new Function<GetBlobResponse, BlobProtos.Blob>() {
-                    public BlobProtos.Blob apply(GetBlobResponse response) {
-                        return response.getBlob();
                     }
                 });
     }

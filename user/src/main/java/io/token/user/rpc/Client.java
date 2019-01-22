@@ -34,9 +34,13 @@ import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
-import io.token.proto.common.blob.BlobProtos;
+import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.member.MemberProtos;
+import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
+import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -47,6 +51,7 @@ import io.token.proto.common.token.TokenProtos.TokenRequestStatePayload;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.ApplyScaRequest;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
@@ -66,6 +71,9 @@ import io.token.proto.gateway.Gateway.GetNotificationRequest;
 import io.token.proto.gateway.Gateway.GetNotificationResponse;
 import io.token.proto.gateway.Gateway.GetNotificationsRequest;
 import io.token.proto.gateway.Gateway.GetNotificationsResponse;
+import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
+import io.token.proto.gateway.Gateway.GetProfileRequest;
+import io.token.proto.gateway.Gateway.GetProfileResponse;
 import io.token.proto.gateway.Gateway.GetReceiptContactRequest;
 import io.token.proto.gateway.Gateway.GetReceiptContactResponse;
 import io.token.proto.gateway.Gateway.GetSubscriberRequest;
@@ -89,11 +97,16 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
 import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
+import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
+import io.token.proto.gateway.Gateway.SetProfileRequest;
+import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.SetReceiptContactRequest;
 import io.token.proto.gateway.Gateway.SignTokenRequestStateRequest;
 import io.token.proto.gateway.Gateway.SignTokenRequestStateResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.rpc.GatewayProvider;
@@ -123,6 +136,121 @@ public final class Client extends io.token.rpc.Client {
             CryptoEngine crypto,
             GatewayProvider gateway) {
         super(memberId, crypto, gateway);
+    }
+
+    /**
+     * Replaces a member's public profile.
+     *
+     * @param profile Profile to set
+     * @return observable that completes when request handled
+     */
+    public Observable<MemberProtos.Profile> setProfile(MemberProtos.Profile profile) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfile(SetProfileRequest.newBuilder()
+                        .setProfile(profile)
+                        .build()))
+                .map(new Function<SetProfileResponse, MemberProtos.Profile>() {
+                    public MemberProtos.Profile apply(SetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
+    }
+
+    /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member Id whose profile we want
+     * @return their profile text
+     */
+    public Observable<MemberProtos.Profile> getProfile(String memberId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfile(GetProfileRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetProfileResponse, MemberProtos.Profile>() {
+                    public MemberProtos.Profile apply(GetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
+    }
+
+    /**
+     * Replaces a member's public profile picture.
+     *
+     * @param payload Picture data
+     * @return observable that completes when request handled
+     */
+    public Completable setProfilePicture(Blob.Payload payload) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfilePicture(SetProfilePictureRequest.newBuilder()
+                        .setPayload(payload)
+                        .build()));
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member Id whose profile we want
+     * @param size size category we want (small, medium, large, original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfilePicture(Gateway.GetProfilePictureRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .setSize(size)
+                        .build()))
+                .map(new Function<GetProfilePictureResponse, Blob>() {
+                    public Blob apply(GetProfilePictureResponse response) {
+                        return response.getBlob();
+                    }
+                });
+    }
+
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest.newBuilder()
+                        .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
+                                .addAllAccountId(accountIds))
+                        .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest
+                        .newBuilder()
+                        .setTransactionStepUp(NotificationProtos.TransactionStepUp.newBuilder()
+                                .setAccountId(accountId))
+                        .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 
     /**
@@ -500,7 +628,7 @@ public final class Client extends io.token.rpc.Client {
      * @param blobId id of the blob
      * @return Blob
      */
-    public Observable<BlobProtos.Blob> getTokenBlob(String tokenId, String blobId) {
+    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getTokenBlob(GetTokenBlobRequest
@@ -508,8 +636,8 @@ public final class Client extends io.token.rpc.Client {
                         .setTokenId(tokenId)
                         .setBlobId(blobId)
                         .build()))
-                .map(new Function<GetTokenBlobResponse, BlobProtos.Blob>() {
-                    public BlobProtos.Blob apply(GetTokenBlobResponse response) {
+                .map(new Function<GetTokenBlobResponse, Blob>() {
+                    public Blob apply(GetTokenBlobResponse response) {
                         return response.getBlob();
                     }
                 });

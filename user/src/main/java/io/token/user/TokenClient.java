@@ -24,14 +24,20 @@ package io.token.user;
 
 import static io.token.TokenClient.TokenCluster.SANDBOX;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
+import static java.util.Arrays.asList;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.DeviceInfo;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
@@ -298,6 +304,78 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
+     * Provisions a new device for an existing user. The call generates a set
+     * of keys that are returned back. The keys need to be approved by an
+     * existing device/keys.
+     *
+     * @param alias member id to provision the device for
+     * @return device information
+     */
+    public Observable<DeviceInfo> provisionDevice(Alias alias) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated
+                .getMemberId(alias)
+                .map(new Function<String, DeviceInfo>() {
+                    public DeviceInfo apply(String memberId) {
+                        CryptoEngine crypto = cryptoFactory.create(memberId);
+                        return new DeviceInfo(
+                                memberId,
+                                asList(
+                                        crypto.generateKey(PRIVILEGED),
+                                        crypto.generateKey(STANDARD),
+                                        crypto.generateKey(LOW)));
+                    }
+                });
+    }
+
+    /**
+     * Provisions a new device for an existing user. The call generates a set
+     * of keys that are returned back. The keys need to be approved by an
+     * existing device/keys.
+     *
+     * @param alias member id to provision the device for
+     * @return device information
+     */
+    public DeviceInfo provisionDeviceBlocking(Alias alias) {
+        return provisionDevice(alias).blockingSingle();
+    }
+
+    /**
+     * Notifies to add a key.
+     *
+     * @param alias alias to notify
+     * @param keys keys that need approval
+     * @param deviceMetadata device metadata of the keys
+     * @return status of the notification
+     */
+    public Observable<NotifyStatus> notifyAddKey(
+            Alias alias,
+            List<SecurityProtos.Key> keys,
+            DeviceMetadata deviceMetadata) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        AddKey addKey = AddKey.newBuilder()
+                .addAllKeys(keys)
+                .setDeviceMetadata(deviceMetadata)
+                .build();
+        return unauthenticated.notifyAddKey(alias, addKey);
+    }
+
+    /**
+     * Notifies to add a key.
+     *
+     * @param alias alias to notify
+     * @param keys keys that need approval
+     * @param deviceMetadata device metadata of the keys
+     * @return status of the notification
+     */
+    public NotifyStatus notifyAddKeyBlocking(
+            Alias alias,
+            List<SecurityProtos.Key> keys,
+            DeviceMetadata deviceMetadata) {
+        return notifyAddKey(alias, keys, deviceMetadata).blockingSingle();
+    }
+
+    /**
      * Sends a notification to request a payment.
      *
      * @param tokenPayload the payload of a token to be sent
@@ -362,6 +440,49 @@ public class TokenClient extends io.token.TokenClient {
         return notifyCreateAndEndorseToken(tokenRequestId, keys, deviceMetadata, receiptContact)
                 .blockingSingle();
     }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.invalidateNotification(notificationId);
+    }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public NotifyStatus invalidateNotificationBlocking(String notificationId) {
+        return invalidateNotification(notificationId).blockingSingle();
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<BlobProtos.Blob> getBlob(String blobId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getBlob(blobId);
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public BlobProtos.Blob getBlobBlocking(String blobId) {
+        return getBlob(blobId).blockingSingle();
+    }
+
 
     public static final class Builder extends io.token.TokenClient.Builder<Builder> {
         private BrowserFactory browserFactory;

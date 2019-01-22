@@ -26,10 +26,19 @@ import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.proto.common.alias.AliasProtos;
+import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
+import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
+import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.gateway.Gateway;
+import io.token.proto.gateway.Gateway.GetBlobResponse;
+import io.token.proto.gateway.Gateway.InvalidateNotificationRequest;
+import io.token.proto.gateway.Gateway.InvalidateNotificationResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
 import io.token.proto.gateway.Gateway.RequestTransferResponse;
 import io.token.proto.gateway.Gateway.TriggerCreateAndEndorseTokenNotificationRequest;
@@ -52,6 +61,47 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      */
     public UnauthenticatedClient(GatewayServiceFutureStub gateway) {
         super(gateway);
+    }
+
+    /**
+     * Retrieves a blob from the server.
+     *
+     * @param blobId id of the blob
+     * @return Blob
+     */
+    public Observable<BlobProtos.Blob> getBlob(String blobId) {
+        return toObservable(gateway
+                .getBlob(Gateway.GetBlobRequest
+                        .newBuilder()
+                        .setBlobId(blobId)
+                        .build()))
+                .map(new Function<GetBlobResponse, BlobProtos.Blob>() {
+                    public BlobProtos.Blob apply(GetBlobResponse response) {
+                        return response.getBlob();
+                    }
+                });
+    }
+
+    /**
+     * Notifies subscribed devices that a key should be added.
+     *
+     * @param alias alias of the member
+     * @param addKey the add key payload to be sent
+     * @return status status of the notification
+     */
+    public Observable<NotifyStatus> notifyAddKey(Alias alias, AddKey addKey) {
+        return toObservable(gateway.notify(
+                Gateway.NotifyRequest.newBuilder()
+                        .setAlias(alias)
+                        .setBody(NotifyBody.newBuilder()
+                                .setAddKey(addKey)
+                                .build())
+                        .build()))
+                .map(new Function<Gateway.NotifyResponse, NotifyStatus>() {
+                    public NotifyStatus apply(Gateway.NotifyResponse response) {
+                        return response.getStatus();
+                    }
+                });
     }
 
     /**
@@ -105,6 +155,24 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                         return NotifyResult.create(
                                 response.getNotificationId(),
                                 response.getStatus());
+                    }
+                });
+    }
+
+    /**
+     * Invalidate a notification.
+     *
+     * @param notificationId notification id to invalidate
+     * @return status of the invalidation request
+     */
+    public Observable<NotifyStatus> invalidateNotification(String notificationId) {
+        return toObservable(gateway.invalidateNotification(
+                InvalidateNotificationRequest.newBuilder()
+                        .setNotificationId(notificationId)
+                        .build()))
+                .map(new Function<InvalidateNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(InvalidateNotificationResponse response) {
+                        return response.getStatus();
                     }
                 });
     }

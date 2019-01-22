@@ -22,6 +22,7 @@
 
 package io.token.user;
 
+import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.user.util.Util.getWebAppUrl;
 import static io.token.user.util.Util.parseOauthAccessToken;
@@ -54,6 +55,7 @@ import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -167,96 +169,6 @@ public class Member extends io.token.Member {
      */
     public Account getAccountBlocking(String accountId) {
         return getAccount(accountId).blockingSingle();
-    }
-
-    /**
-     * Replaces auth'd member's public profile.
-     *
-     * @param profile profile to set
-     * @return updated profile
-     */
-    public Observable<Profile> setProfile(Profile profile) {
-        return client.setProfile(profile);
-    }
-
-    /**
-     * Replaces the authenticated member's public profile.
-     *
-     * @param profile Profile to set
-     * @return updated profile
-     */
-    public Profile setProfileBlocking(Profile profile) {
-        return setProfile(profile).blockingSingle();
-    }
-
-    /**
-     * Gets a member's public profile. Unlike setProfile, you can get another member's profile.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @return their profile
-     */
-    public Observable<Profile> getProfile(String memberId) {
-        return client.getProfile(memberId);
-    }
-
-    /**
-     * Gets a member's public profile.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @return profile info
-     */
-    public Profile getProfileBlocking(String memberId) {
-        return getProfile(memberId).blockingSingle();
-    }
-
-    /**
-     * Replaces auth'd member's public profile picture.
-     *
-     * @param type MIME type of picture
-     * @param data image data
-     * @return completable that indicates whether the operation finished or had an error
-     */
-    public Completable setProfilePicture(final String type, byte[] data) {
-        Payload payload = Payload.newBuilder()
-                .setOwnerId(memberId())
-                .setType(type)
-                .setName("profile")
-                .setData(ByteString.copyFrom(data))
-                .setAccessMode(PUBLIC)
-                .build();
-        return client.setProfilePicture(payload);
-    }
-
-    /**
-     * Replaces auth'd member's public profile picture.
-     *
-     * @param type MIME type of picture
-     * @param data image data
-     */
-    public void setProfilePictureBlocking(final String type, byte[] data) {
-        setProfilePicture(type, data).blockingAwait();
-    }
-
-    /**
-     * Gets a member's public profile picture. Unlike set, you can get another member's picture.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @param size desired size category (small, medium, large, original)
-     * @return blob with picture; empty blob (no fields set) if has no picture
-     */
-    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
-        return client.getProfilePicture(memberId, size);
-    }
-
-    /**
-     * Gets a member's public profile picture.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @param size Size category desired (small/medium/large/original)
-     * @return blob with picture; empty blob (no fields set) if has no picture
-     */
-    public Blob getProfilePictureBlocking(String memberId, ProfilePictureSize size) {
-        return getProfilePicture(memberId, size).blockingSingle();
     }
 
     /**
@@ -1040,6 +952,168 @@ public class Member extends io.token.Member {
      */
     public Money getAvailableBalanceBlocking(String accountId, Key.Level keyLevel) {
         return getAvailableBalance(accountId, keyLevel).blockingSingle();
+    }
+
+
+    /**
+     * Removes all public keys that do not have a corresponding private key stored on
+     * the current device from the member.
+     *
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable removeNonStoredKeys() {
+        final List<Key> storedKeys = client.getCryptoEngine().getPublicKeys();
+        return fromObservable(client.getMember(memberId())
+                .flatMap(new Function<MemberProtos.Member, ObservableSource<?>>() {
+                    @Override
+                    public ObservableSource<?> apply(MemberProtos.Member member) {
+                        List<String> toRemoveIds = new LinkedList<>();
+                        for (Key key : member.getKeysList()) {
+                            if (!storedKeys.contains(key)) {
+                                toRemoveIds.add(key.getId());
+                            }
+                        }
+                        return removeKeys(toRemoveIds).toObservable();
+                    }
+                }));
+    }
+
+    /**
+     * Removes all public keys that do not have a corresponding private key stored on
+     * the current device from the member.
+     */
+    public void removeNonStoredKeysBlocking() {
+        removeNonStoredKeys().blockingAwait();
+    }
+
+    /**
+     * Replaces auth'd member's public profile.
+     *
+     * @param profile profile to set
+     * @return updated profile
+     */
+    public Observable<Profile> setProfile(Profile profile) {
+        return client.setProfile(profile);
+    }
+
+    /**
+     * Replaces the authenticated member's public profile.
+     *
+     * @param profile Profile to set
+     * @return updated profile
+     */
+    public Profile setProfileBlocking(Profile profile) {
+        return setProfile(profile).blockingSingle();
+    }
+
+    /**
+     * Gets a member's public profile. Unlike setProfile, you can get another member's profile.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return their profile
+     */
+    public Observable<Profile> getProfile(String memberId) {
+        return client.getProfile(memberId);
+    }
+
+    /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return profile info
+     */
+    public Profile getProfileBlocking(String memberId) {
+        return getProfile(memberId).blockingSingle();
+    }
+
+    /**
+     * Replaces auth'd member's public profile picture.
+     *
+     * @param type MIME type of picture
+     * @param data image data
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable setProfilePicture(final String type, byte[] data) {
+        Payload payload = Payload.newBuilder()
+                .setOwnerId(memberId())
+                .setType(type)
+                .setName("profile")
+                .setData(ByteString.copyFrom(data))
+                .setAccessMode(PUBLIC)
+                .build();
+        return client.setProfilePicture(payload);
+    }
+
+    /**
+     * Replaces auth'd member's public profile picture.
+     *
+     * @param type MIME type of picture
+     * @param data image data
+     */
+    public void setProfilePictureBlocking(final String type, byte[] data) {
+        setProfilePicture(type, data).blockingAwait();
+    }
+
+    /**
+     * Gets a member's public profile picture. Unlike set, you can get another member's picture.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @param size desired size category (small, medium, large, original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
+        return client.getProfilePicture(memberId, size);
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @param size Size category desired (small/medium/large/original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Blob getProfilePictureBlocking(String memberId, ProfilePictureSize size) {
+        return getProfilePicture(memberId, size).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
+        return client.triggerBalanceStepUpNotification(accountIds);
+    }
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public NotifyStatus triggerBalanceStepUpNotificationBlocking(List<String> accountIds) {
+        return triggerBalanceStepUpNotification(accountIds).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
+        return client.triggerTransactionStepUpNotification(accountId);
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public NotifyStatus triggerTransactionStepUpNotificationBlocking(String accountId) {
+        return triggerTransactionStepUpNotification(accountId).blockingSingle();
     }
 
     /**

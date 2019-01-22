@@ -26,15 +26,10 @@ import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCas
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.util.Util.generateNonce;
 
-import com.google.protobuf.ByteString;
 import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.blob.BlobProtos.Attachment;
-import io.token.proto.common.blob.BlobProtos.Blob.Payload;
-import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -44,7 +39,6 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Pur
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.user.exceptions.TokenArgumentsException;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -63,9 +57,6 @@ public final class TransferTokenBuilder {
 
     private final Member member;
     private final TokenPayload.Builder payload;
-
-    // Used for attaching files / data to tokens
-    private final List<Payload> blobPayloads;
 
     //Token request ID
     private String tokenRequestId;
@@ -98,8 +89,6 @@ public final class TransferTokenBuilder {
                 payload.getFromBuilder().setAlias(aliases.get(0));
             }
         }
-
-        blobPayloads = new ArrayList<>();
     }
 
     /**
@@ -233,64 +222,6 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the alias of the redeemer.
-     *
-     * @param redeemerAlias alias
-     * @return builder
-     */
-    @Deprecated
-    public TransferTokenBuilder setRedeemerAlias(Alias redeemerAlias) {
-        return setToAlias(redeemerAlias);
-    }
-
-    /**
-     * Sets the memberId of the redeemer.
-     *
-     * @param redeemerMemberId memberId
-     * @return builder
-     */
-    @Deprecated
-    public TransferTokenBuilder setRedeemerMemberId(String redeemerMemberId) {
-        return setToMemberId(redeemerMemberId);
-    }
-
-    /**
-     * Adds an attachment to the token.
-     *
-     * @param attachment attachment
-     * @return builder
-     */
-    public TransferTokenBuilder addAttachment(Attachment attachment) {
-        payload.getTransferBuilder()
-                .addAttachments(attachment);
-        return this;
-    }
-
-    /**
-     * Adds an attachment by filename (reads file, uploads it, and attaches it).
-     *
-     * @param ownerId id of the owner of the file
-     * @param type MIME type of file
-     * @param name name of the file
-     * @param data file binary data
-     * @return builder
-     */
-    public TransferTokenBuilder addAttachment(
-            String ownerId,
-            String type,
-            String name,
-            byte[] data) {
-        blobPayloads.add(Payload
-                .newBuilder()
-                .setOwnerId(ownerId)
-                .setType(type)
-                .setName(name)
-                .setData(ByteString.copyFrom(data))
-                .build());
-        return this;
-    }
-
-    /**
      * Sets the alias of the payee.
      *
      * @param toAlias alias
@@ -327,17 +258,6 @@ public final class TransferTokenBuilder {
                     refId.length()));
         }
         payload.setRefId(refId);
-        return this;
-    }
-
-    /**
-     * Sets the pricing (fees/fx) on the token.
-     *
-     * @param pricing pricing
-     * @return builder
-     */
-    public TransferTokenBuilder setPricing(Pricing pricing) {
-        payload.getTransferBuilder().setPricing(pricing);
         return this;
     }
 
@@ -428,25 +348,8 @@ public final class TransferTokenBuilder {
             payload.setRefId(generateNonce());
         }
 
-        List<Observable<Attachment>> attachmentUploads = new ArrayList<>();
-
-        for (Payload p : blobPayloads) {
-            attachmentUploads.add(member.createBlob(
-                    p.getOwnerId(),
-                    p.getType(),
-                    p.getName(),
-                    p.getData().toByteArray()));
-        }
-
-        return Observable.merge(attachmentUploads)
-                .toList()
-                .flatMapObservable(new Function<List<Attachment>, Observable<Token>>() {
-                    public Observable<Token> apply(List<Attachment> attachments) {
-                        payload.getTransferBuilder().addAllAttachments(attachments);
-                        return member.createTransferToken(
-                                payload.build(),
-                                tokenRequestId != null ? tokenRequestId : "");
-                    }
-                });
+        return member.createTransferToken(
+                payload.build(),
+                tokenRequestId != null ? tokenRequestId : "");
     }
 }

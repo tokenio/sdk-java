@@ -77,10 +77,6 @@ public final class CreateAndEndorseTransferTokenSample {
                         .setDescription("Transfer fee"))
                 .build();
 
-        Pricing pricing = Pricing.newBuilder()
-                .setSourceQuote(srcQuote)
-                .build();
-
         // Create a transfer token.
         Token transferToken =
                 payer.createTransferToken(
@@ -95,7 +91,6 @@ public final class CreateAndEndorseTransferTokenSample {
                         // expires in 300 seconds:
                         .setExpiresAtMs(now + (300 * 1000))
                         .setRefId("a713c8a61994a749")
-                        .setPricing(pricing)
                         .setChargeAmount(10.0)
                         .setDescription("Book purchase")
                         .setPurposeOfPayment(PERSONAL_EXPENSES)
