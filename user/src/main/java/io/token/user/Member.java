@@ -152,11 +152,11 @@ public class Member extends io.token.Member {
      * @return looked up account
      */
     public Observable<Account> getAccount(String accountId) {
-        return client
-                .getAccount(accountId)
-                .map(new Function<AccountProtos.Account, Account>() {
-                    public Account apply(AccountProtos.Account account) {
-                        return new Account(Member.this, account, client);
+        return getAccountImpl(accountId)
+                .map(new Function<io.token.Account, Account>() {
+                    @Override
+                    public Account apply(io.token.Account acc) {
+                        return new Account(acc, client);
                     }
                 });
     }
