@@ -126,16 +126,10 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
                     @Override
                     public TokenRequest apply(RetrieveTokenRequestResponse response) {
-                        // TODO(RD-1515) remove backwards compatibility with token payload
-                        TokenRequest.Builder builder = TokenRequest
-                                .newBuilder(response.getTokenRequest().getRequestPayload())
-                                .setTokenRequestOptions(response
-                                        .getTokenRequest()
-                                        .getRequestOptions());
-                        if (response.hasCustomization()) {
-                            builder.setCustomization(response.getCustomization());
-                        }
-                        return builder.build();
+                        return TokenRequest
+                                .fromProtos(
+                                        response.getTokenRequest().getRequestPayload(),
+                                        response.getTokenRequest().getRequestOptions());
                     }
                 });
     }

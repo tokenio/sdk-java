@@ -23,27 +23,15 @@ public final class StoreAndRetrieveTokenRequestSample {
      * @return a token request id
      */
     public static String storeTransferTokenRequest(Member payee) {
-        // Construct payload
-        TokenRequestPayload payload = TokenRequestPayload.newBuilder()
-                .setTo(TokenMember.newBuilder()
-                        .setId(payee.memberId())
-                        .build())
-                .setTransferBody(TransferBody.newBuilder()
-                        .setAmount("100.00") // amount
-                        .setCurrency("EUR") // currency
-                        .build())
+        // Create token request to be stored
+        TokenRequest request = TokenRequest.transferTokenRequestBuilder(100., "EUR")
+                .setToMemberId(payee.memberId())
                 .setDescription("Book purchase") // optional description
                 .setRedirectUrl("https://token.io/callback") // callback URL
-                .build();
-
-        // Create token request to be stored
-        TokenRequest request = TokenRequest.newBuilder(payload)
-                .setFrom(TokenMember.newBuilder()
-                        .setAlias(Alias.newBuilder()
+                .setFromAlias(Alias.newBuilder()
                                 .setValue("payer-alias@token.io") // user alias
                                 .setType(Alias.Type.EMAIL)
                                 .build())
-                        .build())
                 .setBankId("iron") // bank ID
                 .build();
 
@@ -58,26 +46,14 @@ public final class StoreAndRetrieveTokenRequestSample {
      * @return a token request id
      */
     public static String storeAccessTokenRequest(Member grantee) {
-        // Construct payload
-        TokenRequestPayload payload = TokenRequestPayload.newBuilder()
-                .setTo(TokenMember.newBuilder()
-                        .setId(grantee.memberId())
-                        .build())
-                .setAccessBody(AccessBody.newBuilder()
-                        .addType(ACCOUNTS) // request access to basic account info
-                        .addType(BALANCES) // request access to account balances
-                        .build())
-                .setRedirectUrl("https://token.io/callback") // callback URL
-                .build();
-
         // Create token request to be stored
-        TokenRequest request = TokenRequest.newBuilder(payload)
-                .setFrom(TokenMember.newBuilder()
-                        .setAlias(Alias.newBuilder()
+        TokenRequest request = TokenRequest.accessTokenRequestBuilder(ACCOUNTS, BALANCES)
+                .setToMemberId(grantee.memberId())
+                .setRedirectUrl("https://token.io/callback") // callback URL
+                .setFromAlias(Alias.newBuilder()
                                 .setValue("grantor-alias@token.io") // user alias
                                 .setType(Alias.Type.EMAIL)
                                 .build())
-                        .build())
                 .setBankId("iron") // bank ID
                 .build();
 
@@ -87,13 +63,13 @@ public final class StoreAndRetrieveTokenRequestSample {
     /**
      * Retrieves a token request.
      *
-     * @param tokenIO tokenIO instance to use
+     * @param tokenClient tokenIO instance to use
      * @param requestId id of request to retrieve
      * @return token request that was stored with the request id
      */
     public static TokenRequest retrieveTokenRequest(
-            TokenClient tokenIO,
+            TokenClient tokenClient,
             String requestId) {
-        return tokenIO.retrieveTokenRequestBlocking(requestId);
+        return tokenClient.retrieveTokenRequestBlocking(requestId);
     }
 }
