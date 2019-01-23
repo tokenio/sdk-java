@@ -320,7 +320,6 @@ public final class Client extends io.token.rpc.Client {
                 });
     }
 
-
     /**
      * Retrieves a blob that is attached to a token.
      *
@@ -342,7 +341,6 @@ public final class Client extends io.token.rpc.Client {
                     }
                 });
     }
-
 
     /**
      * Looks up an existing transfer.

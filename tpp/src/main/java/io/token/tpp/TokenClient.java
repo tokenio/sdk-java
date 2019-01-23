@@ -91,7 +91,6 @@ public class TokenClient extends io.token.TokenClient {
         super(channel, cryptoFactory, tokenCluster);
     }
 
-
     /**
      * Creates a new {@link Builder} instance that is used to configure and
      * build a {@link TokenClient} instance.
@@ -116,7 +115,6 @@ public class TokenClient extends io.token.TokenClient {
                 .devKey(developerKey)
                 .build();
     }
-
 
     /**
      * Creates a new Token member with a set of auto-generated keys, an alias, and member type.

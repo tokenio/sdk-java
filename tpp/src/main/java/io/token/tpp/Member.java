@@ -632,7 +632,6 @@ public class Member extends io.token.Member implements Representable {
         return getToken(tokenId).blockingSingle();
     }
 
-
     /**
      * Retrieves a blob that is attached to a transfer token.
      *
@@ -654,7 +653,6 @@ public class Member extends io.token.Member implements Representable {
     public Blob getTokenAttachmentBlocking(String tokenId, String blobId) {
         return getTokenAttachment(tokenId, blobId).blockingSingle();
     }
-
 
     /**
      * Cancels the token by signing it. The signature is persisted along
