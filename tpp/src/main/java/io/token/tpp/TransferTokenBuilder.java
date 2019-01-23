@@ -417,7 +417,7 @@ public final class TransferTokenBuilder {
         List<Observable<Attachment>> attachmentUploads = new ArrayList<>();
 
         for (Payload p : blobPayloads) {
-            attachmentUploads.add(member.createBlob(
+            attachmentUploads.add(member.createAttachment(
                     p.getOwnerId(),
                     p.getType(),
                     p.getName(),

@@ -27,7 +27,6 @@ import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
 import static io.token.util.Util.generateNonce;
 
-import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
@@ -35,8 +34,6 @@ import io.reactivex.functions.Function;
 import io.token.Account;
 import io.token.TokenClient.TokenCluster;
 import io.token.proto.PagedList;
-import io.token.proto.common.account.AccountProtos;
-import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
@@ -52,7 +49,6 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.tpp.rpc.Client;
 import io.token.tpp.tokenrequest.TokenRequest;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -135,12 +131,12 @@ public class Member extends io.token.Member implements Representable {
      * @param data file data
      * @return attachment
      */
-    public Observable<Attachment> createBlob(
+    public Observable<Attachment> createAttachment(
             String ownerId,
             final String type,
             final String name,
             byte[] data) {
-        return createBlob(ownerId, type, name, data, DEFAULT);
+        return createAttachment(ownerId, type, name, data, DEFAULT);
     }
 
     /**
@@ -153,7 +149,7 @@ public class Member extends io.token.Member implements Representable {
      * @param accessMode Normal access or public
      * @return attachment
      */
-    public Observable<Attachment> createBlob(
+    public Observable<Attachment> createAttachment(
             String ownerId,
             final String type,
             final String name,
@@ -188,12 +184,12 @@ public class Member extends io.token.Member implements Representable {
      * @param data file data
      * @return attachment
      */
-    public Attachment createBlobBlocking(
+    public Attachment createAttachmentBlocking(
             String ownerId,
             final String type,
             final String name,
             byte[] data) {
-        return createBlob(ownerId, type, name, data).blockingSingle();
+        return createAttachment(ownerId, type, name, data).blockingSingle();
     }
 
     /**
@@ -206,13 +202,13 @@ public class Member extends io.token.Member implements Representable {
      * @param accessMode Normal access or public
      * @return attachment
      */
-    public Attachment createBlobBlocking(
+    public Attachment createAttachmentBlocking(
             String ownerId,
             final String type,
             final String name,
             byte[] data,
             Blob.AccessMode accessMode) {
-        return createBlob(ownerId, type, name, data, accessMode).blockingSingle();
+        return createAttachment(ownerId, type, name, data, accessMode).blockingSingle();
     }
 
     /**
