@@ -47,6 +47,7 @@ import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestStatePayload;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
 import io.token.proto.common.transfer.TransferProtos;
@@ -109,6 +110,7 @@ import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
+import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
@@ -827,6 +829,22 @@ public final class Client extends io.token.rpc.Client {
                         return response.getSubscribersList();
                     }
                 });
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     * @return completable
+     */
+    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
+                        .setRequestId(requestId)
+                        .setRequestOptions(options)
+                        .build()));
     }
 
     /**

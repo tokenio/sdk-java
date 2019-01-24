@@ -59,9 +59,11 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
@@ -1254,6 +1256,27 @@ public class Member extends io.token.Member {
      */
     public Subscriber getSubscriberBlocking(String subscriberId) {
         return getSubscriber(subscriberId).blockingSingle();
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     * @return completable
+     */
+    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
+        return client.updateTokenRequest(requestId, options);
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     */
+    public void updateTokenRequestBlocking(String requestId, TokenRequestOptions options) {
+        updateTokenRequest(requestId, options).blockingAwait();
     }
 
     /**
