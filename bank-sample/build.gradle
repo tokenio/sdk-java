@@ -1,9 +1,0 @@
-apply plugin: 'io.token.gradle.publish'
-apply plugin: 'io.token.gradle.lib'
-apply plugin: 'io.token.gradle.project'
-
-dependencies {
-    compile project(':bank')
-    compile 'junit:junit:4.12'
-    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-netty', version: ver.tokenRpc
-}
