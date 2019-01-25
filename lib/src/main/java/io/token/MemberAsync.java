@@ -83,7 +83,6 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;

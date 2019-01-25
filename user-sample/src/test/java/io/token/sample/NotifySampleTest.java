@@ -1,6 +1,5 @@
 package io.token.sample;
 
-import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
 import static io.token.sample.TestUtil.randomAlias;
@@ -9,7 +8,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import com.google.common.collect.ImmutableList;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.token.TokenProtos.Token;
 import io.token.user.Member;
 import io.token.user.TokenClient;
 

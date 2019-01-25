@@ -22,6 +22,7 @@
 
 package io.token.security;
 
+import io.token.exceptions.KeyIOException;
 import io.token.proto.common.security.SecurityProtos;
 
 import java.util.List;

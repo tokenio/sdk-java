@@ -31,6 +31,7 @@ import com.google.common.collect.Lists;
 import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import io.token.exceptions.KeyIOException;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.util.Clock;

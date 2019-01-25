@@ -23,22 +23,16 @@
 package io.token.util;
 
 import static io.token.proto.ProtoHasher.hashAndSerializeJson;
-import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
-import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
-import com.google.protobuf.Message;
 import io.reactivex.Observable;
 import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
-import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -47,24 +41,10 @@ import io.token.proto.common.member.MemberProtos.MemberOperationMetadata.AddAlia
 import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.security.KeyNotFoundException;
-import io.token.security.crypto.Crypto;
-import io.token.security.crypto.CryptoRegistry;
 import io.token.util.codec.ByteEncoding;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLDecoder;
-import java.net.URLEncoder;
-import java.nio.charset.Charset;
-import java.security.PublicKey;
 import java.security.SecureRandom;
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ExecutionException;
-import javax.annotation.Nullable;
 
 
 /**

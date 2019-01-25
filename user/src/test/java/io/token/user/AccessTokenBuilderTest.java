@@ -5,7 +5,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos;
-import io.token.user.AccessTokenBuilder;
 
 import org.junit.Test;
 

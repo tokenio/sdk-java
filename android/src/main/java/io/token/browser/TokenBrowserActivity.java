@@ -1,6 +1,13 @@
 package io.token.browser;
 
 
+import static io.token.browser.TokenBrowserService.MSG_CLOSE;
+import static io.token.browser.TokenBrowserService.MSG_COMPLETE;
+import static io.token.browser.TokenBrowserService.MSG_GO_TO;
+import static io.token.browser.TokenBrowserService.MSG_KEY_SID;
+import static io.token.browser.TokenBrowserService.MSG_KEY_URL;
+import static io.token.browser.TokenBrowserService.MSG_ON_URL;
+
 import android.app.Activity;
 import android.content.res.Configuration;
 import android.os.Build;
@@ -12,13 +19,6 @@ import android.webkit.WebResourceRequest;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
-import static io.token.browser.TokenBrowserService.MSG_CLOSE;
-import static io.token.browser.TokenBrowserService.MSG_COMPLETE;
-import static io.token.browser.TokenBrowserService.MSG_GO_TO;
-import static io.token.browser.TokenBrowserService.MSG_KEY_SID;
-import static io.token.browser.TokenBrowserService.MSG_KEY_URL;
-import static io.token.browser.TokenBrowserService.MSG_ON_URL;
 
 public class TokenBrowserActivity extends Activity {
     private String sessionId;

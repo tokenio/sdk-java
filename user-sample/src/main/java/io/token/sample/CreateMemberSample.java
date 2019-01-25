@@ -1,7 +1,6 @@
 package io.token.sample;
 
 import static io.token.TokenClient.TokenCluster.SANDBOX;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
 import io.token.proto.common.alias.AliasProtos.Alias;

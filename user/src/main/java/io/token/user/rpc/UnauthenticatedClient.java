@@ -26,11 +26,9 @@ import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.proto.common.alias.AliasProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.blob.BlobProtos;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.AddKey;
 import io.token.proto.common.notification.NotificationProtos.NotifyBody;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;

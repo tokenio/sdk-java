@@ -3,7 +3,6 @@ package io.token.sample;
 import static io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment.PERSONAL_EXPENSES;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.pricing.PricingProtos.TransferQuote;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;

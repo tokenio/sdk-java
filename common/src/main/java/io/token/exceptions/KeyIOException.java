@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package io.token.security;
+package io.token.exceptions;
 
 /**
  * Thrown when a key could not be loaded or stored due to an error.

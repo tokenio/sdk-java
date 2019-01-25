@@ -9,6 +9,7 @@ import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import io.token.proto.common.security.SecurityProtos;
 import io.token.util.TestClock;
+
 import org.assertj.core.api.ThrowableAssert;
 import org.junit.Test;
 

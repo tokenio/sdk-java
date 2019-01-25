@@ -1,28 +1,26 @@
 package io.token.android;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static org.junit.Assert.assertEquals;
+
 import android.content.Context;
 import android.os.Build;
 import android.support.test.InstrumentationRegistry;
 import android.support.test.runner.AndroidJUnit4;
 import android.test.mock.MockContext;
-
 import com.google.common.util.concurrent.Uninterruptibles;
-
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import java.util.UUID;
-import java.util.concurrent.TimeUnit;
-
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.security.AKSCryptoEngineFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.UserAuthenticationStore;
 
-import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
-import static org.junit.Assert.*;
+import java.util.UUID;
+import java.util.concurrent.TimeUnit;
+
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
 /**
  * Instrumented test, which will execute on an Android device.
