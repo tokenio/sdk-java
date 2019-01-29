@@ -24,9 +24,9 @@ package io.token.user;
 
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
+import static io.token.user.util.Util.generateNonce;
 import static io.token.user.util.Util.getWebAppUrl;
 import static io.token.user.util.Util.parseOauthAccessToken;
-import static io.token.util.Util.generateNonce;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;

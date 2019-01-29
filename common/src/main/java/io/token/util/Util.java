@@ -50,7 +50,7 @@ import java.util.concurrent.ExecutionException;
 /**
  * Utility methods.
  */
-public abstract class Util {
+public class Util {
 
     /**
      * The token realm.
@@ -58,9 +58,6 @@ public abstract class Util {
     public static final String TOKEN_REALM = "token";
 
     private static final int NONCE_NUM_BYTES = 12;
-
-    private Util() {
-    }
 
     /**
      * Generates a random string.

@@ -1,13 +1,13 @@
 package io.token.sample;
 
+import io.token.Member;
+import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
-import io.token.user.Member;
-import io.token.user.TokenClient;
-import io.token.user.util.Util;
+import io.token.util.Util;
 
 import java.util.List;
 
@@ -16,13 +16,13 @@ public class NotifySample {
      * Creates a payment request (a transfer token payload)
      * and sends it to a potential payer.
      *
-     * @param tokenClient initialized SDK
+     * @param tokenIO initialized SDK
      * @param payee payer Token member
      * @param payerAlias payee Token member alias
      * @return a transfer Token
      */
     public static NotifyStatus notifyPaymentRequest(
-            TokenClient tokenClient,
+            TokenIO tokenIO,
             Member payee,
             Alias payerAlias) {
         // We'll use this as a reference ID. Normally, a payee who
@@ -35,7 +35,7 @@ public class NotifySample {
                 .setFrom(TokenMember.newBuilder()
                         .setAlias(payerAlias))
                 .setTo(TokenMember.newBuilder()
-                        .setAlias(payee.firstAliasBlocking()))
+                        .setAlias(payee.firstAlias()))
                 .setTransfer(TransferBody.newBuilder()
                         .setAmount("100.00")
                         .setCurrency("EUR"))
@@ -44,8 +44,19 @@ public class NotifySample {
                 .setRefId(cartId)
                 .build();
 
-        NotifyStatus status = tokenClient.notifyPaymentRequestBlocking(paymentRequest);
+        NotifyStatus status = tokenIO.notifyPaymentRequest(paymentRequest);
         return status;
+    }
+
+    /**
+     * Triggers a notification to step up the signature level when endorsing a token.
+     *
+     * @param member member
+     * @param tokenId token id
+     * @return notification status
+     */
+    public static NotifyStatus triggerTokenStepUpNotification(Member member, String tokenId) {
+        return member.triggerTokenStepUpNotification(tokenId);
     }
 
     /**
@@ -58,6 +69,20 @@ public class NotifySample {
     public static NotifyStatus triggerBalanceStepUpNotification(
             Member member,
             List<String> accountIds) {
-        return member.triggerBalanceStepUpNotificationBlocking(accountIds);
+        return member.triggerBalanceStepUpNotification(accountIds);
+    }
+
+    /**
+     * Triggers a notification to step up the signature level when requesting transaction history.
+     *
+     * @param member member
+     * @param accountId account id
+     * @return notification status
+     */
+    public static NotifyStatus triggerTransactionStepUpNotification(
+            Member member,
+            String accountId) {
+        return member.triggerTransactionStepUpNotification(accountId);
     }
 }
+

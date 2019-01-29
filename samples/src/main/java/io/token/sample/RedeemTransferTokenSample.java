@@ -1,10 +1,10 @@
 package io.token.sample;
 
+import io.token.Destinations;
+import io.token.Member;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.user.Destinations;
-import io.token.user.Member;
-import io.token.user.util.Util;
+import io.token.util.Util;
 
 /**
  * Redeems a transfer token.
@@ -29,11 +29,11 @@ public final class RedeemTransferTokenSample {
         String cartId = Util.generateNonce();
 
         // Retrieve a transfer token to redeem.
-        Token transferToken = payee.getTokenBlocking(tokenId);
+        Token transferToken = payee.getToken(tokenId);
 
         // Payee redeems a transfer token.
         // Money is transferred to a payee bank account.
-        Transfer transfer = payee.redeemTokenBlocking(
+        Transfer transfer = payee.redeemToken(
                 transferToken,
                 Destinations.token(payee.memberId(), accountId),
                 // if refId not set, transfer will have random refID:

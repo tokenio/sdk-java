@@ -1,14 +1,13 @@
 package io.token.sample;
 
-import static io.token.TokenClient.TokenCluster.DEVELOPMENT;
+import static io.token.TokenIO.TokenCluster.DEVELOPMENT;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
-import static io.token.user.util.Util.generateNonce;
 
 import com.google.common.util.concurrent.Uninterruptibles;
+import io.token.Member;
+import io.token.TokenIO;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.user.Member;
-import io.token.user.TokenClient;
+import io.token.util.Util;
 
 import java.util.concurrent.TimeUnit;
 
@@ -26,8 +25,8 @@ public abstract class TestUtil {
      *
      * @return client
      */
-    public static TokenClient createClient() {
-        return TokenClient.create(DEVELOPMENT, DEV_KEY);
+    public static TokenIO createClient() {
+        return TokenIO.create(DEVELOPMENT, DEV_KEY);
     }
 
     /**
@@ -38,7 +37,7 @@ public abstract class TestUtil {
     public static Alias randomAlias() {
         return Alias.newBuilder()
                 .setType(EMAIL)
-                .setValue("alias-" + generateNonce().toLowerCase() + "+noverify@example.com")
+                .setValue("alias-" + Util.generateNonce().toLowerCase() + "+noverify@example.com")
                 .build();
     }
 
@@ -47,9 +46,9 @@ public abstract class TestUtil {
      *
      * @return member
      */
-    public static Member createMemberAndLinkAccounts(TokenClient client) {
+    public static Member createMemberAndLinkAccounts(TokenIO client) {
         Alias alias = randomAlias();
-        Member member = client.createMemberBlocking(alias, PERSONAL);
+        Member member = client.createMember(alias);
         LinkMemberAndBankSample.linkBankAccounts(member);
         return member;
     }

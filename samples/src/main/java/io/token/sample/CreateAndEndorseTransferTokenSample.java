@@ -2,13 +2,14 @@ package io.token.sample;
 
 import static io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment.PERSONAL_EXPENSES;
 
+import io.token.Destinations;
+import io.token.Member;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.pricing.PricingProtos.Pricing;
 import io.token.proto.common.pricing.PricingProtos.TransferQuote;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.user.Destinations;
-import io.token.user.Member;
-import io.token.user.util.Util;
+import io.token.util.Util;
 
 /**
  * Creates a transfer token and endorses it to a payee.
@@ -35,7 +36,7 @@ public final class CreateAndEndorseTransferTokenSample {
                 100.0, // amount
                 "EUR")  // currency
                 // source account:
-                .setAccountId(payer.getAccountsBlocking().get(0).id())
+                .setAccountId(payer.getAccounts().get(0).id())
                 // payee token alias:
                 .setToAlias(payeeAlias)
                 // optional description:
@@ -46,7 +47,7 @@ public final class CreateAndEndorseTransferTokenSample {
 
         // Payer endorses a token to a payee by signing it
         // with her secure private key.
-        transferToken = payer.endorseTokenBlocking(
+        transferToken = payer.endorseToken(
                 transferToken,
                 Key.Level.STANDARD).getToken();
 
@@ -76,13 +77,17 @@ public final class CreateAndEndorseTransferTokenSample {
                         .setDescription("Transfer fee"))
                 .build();
 
+        Pricing pricing = Pricing.newBuilder()
+                .setSourceQuote(srcQuote)
+                .build();
+
         // Create a transfer token.
         Token transferToken =
                 payer.createTransferToken(
                         120.0, // amount
                         "EUR")  // currency
                         // source account:
-                        .setAccountId(payer.getAccountsBlocking().get(0).id())
+                        .setAccountId(payer.getAccounts().get(0).id())
                         .setToMemberId(payeeId)
                         .setToMemberId(payeeId)
                         // effective in one second:
@@ -90,6 +95,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         // expires in 300 seconds:
                         .setExpiresAtMs(now + (300 * 1000))
                         .setRefId("a713c8a61994a749")
+                        .setPricing(pricing)
                         .setChargeAmount(10.0)
                         .setDescription("Book purchase")
                         .setPurposeOfPayment(PERSONAL_EXPENSES)
@@ -97,7 +103,7 @@ public final class CreateAndEndorseTransferTokenSample {
 
         // Payer endorses a token to a payee by signing it
         // with her secure private key.
-        transferToken = payer.endorseTokenBlocking(
+        transferToken = payer.endorseToken(
                 transferToken,
                 Key.Level.STANDARD).getToken();
 
@@ -120,7 +126,7 @@ public final class CreateAndEndorseTransferTokenSample {
                 payer.createTransferToken(
                         100.0, // amount
                         "EUR")  // currency
-                        .setAccountId(payer.getAccountsBlocking().get(0).id())
+                        .setAccountId(payer.getAccounts().get(0).id())
                         .setToAlias(payeeAlias)
                         .addDestination(Destinations.sepa(
                                 "XUIWC2489",
@@ -128,7 +134,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         .execute();
 
         // Payer endorses a token to a payee by signing it with her secure private key.
-        transferToken = payer.endorseTokenBlocking(
+        transferToken = payer.endorseToken(
                 transferToken,
                 Key.Level.STANDARD).getToken();
 

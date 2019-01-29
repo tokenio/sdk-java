@@ -30,16 +30,7 @@ import javax.annotation.Nullable;
 /**
  * Utility methods.
  */
-public abstract class Util {
-
-    /**
-     * The token realm.
-     */
-    public static final String TOKEN_REALM = "token";
-
-    private Util() {
-    }
-
+public class Util extends io.token.util.Util {
     /**
      * Retrieve the access token from the URL fragment, given the full URL.
      *
