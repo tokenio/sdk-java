@@ -45,8 +45,8 @@ public abstract class TokenRequest {
      * @param resources access token resources
      * @return Builder instance
      */
-    public static Builder accessTokenRequestBuilder(ResourceType... resources) {
-        return new Builder(resources);
+    public static AccessBuilder accessTokenRequestBuilder(ResourceType... resources) {
+        return new AccessBuilder(resources);
     }
 
     /**
@@ -56,8 +56,8 @@ public abstract class TokenRequest {
      * @param currency currency of the token request
      * @return Builder instance
      */
-    public static Builder transferTokenRequestBuilder(double amount, String currency) {
-        return new Builder(amount, currency);
+    public static TransferBuilder transferTokenRequestBuilder(double amount, String currency) {
+        return new TransferBuilder(amount, currency);
     }
 
     /**
@@ -74,23 +74,11 @@ public abstract class TokenRequest {
     }
 
     public static class Builder {
-        private TokenRequestPayload.Builder requestPayload;
-        private TokenRequestOptions.Builder requestOptions;
+        protected TokenRequestPayload.Builder requestPayload;
+        protected TokenRequestOptions.Builder requestOptions;
 
-        Builder(ResourceType... resources) {
+        Builder() {
             this.requestPayload = TokenRequestPayload.newBuilder();
-            this.requestPayload.setAccessBody(
-                    TokenRequestPayload.AccessBody.newBuilder()
-                            .addAllType(Arrays.asList(resources)));
-            this.requestOptions = TokenRequestOptions.newBuilder();
-        }
-
-        Builder(double amount, String currency) {
-            this.requestPayload = TokenRequestPayload.newBuilder();
-            this.requestPayload.setTransferBody(TransferBody.newBuilder()
-                    .setLifetimeAmount(Double.toString(amount))
-                    .setCurrency(currency)
-                    .build());
             this.requestOptions = TokenRequestOptions.newBuilder();
         }
 
@@ -147,37 +135,6 @@ public abstract class TokenRequest {
          */
         public Builder setReceiptRequested(boolean receiptRequested) {
             this.requestOptions.setReceiptRequested(receiptRequested);
-            return this;
-        }
-
-        /**
-         * Sets the maximum amount per charge on a transfer token request.
-         *
-         * @param chargeAmount amount
-         * @return builder
-         */
-        public Builder setChargeAmount(double chargeAmount) {
-            if (!requestPayload.hasTransferBody()) {
-                throw new IllegalArgumentException("Require transfer-type token request.");
-            }
-            this.requestPayload.getTransferBodyBuilder()
-                    .setAmount(Double.toString(chargeAmount))
-                    .build();
-            return this;
-        }
-
-        /**
-         * Adds a transfer destination to a transfer token request.
-         *
-         * @param destination destination
-         * @return builder
-         */
-        public Builder addDestination(TransferEndpoint destination) {
-            if (!requestPayload.hasTransferBody()) {
-                throw new IllegalArgumentException("Require transfer-type token request.");
-            }
-            this.requestPayload.getTransferBodyBuilder()
-                    .addDestinations(destination);
             return this;
         }
 
@@ -283,6 +240,32 @@ public abstract class TokenRequest {
         }
 
         /**
+         * Builds the token payload.
+         *
+         * @return TokenRequest instance
+         */
+        public TokenRequest build() {
+            return fromProtos(requestPayload.build(), requestOptions.build());
+        }
+    }
+
+    public static class AccessBuilder extends Builder {
+        AccessBuilder(ResourceType... resources) {
+            this.requestPayload.setAccessBody(
+                    TokenRequestPayload.AccessBody.newBuilder()
+                            .addAllType(Arrays.asList(resources)));
+        }
+    }
+
+    public static class TransferBuilder extends Builder {
+        TransferBuilder(double amount, String currency) {
+            this.requestPayload.setTransferBody(TransferBody.newBuilder()
+                    .setLifetimeAmount(Double.toString(amount))
+                    .setCurrency(currency)
+                    .build());
+        }
+
+        /**
          * Optional. Sets the destination country in order to narrow down
          * the country selection in the web-app UI.
          *
@@ -295,12 +278,28 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Builds the token payload.
+         * Adds a transfer destination to a transfer token request.
          *
-         * @return TokenRequest instance
+         * @param destination destination
+         * @return builder
          */
-        public TokenRequest build() {
-            return fromProtos(requestPayload.build(), requestOptions.build());
+        public Builder addDestination(TransferEndpoint destination) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .addDestinations(destination);
+            return this;
+        }
+
+        /**
+         * Sets the maximum amount per charge on a transfer token request.
+         *
+         * @param chargeAmount amount
+         * @return builder
+         */
+        public Builder setChargeAmount(double chargeAmount) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .setAmount(Double.toString(chargeAmount))
+                    .build();
+            return this;
         }
     }
 }
