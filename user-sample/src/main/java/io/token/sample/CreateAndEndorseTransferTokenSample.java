@@ -2,11 +2,13 @@ package io.token.sample;
 
 import static io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment.PERSONAL_EXPENSES;
 
+import io.token.proto.common.account.AccountProtos.BankAccount;
+import io.token.proto.common.account.AccountProtos.BankAccount.Sepa;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.pricing.PricingProtos.TransferQuote;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.user.Destinations;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.user.Member;
 import io.token.user.util.Util;
 
@@ -115,6 +117,15 @@ public final class CreateAndEndorseTransferTokenSample {
             Member payer,
             Alias payeeAlias) {
 
+        // Set SEPA destination
+        TransferEndpoint sepaDestination = TransferEndpoint
+                .newBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setSepa(Sepa.newBuilder()
+                                .setBic("XUIWC2489")
+                                .setIban("DE89 3704 0044 0532 0130 00")))
+                .build();
+
         // Create a transfer token.
         Token transferToken =
                 payer.createTransferToken(
@@ -122,9 +133,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         "EUR")  // currency
                         .setAccountId(payer.getAccountsBlocking().get(0).id())
                         .setToAlias(payeeAlias)
-                        .addDestination(Destinations.sepa(
-                                "XUIWC2489",
-                                "DE89 3704 0044 0532 0130 00"))
+                        .addDestination(sepaDestination)
                         .execute();
 
         // Payer endorses a token to a payee by signing it with her secure private key.

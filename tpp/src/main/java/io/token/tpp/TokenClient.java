@@ -24,30 +24,19 @@ package io.token.tpp;
 
 import static io.token.TokenClient.TokenCluster.SANDBOX;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.tpp.util.Util.hashString;
 import static io.token.tpp.util.Util.urlEncode;
 import static io.token.tpp.util.Util.verifySignature;
 import static io.token.util.Util.getWebAppUrl;
-import static io.token.util.Util.normalizeAlias;
-import static io.token.util.Util.toAddAliasOperation;
-import static io.token.util.Util.toAddAliasOperationMetadata;
-import static io.token.util.Util.toAddKeyOperation;
-import static io.token.util.Util.toRecoveryAgentOperation;
-import static java.util.Collections.singletonList;
 
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
-
 import io.grpc.Metadata;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
-import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
@@ -55,7 +44,6 @@ import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
-import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
 import io.token.tpp.exceptions.InvalidStateException;
@@ -69,8 +57,6 @@ import io.token.tpp.tokenrequest.TokenRequestResult;
 import io.token.tpp.tokenrequest.TokenRequestState;
 
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 public class TokenClient extends io.token.TokenClient {

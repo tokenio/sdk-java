@@ -1,11 +1,9 @@
 package io.token.sample;
 
-import io.token.Destinations;
 import io.token.Member;
 import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.token.TokenProtos.Token;
-import io.token.proto.common.transfer.TransferProtos.Transfer;
 
 import java.util.List;
 

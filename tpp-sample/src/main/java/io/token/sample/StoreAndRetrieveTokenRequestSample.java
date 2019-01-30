@@ -4,10 +4,6 @@ import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.Access
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType.BALANCES;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.token.TokenProtos.TokenMember;
-import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
-import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody;
-import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
 import io.token.tpp.tokenrequest.TokenRequest;

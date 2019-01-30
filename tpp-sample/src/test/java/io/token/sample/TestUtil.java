@@ -6,9 +6,7 @@ import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONA
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.tpp.TokenClient;
 import io.token.user.AccessTokenBuilder;

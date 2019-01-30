@@ -23,8 +23,6 @@
 package io.token.tpp.rpc;
 
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
-import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
-import static io.token.proto.common.token.TokenProtos.TransferTokenStatus.SUCCESS;
 import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
 
@@ -38,25 +36,18 @@ import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
-import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
-import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
-import io.token.proto.gateway.Gateway.CreateAccessTokenResponse;
 import io.token.proto.gateway.Gateway.CreateBlobRequest;
 import io.token.proto.gateway.Gateway.CreateBlobResponse;
 import io.token.proto.gateway.Gateway.CreateCustomizationRequest;
 import io.token.proto.gateway.Gateway.CreateCustomizationResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
 import io.token.proto.gateway.Gateway.CreateTransferResponse;
-import io.token.proto.gateway.Gateway.CreateTransferTokenRequest;
-import io.token.proto.gateway.Gateway.CreateTransferTokenResponse;
-import io.token.proto.gateway.Gateway.EndorseTokenRequest;
-import io.token.proto.gateway.Gateway.EndorseTokenResponse;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenRequest;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
 import io.token.proto.gateway.Gateway.GetBlobRequest;

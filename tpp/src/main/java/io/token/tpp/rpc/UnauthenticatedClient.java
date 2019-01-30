@@ -27,7 +27,6 @@ import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetMemberRequest;

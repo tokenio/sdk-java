@@ -23,7 +23,6 @@
 package io.token.tpp.util;
 
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
-import static io.token.util.Util.TOKEN_REALM;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.common.hash.Hashing;
@@ -43,7 +42,6 @@ import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 /**
  * Utility methods.
