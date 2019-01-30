@@ -19,7 +19,7 @@ public class GetBalanceSampleTest {
     public void memberGetBalanceSampleTest() {
         try (TokenClient tokenClient = createClient()) {
             Member member = tokenClient.createMemberBlocking(randomAlias());
-            member.createAndLinkTestBankAccountBlocking(1000.0, "EUR");
+            member.createTestBankAccountBlocking(1000.0, "EUR");
 
             Map<String, Double> sums = GetBalanceSample.memberGetBalanceSample(member);
             assertThat(sums.get("EUR")).isEqualTo(1000.0);
@@ -30,7 +30,7 @@ public class GetBalanceSampleTest {
     public void accountGetBalanceSampleTest() {
         try (TokenClient tokenClient = createClient()) {
             Member member = tokenClient.createMemberBlocking(randomAlias());
-            member.createAndLinkTestBankAccountBlocking(1000.0, "EUR");
+            member.createTestBankAccountBlocking(1000.0, "EUR");
 
             Map<String, Double> sums = GetBalanceSample.accountGetBalanceSample(member);
             assertThat(sums.get("EUR")).isEqualTo(1000.0);
@@ -41,9 +41,9 @@ public class GetBalanceSampleTest {
     public void memberGetBalancesSampleTest() {
         try (TokenClient tokenClient = createClient()) {
             Member member = tokenClient.createMemberBlocking(randomAlias());
-            member.createAndLinkTestBankAccountBlocking(1000.0, "EUR");
+            member.createTestBankAccountBlocking(1000.0, "EUR");
 
-            member.createAndLinkTestBankAccountBlocking(500.0, "EUR");
+            member.createTestBankAccountBlocking(500.0, "EUR");
 
             List<Balance> balances = GetBalanceSample.memberGetBalanceListSample(member);
             assertThat(balances.size()).isEqualTo(2);

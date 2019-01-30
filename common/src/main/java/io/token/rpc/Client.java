@@ -450,7 +450,7 @@ public class Client {
      * @return linked account
      */
     public Observable<Account> createAndLinkTestBankAccount(MoneyProtos.Money balance) {
-        return createTestBankAccount(balance)
+        return createTestBankAuth(balance)
                 .flatMap(new Function<OauthBankAuthorization, Observable<Account>>() {
                     @Override
                     public Observable<Account> apply(OauthBankAuthorization authorization) {
@@ -466,25 +466,6 @@ public class Client {
                                         return accounts.get(0);
                                     }
                                 });
-                    }
-                });
-    }
-
-    /**
-     * Creates a test bank account and returns the authorization for it.
-     *
-     * @param balance account balance to set
-     * @return OAuth bank authorization
-     */
-    public Observable<OauthBankAuthorization> createTestBankAccount(MoneyProtos.Money balance) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
-                        .setBalance(balance)
-                        .build()))
-                .map(new Function<CreateTestBankAccountResponse, OauthBankAuthorization>() {
-                    public OauthBankAuthorization apply(CreateTestBankAccountResponse response) {
-                        return response.getAuthorization();
                     }
                 });
     }
@@ -688,5 +669,18 @@ public class Client {
                 "%s.%s",
                 toJson(tokenPayload),
                 action.name().toLowerCase());
+    }
+
+    private Observable<OauthBankAuthorization> createTestBankAuth(MoneyProtos.Money balance) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
+                        .setBalance(balance)
+                        .build()))
+                .map(new Function<CreateTestBankAccountResponse, OauthBankAuthorization>() {
+                    public OauthBankAuthorization apply(CreateTestBankAccountResponse response) {
+                        return response.getAuthorization();
+                    }
+                });
     }
 }

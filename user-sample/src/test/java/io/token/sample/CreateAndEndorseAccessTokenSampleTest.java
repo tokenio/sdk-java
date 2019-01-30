@@ -17,7 +17,7 @@ public class CreateAndEndorseAccessTokenSampleTest {
     public void createAccessTokenTest() {
         try (TokenClient tokenClient = createClient()) {
             Member grantor = tokenClient.createMemberBlocking(randomAlias());
-            String accountId = grantor.createAndLinkTestBankAccountBlocking(1000, "EUR").id();
+            String accountId = grantor.createTestBankAccountBlocking(1000, "EUR").id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenClient.createMemberBlocking(granteeAlias);
 

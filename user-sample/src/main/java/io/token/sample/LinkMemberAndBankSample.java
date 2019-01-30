@@ -19,6 +19,6 @@ public final class LinkMemberAndBankSample {
      * @return linked token accounts
      */
     public static Account linkBankAccounts(Member member) {
-        return member.createAndLinkTestBankAccountBlocking(1000.0, "EUR");
+        return member.createTestBankAccountBlocking(1000.0, "EUR");
     }
 }

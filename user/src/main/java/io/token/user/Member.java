@@ -1334,8 +1334,8 @@ public class Member extends io.token.Member {
      * @param currency currency code, e.g. "EUR"
      * @return the linked account
      */
-    public Observable<Account> createAndLinkTestBankAccount(double balance, String currency) {
-        return createAndLinkTestBankAccountImpl(balance, currency)
+    public Observable<Account> createTestBankAccount(double balance, String currency) {
+        return createTestBankAccountImpl(balance, currency)
                 .map(new Function<io.token.Account, Account>() {
                     @Override
                     public Account apply(io.token.Account acc) {
@@ -1351,8 +1351,8 @@ public class Member extends io.token.Member {
      * @param currency currency code, e.g. "EUR"
      * @return the linked account
      */
-    public Account createAndLinkTestBankAccountBlocking(double balance, String currency) {
-        return createAndLinkTestBankAccount(balance, currency).blockingSingle();
+    public Account createTestBankAccountBlocking(double balance, String currency) {
+        return createTestBankAccount(balance, currency).blockingSingle();
     }
 
     private Observable<List<Account>> toAccountList(

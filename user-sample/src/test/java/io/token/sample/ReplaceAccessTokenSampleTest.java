@@ -19,7 +19,7 @@ public class ReplaceAccessTokenSampleTest {
     public void getAccessTokensTest() {
         try (TokenClient tokenClient = createClient()) {
             Member grantor = tokenClient.createMemberBlocking(randomAlias());
-            String accountId = grantor.createAndLinkTestBankAccountBlocking(1000, "EUR").id();
+            String accountId = grantor.createTestBankAccountBlocking(1000, "EUR").id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenClient.createMemberBlocking(granteeAlias);
             Token createdToken = createAccessToken(grantor, accountId, granteeAlias);
@@ -32,7 +32,7 @@ public class ReplaceAccessTokenSampleTest {
     public void replaceAccessTokenTest() {
         try (TokenClient tokenClient = createClient()) {
             Member grantor = tokenClient.createMemberBlocking(randomAlias());
-            String accountId = grantor.createAndLinkTestBankAccountBlocking(1000, "EUR").id();
+            String accountId = grantor.createTestBankAccountBlocking(1000, "EUR").id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenClient.createMemberBlocking(granteeAlias);
             createAccessToken(grantor, accountId, granteeAlias);

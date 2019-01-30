@@ -19,7 +19,7 @@ public class CancelAccessTokenSampleTest {
     public void cancelAccessTokenByGrantorTest() {
         try (TokenClient tokenClient = createClient()) {
             Member grantor = tokenClient.createMemberBlocking(randomAlias());
-            String accountId = grantor.createAndLinkTestBankAccountBlocking(1000.0, "EUR")
+            String accountId = grantor.createTestBankAccountBlocking(1000.0, "EUR")
                     .id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenClient.createMemberBlocking(granteeAlias);

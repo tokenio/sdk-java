@@ -40,7 +40,7 @@ public final class ReplaceAccessTokenSample {
             Member grantor,
             Alias granteeAlias,
             Token oldToken) {
-        String accountId = grantor.createAndLinkTestBankAccountBlocking(1000.0, "EUR")
+        String accountId = grantor.createTestBankAccountBlocking(1000.0, "EUR")
                 .id();
 
         // Replace the old access token

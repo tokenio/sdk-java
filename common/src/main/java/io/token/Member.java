@@ -807,28 +807,13 @@ public class Member {
     }
 
     /**
-     * Creates a test bank account in a fake bank.
-     *
-     * @param balance account balance to set
-     * @param currency currency code, e.g. "EUR"
-     * @return OAuth bank authorization
-     */
-    public Observable<OauthBankAuthorization> createTestBankAccount(
-            double balance, String currency) {
-        return client.createTestBankAccount(MoneyProtos.Money.newBuilder()
-                .setCurrency(currency)
-                .setValue(Double.toString(balance))
-                .build());
-    }
-
-    /**
      * Creates a test bank account in a fake bank and links the account.
      *
      * @param balance account balance to set
      * @param currency currency code, e.g. "EUR"
      * @return the linked account
      */
-    protected Observable<Account> createAndLinkTestBankAccountImpl(
+    protected Observable<Account> createTestBankAccountImpl(
             double balance,
             String currency) {
         return toAccount(client.createAndLinkTestBankAccount(
@@ -837,17 +822,6 @@ public class Member {
                         .setCurrency(currency)
                         .build()
         ));
-    }
-
-    /**
-     * Creates a test bank account in a fake bank.
-     *
-     * @param balance account balance to set
-     * @param currency currency code, e.g. "EUR"
-     * @return OAuth bank authorization
-     */
-    public OauthBankAuthorization createTestBankAccountBlocking(double balance, String currency) {
-        return createTestBankAccount(balance, currency).blockingSingle();
     }
 
     @Override
