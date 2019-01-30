@@ -53,7 +53,6 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
-import io.token.proto.common.money.MoneyProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -1329,32 +1328,6 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a test bank account in a fake bank.
-     *
-     * @param balance account balance to set
-     * @param currency currency code, e.g. "EUR"
-     * @return OAuth bank authorization
-     */
-    public Observable<OauthBankAuthorization> createTestBankAccount(
-            double balance, String currency) {
-        return client.createTestBankAccount(MoneyProtos.Money.newBuilder()
-                .setCurrency(currency)
-                .setValue(Double.toString(balance))
-                .build());
-    }
-
-    /**
-     * Creates a test bank account in a fake bank.
-     *
-     * @param balance account balance to set
-     * @param currency currency code, e.g. "EUR"
-     * @return OAuth bank authorization
-     */
-    public OauthBankAuthorization createTestBankAccountBlocking(double balance, String currency) {
-        return createTestBankAccount(balance, currency).blockingSingle();
-    }
-
-    /**
      * Creates a test bank account in a fake bank and links the account.
      *
      * @param balance account balance to set
@@ -1362,12 +1335,13 @@ public class Member extends io.token.Member {
      * @return the linked account
      */
     public Observable<Account> createAndLinkTestBankAccount(double balance, String currency) {
-        return toAccount(client.createAndLinkTestBankAccount(
-                MoneyProtos.Money.newBuilder()
-                        .setValue(Double.toString(balance))
-                        .setCurrency(currency)
-                        .build()
-        ));
+        return createAndLinkTestBankAccountImpl(balance, currency)
+                .map(new Function<io.token.Account, Account>() {
+                    @Override
+                    public Account apply(io.token.Account acc) {
+                        return new Account(acc, client);
+                    }
+                });
     }
 
     /**
