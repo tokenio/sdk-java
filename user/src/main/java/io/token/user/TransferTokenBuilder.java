@@ -94,8 +94,9 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Creates the builder object from a token request
+     * Creates the builder object from a token request.
      *
+     * @param member payer of the token
      * @param tokenRequest token request
      */
     public TransferTokenBuilder(Member member, TokenRequest tokenRequest) {
