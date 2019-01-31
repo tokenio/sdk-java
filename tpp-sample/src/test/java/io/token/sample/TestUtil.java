@@ -2,7 +2,6 @@ package io.token.sample;
 
 import static io.token.TokenClient.TokenCluster.DEVELOPMENT;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -52,7 +51,7 @@ public abstract class TestUtil {
     public static io.token.user.Member createUserMember() {
         io.token.user.TokenClient client = io.token.user.TokenClient.create(DEVELOPMENT, DEV_KEY);
         Alias alias = randomAlias();
-        io.token.user.Member member = client.createMemberBlocking(alias, PERSONAL);
+        io.token.user.Member member = client.createMemberBlocking(alias);
         member.createTestBankAccountBlocking(1000.0, "EUR");
         return member;
     }
@@ -85,7 +84,7 @@ public abstract class TestUtil {
                 .setDescription("Book purchase")
                 // ref id (if not set, will get random ID)
                 .setRefId(purchaseId)
-                .execute();
+                .executeBlocking();
 
         // Payer endorses a token to a payee by signing it
         // with her secure private key.

@@ -322,20 +322,11 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Executes the request, creating a token.
-     *
-     * @return Token
-     */
-    public Token execute() {
-        return executeAsync().blockingSingle();
-    }
-
-    /**
      * Executes the request asynchronously.
      *
      * @return Token
      */
-    public Observable<Token> executeAsync() {
+    public Observable<Token> execute() {
         AccountCase sourceCase =
                 payload.getTransfer().getInstructions().getSource().getAccount().getAccountCase();
         if (!Arrays.asList(TOKEN, BANK).contains(sourceCase)) {
@@ -350,5 +341,14 @@ public final class TransferTokenBuilder {
         return member.createTransferToken(
                 payload.build(),
                 tokenRequestId != null ? tokenRequestId : "");
+    }
+
+    /**
+     * Executes the request, creating a token.
+     *
+     * @return Token
+     */
+    public Token executeBlocking() {
+        return execute().blockingSingle();
     }
 }

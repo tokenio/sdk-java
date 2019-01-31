@@ -40,7 +40,7 @@ public class PollNotificationsSampleTest {
                     .setAccountId(account.id())
                     .setToAlias(payeeAlias)
                     .addDestination(tokenDestination)
-                    .execute();
+                    .executeBlocking();
             payer.endorseTokenBlocking(token, Key.Level.STANDARD);
             Transfer transfer = payee.redeemTokenBlocking(token);
 

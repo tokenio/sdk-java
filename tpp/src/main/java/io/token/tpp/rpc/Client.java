@@ -30,7 +30,9 @@ import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
-import io.token.proto.common.blob.BlobProtos;
+import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -40,6 +42,7 @@ import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateBlobRequest;
@@ -52,6 +55,8 @@ import io.token.proto.gateway.Gateway.GetActiveAccessTokenRequest;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
 import io.token.proto.gateway.Gateway.GetBlobRequest;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
+import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
+import io.token.proto.gateway.Gateway.GetProfileResponse;
 import io.token.proto.gateway.Gateway.GetTokenBlobRequest;
 import io.token.proto.gateway.Gateway.GetTokenBlobResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
@@ -62,9 +67,11 @@ import io.token.proto.gateway.Gateway.GetTransferRequest;
 import io.token.proto.gateway.Gateway.GetTransferResponse;
 import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetTransfersResponse;
+import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
+import io.token.proto.gateway.Gateway.SetProfileRequest;
+import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
 import io.token.proto.gateway.Gateway.StoreTokenRequestResponse;
-import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
@@ -97,12 +104,85 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
+     * Replaces a member's public profile.
+     *
+     * @param profile Profile to set
+     * @return observable that completes when request handled
+     */
+    public Observable<Profile> setProfile(Profile profile) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfile(SetProfileRequest.newBuilder()
+                        .setProfile(profile)
+                        .build()))
+                .map(new Function<SetProfileResponse, Profile>() {
+                    public Profile apply(SetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
+    }
+
+    /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member Id whose profile we want
+     * @return their profile text
+     */
+    public Observable<Profile> getProfile(String memberId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfile(Gateway.GetProfileRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetProfileResponse, Profile>() {
+                    public Profile apply(GetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
+    }
+
+    /**
+     * Replaces a member's public profile picture.
+     *
+     * @param payload Picture data
+     * @return observable that completes when request handled
+     */
+    public Completable setProfilePicture(Blob.Payload payload) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfilePicture(SetProfilePictureRequest.newBuilder()
+                        .setPayload(payload)
+                        .build()));
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member Id whose profile we want
+     * @param size size category we want (small, medium, large, original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfilePicture(Gateway.GetProfilePictureRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .setSize(size)
+                        .build()))
+                .map(new Function<GetProfilePictureResponse, Blob>() {
+                    public Blob apply(GetProfilePictureResponse response) {
+                        return response.getBlob();
+                    }
+                });
+    }
+
+    /**
      * Creates and uploads a blob.
      *
      * @param payload payload of the blob
      * @return id of the blob
      */
-    public Observable<String> createBlob(BlobProtos.Blob.Payload payload) {
+    public Observable<String> createBlob(Blob.Payload payload) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .createBlob(CreateBlobRequest
@@ -122,15 +202,15 @@ public final class Client extends io.token.rpc.Client {
      * @param blobId id of the blob
      * @return Blob
      */
-    public Observable<BlobProtos.Blob> getBlob(String blobId) {
+    public Observable<Blob> getBlob(String blobId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getBlob(GetBlobRequest
                         .newBuilder()
                         .setBlobId(blobId)
                         .build()))
-                .map(new Function<GetBlobResponse, BlobProtos.Blob>() {
-                    public BlobProtos.Blob apply(GetBlobResponse response) {
+                .map(new Function<GetBlobResponse, Blob>() {
+                    public Blob apply(GetBlobResponse response) {
                         return response.getBlob();
                     }
                 });
@@ -209,7 +289,7 @@ public final class Client extends io.token.rpc.Client {
      * @return customization id
      */
     public Observable<String> createCustomization(
-            BlobProtos.Blob.Payload logo,
+            Blob.Payload logo,
             Map<String, String> colors,
             String consentText) {
         return toObservable(gateway
@@ -302,7 +382,7 @@ public final class Client extends io.token.rpc.Client {
      * @param blobId id of the blob
      * @return Blob
      */
-    public Observable<BlobProtos.Blob> getTokenBlob(String tokenId, String blobId) {
+    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getTokenBlob(GetTokenBlobRequest
@@ -310,8 +390,8 @@ public final class Client extends io.token.rpc.Client {
                         .setTokenId(tokenId)
                         .setBlobId(blobId)
                         .build()))
-                .map(new Function<GetTokenBlobResponse, BlobProtos.Blob>() {
-                    public BlobProtos.Blob apply(GetTokenBlobResponse response) {
+                .map(new Function<GetTokenBlobResponse, Blob>() {
+                    public Blob apply(GetTokenBlobResponse response) {
                         return response.getBlob();
                     }
                 });

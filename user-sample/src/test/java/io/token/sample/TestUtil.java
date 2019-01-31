@@ -49,7 +49,7 @@ public abstract class TestUtil {
      */
     public static Member createMemberAndLinkAccounts(TokenClient client) {
         Alias alias = randomAlias();
-        Member member = client.createMemberBlocking(alias, PERSONAL);
+        Member member = client.createMemberBlocking(alias);
         LinkMemberAndBankSample.linkBankAccounts(member);
         return member;
     }

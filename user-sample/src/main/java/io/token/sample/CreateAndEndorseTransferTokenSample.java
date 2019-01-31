@@ -44,7 +44,7 @@ public final class CreateAndEndorseTransferTokenSample {
                 .setDescription("Book purchase")
                 // ref id (if not set, will get random ID)
                 .setRefId(purchaseId)
-                .execute();
+                .executeBlocking();
 
         // Payer endorses a token to a payee by signing it
         // with her secure private key.
@@ -95,7 +95,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         .setChargeAmount(10.0)
                         .setDescription("Book purchase")
                         .setPurposeOfPayment(PERSONAL_EXPENSES)
-                        .execute();
+                        .executeBlocking();
 
         // Payer endorses a token to a payee by signing it
         // with her secure private key.
@@ -134,7 +134,7 @@ public final class CreateAndEndorseTransferTokenSample {
                         .setAccountId(payer.getAccountsBlocking().get(0).id())
                         .setToAlias(payeeAlias)
                         .addDestination(sepaDestination)
-                        .execute();
+                        .executeBlocking();
 
         // Payer endorses a token to a payee by signing it with her secure private key.
         transferToken = payer.endorseTokenBlocking(

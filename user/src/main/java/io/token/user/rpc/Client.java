@@ -213,7 +213,6 @@ public final class Client extends io.token.rpc.Client {
                 });
     }
 
-
     /**
      * Trigger a step up notification for balance requests.
      *

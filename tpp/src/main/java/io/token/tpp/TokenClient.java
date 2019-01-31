@@ -37,7 +37,6 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
@@ -105,19 +104,15 @@ public class TokenClient extends io.token.TokenClient {
                 .build();
     }
 
-
     /**
      * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
      *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
-     * @param memberType the type of member to register
      * @return newly created member
      */
-    public Observable<Member> createMember(
-            final Alias alias,
-            final CreateMemberType memberType) {
-        return createMemberImpl(alias, memberType)
+    public Observable<Member> createMember(final Alias alias) {
+        return createMemberImpl(alias, BUSINESS)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -129,30 +124,6 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(mem, client);
                     }
                 });
-    }
-
-    /**
-     * Creates a new business-use Token member with a set of auto-generated keys and and an alias.
-     *
-     * @param alias alias to associate with member
-     * @return newly created member
-     */
-    public Observable<Member> createMember(Alias alias) {
-        return createMember(alias, BUSINESS);
-    }
-
-    /**
-     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
-     *
-     * @param alias nullable member alias to use, must be unique. If null, then no alias will
-     *     be created with the member.
-     * @param memberType the type of member to register
-     * @return newly created member
-     */
-    public Member createMemberBlocking(
-            final Alias alias,
-            final CreateMemberType memberType) {
-        return createMember(alias, memberType).blockingSingle();
     }
 
     /**
