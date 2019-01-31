@@ -417,12 +417,14 @@ public final class Client extends io.token.rpc.Client {
      * @param tokenRequestId token request id
      * @return token returned by server
      */
-    public Observable<Token> createAccessToken(TokenPayload tokenPayload, String tokenRequestId) {
+    public Observable<Token> createAccessToken(
+            TokenPayload tokenPayload,
+            @Nullable String tokenRequestId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .createAccessToken(CreateAccessTokenRequest.newBuilder()
                         .setPayload(tokenPayload)
-                        .setTokenRequestId(tokenRequestId)
+                        .setTokenRequestId(tokenRequestId == null ? "" : tokenRequestId)
                         .build()))
                 .map(new Function<CreateAccessTokenResponse, Token>() {
                     @Override
