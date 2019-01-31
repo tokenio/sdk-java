@@ -24,6 +24,7 @@ package io.token.user;
 
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.BANK;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
+import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.TRANSFER_BODY;
 import static io.token.util.Util.generateNonce;
 
 import io.reactivex.Observable;
@@ -34,9 +35,11 @@ import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
 import java.util.Arrays;
 import java.util.List;
@@ -57,7 +60,7 @@ public final class TransferTokenBuilder {
     private final Member member;
     private final TokenPayload.Builder payload;
 
-    //Token request ID
+    // Token request ID
     private String tokenRequestId;
 
     /**
@@ -88,6 +91,40 @@ public final class TransferTokenBuilder {
                 payload.getFromBuilder().setAlias(aliases.get(0));
             }
         }
+    }
+
+    /**
+     * Creates the builder object from a token request
+     *
+     * @param tokenRequest token request
+     */
+    public TransferTokenBuilder(Member member, TokenRequest tokenRequest) {
+        if (tokenRequest.getRequestPayload().getRequestBodyCase() != TRANSFER_BODY) {
+            throw new IllegalArgumentException("Require token request with transfer body.");
+        }
+        this.member = member;
+        this.payload = TokenPayload.newBuilder()
+                .setVersion("1.0")
+                .setRefId(tokenRequest.getRequestPayload().getRefId())
+                .setFrom(tokenRequest.getRequestOptions().getFrom())
+                .setTo(tokenRequest.getRequestPayload().getTo())
+                .setActingAs(tokenRequest.getRequestPayload().getActingAs())
+                .setDescription(tokenRequest.getRequestPayload().getDescription())
+                .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
+        .setTransfer(TransferBody.newBuilder()
+                .setLifetimeAmount(tokenRequest
+                        .getRequestPayload()
+                        .getTransferBody()
+                        .getLifetimeAmount())
+                .setCurrency(tokenRequest.getRequestPayload().getTransferBody().getCurrency())
+                .setAmount(tokenRequest.getRequestPayload().getTransferBody().getAmount())
+                .setInstructions(TransferInstructions.newBuilder()
+                        .addAllDestinations(tokenRequest
+                                .getRequestPayload()
+                                .getTransferBody()
+                                .getDestinationsList()))
+                .build());
+        this.tokenRequestId = tokenRequest.getId();
     }
 
     /**
@@ -283,17 +320,6 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder setActingAs(ActingAs actingAs) {
         payload.setActingAs(actingAs);
-        return this;
-    }
-
-    /**
-     * Sets the token request ID.
-     *
-     * @param tokenRequestId token request id
-     * @return builder
-     */
-    public TransferTokenBuilder setTokenRequestId(String tokenRequestId) {
-        this.tokenRequestId = tokenRequestId;
         return this;
     }
 

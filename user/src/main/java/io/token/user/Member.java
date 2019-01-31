@@ -59,9 +59,11 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
@@ -252,10 +254,20 @@ public class Member extends io.token.Member {
      *
      * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
-     * @return transfer token returned by the server
+     * @return transfer token builder
      */
     public TransferTokenBuilder createTransferToken(double amount, String currency) {
         return new TransferTokenBuilder(this, amount, currency);
+    }
+
+    /**
+     * Creates a new transfer token builder from a token request.
+     *
+     * @param tokenRequest token request
+     * @return transfer token builder
+     */
+    public TransferTokenBuilder createTransferToken(TokenRequest tokenRequest) {
+        return new TransferTokenBuilder(this, tokenRequest);
     }
 
     /**
@@ -307,22 +319,9 @@ public class Member extends io.token.Member {
      * @return the access token created
      */
     public Observable<Token> createAccessToken(AccessTokenBuilder accessTokenBuilder) {
-        return client.createAccessToken(accessTokenBuilder.from(memberId()).build());
-    }
-
-    /**
-     * Creates an access token built from a given {@link AccessTokenBuilder}.
-     *
-     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
-     * @param tokenRequestId token request id
-     * @return the access token created
-     */
-    public Observable<Token> createAccessToken(
-            AccessTokenBuilder accessTokenBuilder,
-            String tokenRequestId) {
         return client.createAccessToken(
                 accessTokenBuilder.from(memberId()).build(),
-                tokenRequestId);
+                accessTokenBuilder.getTokenRequestId());
     }
 
     /**
@@ -333,19 +332,6 @@ public class Member extends io.token.Member {
      */
     public Token createAccessTokenBlocking(AccessTokenBuilder accessTokenBuilder) {
         return createAccessToken(accessTokenBuilder).blockingSingle();
-    }
-
-    /**
-     * Creates an access token built from a given {@link AccessTokenBuilder}.
-     *
-     * @param accessTokenBuilder an {@link AccessTokenBuilder} to create access token from
-     * @param tokenRequestId token request id
-     * @return the access token created
-     */
-    public Token createAccessTokenBlocking(
-            AccessTokenBuilder accessTokenBuilder,
-            String tokenRequestId) {
-        return createAccessToken(accessTokenBuilder, tokenRequestId).blockingSingle();
     }
 
     /**
