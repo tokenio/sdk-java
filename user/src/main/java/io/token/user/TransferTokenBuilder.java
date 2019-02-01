@@ -109,22 +109,27 @@ public final class TransferTokenBuilder {
                 .setRefId(tokenRequest.getRequestPayload().getRefId())
                 .setFrom(tokenRequest.getRequestOptions().getFrom())
                 .setTo(tokenRequest.getRequestPayload().getTo())
-                .setActingAs(tokenRequest.getRequestPayload().getActingAs())
                 .setDescription(tokenRequest.getRequestPayload().getDescription())
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
-        .setTransfer(TransferBody.newBuilder()
-                .setLifetimeAmount(tokenRequest
-                        .getRequestPayload()
-                        .getTransferBody()
-                        .getLifetimeAmount())
-                .setCurrency(tokenRequest.getRequestPayload().getTransferBody().getCurrency())
-                .setAmount(tokenRequest.getRequestPayload().getTransferBody().getAmount())
-                .setInstructions(TransferInstructions.newBuilder()
-                        .addAllDestinations(tokenRequest
+                .setTransfer(TransferBody.newBuilder()
+                        .setLifetimeAmount(tokenRequest
                                 .getRequestPayload()
                                 .getTransferBody()
-                                .getDestinationsList()))
-                .build());
+                                .getLifetimeAmount())
+                        .setCurrency(tokenRequest
+                                .getRequestPayload()
+                                .getTransferBody()
+                                .getCurrency())
+                        .setAmount(tokenRequest.getRequestPayload().getTransferBody().getAmount())
+                        .setInstructions(TransferInstructions.newBuilder()
+                                .addAllDestinations(tokenRequest
+                                        .getRequestPayload()
+                                        .getTransferBody()
+                                        .getDestinationsList()))
+                        .build());
+        if (tokenRequest.getRequestPayload().hasActingAs()) {
+            this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
+        }
         this.tokenRequestId = tokenRequest.getId();
     }
 
@@ -321,6 +326,17 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder setActingAs(ActingAs actingAs) {
         payload.setActingAs(actingAs);
+        return this;
+    }
+
+    /**
+     * Sets the token request ID.
+     *
+     * @param tokenRequestId token request id
+     * @return builder
+     */
+    public TransferTokenBuilder setTokenRequestId(String tokenRequestId) {
+        this.tokenRequestId = tokenRequestId;
         return this;
     }
 

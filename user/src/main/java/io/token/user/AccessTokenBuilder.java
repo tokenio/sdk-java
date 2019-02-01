@@ -119,9 +119,11 @@ public final class AccessTokenBuilder {
                 .setRefId(tokenRequest.getRequestPayload().getRefId())
                 .setFrom(tokenRequest.getRequestOptions().getFrom())
                 .setTo(tokenRequest.getRequestPayload().getTo())
-                .setActingAs(tokenRequest.getRequestPayload().getActingAs())
                 .setDescription(tokenRequest.getRequestPayload().getDescription())
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested());
+        if (tokenRequest.getRequestPayload().hasActingAs()) {
+            builder.setActingAs(tokenRequest.getRequestPayload().getActingAs());
+        }
         return new AccessTokenBuilder(builder, tokenRequest.getId());
     }
 
