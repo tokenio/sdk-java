@@ -1,6 +1,6 @@
 rootProject.name='sdk'
 
-include 'common'
+include 'core'
 include 'user'
 include 'tpp'
 include 'android'
