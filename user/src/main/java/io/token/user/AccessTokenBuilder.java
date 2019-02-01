@@ -22,9 +22,11 @@
 
 package io.token.user;
 
+import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.ACCESS_BODY;
 import static io.token.util.Util.generateNonce;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.AccessBody;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountBalance;
@@ -43,12 +45,19 @@ import io.token.proto.common.token.TokenProtos.AccessBody.Resource.TransferDesti
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequest;
+
+import java.util.List;
+import javax.annotation.Nullable;
 
 /**
  * Helps building an access token payload.
  */
 public final class AccessTokenBuilder {
     private final TokenPayload.Builder payload;
+
+    // Token request ID
+    private String tokenRequestId;
 
     private AccessTokenBuilder() {
         payload = TokenPayload.newBuilder()
@@ -57,8 +66,9 @@ public final class AccessTokenBuilder {
                 .setAccess(AccessBody.getDefaultInstance());
     }
 
-    private AccessTokenBuilder(TokenPayload.Builder payload) {
+    private AccessTokenBuilder(TokenPayload.Builder payload, @Nullable String tokenRequestId) {
         this.payload = payload;
+        this.tokenRequestId = tokenRequestId;
     }
 
     /**
@@ -91,21 +101,30 @@ public final class AccessTokenBuilder {
         TokenPayload.Builder builder = payload.toBuilder()
                 .clearAccess()
                 .setRefId(generateNonce());
-        return new AccessTokenBuilder(builder);
+        return new AccessTokenBuilder(builder, null);
     }
 
     /**
-     * Grants access to all addresses.
+     * Creates an instance of {@link AccessTokenBuilder} from a token request.
      *
-     * @return {@link AccessTokenBuilder}
+     * @param tokenRequest token request
+     * @return instance of {@link AccessTokenBuilder}
      */
-    @Deprecated
-    public AccessTokenBuilder forAllAddresses() {
-        payload
-                .getAccessBuilder()
-                .addResources(Resource.newBuilder()
-                        .setAllAddresses(AllAddresses.getDefaultInstance()));
-        return this;
+    public static AccessTokenBuilder fromTokenRequest(TokenRequest tokenRequest) {
+        if (tokenRequest.getRequestPayload().getRequestBodyCase() != ACCESS_BODY) {
+            throw new IllegalArgumentException("Require token request with access body.");
+        }
+        TokenPayload.Builder builder = TokenPayload.newBuilder()
+                .setVersion("1.0")
+                .setRefId(tokenRequest.getRequestPayload().getRefId())
+                .setFrom(tokenRequest.getRequestOptions().getFrom())
+                .setTo(tokenRequest.getRequestPayload().getTo())
+                .setDescription(tokenRequest.getRequestPayload().getDescription())
+                .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested());
+        if (tokenRequest.getRequestPayload().hasActingAs()) {
+            builder.setActingAs(tokenRequest.getRequestPayload().getActingAs());
+        }
+        return new AccessTokenBuilder(builder, tokenRequest.getId());
     }
 
     /**
@@ -119,36 +138,6 @@ public final class AccessTokenBuilder {
                 .getAccessBuilder()
                 .addResources(Resource.newBuilder()
                         .setAddress(Address.newBuilder().setAddressId(addressId)));
-        return this;
-    }
-
-    /**
-     * Grants access to all accounts.
-     *
-     * @return {@link AccessTokenBuilder}
-     */
-    @Deprecated
-    public AccessTokenBuilder forAllAccounts() {
-        payload
-                .getAccessBuilder()
-                .addResources(Resource.newBuilder()
-                        .setAllAccounts(AllAccounts.getDefaultInstance()));
-        return this;
-    }
-
-    /**
-     * Grants access to all accounts at a given bank.
-     *
-     * @param  bankId the bank id
-     * @return {@link AccessTokenBuilder}
-     */
-    @Deprecated
-    public AccessTokenBuilder forAllAccountsAtBank(String bankId) {
-        payload
-                .getAccessBuilder()
-                .addResources(Resource.newBuilder()
-                        .setAllAccountsAtBank(AllAccountsAtBank.newBuilder()
-                                .setBankId(bankId)));
         return this;
     }
 
@@ -167,36 +156,6 @@ public final class AccessTokenBuilder {
     }
 
     /**
-     * Grants access to all transactions.
-     *
-     * @return {@link AccessTokenBuilder}
-     */
-    @Deprecated
-    public AccessTokenBuilder forAllTransactions() {
-        payload
-                .getAccessBuilder()
-                .addResources(Resource.newBuilder()
-                        .setAllTransactions(AllAccountTransactions.getDefaultInstance()));
-        return this;
-    }
-
-    /**
-     * Grants access to all transactions at a given bank.
-     *
-     * @param  bankId the bank id
-     * @return {@link AccessTokenBuilder}
-     */
-    @Deprecated
-    public AccessTokenBuilder forAllTransactionsAtBank(String bankId) {
-        payload
-                .getAccessBuilder()
-                .addResources(Resource.newBuilder()
-                        .setAllTransactionsAtBank(AllTransactionsAtBank.newBuilder()
-                                .setBankId(bankId)));
-        return this;
-    }
-
-    /**
      * Grants access to a given account transactions.
      *
      * @param accountId account ID to grant access to transactions
@@ -207,36 +166,6 @@ public final class AccessTokenBuilder {
                 .getAccessBuilder()
                 .addResources(Resource.newBuilder()
                         .setTransactions(AccountTransactions.newBuilder().setAccountId(accountId)));
-        return this;
-    }
-
-    /**
-     * Grants access to all balances.
-     *
-     * @return {@link AccessTokenBuilder}
-     */
-    @Deprecated
-    public AccessTokenBuilder forAllBalances() {
-        payload
-                .getAccessBuilder()
-                .addResources(Resource.newBuilder()
-                        .setAllBalances(AllAccountBalances.getDefaultInstance()));
-        return this;
-    }
-
-    /**
-     * Grants access to all balances at a given bank.
-     *
-     * @param  bankId the bank id
-     * @return {@link AccessTokenBuilder}
-     */
-    @Deprecated
-    public AccessTokenBuilder forAllBalancesAtBank(String bankId) {
-        payload
-                .getAccessBuilder()
-                .addResources(Resource.newBuilder()
-                        .setAllBalancesAtBank(AllBalancesAtBank.newBuilder()
-                                .setBankId(bankId)));
         return this;
     }
 
@@ -255,36 +184,6 @@ public final class AccessTokenBuilder {
     }
 
     /**
-     * Grants access to all transfer destinations.
-     *
-     * @return {@link AccessTokenBuilder}
-     */
-    @Deprecated
-    public AccessTokenBuilder forAllTransferDestinations() {
-        payload
-                .getAccessBuilder()
-                .addResources(Resource.newBuilder()
-                        .setAllTransferDestinations(AllTransferDestinations.getDefaultInstance()));
-        return this;
-    }
-
-    /**
-     * Grants access to all transfer destinations at a given bank.
-     *
-     * @param bankId bank id
-     * @return {@link AccessTokenBuilder}
-     */
-    @Deprecated
-    public AccessTokenBuilder forAllTransferDestinationsAtBank(String bankId) {
-        payload
-                .getAccessBuilder()
-                .addResources(Resource.newBuilder()
-                        .setAllTransferDestinationsAtBank(AllTransferDestinationsAtBank.newBuilder()
-                                .setBankId(bankId)));
-        return this;
-    }
-
-    /**
      * Grants access to all transfer destinations at the given account.
      *
      * @param accountId account id
@@ -297,20 +196,6 @@ public final class AccessTokenBuilder {
                         .setTransferDestinations(TransferDestinations.newBuilder()
                                 .setAccountId(accountId)));
         return this;
-    }
-
-    /**
-     * Grants access to ALL resources (aka wildcard permissions).
-     *
-     * @return {@link AccessTokenBuilder}
-     */
-    @Deprecated
-    public AccessTokenBuilder forAll() {
-        return forAllAccounts()
-                .forAllAddresses()
-                .forAllBalances()
-                .forAllTransactions()
-                .forAllTransferDestinations();
     }
 
     /**
@@ -370,5 +255,14 @@ public final class AccessTokenBuilder {
         }
 
         return payload.build();
+    }
+
+    /**
+     * Gets the token request ID.
+     *
+     * @return token request ID
+     */
+    @Nullable String getTokenRequestId() {
+        return tokenRequestId;
     }
 }

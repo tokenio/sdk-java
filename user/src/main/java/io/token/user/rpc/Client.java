@@ -413,36 +413,18 @@ public final class Client extends io.token.rpc.Client {
     /**
      * Creates a new access token.
      *
-     * @param payload transfer token payload
-     * @return access token returned by the server
-     */
-    public Observable<Token> createAccessToken(TokenPayload payload) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .createAccessToken(CreateAccessTokenRequest
-                        .newBuilder()
-                        .setPayload(payload)
-                        .build()))
-                .map(new Function<CreateAccessTokenResponse, Token>() {
-                    public Token apply(CreateAccessTokenResponse response) {
-                        return response.getToken();
-                    }
-                });
-    }
-
-    /**
-     * Creates a new access token.
-     *
      * @param tokenPayload token payload
      * @param tokenRequestId token request id
      * @return token returned by server
      */
-    public Observable<Token> createAccessToken(TokenPayload tokenPayload, String tokenRequestId) {
+    public Observable<Token> createAccessToken(
+            TokenPayload tokenPayload,
+            @Nullable String tokenRequestId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .createAccessToken(CreateAccessTokenRequest.newBuilder()
                         .setPayload(tokenPayload)
-                        .setTokenRequestId(tokenRequestId)
+                        .setTokenRequestId(tokenRequestId == null ? "" : tokenRequestId)
                         .build()))
                 .map(new Function<CreateAccessTokenResponse, Token>() {
                     @Override
