@@ -40,8 +40,8 @@ import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
-import io.token.tpp.tokenrequest.TokenRequest;
-import io.token.tpp.tokenrequest.TokenRequestResult;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestResult;
 
 
 /**
@@ -91,64 +91,5 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                         return getMember(memberId);
                     }
                 });
-    }
-
-    /**
-     * Get the token request result based on a token's tokenRequestId.
-     *
-     * @param tokenRequestId token request id
-     * @return token request result
-     */
-    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
-        return toObservable(gateway
-                .getTokenRequestResult(GetTokenRequestResultRequest.newBuilder()
-                        .setTokenRequestId(tokenRequestId)
-                        .build()))
-                .map(new Function<GetTokenRequestResultResponse, TokenRequestResult>() {
-                    @Override
-                    public TokenRequestResult apply(GetTokenRequestResultResponse response)  {
-                        return TokenRequestResult.create(
-                                response.getTokenId(),
-                                response.getSignature());
-                    }
-                });
-    }
-
-    /**
-     * Retrieves a transfer token request.
-     *
-     * @param tokenRequestId token request id
-     *
-     * @return token request that was stored with the request id
-     */
-    public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
-        return toObservable(gateway.retrieveTokenRequest(Gateway.RetrieveTokenRequestRequest
-                .newBuilder()
-                .setRequestId(tokenRequestId)
-                .build()))
-                .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
-                    @Override
-                    public TokenRequest apply(RetrieveTokenRequestResponse response) {
-                        return TokenRequest
-                                .fromProtos(
-                                        response.getTokenRequest().getRequestPayload(),
-                                        response.getTokenRequest().getRequestOptions());
-                    }
-                });
-    }
-
-    /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     * @return completable
-     */
-    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
-        return toCompletable(gateway
-                .updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
-                        .setRequestId(requestId)
-                        .setRequestOptions(options)
-                        .build()));
     }
 }

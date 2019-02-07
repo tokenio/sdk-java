@@ -39,6 +39,7 @@ import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.VerificationException;
@@ -53,6 +54,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenMember;
+import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.SslConfig;
@@ -65,6 +67,8 @@ import io.token.security.KeyStore;
 import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestResult;
 
 import java.io.Closeable;
 import java.util.ArrayList;
@@ -578,6 +582,72 @@ public class TokenClient implements Closeable {
      */
     public List<String> getCountriesBlocking(String provider) {
         return getCountries(provider).blockingSingle();
+    }
+
+
+
+    /**
+     * Get the token request result based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getTokenRequestResult(tokenRequestId);
+    }
+
+    /**
+     * Get the token request result based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public TokenRequestResult getTokenRequestResultBlocking(String tokenRequestId) {
+        return getTokenRequestResult(tokenRequestId).blockingSingle();
+    }
+
+    /**
+     * Return a TokenRequest that was previously stored.
+     *
+     * @param requestId request id
+     * @return token request that was stored with the request id
+     */
+    public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.retrieveTokenRequest(requestId);
+    }
+
+    /**
+     * Return a TokenRequest that was previously stored.
+     *
+     * @param requestId request id
+     * @return token request that was stored with the request id
+     */
+    public TokenRequest retrieveTokenRequestBlocking(String requestId) {
+        return retrieveTokenRequest(requestId).blockingSingle();
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     * @return completable
+     */
+    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.updateTokenRequest(requestId, options);
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     */
+    public void updateTokenRequestBlocking(String requestId, TokenRequestOptions options) {
+        updateTokenRequest(requestId, options).blockingAwait();
     }
 
     /**

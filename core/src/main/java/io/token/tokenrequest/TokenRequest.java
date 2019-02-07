@@ -20,7 +20,7 @@
  * THE SOFTWARE.
  */
 
-package io.token.tpp.tokenrequest;
+package io.token.tokenrequest;
 
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.alias.AliasProtos.Alias;

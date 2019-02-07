@@ -47,14 +47,14 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestResult;
 import io.token.tpp.exceptions.InvalidStateException;
 import io.token.tpp.rpc.Client;
 import io.token.tpp.rpc.ClientFactory;
 import io.token.tpp.rpc.UnauthenticatedClient;
-import io.token.tpp.tokenrequest.TokenRequest;
 import io.token.tpp.tokenrequest.TokenRequestCallback;
 import io.token.tpp.tokenrequest.TokenRequestCallbackParameters;
-import io.token.tpp.tokenrequest.TokenRequestResult;
 import io.token.tpp.tokenrequest.TokenRequestState;
 
 import java.net.URL;
@@ -430,70 +430,6 @@ public class TokenClient extends io.token.TokenClient {
             final String callbackUrl,
             final String csrfToken) {
         return parseTokenRequestCallbackUrl(callbackUrl, csrfToken).blockingSingle();
-    }
-
-    /**
-     * Get the token request result based on a token's tokenRequestId.
-     *
-     * @param tokenRequestId token request id
-     * @return token request result
-     */
-    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenRequestResult(tokenRequestId);
-    }
-
-    /**
-     * Get the token request result based on a token's tokenRequestId.
-     *
-     * @param tokenRequestId token request id
-     * @return token request result
-     */
-    public TokenRequestResult getTokenRequestResultBlocking(String tokenRequestId) {
-        return getTokenRequestResult(tokenRequestId).blockingSingle();
-    }
-
-    /**
-     * Return a TokenRequest that was previously stored.
-     *
-     * @param requestId request id
-     * @return token request that was stored with the request id
-     */
-    public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.retrieveTokenRequest(requestId);
-    }
-
-    /**
-     * Return a TokenRequest that was previously stored.
-     *
-     * @param requestId request id
-     * @return token request that was stored with the request id
-     */
-    public TokenRequest retrieveTokenRequestBlocking(String requestId) {
-        return retrieveTokenRequest(requestId).blockingSingle();
-    }
-
-    /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     * @return completable
-     */
-    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.updateTokenRequest(requestId, options);
-    }
-
-    /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     */
-    public void updateTokenRequestBlocking(String requestId, TokenRequestOptions options) {
-        updateTokenRequest(requestId, options).blockingAwait();
     }
 
     public static final class Builder extends io.token.TokenClient.Builder<Builder> {

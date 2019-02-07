@@ -27,10 +27,12 @@ import static io.token.proto.common.alias.AliasProtos.VerificationStatus.SUCCESS
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
+import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.MemberNotFoundException;
@@ -49,7 +51,9 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenMember;
+import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
@@ -63,13 +67,18 @@ import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
 import io.token.proto.gateway.Gateway.ResolveAliasRequest;
 import io.token.proto.gateway.Gateway.ResolveAliasResponse;
+import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
+import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestResult;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -478,6 +487,66 @@ public class UnauthenticatedClient {
                         return response.getMember().getId();
                     }
                 });
+    }
+
+
+    /**
+     * Get the token request result based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
+        return toObservable(gateway
+                .getTokenRequestResult(Gateway.GetTokenRequestResultRequest.newBuilder()
+                        .setTokenRequestId(tokenRequestId)
+                        .build()))
+                .map(new Function<GetTokenRequestResultResponse, TokenRequestResult>() {
+                    @Override
+                    public TokenRequestResult apply(GetTokenRequestResultResponse response)  {
+                        return TokenRequestResult.create(
+                                response.getTokenId(),
+                                response.getSignature());
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a transfer token request.
+     *
+     * @param tokenRequestId token request id
+     *
+     * @return token request that was stored with the request id
+     */
+    public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
+        return toObservable(gateway.retrieveTokenRequest(Gateway.RetrieveTokenRequestRequest
+                .newBuilder()
+                .setRequestId(tokenRequestId)
+                .build()))
+                .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
+                    @Override
+                    public TokenRequest apply(RetrieveTokenRequestResponse response) {
+                        return TokenRequest
+                                .fromProtos(
+                                        response.getTokenRequest().getRequestPayload(),
+                                        response.getTokenRequest().getRequestOptions());
+                    }
+                });
+    }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     * @return completable
+     */
+    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
+        return toCompletable(gateway
+                .updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
+                        .setRequestId(requestId)
+                        .setRequestOptions(options)
+                        .build()));
     }
 
     private List<MemberOperation> toMemberOperations(Key... keys) {

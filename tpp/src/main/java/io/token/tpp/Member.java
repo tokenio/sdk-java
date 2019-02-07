@@ -45,8 +45,8 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.rpc.Client;
-import io.token.tpp.tokenrequest.TokenRequest;
 
 import java.util.List;
 import java.util.Map;

@@ -6,9 +6,9 @@ import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.randomAlias;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
-import io.token.tpp.tokenrequest.TokenRequest;
 
 import org.junit.Test;
 
