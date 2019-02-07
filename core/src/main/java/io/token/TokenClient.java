@@ -54,7 +54,6 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenMember;
-import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.SslConfig;
@@ -67,8 +66,6 @@ import io.token.security.KeyStore;
 import io.token.security.Signer;
 import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
-import io.token.tokenrequest.TokenRequest;
-import io.token.tokenrequest.TokenRequestResult;
 
 import java.io.Closeable;
 import java.util.ArrayList;
