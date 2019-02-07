@@ -92,4 +92,19 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                     }
                 });
     }
+
+    /**
+     * Updates an existing token request.
+     *
+     * @param requestId token request ID
+     * @param options new token request options
+     * @return completable
+     */
+    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
+        return toCompletable(gateway
+                .updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
+                        .setRequestId(requestId)
+                        .setRequestOptions(options)
+                        .build()));
+    }
 }

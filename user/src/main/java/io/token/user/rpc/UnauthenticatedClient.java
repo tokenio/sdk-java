@@ -38,14 +38,18 @@ import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
+import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
 import io.token.proto.gateway.Gateway.InvalidateNotificationRequest;
 import io.token.proto.gateway.Gateway.InvalidateNotificationResponse;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
 import io.token.proto.gateway.Gateway.RequestTransferResponse;
+import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.TriggerCreateAndEndorseTokenNotificationRequest;
 import io.token.proto.gateway.Gateway.TriggerCreateAndEndorseTokenNotificationResponse;
 import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestResult;
 import io.token.user.NotifyResult;
 
 import javax.annotation.Nullable;
@@ -175,6 +179,50 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 .map(new Function<InvalidateNotificationResponse, NotifyStatus>() {
                     public NotifyStatus apply(InvalidateNotificationResponse response) {
                         return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Get the token request result based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
+        return toObservable(gateway
+                .getTokenRequestResult(Gateway.GetTokenRequestResultRequest.newBuilder()
+                        .setTokenRequestId(tokenRequestId)
+                        .build()))
+                .map(new Function<GetTokenRequestResultResponse, TokenRequestResult>() {
+                    @Override
+                    public TokenRequestResult apply(GetTokenRequestResultResponse response)  {
+                        return TokenRequestResult.create(
+                                response.getTokenId(),
+                                response.getSignature());
+                    }
+                });
+    }
+
+    /**
+     * Retrieves a transfer token request.
+     *
+     * @param tokenRequestId token request id
+     *
+     * @return token request that was stored with the request id
+     */
+    public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
+        return toObservable(gateway.retrieveTokenRequest(Gateway.RetrieveTokenRequestRequest
+                .newBuilder()
+                .setRequestId(tokenRequestId)
+                .build()))
+                .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
+                    @Override
+                    public TokenRequest apply(RetrieveTokenRequestResponse response) {
+                        return TokenRequest
+                                .fromProtos(
+                                        response.getTokenRequest().getRequestPayload(),
+                                        response.getTokenRequest().getRequestOptions());
                     }
                 });
     }

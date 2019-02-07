@@ -30,6 +30,7 @@ import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.tpp.exceptions.InvalidTokenRequestQuery;
 import io.token.tpp.util.Util;
 
+import java.security.KeyPair;
 import java.util.Map;
 
 @AutoValue
