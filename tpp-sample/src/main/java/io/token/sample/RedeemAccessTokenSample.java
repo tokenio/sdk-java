@@ -5,10 +5,10 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 
 import io.grpc.StatusRuntimeException;
-import io.token.Account;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.tpp.Account;
 import io.token.tpp.Member;
 import io.token.tpp.Representable;
 

@@ -130,7 +130,7 @@ public class Member extends io.token.Member {
                     public List<Account> apply(List<io.token.Account> accs) {
                         List<Account> accounts = Lists.newArrayList();
                         for (io.token.Account acc : accs) {
-                            accounts.add(new Account(acc, client));
+                            accounts.add(new Account(acc, client, Member.this));
                         }
                         return accounts;
                     }
@@ -157,7 +157,7 @@ public class Member extends io.token.Member {
                 .map(new Function<io.token.Account, Account>() {
                     @Override
                     public Account apply(io.token.Account acc) {
-                        return new Account(acc, client);
+                        return new Account(acc, client, Member.this);
                     }
                 });
     }
@@ -1302,7 +1302,7 @@ public class Member extends io.token.Member {
                 .map(new Function<io.token.Account, Account>() {
                     @Override
                     public Account apply(io.token.Account acc) {
-                        return new Account(acc, client);
+                        return new Account(acc, client, Member.this);
                     }
                 });
     }

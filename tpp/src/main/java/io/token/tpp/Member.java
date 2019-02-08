@@ -28,11 +28,11 @@ import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
 import static io.token.util.Util.generateNonce;
 
+import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.Account;
 import io.token.TokenClient.TokenCluster;
 import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -179,7 +179,17 @@ public class Member extends io.token.Member implements Representable {
      * @return list of accounts
      */
     public Observable<List<Account>> getAccounts() {
-        return super.getAccountsImpl();
+        return getAccountsImpl()
+                .map(new Function<List<io.token.Account>, List<Account>>() {
+                    @Override
+                    public List<Account> apply(List<io.token.Account> accs)  {
+                        List<Account> accounts = Lists.newArrayList();
+                        for (io.token.Account acc : accs) {
+                            accounts.add(new Account(acc, Member.this));
+                        }
+                        return accounts;
+                    }
+                });
     }
 
     /**
@@ -198,7 +208,13 @@ public class Member extends io.token.Member implements Representable {
      * @return looked up account
      */
     public Observable<Account> getAccount(String accountId) {
-        return getAccountImpl(accountId);
+        return getAccountImpl(accountId)
+                .map(new Function<io.token.Account, Account>() {
+                    @Override
+                    public Account apply(io.token.Account acc) throws Exception {
+                        return new Account(acc, Member.this);
+                    }
+                });
     }
 
     /**
@@ -763,10 +779,10 @@ public class Member extends io.token.Member implements Representable {
      */
     public Observable<Account> createTestBankAccount(double balance, String currency) {
         return createTestBankAccountImpl(balance, currency)
-                .map(new Function<Account, Account>() {
+                .map(new Function<io.token.Account, Account>() {
                     @Override
-                    public Account apply(Account acc) {
-                        return new Account(acc);
+                    public Account apply(io.token.Account acc) {
+                        return new Account(acc, Member.this);
                     }
                 });
     }

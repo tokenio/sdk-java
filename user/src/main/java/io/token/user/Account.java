@@ -25,7 +25,6 @@ package io.token.user;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.Member;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -37,15 +36,23 @@ import io.token.user.rpc.Client;
  */
 public class Account extends io.token.Account {
     private final Client client;
+    private final Member member;
 
     Account(Member member, AccountProtos.Account account, Client client) {
         super(member, account, client);
         this.client = client;
+        this.member = member;
     }
 
-    Account(io.token.Account account, Client client) {
+    Account(io.token.Account account, Client client, Member member) {
         super(account);
         this.client = client;
+        this.member = member;
+    }
+
+    @Override
+    public Member member() {
+        return member;
     }
 
     /**

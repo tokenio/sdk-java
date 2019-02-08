@@ -2,11 +2,11 @@ package io.token.sample;
 
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 
-import io.token.Account;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transaction.TransactionProtos.TransactionType;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.tpp.Account;
 import io.token.tpp.Member;
 
 import java.util.List;
