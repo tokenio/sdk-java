@@ -191,7 +191,7 @@ public class TokenClient implements Closeable {
                 .createMemberId(memberType, null)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
-                        return setUpMemberImpl(alias, memberId);
+                        return setUpMemberImpl(alias, memberId, generateKeys(memberId));
                     }
                 });
     }
@@ -208,19 +208,19 @@ public class TokenClient implements Closeable {
      * @param memberId member id
      * @return newly created member
      */
-    protected Observable<Member> setUpMemberImpl(final Alias alias, final String memberId) {
+    protected Observable<Member> setUpMemberImpl(
+            final Alias alias,
+            final String memberId,
+            final List<Key> keys) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        final CryptoEngine crypto = cryptoFactory.create(memberId);
         return unauthenticated.getDefaultAgent()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
                     public Observable<MemberProtos.Member> apply(String agentId) {
-                        CryptoEngine crypto = cryptoFactory.create(memberId);
                         List<MemberOperation> operations = new ArrayList<>();
-                        operations.add(
-                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
-                        operations.add(
-                                toAddKeyOperation(crypto.generateKey(STANDARD)));
-                        operations.add(
-                                toAddKeyOperation(crypto.generateKey(LOW)));
+                        for (Key key : keys) {
+                            operations.add(toAddKeyOperation(key));
+                        }
                         operations.add(toRecoveryAgentOperation(agentId));
 
                         if (alias != null) {
@@ -241,7 +241,6 @@ public class TokenClient implements Closeable {
                 })
                 .flatMap(new Function<MemberProtos.Member, Observable<Member>>() {
                     public Observable<Member> apply(MemberProtos.Member member) {
-                        CryptoEngine crypto = cryptoFactory.create(member.getId());
                         Client client = ClientFactory.authenticated(
                                 channel,
                                 member.getId(),
@@ -252,6 +251,15 @@ public class TokenClient implements Closeable {
                                 tokenCluster));
                     }
                 });
+    }
+
+    protected List<Key> generateKeys(String memberId) {
+        CryptoEngine crypto = cryptoFactory.create(memberId);
+        List<Key> keys = new ArrayList<>();
+        keys.add(crypto.generateKey(PRIVILEGED));
+        keys.add(crypto.generateKey(STANDARD));
+        keys.add(crypto.generateKey(LOW));
+        return keys;
     }
 
     /**
@@ -284,7 +292,7 @@ public class TokenClient implements Closeable {
     public Observable<Member> completeRecoveryImpl(
             String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
-            SecurityProtos.Key privilegedKey,
+            Key privilegedKey,
             final CryptoEngine cryptoEngine) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated

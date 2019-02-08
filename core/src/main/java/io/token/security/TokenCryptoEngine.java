@@ -36,7 +36,7 @@ import java.util.List;
  * Token implementation of the {@link CryptoEngine}. The keys are persisted
  * in the provided storage.
  */
-public final class TokenCryptoEngine implements CryptoEngine {
+public class TokenCryptoEngine implements CryptoEngine {
     private static final CryptoType CRYPTO_TYPE = CryptoType.EDDSA;
     private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ED25519;
 
