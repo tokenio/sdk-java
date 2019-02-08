@@ -39,7 +39,6 @@ import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
 import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.VerificationException;

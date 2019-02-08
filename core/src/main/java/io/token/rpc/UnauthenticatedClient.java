@@ -27,18 +27,15 @@ import static io.token.proto.common.alias.AliasProtos.VerificationStatus.SUCCESS
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
-import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.bank.BankProtos;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankFilter;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
@@ -51,10 +48,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenMember;
-import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
-import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.BeginRecoveryRequest;
 import io.token.proto.gateway.Gateway.BeginRecoveryResponse;
 import io.token.proto.gateway.Gateway.CompleteRecoveryRequest;
@@ -67,18 +61,13 @@ import io.token.proto.gateway.Gateway.GetBanksRequest;
 import io.token.proto.gateway.Gateway.GetBanksResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
-import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
 import io.token.proto.gateway.Gateway.ResolveAliasRequest;
 import io.token.proto.gateway.Gateway.ResolveAliasResponse;
-import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
-import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
-import io.token.tokenrequest.TokenRequest;
-import io.token.tokenrequest.TokenRequestResult;
 
 import java.util.LinkedList;
 import java.util.List;

@@ -32,7 +32,6 @@ import static io.token.util.Util.getWebAppUrl;
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -40,7 +39,6 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
-import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
@@ -473,28 +471,6 @@ public class TokenClient extends io.token.TokenClient {
      */
     public TokenRequest retrieveTokenRequestBlocking(String requestId) {
         return retrieveTokenRequest(requestId).blockingSingle();
-    }
-
-    /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     * @return completable
-     */
-    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.updateTokenRequest(requestId, options);
-    }
-
-    /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     */
-    public void updateTokenRequestBlocking(String requestId, TokenRequestOptions options) {
-        updateTokenRequest(requestId, options).blockingAwait();
     }
 
     public static final class Builder extends io.token.TokenClient.Builder<Builder> {

@@ -2,7 +2,6 @@ package io.token.sample;
 
 import static io.token.TokenClient.TokenCluster.DEVELOPMENT;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
-import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONAL;
 import static io.token.user.util.Util.generateNonce;
 
 import com.google.common.util.concurrent.Uninterruptibles;
