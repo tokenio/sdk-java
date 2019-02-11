@@ -32,7 +32,6 @@ import static io.token.util.Util.getWebAppUrl;
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -40,21 +39,20 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
-import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestResult;
 import io.token.tpp.exceptions.InvalidStateException;
 import io.token.tpp.rpc.Client;
 import io.token.tpp.rpc.ClientFactory;
 import io.token.tpp.rpc.UnauthenticatedClient;
-import io.token.tpp.tokenrequest.TokenRequest;
 import io.token.tpp.tokenrequest.TokenRequestCallback;
 import io.token.tpp.tokenrequest.TokenRequestCallbackParameters;
-import io.token.tpp.tokenrequest.TokenRequestResult;
 import io.token.tpp.tokenrequest.TokenRequestState;
 
 import java.net.URL;
@@ -432,6 +430,7 @@ public class TokenClient extends io.token.TokenClient {
         return parseTokenRequestCallbackUrl(callbackUrl, csrfToken).blockingSingle();
     }
 
+
     /**
      * Get the token request result based on a token's tokenRequestId.
      *
@@ -472,28 +471,6 @@ public class TokenClient extends io.token.TokenClient {
      */
     public TokenRequest retrieveTokenRequestBlocking(String requestId) {
         return retrieveTokenRequest(requestId).blockingSingle();
-    }
-
-    /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     * @return completable
-     */
-    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.updateTokenRequest(requestId, options);
-    }
-
-    /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     */
-    public void updateTokenRequestBlocking(String requestId, TokenRequestOptions options) {
-        updateTokenRequest(requestId, options).blockingAwait();
     }
 
     public static final class Builder extends io.token.TokenClient.Builder<Builder> {

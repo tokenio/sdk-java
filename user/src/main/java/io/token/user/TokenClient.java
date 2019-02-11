@@ -54,6 +54,8 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestResult;
 import io.token.user.browser.BrowserFactory;
 import io.token.user.rpc.Client;
 import io.token.user.rpc.ClientFactory;
@@ -455,6 +457,48 @@ public class TokenClient extends io.token.TokenClient {
      */
     public BlobProtos.Blob getBlobBlocking(String blobId) {
         return getBlob(blobId).blockingSingle();
+    }
+
+    /**
+     * Get the token request result based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getTokenRequestResult(tokenRequestId);
+    }
+
+    /**
+     * Get the token request result based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public TokenRequestResult getTokenRequestResultBlocking(String tokenRequestId) {
+        return getTokenRequestResult(tokenRequestId).blockingSingle();
+    }
+
+    /**
+     * Return a TokenRequest that was previously stored.
+     *
+     * @param requestId request id
+     * @return token request that was stored with the request id
+     */
+    public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.retrieveTokenRequest(requestId);
+    }
+
+    /**
+     * Return a TokenRequest that was previously stored.
+     *
+     * @param requestId request id
+     * @return token request that was stored with the request id
+     */
+    public TokenRequest retrieveTokenRequestBlocking(String requestId) {
+        return retrieveTokenRequest(requestId).blockingSingle();
     }
 
     /**

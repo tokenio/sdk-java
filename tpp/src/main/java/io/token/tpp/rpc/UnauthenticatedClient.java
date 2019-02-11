@@ -22,26 +22,21 @@
 
 package io.token.tpp.rpc;
 
-import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.tpp.util.Util.TOKEN;
 import static io.token.util.Util.toObservable;
 
-import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.member.MemberProtos.Member;
-import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
-import io.token.proto.gateway.Gateway.GetTokenRequestResultRequest;
 import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
 import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
-import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
-import io.token.tpp.tokenrequest.TokenRequest;
-import io.token.tpp.tokenrequest.TokenRequestResult;
+import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestResult;
 
 
 /**
@@ -101,7 +96,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      */
     public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
         return toObservable(gateway
-                .getTokenRequestResult(GetTokenRequestResultRequest.newBuilder()
+                .getTokenRequestResult(Gateway.GetTokenRequestResultRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()))
                 .map(new Function<GetTokenRequestResultResponse, TokenRequestResult>() {
@@ -135,20 +130,5 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                                         response.getTokenRequest().getRequestOptions());
                     }
                 });
-    }
-
-    /**
-     * Updates an existing token request.
-     *
-     * @param requestId token request ID
-     * @param options new token request options
-     * @return completable
-     */
-    public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
-        return toCompletable(gateway
-                .updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
-                        .setRequestId(requestId)
-                        .setRequestOptions(options)
-                        .build()));
     }
 }

@@ -4,9 +4,9 @@ import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.Access
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType.BALANCES;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
-import io.token.tpp.tokenrequest.TokenRequest;
 
 /**
  * Stores and retrieves a token request.
