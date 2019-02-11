@@ -255,10 +255,9 @@ public final class Client extends io.token.rpc.Client {
     /**
      * Makes RPC to get default bank account for this member.
      *
-     * @param memberId the member id
      * @return the bank account
      */
-    public Observable<Account> getDefaultAccount(String memberId) {
+    public Observable<Account> getDefaultAccount() {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()

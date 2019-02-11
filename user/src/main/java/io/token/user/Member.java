@@ -175,12 +175,11 @@ public class Member extends io.token.Member {
     /**
      * Get the default bank account for this member.
      *
-     * @param memberId the member's id
-     * @return observable string
+     * @return observable account
      */
-    public Observable<Account> getDefaultAccount(String memberId) {
+    public Observable<Account> getDefaultAccount() {
         return client
-                .getDefaultAccount(memberId)
+                .getDefaultAccount()
                 .map(new Function<AccountProtos.Account, Account>() {
                     public Account apply(AccountProtos.Account account) {
                         return new Account(Member.this, account, client);
@@ -191,10 +190,10 @@ public class Member extends io.token.Member {
     /**
      * Gets the default bank account.
      *
-     * @return the default bank account id
+     * @return the default bank account
      */
-    public Account getDefaultAccount() {
-        return getDefaultAccount(this.memberId()).blockingSingle();
+    public Account getDefaultAccountBlocking() {
+        return getDefaultAccount().blockingSingle();
     }
 
     /**
