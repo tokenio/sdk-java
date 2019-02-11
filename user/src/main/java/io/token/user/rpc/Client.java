@@ -212,47 +212,6 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
-     * Trigger a step up notification for balance requests.
-     *
-     * @param accountIds list of account ids
-     * @return notification status
-     */
-    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .triggerStepUpNotification(TriggerStepUpNotificationRequest.newBuilder()
-                        .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
-                                .addAllAccountId(accountIds))
-                        .build()))
-                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
-                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
-                        return response.getStatus();
-                    }
-                });
-    }
-
-    /**
-     * Trigger a step up notification for transaction requests.
-     *
-     * @param accountId account id
-     * @return notification status
-     */
-    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .triggerStepUpNotification(TriggerStepUpNotificationRequest
-                        .newBuilder()
-                        .setTransactionStepUp(NotificationProtos.TransactionStepUp.newBuilder()
-                                .setAccountId(accountId))
-                        .build()))
-                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
-                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
-                        return response.getStatus();
-                    }
-                });
-    }
-
-    /**
      * Makes RPC to get default bank account for this member.
      *
      * @return the bank account

@@ -1061,46 +1061,6 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Trigger a step up notification for balance requests.
-     *
-     * @param accountIds list of account ids
-     * @return notification status
-     */
-    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
-        return client.triggerBalanceStepUpNotification(accountIds);
-    }
-
-    /**
-     * Trigger a step up notification for balance requests.
-     *
-     * @param accountIds list of account ids
-     * @return notification status
-     */
-    public NotifyStatus triggerBalanceStepUpNotificationBlocking(List<String> accountIds) {
-        return triggerBalanceStepUpNotification(accountIds).blockingSingle();
-    }
-
-    /**
-     * Trigger a step up notification for transaction requests.
-     *
-     * @param accountId account id
-     * @return notification status
-     */
-    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
-        return client.triggerTransactionStepUpNotification(accountId);
-    }
-
-    /**
-     * Trigger a step up notification for transaction requests.
-     *
-     * @param accountId account id
-     * @return notification status
-     */
-    public NotifyStatus triggerTransactionStepUpNotificationBlocking(String accountId) {
-        return triggerTransactionStepUpNotification(accountId).blockingSingle();
-    }
-
-    /**
      * Gets a list of the member's notifications.
      *
      * @param offset offset to start

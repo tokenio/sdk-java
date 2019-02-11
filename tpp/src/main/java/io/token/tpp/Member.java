@@ -40,6 +40,8 @@ import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transfer.TransferProtos;
@@ -768,6 +770,46 @@ public class Member extends io.token.Member implements Representable {
      */
     public TokenOperationResult cancelTokenBlocking(Token token) {
         return cancelToken(token).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
+        return client.triggerBalanceStepUpNotification(accountIds);
+    }
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public NotifyStatus triggerBalanceStepUpNotificationBlocking(List<String> accountIds) {
+        return triggerBalanceStepUpNotification(accountIds).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
+        return client.triggerTransactionStepUpNotification(accountId);
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public NotifyStatus triggerTransactionStepUpNotificationBlocking(String accountId) {
+        return triggerTransactionStepUpNotification(accountId).blockingSingle();
     }
 
     /**
