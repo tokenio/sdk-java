@@ -40,7 +40,6 @@ import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -238,12 +237,12 @@ public class Member extends io.token.Member implements Representable {
      * @param data file data
      * @return attachment
      */
-    public Observable<Attachment> createAttachment(
+    public Observable<Attachment> createBlob(
             String ownerId,
             final String type,
             final String name,
             byte[] data) {
-        return createAttachment(ownerId, type, name, data, DEFAULT);
+        return createBlob(ownerId, type, name, data, DEFAULT);
     }
 
     /**
@@ -256,7 +255,7 @@ public class Member extends io.token.Member implements Representable {
      * @param accessMode Normal access or public
      * @return attachment
      */
-    public Observable<Attachment> createAttachment(
+    public Observable<Attachment> createBlob(
             String ownerId,
             final String type,
             final String name,
@@ -291,12 +290,12 @@ public class Member extends io.token.Member implements Representable {
      * @param data file data
      * @return attachment
      */
-    public Attachment createAttachmentBlocking(
+    public Attachment createBlobBlocking(
             String ownerId,
             final String type,
             final String name,
             byte[] data) {
-        return createAttachment(ownerId, type, name, data).blockingSingle();
+        return createBlob(ownerId, type, name, data).blockingSingle();
     }
 
     /**
@@ -309,13 +308,13 @@ public class Member extends io.token.Member implements Representable {
      * @param accessMode Normal access or public
      * @return attachment
      */
-    public Attachment createAttachmentBlocking(
+    public Attachment createBlobBlocking(
             String ownerId,
             final String type,
             final String name,
             byte[] data,
             Blob.AccessMode accessMode) {
-        return createAttachment(ownerId, type, name, data, accessMode).blockingSingle();
+        return createBlob(ownerId, type, name, data, accessMode).blockingSingle();
     }
 
     /**
@@ -725,30 +724,6 @@ public class Member extends io.token.Member implements Representable {
     public Token getTokenBlocking(String tokenId) {
         return getToken(tokenId).blockingSingle();
     }
-
-
-    /**
-     * Retrieves a blob that is attached to a transfer token.
-     *
-     * @param tokenId id of the token
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Observable<Blob> getTokenAttachment(String tokenId, String blobId) {
-        return client.getTokenBlob(tokenId, blobId);
-    }
-
-    /**
-     * Retrieves a blob that is attached to a token.
-     *
-     * @param tokenId id of the token
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Blob getTokenAttachmentBlocking(String tokenId, String blobId) {
-        return getTokenAttachment(tokenId, blobId).blockingSingle();
-    }
-
 
     /**
      * Cancels the token by signing it. The signature is persisted along

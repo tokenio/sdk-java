@@ -55,7 +55,6 @@ import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
-import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -539,28 +538,6 @@ public class Member extends io.token.Member {
      */
     public Token getTokenBlocking(String tokenId) {
         return getToken(tokenId).blockingSingle();
-    }
-
-    /**
-     * Retrieves a blob that is attached to a transfer token.
-     *
-     * @param tokenId id of the token
-     * @param attachmentId id of the attachment
-     * @return Blob
-     */
-    public Observable<Blob> getTokenAttachment(String tokenId, String attachmentId) {
-        return client.getTokenAttachment(tokenId, attachmentId);
-    }
-
-    /**
-     * Retrieves a blob that is attached to a token.
-     *
-     * @param tokenId id of the token
-     * @param attachmentId id of the attachment
-     * @return Blob
-     */
-    public Blob getTokenAttachmentBlocking(String tokenId, String attachmentId) {
-        return getTokenAttachment(tokenId, attachmentId).blockingSingle();
     }
 
     /**

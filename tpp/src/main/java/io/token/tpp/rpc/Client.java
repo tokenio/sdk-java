@@ -59,8 +59,6 @@ import io.token.proto.gateway.Gateway.GetBlobRequest;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.GetProfileResponse;
-import io.token.proto.gateway.Gateway.GetTokenBlobRequest;
-import io.token.proto.gateway.Gateway.GetTokenBlobResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -384,30 +382,6 @@ public final class Client extends io.token.rpc.Client {
                     }
                 });
     }
-
-
-    /**
-     * Retrieves a blob that is attached to a token.
-     *
-     * @param tokenId id of the token
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .getTokenBlob(GetTokenBlobRequest
-                        .newBuilder()
-                        .setTokenId(tokenId)
-                        .setBlobId(blobId)
-                        .build()))
-                .map(new Function<GetTokenBlobResponse, Blob>() {
-                    public Blob apply(GetTokenBlobResponse response) {
-                        return response.getBlob();
-                    }
-                });
-    }
-
 
     /**
      * Looks up an existing transfer.
