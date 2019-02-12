@@ -1527,13 +1527,17 @@ public class MemberAsync implements RepresentableAsync {
      * @param logo logo
      * @param colors map of ARGB colors #AARRGGBB
      * @param consentText consent text
+     * @param name display name
+     * @param appName corresponding app name
      * @return customization id
      */
     public Observable<String> createCustomization(
             Payload logo,
             Map<String, String> colors,
-            String consentText) {
-        return client.createCustomization(logo, colors, consentText);
+            String consentText,
+            String name,
+            String appName) {
+        return client.createCustomization(logo, colors, consentText, name, appName);
     }
 
     /**
