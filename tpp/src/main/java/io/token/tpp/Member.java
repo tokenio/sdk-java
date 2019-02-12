@@ -535,13 +535,17 @@ public class Member extends io.token.Member implements Representable {
      * @param logo logo
      * @param colors map of ARGB colors #AARRGGBB
      * @param consentText consent text
+     * @param name display name
+     * @param appName corresponding app name
      * @return customization id
      */
     public Observable<String> createCustomization(
             Payload logo,
             Map<String, String> colors,
-            String consentText) {
-        return client.createCustomization(logo, colors, consentText);
+            String consentText,
+            String name,
+            String appName) {
+        return client.createCustomization(logo, colors, consentText, name, appName);
     }
 
     /**
@@ -550,13 +554,17 @@ public class Member extends io.token.Member implements Representable {
      * @param logo logo
      * @param colors map of ARGB colors #AARRGGBB
      * @param consentText consent text
+     * @param name display name
+     * @param appName corresponding app name
      * @return customization id
      */
     public String createCustomizationBlocking(
             Payload logo,
             Map<String, String> colors,
-            String consentText) {
-        return createCustomization(logo, colors, consentText).blockingFirst();
+            String consentText,
+            String name,
+            String appName) {
+        return createCustomization(logo, colors, consentText, name, appName).blockingFirst();
     }
 
     /**
