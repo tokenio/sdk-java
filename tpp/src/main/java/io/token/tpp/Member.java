@@ -564,7 +564,7 @@ public class Member extends io.token.Member implements Representable {
             String consentText,
             String name,
             String appName) {
-        return createCustomization(logo, colors, consentText, name, appName).blockingFirst();
+        return createCustomization(logo, colors, consentText, name, appName).blockingSingle();
     }
 
     /**

@@ -1213,7 +1213,7 @@ public class Member implements Representable {
             String consentText,
             String name,
             String appName) {
-        return async.createCustomization(logo, colors, consentText, name, appName).blockingFirst();
+        return async.createCustomization(logo, colors, consentText, name, appName).blockingSingle();
     }
 
     /**
