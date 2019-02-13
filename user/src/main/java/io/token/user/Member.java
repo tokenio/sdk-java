@@ -1074,6 +1074,16 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Gets a notification by id.
+     *
+     * @param notificationId Id of the notification
+     * @return notification
+     */
+    public Notification getNotificationBlocking(String notificationId) {
+        return getNotification(notificationId).blockingSingle();
+    }
+
+    /**
      * Removes a subscriber.
      *
      * @param subscriberId subscriberId
