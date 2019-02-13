@@ -286,18 +286,24 @@ public final class Client extends io.token.rpc.Client {
      * @param logo logo
      * @param colors map of ARGB colors #AARRGGBB
      * @param consentText consent text
+     * @param name display name
+     * @param appName corresponding app name
      * @return customization id
      */
     public Observable<String> createCustomization(
             Blob.Payload logo,
             Map<String, String> colors,
-            String consentText) {
+            String consentText,
+            String name,
+            String appName) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .createCustomization(CreateCustomizationRequest.newBuilder()
                         .setLogo(logo)
                         .putAllColors(colors)
                         .setConsentText(consentText)
+                        .setName(name)
+                        .setAppName(appName)
                         .build()))
                 .map(new Function<CreateCustomizationResponse, String>() {
                     @Override
