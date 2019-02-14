@@ -419,6 +419,59 @@ public class Member extends io.token.Member implements Representable {
      * @param amount transfer amount
      * @param currency transfer currency code, e.g. "EUR"
      * @param description transfer description
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description) {
+        return redeemToken(token, amount, currency, description, null, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, null, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, description, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
      * @param destination the transfer instruction destination
      * @param refId transfer reference id
      * @return transfer record
@@ -500,6 +553,62 @@ public class Member extends io.token.Member implements Representable {
      */
     public Transfer redeemTokenBlocking(Token token, TransferEndpoint destination, String refId) {
         return redeemToken(token, destination, refId).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description) {
+        return redeemToken(token, amount, currency, description, null, null)
+                .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, null, destination, null)
+                .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, description, destination, null)
+                .blockingSingle();
     }
 
     /**
