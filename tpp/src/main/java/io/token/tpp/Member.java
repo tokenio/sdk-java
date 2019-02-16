@@ -28,11 +28,11 @@ import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
 import static io.token.util.Util.generateNonce;
 
+import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
-import io.token.Account;
 import io.token.TokenClient.TokenCluster;
 import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Attachment;
@@ -40,6 +40,7 @@ import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transfer.TransferProtos;
@@ -179,7 +180,17 @@ public class Member extends io.token.Member implements Representable {
      * @return list of accounts
      */
     public Observable<List<Account>> getAccounts() {
-        return super.getAccountsImpl();
+        return getAccountsImpl()
+                .map(new Function<List<io.token.Account>, List<Account>>() {
+                    @Override
+                    public List<Account> apply(List<io.token.Account> accs)  {
+                        List<Account> accounts = Lists.newArrayList();
+                        for (io.token.Account acc : accs) {
+                            accounts.add(new Account(acc, Member.this));
+                        }
+                        return accounts;
+                    }
+                });
     }
 
     /**
@@ -198,7 +209,13 @@ public class Member extends io.token.Member implements Representable {
      * @return looked up account
      */
     public Observable<Account> getAccount(String accountId) {
-        return getAccountImpl(accountId);
+        return getAccountImpl(accountId)
+                .map(new Function<io.token.Account, Account>() {
+                    @Override
+                    public Account apply(io.token.Account acc) throws Exception {
+                        return new Account(acc, Member.this);
+                    }
+                });
     }
 
     /**
@@ -209,95 +226,6 @@ public class Member extends io.token.Member implements Representable {
      */
     public Account getAccountBlocking(String accountId) {
         return getAccount(accountId).blockingSingle();
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @return attachment
-     */
-    public Observable<Attachment> createAttachment(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data) {
-        return createAttachment(ownerId, type, name, data, DEFAULT);
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @param accessMode Normal access or public
-     * @return attachment
-     */
-    public Observable<Attachment> createAttachment(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data,
-            Blob.AccessMode accessMode) {
-        Payload payload = Payload
-                .newBuilder()
-                .setOwnerId(ownerId)
-                .setType(type)
-                .setName(name)
-                .setData(ByteString.copyFrom(data))
-                .setAccessMode(accessMode)
-                .build();
-        return client.createBlob(payload)
-                .map(new Function<String, Attachment>() {
-                    public Attachment apply(String id) {
-                        return Attachment.newBuilder()
-                                .setBlobId(id)
-                                .setName(name)
-                                .setType(type)
-                                .build();
-                    }
-                });
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @return attachment
-     */
-    public Attachment createAttachmentBlocking(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data) {
-        return createAttachment(ownerId, type, name, data).blockingSingle();
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @param accessMode Normal access or public
-     * @return attachment
-     */
-    public Attachment createAttachmentBlocking(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data,
-            Blob.AccessMode accessMode) {
-        return createAttachment(ownerId, type, name, data, accessMode).blockingSingle();
     }
 
     /**
@@ -402,6 +330,59 @@ public class Member extends io.token.Member implements Representable {
      * @param amount transfer amount
      * @param currency transfer currency code, e.g. "EUR"
      * @param description transfer description
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description) {
+        return redeemToken(token, amount, currency, description, null, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, null, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, description, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
      * @param destination the transfer instruction destination
      * @param refId transfer reference id
      * @return transfer record
@@ -483,6 +464,62 @@ public class Member extends io.token.Member implements Representable {
      */
     public Transfer redeemTokenBlocking(Token token, TransferEndpoint destination, String refId) {
         return redeemToken(token, destination, refId).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description) {
+        return redeemToken(token, amount, currency, description, null, null)
+                .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, null, destination, null)
+                .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, description, destination, null)
+                .blockingSingle();
     }
 
     /**
@@ -665,7 +702,7 @@ public class Member extends io.token.Member implements Representable {
 
 
     /**
-     * Looks up transfer tokens owned by the member.git st
+     * Looks up transfer tokens owned by the member.
      *
      * @param offset optional offset to start at
      * @param limit max number of records to return
@@ -708,30 +745,6 @@ public class Member extends io.token.Member implements Representable {
         return getToken(tokenId).blockingSingle();
     }
 
-
-    /**
-     * Retrieves a blob that is attached to a transfer token.
-     *
-     * @param tokenId id of the token
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Observable<Blob> getTokenAttachment(String tokenId, String blobId) {
-        return client.getTokenBlob(tokenId, blobId);
-    }
-
-    /**
-     * Retrieves a blob that is attached to a token.
-     *
-     * @param tokenId id of the token
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Blob getTokenAttachmentBlocking(String tokenId, String blobId) {
-        return getTokenAttachment(tokenId, blobId).blockingSingle();
-    }
-
-
     /**
      * Cancels the token by signing it. The signature is persisted along
      * with the token.
@@ -755,6 +768,46 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
+        return client.triggerBalanceStepUpNotification(accountIds);
+    }
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public NotifyStatus triggerBalanceStepUpNotificationBlocking(List<String> accountIds) {
+        return triggerBalanceStepUpNotification(accountIds).blockingSingle();
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
+        return client.triggerTransactionStepUpNotification(accountId);
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public NotifyStatus triggerTransactionStepUpNotificationBlocking(String accountId) {
+        return triggerTransactionStepUpNotification(accountId).blockingSingle();
+    }
+
+    /**
      * Creates a test bank account in a fake bank and links the account.
      *
      * @param balance account balance to set
@@ -763,10 +816,10 @@ public class Member extends io.token.Member implements Representable {
      */
     public Observable<Account> createTestBankAccount(double balance, String currency) {
         return createTestBankAccountImpl(balance, currency)
-                .map(new Function<Account, Account>() {
+                .map(new Function<io.token.Account, Account>() {
                     @Override
-                    public Account apply(Account acc) {
-                        return new Account(acc);
+                    public Account apply(io.token.Account acc) {
+                        return new Account(acc, Member.this);
                     }
                 });
     }

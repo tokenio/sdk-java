@@ -27,7 +27,6 @@ import static io.token.proto.common.transaction.TransactionProtos.Balance;
 import static io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import io.reactivex.Observable;
-import io.token.Account;
 import io.token.proto.PagedList;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 

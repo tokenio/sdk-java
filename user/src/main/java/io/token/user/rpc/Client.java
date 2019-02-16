@@ -38,9 +38,7 @@ import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
-import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.Notification;
-import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -80,8 +78,6 @@ import io.token.proto.gateway.Gateway.GetSubscriberRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberResponse;
 import io.token.proto.gateway.Gateway.GetSubscribersRequest;
 import io.token.proto.gateway.Gateway.GetSubscribersResponse;
-import io.token.proto.gateway.Gateway.GetTokenBlobRequest;
-import io.token.proto.gateway.Gateway.GetTokenBlobResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -105,8 +101,6 @@ import io.token.proto.gateway.Gateway.SignTokenRequestStateRequest;
 import io.token.proto.gateway.Gateway.SignTokenRequestStateResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
-import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
-import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.rpc.GatewayProvider;
@@ -212,53 +206,11 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
-     * Trigger a step up notification for balance requests.
-     *
-     * @param accountIds list of account ids
-     * @return notification status
-     */
-    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .triggerStepUpNotification(TriggerStepUpNotificationRequest.newBuilder()
-                        .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
-                                .addAllAccountId(accountIds))
-                        .build()))
-                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
-                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
-                        return response.getStatus();
-                    }
-                });
-    }
-
-    /**
-     * Trigger a step up notification for transaction requests.
-     *
-     * @param accountId account id
-     * @return notification status
-     */
-    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .triggerStepUpNotification(TriggerStepUpNotificationRequest
-                        .newBuilder()
-                        .setTransactionStepUp(NotificationProtos.TransactionStepUp.newBuilder()
-                                .setAccountId(accountId))
-                        .build()))
-                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
-                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
-                        return response.getStatus();
-                    }
-                });
-    }
-
-    /**
      * Makes RPC to get default bank account for this member.
      *
-     * @param memberId the member id
      * @return the bank account
      */
-    public Observable<Account> getDefaultAccount(String memberId) {
+    public Observable<Account> getDefaultAccount() {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
@@ -597,29 +549,6 @@ public final class Client extends io.token.rpc.Client {
                 .map(new Function<GetTokenResponse, Token>() {
                     public Token apply(GetTokenResponse response) {
                         return response.getToken();
-                    }
-                });
-    }
-
-
-    /**
-     * Retrieves a blob that is attached to a token.
-     *
-     * @param tokenId id of the token
-     * @param attachmentId id of the attachment
-     * @return Blob
-     */
-    public Observable<Blob> getTokenAttachment(String tokenId, String attachmentId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .getTokenBlob(GetTokenBlobRequest
-                        .newBuilder()
-                        .setTokenId(tokenId)
-                        .setBlobId(attachmentId)
-                        .build()))
-                .map(new Function<GetTokenBlobResponse, Blob>() {
-                    public Blob apply(GetTokenBlobResponse response) {
-                        return response.getBlob();
                     }
                 });
     }

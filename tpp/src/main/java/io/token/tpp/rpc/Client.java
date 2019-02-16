@@ -33,6 +33,8 @@ import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
+import io.token.proto.common.notification.NotificationProtos;
+import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -57,8 +59,6 @@ import io.token.proto.gateway.Gateway.GetBlobRequest;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.GetProfileResponse;
-import io.token.proto.gateway.Gateway.GetTokenBlobRequest;
-import io.token.proto.gateway.Gateway.GetTokenBlobResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -72,10 +72,13 @@ import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
 import io.token.proto.gateway.Gateway.StoreTokenRequestResponse;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
+import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import javax.annotation.Nullable;
@@ -172,26 +175,6 @@ public final class Client extends io.token.rpc.Client {
                 .map(new Function<GetProfilePictureResponse, Blob>() {
                     public Blob apply(GetProfilePictureResponse response) {
                         return response.getBlob();
-                    }
-                });
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param payload payload of the blob
-     * @return id of the blob
-     */
-    public Observable<String> createBlob(Blob.Payload payload) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .createBlob(CreateBlobRequest
-                        .newBuilder()
-                        .setPayload(payload)
-                        .build()))
-                .map(new Function<CreateBlobResponse, String>() {
-                    public String apply(CreateBlobResponse response) {
-                        return response.getBlobId();
                     }
                 });
     }
@@ -380,30 +363,6 @@ public final class Client extends io.token.rpc.Client {
                 });
     }
 
-
-    /**
-     * Retrieves a blob that is attached to a token.
-     *
-     * @param tokenId id of the token
-     * @param blobId id of the blob
-     * @return Blob
-     */
-    public Observable<Blob> getTokenBlob(String tokenId, String blobId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .getTokenBlob(GetTokenBlobRequest
-                        .newBuilder()
-                        .setTokenId(tokenId)
-                        .setBlobId(blobId)
-                        .build()))
-                .map(new Function<GetTokenBlobResponse, Blob>() {
-                    public Blob apply(GetTokenBlobResponse response) {
-                        return response.getBlob();
-                    }
-                });
-    }
-
-
     /**
      * Looks up an existing transfer.
      *
@@ -522,6 +481,47 @@ public final class Client extends io.token.rpc.Client {
                 .map(new Function<CancelTokenResponse, TokenOperationResult>() {
                     public TokenOperationResult apply(CancelTokenResponse response) {
                         return response.getResult();
+                    }
+                });
+    }
+
+    /**
+     * Trigger a step up notification for balance requests.
+     *
+     * @param accountIds list of account ids
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest.newBuilder()
+                        .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
+                                .addAllAccountId(accountIds))
+                        .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
+                    }
+                });
+    }
+
+    /**
+     * Trigger a step up notification for transaction requests.
+     *
+     * @param accountId account id
+     * @return notification status
+     */
+    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .triggerStepUpNotification(TriggerStepUpNotificationRequest
+                        .newBuilder()
+                        .setTransactionStepUp(NotificationProtos.TransactionStepUp.newBuilder()
+                                .setAccountId(accountId))
+                        .build()))
+                .map(new Function<TriggerStepUpNotificationResponse, NotifyStatus>() {
+                    public NotifyStatus apply(TriggerStepUpNotificationResponse response) {
+                        return response.getStatus();
                     }
                 });
     }

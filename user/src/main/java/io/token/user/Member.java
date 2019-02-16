@@ -55,7 +55,6 @@ import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
-import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -130,7 +129,7 @@ public class Member extends io.token.Member {
                     public List<Account> apply(List<io.token.Account> accs) {
                         List<Account> accounts = Lists.newArrayList();
                         for (io.token.Account acc : accs) {
-                            accounts.add(new Account(acc, client));
+                            accounts.add(new Account(acc, client, Member.this));
                         }
                         return accounts;
                     }
@@ -157,7 +156,7 @@ public class Member extends io.token.Member {
                 .map(new Function<io.token.Account, Account>() {
                     @Override
                     public Account apply(io.token.Account acc) {
-                        return new Account(acc, client);
+                        return new Account(acc, client, Member.this);
                     }
                 });
     }
@@ -175,12 +174,11 @@ public class Member extends io.token.Member {
     /**
      * Get the default bank account for this member.
      *
-     * @param memberId the member's id
-     * @return observable string
+     * @return observable account
      */
-    public Observable<Account> getDefaultAccount(String memberId) {
+    public Observable<Account> getDefaultAccount() {
         return client
-                .getDefaultAccount(memberId)
+                .getDefaultAccount()
                 .map(new Function<AccountProtos.Account, Account>() {
                     public Account apply(AccountProtos.Account account) {
                         return new Account(Member.this, account, client);
@@ -191,10 +189,10 @@ public class Member extends io.token.Member {
     /**
      * Gets the default bank account.
      *
-     * @return the default bank account id
+     * @return the default bank account
      */
-    public Account getDefaultAccount() {
-        return getDefaultAccount(this.memberId()).blockingSingle();
+    public Account getDefaultAccountBlocking() {
+        return getDefaultAccount().blockingSingle();
     }
 
     /**
@@ -287,6 +285,16 @@ public class Member extends io.token.Member {
      */
     public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
         return client.createTransferToken(payload, tokenRequestId);
+    }
+
+    /**
+     * Creates a new transfer token builder from a token request.
+     *
+     * @param tokenRequest token request
+     * @return transfer token builder
+     */
+    public TransferTokenBuilder createTransferTokenBlocking(TokenRequest tokenRequest) {
+        return createTransferToken(tokenRequest);
     }
 
     /**
@@ -475,7 +483,7 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Looks up transfer tokens owned by the member.git st
+     * Looks up transfer tokens owned by the member.
      *
      * @param offset optional offset to start at
      * @param limit max number of records to return
@@ -543,28 +551,6 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Retrieves a blob that is attached to a transfer token.
-     *
-     * @param tokenId id of the token
-     * @param attachmentId id of the attachment
-     * @return Blob
-     */
-    public Observable<Blob> getTokenAttachment(String tokenId, String attachmentId) {
-        return client.getTokenAttachment(tokenId, attachmentId);
-    }
-
-    /**
-     * Retrieves a blob that is attached to a token.
-     *
-     * @param tokenId id of the token
-     * @param attachmentId id of the attachment
-     * @return Blob
-     */
-    public Blob getTokenAttachmentBlocking(String tokenId, String attachmentId) {
-        return getTokenAttachment(tokenId, attachmentId).blockingSingle();
-    }
-
-    /**
      * Redeems a transfer token.
      *
      * @param token transfer token to redeem
@@ -609,6 +595,59 @@ public class Member extends io.token.Member {
             TransferEndpoint destination,
             String refId) {
         return redeemToken(token, null, null, null, destination, refId);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description) {
+        return redeemToken(token, amount, currency, description, null, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, null, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, description, destination, null);
     }
 
     /**
@@ -699,6 +738,62 @@ public class Member extends io.token.Member {
      */
     public Transfer redeemTokenBlocking(Token token, TransferEndpoint destination, String refId) {
         return redeemToken(token, destination, refId).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description) {
+        return redeemToken(token, amount, currency, description, null, null)
+                .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, null, destination, null)
+                .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, description, destination, null)
+                .blockingSingle();
     }
 
     /**
@@ -1062,46 +1157,6 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Trigger a step up notification for balance requests.
-     *
-     * @param accountIds list of account ids
-     * @return notification status
-     */
-    public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
-        return client.triggerBalanceStepUpNotification(accountIds);
-    }
-
-    /**
-     * Trigger a step up notification for balance requests.
-     *
-     * @param accountIds list of account ids
-     * @return notification status
-     */
-    public NotifyStatus triggerBalanceStepUpNotificationBlocking(List<String> accountIds) {
-        return triggerBalanceStepUpNotification(accountIds).blockingSingle();
-    }
-
-    /**
-     * Trigger a step up notification for transaction requests.
-     *
-     * @param accountId account id
-     * @return notification status
-     */
-    public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
-        return client.triggerTransactionStepUpNotification(accountId);
-    }
-
-    /**
-     * Trigger a step up notification for transaction requests.
-     *
-     * @param accountId account id
-     * @return notification status
-     */
-    public NotifyStatus triggerTransactionStepUpNotificationBlocking(String accountId) {
-        return triggerTransactionStepUpNotification(accountId).blockingSingle();
-    }
-
-    /**
      * Gets a list of the member's notifications.
      *
      * @param offset offset to start
@@ -1135,6 +1190,16 @@ public class Member extends io.token.Member {
      */
     public Observable<Notification> getNotification(String notificationId) {
         return client.getNotification(notificationId);
+    }
+
+    /**
+     * Gets a notification by id.
+     *
+     * @param notificationId Id of the notification
+     * @return notification
+     */
+    public Notification getNotificationBlocking(String notificationId) {
+        return getNotification(notificationId).blockingSingle();
     }
 
     /**
@@ -1302,7 +1367,7 @@ public class Member extends io.token.Member {
                 .map(new Function<io.token.Account, Account>() {
                     @Override
                     public Account apply(io.token.Account acc) {
-                        return new Account(acc, client);
+                        return new Account(acc, client, Member.this);
                     }
                 });
     }

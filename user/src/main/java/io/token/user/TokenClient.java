@@ -174,11 +174,11 @@ public class TokenClient extends io.token.TokenClient {
     public Observable<Member> getMember(String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
-        return client
-                .getMember(memberId)
-                .map(new Function<MemberProtos.Member, Member>() {
-                    public Member apply(MemberProtos.Member member) {
-                        return new Member(member, client, tokenCluster, browserFactory);
+        return getMemberImpl(memberId)
+                .map(new Function<io.token.Member, Member>() {
+                    @Override
+                    public Member apply(io.token.Member mem) {
+                        return new Member(mem, client, browserFactory);
                     }
                 });
     }

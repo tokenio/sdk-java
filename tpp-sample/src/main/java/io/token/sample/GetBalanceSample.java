@@ -3,9 +3,9 @@ package io.token.sample;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static java.util.stream.Collectors.toList;
 
-import io.token.Account;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
+import io.token.tpp.Account;
 import io.token.tpp.Member;
 
 import java.util.HashMap;

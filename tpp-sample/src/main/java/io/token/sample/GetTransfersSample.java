@@ -1,10 +1,10 @@
 package io.token.sample;
 
-import io.token.Account;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transaction.TransactionProtos.TransactionStatus;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.tpp.Account;
 import io.token.tpp.Member;
 
 import java.util.List;

@@ -9,8 +9,6 @@ import io.token.user.Member;
 import io.token.user.TokenClient;
 import io.token.user.util.Util;
 
-import java.util.List;
-
 public class NotifySample {
     /**
      * Creates a payment request (a transfer token payload)
@@ -46,18 +44,5 @@ public class NotifySample {
 
         NotifyStatus status = tokenClient.notifyPaymentRequestBlocking(paymentRequest);
         return status;
-    }
-
-    /**
-     * Triggers a notification to step up the signature level when requesting balance information.
-     *
-     * @param member member
-     * @param accountIds list of account id
-     * @return notification status
-     */
-    public static NotifyStatus triggerBalanceStepUpNotification(
-            Member member,
-            List<String> accountIds) {
-        return member.triggerBalanceStepUpNotificationBlocking(accountIds);
     }
 }
