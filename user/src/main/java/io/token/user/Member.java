@@ -483,7 +483,7 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Looks up transfer tokens owned by the member.git st
+     * Looks up transfer tokens owned by the member.
      *
      * @param offset optional offset to start at
      * @param limit max number of records to return

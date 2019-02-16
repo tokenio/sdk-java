@@ -229,95 +229,6 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
-     * Creates and uploads a blob.
-     *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @return attachment
-     */
-    public Observable<Attachment> createBlob(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data) {
-        return createBlob(ownerId, type, name, data, DEFAULT);
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @param accessMode Normal access or public
-     * @return attachment
-     */
-    public Observable<Attachment> createBlob(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data,
-            Blob.AccessMode accessMode) {
-        Payload payload = Payload
-                .newBuilder()
-                .setOwnerId(ownerId)
-                .setType(type)
-                .setName(name)
-                .setData(ByteString.copyFrom(data))
-                .setAccessMode(accessMode)
-                .build();
-        return client.createBlob(payload)
-                .map(new Function<String, Attachment>() {
-                    public Attachment apply(String id) {
-                        return Attachment.newBuilder()
-                                .setBlobId(id)
-                                .setName(name)
-                                .setType(type)
-                                .build();
-                    }
-                });
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @return attachment
-     */
-    public Attachment createBlobBlocking(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data) {
-        return createBlob(ownerId, type, name, data).blockingSingle();
-    }
-
-    /**
-     * Creates and uploads a blob.
-     *
-     * @param ownerId id of the owner of the blob
-     * @param type MIME type of the file
-     * @param name name
-     * @param data file data
-     * @param accessMode Normal access or public
-     * @return attachment
-     */
-    public Attachment createBlobBlocking(
-            String ownerId,
-            final String type,
-            final String name,
-            byte[] data,
-            Blob.AccessMode accessMode) {
-        return createBlob(ownerId, type, name, data, accessMode).blockingSingle();
-    }
-
-    /**
      * Retrieves a blob from the server.
      *
      * @param blobId id of the blob
@@ -791,7 +702,7 @@ public class Member extends io.token.Member implements Representable {
 
 
     /**
-     * Looks up transfer tokens owned by the member.git st
+     * Looks up transfer tokens owned by the member.
      *
      * @param offset optional offset to start at
      * @param limit max number of records to return

@@ -180,26 +180,6 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
-     * Creates and uploads a blob.
-     *
-     * @param payload payload of the blob
-     * @return id of the blob
-     */
-    public Observable<String> createBlob(Blob.Payload payload) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .createBlob(CreateBlobRequest
-                        .newBuilder()
-                        .setPayload(payload)
-                        .build()))
-                .map(new Function<CreateBlobResponse, String>() {
-                    public String apply(CreateBlobResponse response) {
-                        return response.getBlobId();
-                    }
-                });
-    }
-
-    /**
      * Retrieves a blob from the server.
      *
      * @param blobId id of the blob
