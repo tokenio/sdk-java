@@ -73,7 +73,7 @@ public abstract class TokenRequest {
         return new AutoValue_TokenRequest(payload, options);
     }
 
-    public static class Builder {
+    public static class Builder<T extends Builder<T>> {
         protected TokenRequestPayload.Builder requestPayload;
         protected TokenRequestOptions.Builder requestOptions;
 
@@ -88,9 +88,9 @@ public abstract class TokenRequest {
          * @param bankId bank ID
          * @return builder
          */
-        public Builder setBankId(String bankId) {
+        public T setBankId(String bankId) {
             this.requestOptions.setBankId(bankId);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -99,9 +99,9 @@ public abstract class TokenRequest {
          * @param fromMemberId payer/grantor member ID
          * @return builder
          */
-        public Builder setFromMemberId(String fromMemberId) {
+        public T setFromMemberId(String fromMemberId) {
             this.requestOptions.getFromBuilder().setId(fromMemberId);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -110,9 +110,9 @@ public abstract class TokenRequest {
          * @param fromAlias payer/grantor alias
          * @return builder
          */
-        public Builder setFromAlias(Alias fromAlias) {
+        public T setFromAlias(Alias fromAlias) {
             this.requestOptions.getFromBuilder().setAlias(fromAlias);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -121,9 +121,9 @@ public abstract class TokenRequest {
          * @param sourceAccountId source bank account ID
          * @return builder
          */
-        public Builder setSourceAccount(String sourceAccountId) {
+        public T setSourceAccount(String sourceAccountId) {
             this.requestOptions.setSourceAccountId(sourceAccountId);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -133,9 +133,9 @@ public abstract class TokenRequest {
          * @param receiptRequested receipt requested flag
          * @return builder
          */
-        public Builder setReceiptRequested(boolean receiptRequested) {
+        public T setReceiptRequested(boolean receiptRequested) {
             this.requestOptions.setReceiptRequested(receiptRequested);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -144,9 +144,9 @@ public abstract class TokenRequest {
          * @param userRefId user ref ID
          * @return builder
          */
-        public Builder setUserRefId(String userRefId) {
+        public T setUserRefId(String userRefId) {
             this.requestPayload.setUserRefId(userRefId);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -155,9 +155,9 @@ public abstract class TokenRequest {
          * @param customizationId customization ID
          * @return builder
          */
-        public Builder setCustomizationId(String customizationId) {
+        public T setCustomizationId(String customizationId) {
             this.requestPayload.setCustomizationId(customizationId);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -166,9 +166,9 @@ public abstract class TokenRequest {
          * @param redirectUrl redirect URL
          * @return builder
          */
-        public Builder setRedirectUrl(String redirectUrl) {
+        public T setRedirectUrl(String redirectUrl) {
             this.requestPayload.setRedirectUrl(redirectUrl);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -177,9 +177,9 @@ public abstract class TokenRequest {
          * @param refId token ref ID
          * @return builder
          */
-        public Builder setRefId(String refId) {
+        public T setRefId(String refId) {
             this.requestPayload.setRefId(refId);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -188,10 +188,10 @@ public abstract class TokenRequest {
          * @param toAlias alias
          * @return builder
          */
-        public Builder setToAlias(Alias toAlias) {
+        public T setToAlias(Alias toAlias) {
             this.requestPayload.getToBuilder()
                     .setAlias(toAlias);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -200,9 +200,9 @@ public abstract class TokenRequest {
          * @param toMemberId memberId
          * @return builder
          */
-        public Builder setToMemberId(String toMemberId) {
+        public T setToMemberId(String toMemberId) {
             this.requestPayload.getToBuilder().setId(toMemberId);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -211,9 +211,9 @@ public abstract class TokenRequest {
          * @param actingAs entity the redeemer is acting on behalf of
          * @return builder
          */
-        public Builder setActingAs(ActingAs actingAs) {
+        public T setActingAs(ActingAs actingAs) {
             this.requestPayload.setActingAs(actingAs);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -222,9 +222,9 @@ public abstract class TokenRequest {
          * @param description description
          * @return builder
          */
-        public Builder setDescription(String description) {
+        public T setDescription(String description) {
             this.requestPayload.setDescription(description);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -234,9 +234,9 @@ public abstract class TokenRequest {
          * @param callbackState callback-state
          * @return builder
          */
-        public Builder setCallbackState(String callbackState) {
+        public T setCallbackState(String callbackState) {
             this.requestPayload.setCallbackState(callbackState);
-            return this;
+            return (T) this;
         }
 
         /**
@@ -249,7 +249,7 @@ public abstract class TokenRequest {
         }
     }
 
-    public static class AccessBuilder extends Builder {
+    public static class AccessBuilder extends Builder<AccessBuilder> {
         AccessBuilder(ResourceType... resources) {
             this.requestPayload.setAccessBody(
                     TokenRequestPayload.AccessBody.newBuilder()
@@ -257,7 +257,7 @@ public abstract class TokenRequest {
         }
     }
 
-    public static class TransferBuilder extends Builder {
+    public static class TransferBuilder extends Builder<TransferBuilder> {
         TransferBuilder(double amount, String currency) {
             this.requestPayload.setTransferBody(TransferBody.newBuilder()
                     .setLifetimeAmount(Double.toString(amount))
@@ -272,7 +272,7 @@ public abstract class TokenRequest {
          * @param destinationCountry destination country
          * @return builder
          */
-        public Builder setDestinationCountry(String destinationCountry) {
+        public TransferBuilder setDestinationCountry(String destinationCountry) {
             this.requestPayload.setDestinationCountry(destinationCountry);
             return this;
         }
@@ -283,7 +283,7 @@ public abstract class TokenRequest {
          * @param destination destination
          * @return builder
          */
-        public Builder addDestination(TransferEndpoint destination) {
+        public TransferBuilder addDestination(TransferEndpoint destination) {
             this.requestPayload.getTransferBodyBuilder()
                     .addDestinations(destination);
             return this;
@@ -295,7 +295,7 @@ public abstract class TokenRequest {
          * @param chargeAmount amount
          * @return builder
          */
-        public Builder setChargeAmount(double chargeAmount) {
+        public TransferBuilder setChargeAmount(double chargeAmount) {
             this.requestPayload.getTransferBodyBuilder()
                     .setAmount(Double.toString(chargeAmount))
                     .build();
