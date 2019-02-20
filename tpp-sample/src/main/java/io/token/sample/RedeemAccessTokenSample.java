@@ -10,7 +10,7 @@ import io.token.tpp.Representable;
 import java.util.List;
 
 /**
- * Redeems an information access token. Assumes token has "allAccounts" access when using it.
+ * Redeems an information access token.
  */
 public final class RedeemAccessTokenSample {
     /**
