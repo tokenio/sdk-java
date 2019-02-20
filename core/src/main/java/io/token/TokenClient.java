@@ -260,9 +260,7 @@ public class TokenClient implements Closeable {
      * @param memberId member id
      * @return member
      */
-    protected Observable<Member> getMemberImpl(String memberId) {
-        CryptoEngine crypto = cryptoFactory.create(memberId);
-        final Client client = ClientFactory.authenticated(channel, memberId, crypto);
+    protected Observable<Member> getMemberImpl(String memberId, final Client client) {
         return client
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, Member>() {
