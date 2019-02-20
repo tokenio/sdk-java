@@ -258,6 +258,7 @@ public class TokenClient implements Closeable {
      * Return a Member set up to use some Token member's keys (assuming we have them).
      *
      * @param memberId member id
+     * @param client client
      * @return member
      */
     protected Observable<Member> getMemberImpl(String memberId, final Client client) {
