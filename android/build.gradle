@@ -116,9 +116,6 @@ publishing {
                 configurations.api.allDependencies.each { dependency ->
                     if (dependency.version != null) {
                         def artifactId = dependency.name
-                        if (artifactId == 'lib') {
-                            artifactId = 'tokenio-' + rootProject.name + '-lib'
-                        }
                         if (artifactId == 'user') {
                             artifactId = 'tokenio-' + rootProject.name + '-user'
                         }
