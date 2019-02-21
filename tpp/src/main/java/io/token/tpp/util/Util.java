@@ -78,19 +78,6 @@ public abstract class Util extends io.token.util.Util {
     }
 
     /**
-     * Hashes a string.
-     *
-     * @param value value to hash
-     * @return hash
-     */
-    public static String hashString(String value) {
-        return Hashing
-                .sha256()
-                .hashString(value, Charset.forName("ASCII"))
-                .toString();
-    }
-
-    /**
      * URL encodes a string.
      *
      * @param string to encode

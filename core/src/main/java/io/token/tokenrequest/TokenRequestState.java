@@ -20,13 +20,18 @@
  * THE SOFTWARE.
  */
 
-package io.token.tpp.tokenrequest;
+package io.token.tokenrequest;
+
+import static java.nio.charset.StandardCharsets.UTF_8;
 
 import com.google.auto.value.AutoValue;
 import com.google.gson.Gson;
+import io.token.util.codec.ByteEncoding;
 
 @AutoValue
 public abstract class TokenRequestState {
+    private static final Gson gson = new Gson();
+
     public static TokenRequestState create(String csrfTokenHash, String state) {
         return new AutoValue_TokenRequestState(csrfTokenHash, state);
     }
@@ -38,8 +43,9 @@ public abstract class TokenRequestState {
      * @return TokenRequestState instance
      */
     public static TokenRequestState parse(String serialized) {
-        Gson gson = new Gson();
-        return gson.fromJson(serialized, AutoValue_TokenRequestState.class);
+        byte[] data = ByteEncoding.parse(serialized);
+        String json = new String(data, UTF_8);
+        return gson.fromJson(json, AutoValue_TokenRequestState.class);
     }
 
     public abstract String getCsrfTokenHash();
@@ -52,7 +58,7 @@ public abstract class TokenRequestState {
      * @return serialized state
      */
     public String serialize() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
+        String json = gson.toJson(this);
+        return ByteEncoding.serialize(json.getBytes(UTF_8));
     }
 }

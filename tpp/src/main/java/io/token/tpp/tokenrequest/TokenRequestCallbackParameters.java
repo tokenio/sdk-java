@@ -42,11 +42,10 @@ public abstract class TokenRequestCallbackParameters {
      * Parses the token request callback URL's parameters. Extracts the state, the token ID, and
      * the signature over (state | token ID).
      *
-     * @param query token request callback query
+     * @param parameters token request callback query parameters
      * @return TokenRequestCallbackParameters instance
      */
-    public static TokenRequestCallbackParameters create(String query) {
-        Map<String, String> parameters = Util.parseQueryString(query);
+    public static TokenRequestCallbackParameters create(Map<String, String> parameters) {
         if (!parameters.containsKey(TOKEN_ID_FIELD)
                 || !parameters.containsKey(STATE_FIELD)
                 || !parameters.containsKey(SIGNATURE_FIELD)) {

@@ -25,6 +25,7 @@ package io.token.util;
 import static io.token.proto.ProtoHasher.hashAndSerializeJson;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
 
+import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -44,6 +45,7 @@ import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.util.codec.ByteEncoding;
 
+import java.nio.charset.Charset;
 import java.security.SecureRandom;
 import java.util.concurrent.ExecutionException;
 
@@ -150,6 +152,19 @@ public class Util {
                         .setAlias(alias)
                         .setAliasHash(hashAlias(alias)))
                 .build();
+    }
+
+    /**
+     * Hashes a string.
+     *
+     * @param value value to hash
+     * @return hash
+     */
+    public static String hashString(String value) {
+        return Hashing
+                .sha256()
+                .hashString(value, Charset.forName("ASCII"))
+                .toString();
     }
 
     /**
