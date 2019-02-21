@@ -119,6 +119,9 @@ publishing {
                         if (artifactId == 'lib') {
                             artifactId = 'tokenio-' + rootProject.name + '-lib'
                         }
+                        if (artifactId == 'user') {
+                            artifactId = 'tokenio-' + rootProject.name + '-user'
+                        }
                         def dependencyNode = dependenciesNode.appendNode('dependency')
                         dependencyNode.appendNode('groupId', dependency.group)
                         dependencyNode.appendNode('artifactId', artifactId)
