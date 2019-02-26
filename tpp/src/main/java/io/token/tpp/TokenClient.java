@@ -382,7 +382,7 @@ public class TokenClient extends io.token.TokenClient {
             final String csrfToken) {
         try {
             String queryString = new URL(callbackUrl).getQuery();
-            return processTokenRequestCallback(Util.parseQueryString(queryString), csrfToken);
+            return parseTokenRequestCallbackParams(Util.parseQueryString(queryString), csrfToken);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Invalid callback URL: " + callbackUrl);
         }
@@ -420,9 +420,9 @@ public class TokenClient extends io.token.TokenClient {
      * @param callbackParams callback parameter map
      * @return TokenRequestCallback object containing the token ID and the original state
      */
-    public Observable<TokenRequestCallback> processTokenRequestCallback(
+    public Observable<TokenRequestCallback> parseTokenRequestCallbackParams(
             Map<String, String> callbackParams) {
-        return processTokenRequestCallback(callbackParams, "");
+        return parseTokenRequestCallbackParams(callbackParams, "");
     }
 
     /**
@@ -432,7 +432,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param csrfToken CSRF token
      * @return TokenRequestCallback object containing the token ID and the original state
      */
-    public Observable<TokenRequestCallback> processTokenRequestCallback(
+    public Observable<TokenRequestCallback> parseTokenRequestCallbackParams(
             final Map<String, String> callbackParams,
             final String csrfToken) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
@@ -469,10 +469,10 @@ public class TokenClient extends io.token.TokenClient {
      * @param csrfToken CSRF token
      * @return TokenRequestCallback object containing the token ID and the original state
      */
-    public TokenRequestCallback processTokenRequestCallbackBlocking(
+    public TokenRequestCallback parseTokenRequestCallbackParamsBlocking(
             final Map<String, String> callbackParams,
             final String csrfToken) {
-        return processTokenRequestCallback(callbackParams, csrfToken).blockingSingle();
+        return parseTokenRequestCallbackParams(callbackParams, csrfToken).blockingSingle();
     }
 
     /**
@@ -481,9 +481,9 @@ public class TokenClient extends io.token.TokenClient {
      * @param callbackParams callback parameter map
      * @return TokenRequestCallback object containing the token ID and the original state
      */
-    public TokenRequestCallback processTokenRequestCallbackBlocking(
+    public TokenRequestCallback parseTokenRequestCallbackParamsBlocking(
             Map<String, String> callbackParams) {
-        return processTokenRequestCallback(callbackParams, "").blockingSingle();
+        return parseTokenRequestCallbackParams(callbackParams, "").blockingSingle();
     }
 
     /**
