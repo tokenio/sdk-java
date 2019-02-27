@@ -263,7 +263,7 @@ public abstract class TokenRequest {
          */
         public TokenRequest build() {
             String serializedState = TokenRequestState.create(
-                    Util.hashString(this.csrfToken),
+                    this.csrfToken == null ? "" : Util.hashString(this.csrfToken),
                     this.oauthState == null ? "" : this.oauthState)
                     .serialize();
             requestPayload.setCallbackState(serializedState);

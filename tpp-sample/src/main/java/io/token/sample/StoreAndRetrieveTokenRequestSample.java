@@ -2,6 +2,7 @@ package io.token.sample;
 
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType.ACCOUNTS;
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType.BALANCES;
+import static io.token.util.Util.generateNonce;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.tokenrequest.TokenRequest;
@@ -29,6 +30,7 @@ public final class StoreAndRetrieveTokenRequestSample {
                                 .setType(Alias.Type.EMAIL)
                                 .build())
                 .setBankId("iron") // bank ID
+                .setCsrfToken(generateNonce()) // nonce for CSRF check
                 .build();
 
         // Store token request
@@ -51,6 +53,7 @@ public final class StoreAndRetrieveTokenRequestSample {
                                 .setType(Alias.Type.EMAIL)
                                 .build())
                 .setBankId("iron") // bank ID
+                .setCsrfToken(generateNonce()) // nonce for CSRF check
                 .build();
 
         return grantee.storeTokenRequestBlocking(request);
