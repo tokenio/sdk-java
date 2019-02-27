@@ -23,6 +23,7 @@
 package io.token.tokenrequest;
 
 import com.google.auto.value.AutoValue;
+import com.google.gson.JsonObject;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
@@ -30,6 +31,8 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.util.Util;
+import io.token.util.codec.ByteEncoding;
 
 import java.util.Arrays;
 
@@ -76,6 +79,8 @@ public abstract class TokenRequest {
     public static class Builder<T extends Builder<T>> {
         protected TokenRequestPayload.Builder requestPayload;
         protected TokenRequestOptions.Builder requestOptions;
+        protected String oauthState;
+        protected String csrfToken;
 
         Builder() {
             this.requestPayload = TokenRequestPayload.newBuilder();
@@ -228,14 +233,26 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Sets the callback state, a developer-specified string that allows state
-         * to be persisted between the the request and callback phases of the flow.
+         * Sets a developer-specified string that allows state to be persisted
+         * between the the request and callback phases of the flow.
          *
-         * @param callbackState callback-state
+         * @param state state
          * @return builder
          */
-        public T setCallbackState(String callbackState) {
-            this.requestPayload.setCallbackState(callbackState);
+        public T setState(String state) {
+            this.oauthState = state;
+            return (T) this;
+        }
+
+        /**
+         * A nonce that will be verified in the callback phase of the flow.
+         * Used for CSRF attack mitigation.
+         *
+         * @param csrfToken CSRF token
+         * @return builder
+         */
+        public T setCsrfToken(String csrfToken) {
+            this.csrfToken = csrfToken;
             return (T) this;
         }
 
@@ -245,6 +262,11 @@ public abstract class TokenRequest {
          * @return TokenRequest instance
          */
         public TokenRequest build() {
+            String serializedState = TokenRequestState.create(
+                    Util.hashString(this.csrfToken),
+                    this.oauthState == null ? "" : this.oauthState)
+                    .serialize();
+            requestPayload.setCallbackState(serializedState);
             return fromProtos(requestPayload.build(), requestOptions.build());
         }
     }

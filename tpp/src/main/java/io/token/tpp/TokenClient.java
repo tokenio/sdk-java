@@ -53,10 +53,13 @@ import io.token.tpp.rpc.ClientFactory;
 import io.token.tpp.rpc.UnauthenticatedClient;
 import io.token.tpp.tokenrequest.TokenRequestCallback;
 import io.token.tpp.tokenrequest.TokenRequestCallbackParameters;
-import io.token.tpp.tokenrequest.TokenRequestState;
+import io.token.tokenrequest.TokenRequestState;
+import io.token.tpp.util.Util;
 
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 
 public class TokenClient extends io.token.TokenClient {
     private static final String TOKEN_REQUEST_TEMPLATE =
@@ -377,31 +380,12 @@ public class TokenClient extends io.token.TokenClient {
     public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(
             final String callbackUrl,
             final String csrfToken) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenMember().map(new Function<MemberProtos.Member,
-                TokenRequestCallback>() {
-            @Override
-            public TokenRequestCallback apply(MemberProtos.Member tokenMember) throws Exception {
-                TokenRequestCallbackParameters params = TokenRequestCallbackParameters
-                        .create(new URL(callbackUrl).getQuery());
-
-                // check that csrf token hashes match
-                TokenRequestState state = TokenRequestState.parse(params.getSerializedState());
-                if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
-                    throw new InvalidStateException(csrfToken);
-                }
-
-                verifySignature(
-                        tokenMember,
-                        TokenProtos.TokenRequestStatePayload.newBuilder()
-                                .setTokenId(params.getTokenId())
-                                .setState(urlEncode(params.getSerializedState()))
-                                .build(),
-                        params.getSignature());
-
-                return TokenRequestCallback.create(params.getTokenId(), state.getInnerState());
-            }
-        });
+        try {
+            String queryString = new URL(callbackUrl).getQuery();
+            return parseTokenRequestCallbackParams(Util.parseQueryString(queryString), csrfToken);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid callback URL: " + callbackUrl);
+        }
     }
 
     /**
@@ -430,6 +414,77 @@ public class TokenClient extends io.token.TokenClient {
         return parseTokenRequestCallbackUrl(callbackUrl, csrfToken).blockingSingle();
     }
 
+    /**
+     * Process the token request callback.
+     *
+     * @param callbackParams callback parameter map
+     * @return TokenRequestCallback object containing the token ID and the original state
+     */
+    public Observable<TokenRequestCallback> parseTokenRequestCallbackParams(
+            Map<String, String> callbackParams) {
+        return parseTokenRequestCallbackParams(callbackParams, "");
+    }
+
+    /**
+     * Processes the token request callback, checking the CSRF token.
+     *
+     * @param callbackParams callback parameter map
+     * @param csrfToken CSRF token
+     * @return TokenRequestCallback object containing the token ID and the original state
+     */
+    public Observable<TokenRequestCallback> parseTokenRequestCallbackParams(
+            final Map<String, String> callbackParams,
+            final String csrfToken) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getTokenMember().map(new Function<MemberProtos.Member,
+                TokenRequestCallback>() {
+            @Override
+            public TokenRequestCallback apply(MemberProtos.Member tokenMember) throws Exception {
+                TokenRequestCallbackParameters params = TokenRequestCallbackParameters
+                        .create(callbackParams);
+
+                // check that CSRF token hashes match
+                TokenRequestState state = TokenRequestState.parse(params.getSerializedState());
+                if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
+                    throw new InvalidStateException(csrfToken);
+                }
+
+                verifySignature(
+                        tokenMember,
+                        TokenProtos.TokenRequestStatePayload.newBuilder()
+                                .setTokenId(params.getTokenId())
+                                .setState(urlEncode(params.getSerializedState()))
+                                .build(),
+                        params.getSignature());
+
+                return TokenRequestCallback.create(params.getTokenId(), state.getInnerState());
+            }
+        });
+    }
+
+    /**
+     * Processes the token request callback, checking the CSRF token.
+     *
+     * @param callbackParams callback parameter map
+     * @param csrfToken CSRF token
+     * @return TokenRequestCallback object containing the token ID and the original state
+     */
+    public TokenRequestCallback parseTokenRequestCallbackParamsBlocking(
+            final Map<String, String> callbackParams,
+            final String csrfToken) {
+        return parseTokenRequestCallbackParams(callbackParams, csrfToken).blockingSingle();
+    }
+
+    /**
+     * Process the token request callback.
+     *
+     * @param callbackParams callback parameter map
+     * @return TokenRequestCallback object containing the token ID and the original state
+     */
+    public TokenRequestCallback parseTokenRequestCallbackParamsBlocking(
+            Map<String, String> callbackParams) {
+        return parseTokenRequestCallbackParams(callbackParams, "").blockingSingle();
+    }
 
     /**
      * Get the token request result based on a token's tokenRequestId.

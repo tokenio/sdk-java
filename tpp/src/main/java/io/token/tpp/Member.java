@@ -681,7 +681,7 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param offset optional offset to start at
      * @param limit max number of records to return
-     * @return transfer tokens owned by the member
+     * @return access tokens owned by the member
      */
     public Observable<PagedList<Token, String>> getAccessTokens(
             @Nullable String offset,
@@ -694,7 +694,7 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param offset optional offset offset to start at
      * @param limit max number of records to return
-     * @return transfer tokens owned by the member
+     * @return access tokens owned by the member
      */
     public PagedList<Token, String> getAccessTokensBlocking(@Nullable String offset, int limit) {
         return getAccessTokens(offset, limit).blockingSingle();
