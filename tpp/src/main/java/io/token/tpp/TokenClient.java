@@ -294,6 +294,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param state state
      * @return token request url
      */
+    @Deprecated // set state on the TokenRequest builder
     public Observable<String> generateTokenRequestUrl(
             String requestId,
             String state) {
@@ -308,6 +309,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param csrfToken csrf token
      * @return token request url
      */
+    @Deprecated // set state and csrf token on the TokenRequest builder
     public Observable<String> generateTokenRequestUrl(
             String requestId,
             String state,
@@ -338,6 +340,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param state state
      * @return token request url
      */
+    @Deprecated // set state on the TokenRequest builder
     public String generateTokenRequestUrlBlocking(String requestId, String state) {
         return generateTokenRequestUrl(requestId, state).blockingSingle();
     }
@@ -350,6 +353,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param csrfToken csrf token
      * @return token request url
      */
+    @Deprecated // set state and csrf token on the TokenRequest builder
     public String generateTokenRequestUrlBlocking(
             String requestId,
             String state,
@@ -364,14 +368,14 @@ public class TokenClient extends io.token.TokenClient {
      * @param callbackUrl token request callback url
      * @return TokenRequestCallback object containing the token id and the original state
      */
+    @Deprecated // should use the CSRF token
     public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(final String callbackUrl) {
         return parseTokenRequestCallbackUrl(callbackUrl, "");
     }
 
     /**
-     * Parse the token request callback URL to extract the state and the token ID. Verify that the
-     * state contains the CSRF token hash and that the signature on the state and CSRF token is
-     * valid.
+     * Parse the token request callback URL to extract the state and the token ID. Check the
+     * CSRF token against the initial request and verify the signature.
      *
      * @param callbackUrl token request callback url
      * @param csrfToken csrfToken
@@ -395,14 +399,14 @@ public class TokenClient extends io.token.TokenClient {
      * @param callbackUrl token request callback url
      * @return TokenRequestCallback object containing the token id and the original state
      */
+    @Deprecated // should use the CSRF token
     public TokenRequestCallback parseTokenRequestCallbackUrlBlocking(final String callbackUrl) {
         return parseTokenRequestCallbackUrl(callbackUrl).blockingSingle();
     }
 
     /**
-     * Parse the token request callback URL to extract the state and the token ID. Verify that the
-     * state contains the CSRF token hash and that the signature on the state and CSRF token is
-     * valid.
+     * Parse the token request callback URL to extract the state and the token ID. Check the
+     * CSRF token against the initial request and verify the signature.
      *
      * @param callbackUrl token request callback url
      * @param csrfToken csrfToken
@@ -415,18 +419,21 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Process the token request callback.
+     * Parse the token request callback parameters to extract the state and the token ID.
+     * This assumes that no CSRF token was set.
      *
      * @param callbackParams callback parameter map
      * @return TokenRequestCallback object containing the token ID and the original state
      */
+    @Deprecated // should use the CSRF token
     public Observable<TokenRequestCallback> parseTokenRequestCallbackParams(
             Map<String, String> callbackParams) {
         return parseTokenRequestCallbackParams(callbackParams, "");
     }
 
     /**
-     * Processes the token request callback, checking the CSRF token.
+     * Parse the token request callback parameters to extract the state and the token ID. Check the
+     * CSRF token against the initial request and verify the signature.
      *
      * @param callbackParams callback parameter map
      * @param csrfToken CSRF token
@@ -463,7 +470,21 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Processes the token request callback, checking the CSRF token.
+     * Parse the token request callback parameters to extract the state and the token ID.
+     * This assumes that no CSRF token was set.
+     *
+     * @param callbackParams callback parameter map
+     * @return TokenRequestCallback object containing the token ID and the original state
+     */
+    @Deprecated // should use the CSRF token
+    public TokenRequestCallback parseTokenRequestCallbackParamsBlocking(
+            Map<String, String> callbackParams) {
+        return parseTokenRequestCallbackParams(callbackParams, "").blockingSingle();
+    }
+
+    /**
+     * Parse the token request callback parameters to extract the state and the token ID. Check the
+     * CSRF token against the initial request and verify the signature.
      *
      * @param callbackParams callback parameter map
      * @param csrfToken CSRF token
@@ -473,17 +494,6 @@ public class TokenClient extends io.token.TokenClient {
             final Map<String, String> callbackParams,
             final String csrfToken) {
         return parseTokenRequestCallbackParams(callbackParams, csrfToken).blockingSingle();
-    }
-
-    /**
-     * Process the token request callback.
-     *
-     * @param callbackParams callback parameter map
-     * @return TokenRequestCallback object containing the token ID and the original state
-     */
-    public TokenRequestCallback parseTokenRequestCallbackParamsBlocking(
-            Map<String, String> callbackParams) {
-        return parseTokenRequestCallbackParams(callbackParams, "").blockingSingle();
     }
 
     /**
