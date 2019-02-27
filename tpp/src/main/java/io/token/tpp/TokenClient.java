@@ -47,13 +47,13 @@ import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
+import io.token.tokenrequest.TokenRequestState;
 import io.token.tpp.exceptions.InvalidStateException;
 import io.token.tpp.rpc.Client;
 import io.token.tpp.rpc.ClientFactory;
 import io.token.tpp.rpc.UnauthenticatedClient;
 import io.token.tpp.tokenrequest.TokenRequestCallback;
 import io.token.tpp.tokenrequest.TokenRequestCallbackParameters;
-import io.token.tokenrequest.TokenRequestState;
 import io.token.tpp.util.Util;
 
 import java.net.MalformedURLException;
