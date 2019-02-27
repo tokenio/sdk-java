@@ -73,8 +73,9 @@ public class TokenClient extends io.token.TokenClient {
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
      * @param tokenCluster token cluster
+     * @param browserFactory browser factory
      */
-    TokenClient(
+    protected TokenClient(
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
             TokenCluster tokenCluster,
@@ -552,7 +553,7 @@ public class TokenClient extends io.token.TokenClient {
         updateTokenRequest(requestId, options).blockingAwait();
     }
 
-    public static final class Builder extends io.token.TokenClient.Builder<Builder> {
+    public static class Builder extends io.token.TokenClient.Builder<Builder> {
         private BrowserFactory browserFactory;
 
         /**
@@ -588,6 +589,11 @@ public class TokenClient extends io.token.TokenClient {
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
                     tokenCluster == null ? SANDBOX : tokenCluster,
                     browserFactory);
+        }
+
+        @Override
+        protected String getPlatform() {
+            return "java-user";
         }
     }
 }
