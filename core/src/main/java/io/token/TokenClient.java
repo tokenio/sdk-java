@@ -305,14 +305,15 @@ public class TokenClient implements Closeable {
      * @param memberId the member id
      * @param verificationId the verification id
      * @param code the code
+     * @param cryptoEngine crypto engine
      * @return the new member
      */
     public Observable<Member> completeRecoveryWithDefaultRuleImpl(
             String memberId,
             String verificationId,
-            String code) {
+            String code,
+            final CryptoEngine cryptoEngine) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
         return unauthenticated
                 .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
                 .map(new Function<MemberProtos.Member, Member>() {

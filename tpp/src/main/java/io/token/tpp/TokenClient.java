@@ -248,7 +248,7 @@ public class TokenClient extends io.token.TokenClient {
             String verificationId,
             String code) {
         final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
-        return completeRecoveryWithDefaultRuleImpl(memberId, verificationId, code)
+        return completeRecoveryWithDefaultRuleImpl(memberId, verificationId, code, cryptoEngine)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
