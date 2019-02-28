@@ -241,14 +241,15 @@ public class TokenClient extends io.token.TokenClient {
      * @param memberId the member id
      * @param verificationId the verification id
      * @param code the code
+     * @param cryptoEngine the new crypto engine
      * @return the new member
      */
     public Observable<Member> completeRecoveryWithDefaultRule(
             String memberId,
             String verificationId,
-            String code) {
-        final CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
-        return completeRecoveryWithDefaultRuleImpl(memberId, verificationId, code)
+            String code,
+            final CryptoEngine cryptoEngine) {
+        return completeRecoveryWithDefaultRuleImpl(memberId, verificationId, code, cryptoEngine)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -267,13 +268,16 @@ public class TokenClient extends io.token.TokenClient {
      * @param memberId the member id
      * @param verificationId the verification id
      * @param code the code
+     * @param cryptoEngine the new crypto engine
      * @return the new member
      */
     public Member completeRecoveryWithDefaultRuleBlocking(
             String memberId,
             String verificationId,
-            String code) {
-        return completeRecoveryWithDefaultRule(memberId, verificationId, code).blockingSingle();
+            String code,
+            final CryptoEngine cryptoEngine) {
+        return completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
+                .blockingSingle();
     }
 
     /**
