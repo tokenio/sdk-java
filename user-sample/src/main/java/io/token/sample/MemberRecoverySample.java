@@ -38,6 +38,7 @@ public class MemberRecoverySample {
         String verificationId = tokenClient.beginRecoveryBlocking(alias);
         // recoverWithDefault begin snippet to include in docs
         String memberId = tokenClient.getMemberIdBlocking(alias);
+        CryptoEngine cryptoEngine = new TokenCryptoEngine(memberId, new InMemoryKeyStore());
 
         // In the real world, we'd prompt the user to enter the code emailed to them.
         // Since our test member uses an auto-verify email address, any string will work,
@@ -45,7 +46,8 @@ public class MemberRecoverySample {
         Member recoveredMember = tokenClient.completeRecoveryWithDefaultRuleBlocking(
                 memberId,
                 verificationId,
-                "1thru6");
+                "1thru6",
+                cryptoEngine);
         // We can use the same verification code to re-claim this alias.
         recoveredMember.verifyAliasBlocking(verificationId, "1thru6");
         // recoverWithDefault done snippet to include in docs
