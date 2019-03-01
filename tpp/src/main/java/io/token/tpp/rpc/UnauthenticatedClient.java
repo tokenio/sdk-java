@@ -33,7 +33,7 @@ import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
 import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
-import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.rpc.GatewayProvider;
 import io.token.rpc.util.Converters;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
@@ -48,9 +48,9 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
     /**
      * Creates an instance.
      *
-     * @param gateway gateway gRPC stub
+     * @param gateway gateway service builder
      */
-    public UnauthenticatedClient(GatewayServiceFutureStub gateway) {
+    public UnauthenticatedClient(GatewayProvider gateway) {
         super(gateway);
     }
 
@@ -63,7 +63,8 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      */
     public Observable<Member> getMember(String memberId) {
         return Converters
-                .toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+                .toObservable(gateway()
+                        .getMember(GetMemberRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
                 .map(new Function<GetMemberResponse, Member>() {
@@ -95,7 +96,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return token request result
      */
     public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
-        return toObservable(gateway
+        return toObservable(gateway()
                 .getTokenRequestResult(Gateway.GetTokenRequestResultRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()))
@@ -117,7 +118,8 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return token request that was stored with the request id
      */
     public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
-        return toObservable(gateway.retrieveTokenRequest(Gateway.RetrieveTokenRequestRequest
+        return toObservable(gateway()
+                .retrieveTokenRequest(Gateway.RetrieveTokenRequestRequest
                 .newBuilder()
                 .setRequestId(tokenRequestId)
                 .build()))

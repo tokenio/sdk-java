@@ -22,36 +22,24 @@
 
 package io.token.rpc;
 
-import com.google.auto.value.AutoValue;
-import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
-import io.token.security.CryptoEngine;
+import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 
-import javax.annotation.Nullable;
+import io.grpc.Metadata;
+import io.token.rpc.interceptor.SimpleInterceptor;
 
-/**
- * Authentication context. Stores the values of On-Behalf-Of and Key-Level to be used for request
- * authentication and signing.
- */
-@AutoValue
-public abstract class AuthenticationContext {
-    static AuthenticationContext create(
-            @Nullable String onBehalfOf,
-            boolean customerInitiated,
-            Key.Level keyLevel,
-            SecurityMetadata securityMetadata) {
-        return new AutoValue_AuthenticationContext(
-                onBehalfOf,
-                customerInitiated,
-                keyLevel,
-                securityMetadata);
+import java.util.Map;
+
+public class FeatureCodeInterceptor<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
+    private final Map<String, String> featureCodes;
+
+    FeatureCodeInterceptor(Map<String, String> featureCodes) {
+        this.featureCodes = featureCodes;
     }
 
-    abstract @Nullable String getOnBehalfOf();
-
-    abstract boolean getCustomerInitiated();
-
-    abstract Key.Level getKeyLevel();
-
-    abstract SecurityMetadata getSecurityMetadata();
+    @Override
+    public void onStart(ReqT reqT, Metadata metadata) {
+        for (Map.Entry<String, String> code : featureCodes.entrySet()) {
+            metadata.put(Metadata.Key.of(code.getKey(), ASCII_STRING_MARSHALLER), code.getValue());
+        }
+    }
 }

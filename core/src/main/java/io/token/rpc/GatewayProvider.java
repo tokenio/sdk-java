@@ -22,8 +22,108 @@
 
 package io.token.rpc;
 
+import io.grpc.ManagedChannel;
+import io.token.proto.gateway.GatewayServiceGrpc;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.rpc.client.Interceptor;
+import io.token.rpc.client.RpcChannelFactory;
+import io.token.security.CryptoEngine;
 
-public interface GatewayProvider {
-    GatewayServiceFutureStub withAuthentication(AuthenticationContext context);
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+/**
+ * Utility for constructing a {@link GatewayServiceFutureStub} with optional interceptors
+ * for client authentication and feature codes.
+ */
+public class GatewayProvider {
+    private final String memberId;
+    private final CryptoEngine cryptoEngine;
+    private final GatewayServiceFutureStub stub;
+
+    /**
+     * Constructs an instance used for unauthenticated gateway calls.
+     *
+     * @param channel managed channel
+     */
+    public GatewayProvider(ManagedChannel channel) {
+        this(channel, null, null);
+    }
+
+    /**
+     * Constructs an instance used for authenticated gateway calls.
+     *
+     * @param channel managed channel
+     * @param memberId member ID for authentication
+     * @param cryptoEngine crypto engine for authentication
+     */
+    public GatewayProvider(
+            ManagedChannel channel,
+            String memberId,
+            CryptoEngine cryptoEngine) {
+        this.memberId = memberId;
+        this.cryptoEngine = cryptoEngine;
+        this.stub = GatewayServiceGrpc.newFutureStub(
+                RpcChannelFactory.intercept(
+                        channel,
+                        new ErrorHandlerFactory()));
+    }
+
+    /**
+     * Constructs a {@link GatewayServiceBuilder} for a specific request.
+     *
+     * @return {@link GatewayServiceBuilder}
+     */
+    GatewayServiceBuilder serviceBuilder() {
+        return new GatewayServiceBuilder();
+    }
+
+    class GatewayServiceBuilder {
+        private List<Interceptor> interceptors;
+
+        private GatewayServiceBuilder() {
+            this.interceptors = new ArrayList<>();
+        }
+
+        /**
+         * Adds an interceptor for client authentication.
+         *
+         * @param context authentication context
+         * @return builder
+         */
+        GatewayServiceBuilder withAuthentication(AuthenticationContext context) {
+            if (memberId == null || cryptoEngine == null) {
+                throw new IllegalArgumentException("Require member ID and crypto engine.");
+            }
+            interceptors.add(new Interceptor(new ClientAuthenticatorFactory(
+                    memberId,
+                    cryptoEngine,
+                    context)));
+            return this;
+        }
+
+        /**
+         * Adds an interceptor for feature codes.
+         *
+         * @param featureCodes map of feature codes
+         * @return builder
+         */
+        GatewayServiceBuilder withFeatureCodes(Map<String, String> featureCodes) {
+            if (!featureCodes.isEmpty()) {
+                interceptors.add(new Interceptor(new FeatureCodeInterceptorFactory(featureCodes)));
+            }
+            return this;
+        }
+
+        /**
+         * Constructs the {@link GatewayServiceFutureStub} with the specified interceptors.
+         *
+         * @return {@link GatewayServiceFutureStub}
+         */
+        GatewayServiceFutureStub build() {
+            return stub
+                    .withInterceptors(interceptors.toArray(new Interceptor[interceptors.size()]));
+        }
+    }
 }

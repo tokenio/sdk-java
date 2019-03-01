@@ -43,7 +43,6 @@ import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
-import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
@@ -66,6 +65,8 @@ public class TokenClient extends io.token.TokenClient {
     private static final String TOKEN_REQUEST_TEMPLATE =
             "https://%s/request-token/%s?state=%s";
 
+    private final UnauthenticatedClient client;
+
     /**
      * Creates an instance of a Token SDK.
      *
@@ -78,8 +79,8 @@ public class TokenClient extends io.token.TokenClient {
             CryptoEngineFactory cryptoFactory,
             TokenCluster tokenCluster) {
         super(channel, cryptoFactory, tokenCluster);
+        this.client = ClientFactory.unauthenticated(channel);
     }
-
 
     /**
      * Creates a new {@link Builder} instance that is used to configure and
@@ -494,8 +495,7 @@ public class TokenClient extends io.token.TokenClient {
     public Observable<TokenRequestCallback> parseTokenRequestCallbackParams(
             final Map<String, String> callbackParams,
             final String csrfToken) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenMember().map(new Function<MemberProtos.Member,
+        return client.getTokenMember().map(new Function<MemberProtos.Member,
                 TokenRequestCallback>() {
             @Override
             public TokenRequestCallback apply(MemberProtos.Member tokenMember) throws Exception {
@@ -555,8 +555,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return token request result
      */
     public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenRequestResult(tokenRequestId);
+        return client.getTokenRequestResult(tokenRequestId);
     }
 
     /**
@@ -576,8 +575,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return token request that was stored with the request id
      */
     public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.retrieveTokenRequest(requestId);
+        return client.retrieveTokenRequest(requestId);
     }
 
     /**

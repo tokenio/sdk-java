@@ -90,12 +90,15 @@ import io.token.proto.gateway.Gateway.RetryVerificationResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
+import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 
@@ -110,6 +113,7 @@ public class Client {
     protected final GatewayProvider gateway;
     protected boolean customerInitiated = false;
     protected SecurityMetadata trackingMetadata = SecurityMetadata.getDefaultInstance();
+    protected Map<String, String> featureCodes = new HashMap<>();
 
     /**
      * Creates a client instance.
@@ -132,8 +136,7 @@ public class Client {
      * @return an observable of member
      */
     public Observable<Member> getMember(String memberId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getMember(GetMemberRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
@@ -167,8 +170,7 @@ public class Client {
                 .addAllOperations(operations)
                 .build();
 
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .updateMember(UpdateMemberRequest
                         .newBuilder()
                         .setUpdate(update)
@@ -207,8 +209,7 @@ public class Client {
         return getMember(memberId)
                 .flatMap(new Function<Member, Observable<MemberUpdate>>() {
                     public Observable<MemberUpdate> apply(final Member member) {
-                        return toObservable(gateway
-                                .withAuthentication(authenticationContext())
+                        return toObservable(gateway()
                                 .getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
                                 .map(new Function<GetDefaultAgentResponse, MemberUpdate>() {
                                     public MemberUpdate apply(GetDefaultAgentResponse response) {
@@ -230,8 +231,7 @@ public class Client {
                 })
                 .flatMapCompletable(new Function<MemberUpdate, Completable>() {
                     public Completable apply(MemberUpdate update) {
-                        return toCompletable(gateway
-                                .withAuthentication(authenticationContext())
+                        return toCompletable(gateway()
                                 .updateMember(UpdateMemberRequest.newBuilder()
                                         .setUpdate(update)
                                         .setUpdateSignature(Signature.newBuilder()
@@ -250,8 +250,7 @@ public class Client {
      * @return account info
      */
     public Observable<Account> getAccount(String accountId) {
-        return toObservable(gateway
-                .withAuthentication(onBehalfOf())
+        return toObservable(gateway(onBehalfOf())
                 .getAccount(GetAccountRequest
                         .newBuilder()
                         .setAccountId(accountId)
@@ -263,15 +262,13 @@ public class Client {
                 });
     }
 
-
     /**
      * Looks up all the linked funding accounts.
      *
      * @return list of linked accounts
      */
     public Observable<List<Account>> getAccounts() {
-        return toObservable(gateway
-                .withAuthentication(onBehalfOf())
+        return toObservable(gateway(onBehalfOf())
                 .getAccounts(GetAccountsRequest
                         .newBuilder()
                         .build()))
@@ -290,8 +287,7 @@ public class Client {
      * @return account balance
      */
     public Observable<Balance> getBalance(String accountId, Key.Level keyLevel) {
-        return toObservable(gateway
-                .withAuthentication(onBehalfOf(keyLevel))
+        return toObservable(gateway(onBehalfOf())
                 .getBalance(GetBalanceRequest.newBuilder()
                         .setAccountId(accountId)
                         .build()))
@@ -314,8 +310,7 @@ public class Client {
      * @return list of balances
      */
     public Observable<List<Balance>> getBalances(List<String> accountIds, Key.Level keyLevel) {
-        return toObservable(gateway
-                .withAuthentication(onBehalfOf(keyLevel))
+        return toObservable(gateway(onBehalfOf(keyLevel))
                 .getBalances(GetBalancesRequest
                         .newBuilder()
                         .addAllAccountId(accountIds)
@@ -345,8 +340,7 @@ public class Client {
             String accountId,
             String transactionId,
             Key.Level keyLevel) {
-        return toObservable(gateway
-                .withAuthentication(onBehalfOf(keyLevel))
+        return toObservable(gateway(onBehalfOf(keyLevel))
                 .getTransaction(GetTransactionRequest
                         .newBuilder()
                         .setAccountId(accountId)
@@ -377,8 +371,7 @@ public class Client {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        return toObservable(gateway
-                .withAuthentication(onBehalfOf(keyLevel))
+        return toObservable(gateway(onBehalfOf(keyLevel))
                 .getTransactions(GetTransactionsRequest
                         .newBuilder()
                         .setAccountId(accountId)
@@ -404,8 +397,7 @@ public class Client {
      * @return bank linking information
      */
     public Observable<BankInfo> getBankInfo(String bankId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getBankInfo(GetBankInfoRequest
                         .newBuilder()
                         .setBankId(bankId)
@@ -422,13 +414,12 @@ public class Client {
      *
      * @param authorization OAuth authorization for linking
      * @return list of linked accounts
-     * @throws BankAuthorizationRequiredException if bank authorization payload
-     *     is required to link accounts
+     * @throws BankAuthorizationRequiredException   if bank authorization payload is required
+     *                                              to link accounts
      */
     public Observable<List<Account>> linkAccounts(OauthBankAuthorization authorization)
             throws BankAuthorizationRequiredException {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .linkAccountsOauth(LinkAccountsOauthRequest
                         .newBuilder()
                         .setAuthorization(authorization)
@@ -476,8 +467,7 @@ public class Client {
      * @return a list of aliases
      */
     public Observable<List<Alias>> getAliases() {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getAliases(GetAliasesRequest
                         .newBuilder()
                         .build()))
@@ -495,8 +485,7 @@ public class Client {
      * @return the verification id
      */
     public Observable<String> retryVerification(Alias alias) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .retryVerification(RetryVerificationRequest.newBuilder()
                         .setAlias(alias)
                         .setMemberId(memberId)
@@ -529,8 +518,7 @@ public class Client {
      * @return the member id
      */
     public Observable<String> getDefaultAgent() {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
                 .map(new Function<GetDefaultAgentResponse, String>() {
                     public String apply(GetDefaultAgentResponse response) {
@@ -547,8 +535,7 @@ public class Client {
      * @return a completable
      */
     public Completable verifyAlias(String verificationId, String code) {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext())
+        return toCompletable(gateway()
                 .verifyAlias(VerifyAliasRequest.newBuilder()
                         .setVerificationId(verificationId)
                         .setCode(code)
@@ -561,8 +548,7 @@ public class Client {
      * @return completable
      */
     public Completable deleteMember() {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext(PRIVILEGED))
+        return toCompletable(gateway(authenticationContext(PRIVILEGED))
                 .deleteMember(DeleteMemberRequest.getDefaultInstance()));
     }
 
@@ -573,8 +559,7 @@ public class Client {
      * @return transfer endpoints
      */
     public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
-        return toObservable(gateway
-                .withAuthentication(onBehalfOf())
+        return toObservable(gateway(onBehalfOf())
                 .resolveTransferDestinations(ResolveTransferDestinationsRequest.newBuilder()
                         .setAccountId(accountId)
                         .build()))
@@ -605,6 +590,23 @@ public class Client {
      */
     public void clearTrackingMetadata() {
         this.trackingMetadata = SecurityMetadata.getDefaultInstance();
+    }
+
+    /**
+     * Adds a feature code.
+     *
+     * @param key feature code key
+     * @param value feature code value
+     */
+    public void addFeatureCode(String key, String value) {
+        this.featureCodes.put(key, value);
+    }
+
+    /**
+     * Clears all feature codes.
+     */
+    public void clearFeatureCodes() {
+        this.featureCodes = new HashMap<>();
     }
 
     @Override
@@ -660,6 +662,17 @@ public class Client {
         return page;
     }
 
+    protected GatewayServiceFutureStub gateway() {
+        return gateway(authenticationContext());
+    }
+
+    protected GatewayServiceFutureStub gateway(AuthenticationContext authenticationContext) {
+        return gateway.serviceBuilder()
+                .withAuthentication(authenticationContext)
+                .withFeatureCodes(featureCodes)
+                .build();
+    }
+
     protected String tokenAction(Token token, Action action) {
         return tokenAction(token.getPayload(), action);
     }
@@ -672,8 +685,7 @@ public class Client {
     }
 
     private Observable<OauthBankAuthorization> createTestBankAuth(MoneyProtos.Money balance) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
                         .setBalance(balance)
                         .build()))

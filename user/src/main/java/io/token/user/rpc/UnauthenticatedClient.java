@@ -41,13 +41,15 @@ import io.token.proto.gateway.Gateway.GetBlobResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
 import io.token.proto.gateway.Gateway.InvalidateNotificationRequest;
 import io.token.proto.gateway.Gateway.InvalidateNotificationResponse;
+import io.token.proto.gateway.Gateway.NotifyRequest;
 import io.token.proto.gateway.Gateway.RequestTransferRequest;
 import io.token.proto.gateway.Gateway.RequestTransferResponse;
+import io.token.proto.gateway.Gateway.RetrieveTokenRequestRequest;
 import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.Gateway.TriggerCreateAndEndorseTokenNotificationRequest;
 import io.token.proto.gateway.Gateway.TriggerCreateAndEndorseTokenNotificationResponse;
 import io.token.proto.gateway.Gateway.UpdateTokenRequestRequest;
-import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
+import io.token.rpc.GatewayProvider;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
 import io.token.user.NotifyResult;
@@ -63,9 +65,9 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
     /**
      * Creates an instance.
      *
-     * @param gateway gateway gRPC stub
+     * @param gateway gateway service builder
      */
-    public UnauthenticatedClient(GatewayServiceFutureStub gateway) {
+    public UnauthenticatedClient(GatewayProvider gateway) {
         super(gateway);
     }
 
@@ -76,7 +78,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return Blob
      */
     public Observable<BlobProtos.Blob> getBlob(String blobId) {
-        return toObservable(gateway
+        return toObservable(gateway()
                 .getBlob(Gateway.GetBlobRequest
                         .newBuilder()
                         .setBlobId(blobId)
@@ -96,8 +98,8 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return status status of the notification
      */
     public Observable<NotifyStatus> notifyAddKey(Alias alias, AddKey addKey) {
-        return toObservable(gateway.notify(
-                Gateway.NotifyRequest.newBuilder()
+        return toObservable(gateway()
+                .notify(NotifyRequest.newBuilder()
                         .setAlias(alias)
                         .setBody(NotifyBody.newBuilder()
                                 .setAddKey(addKey)
@@ -117,8 +119,8 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return status of the notification request
      */
     public Observable<NotifyStatus> notifyPaymentRequest(TokenPayload tokenPayload) {
-        return toObservable(gateway.requestTransfer(
-                RequestTransferRequest.newBuilder()
+        return toObservable(gateway()
+                .requestTransfer(RequestTransferRequest.newBuilder()
                         .setTokenPayload(tokenPayload)
                         .build()))
                 .map(new Function<RequestTransferResponse, NotifyStatus>() {
@@ -152,7 +154,8 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
             builder.setContact(receiptContact);
         }
 
-        return toObservable(gateway.triggerCreateAndEndorseTokenNotification(builder.build()))
+        return toObservable(gateway()
+                .triggerCreateAndEndorseTokenNotification(builder.build()))
                 .map(new Function<
                         TriggerCreateAndEndorseTokenNotificationResponse,
                         NotifyResult>() {
@@ -172,8 +175,8 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return status of the invalidation request
      */
     public Observable<NotifyStatus> invalidateNotification(String notificationId) {
-        return toObservable(gateway.invalidateNotification(
-                InvalidateNotificationRequest.newBuilder()
+        return toObservable(gateway()
+                .invalidateNotification(InvalidateNotificationRequest.newBuilder()
                         .setNotificationId(notificationId)
                         .build()))
                 .map(new Function<InvalidateNotificationResponse, NotifyStatus>() {
@@ -190,7 +193,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return token request result
      */
     public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
-        return toObservable(gateway
+        return toObservable(gateway()
                 .getTokenRequestResult(Gateway.GetTokenRequestResultRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()))
@@ -212,7 +215,8 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return token request that was stored with the request id
      */
     public Observable<TokenRequest> retrieveTokenRequest(String tokenRequestId) {
-        return toObservable(gateway.retrieveTokenRequest(Gateway.RetrieveTokenRequestRequest
+        return toObservable(gateway()
+                .retrieveTokenRequest(RetrieveTokenRequestRequest
                 .newBuilder()
                 .setRequestId(tokenRequestId)
                 .build()))
@@ -235,7 +239,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return completable
      */
     public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
-        return toCompletable(gateway
+        return toCompletable(gateway()
                 .updateTokenRequest(UpdateTokenRequestRequest.newBuilder()
                         .setRequestId(requestId)
                         .setRequestOptions(options)

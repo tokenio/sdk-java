@@ -59,6 +59,7 @@ import io.token.rpc.Client;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import javax.annotation.Nullable;
@@ -798,6 +799,24 @@ public class Member {
      */
     public void clearTrackingMetadata() {
         client.clearTrackingMetadata();
+    }
+
+
+    /**
+     * Adds a feature code.
+     *
+     * @param key feature code key
+     * @param value feature code value
+     */
+    public void addFeatureCode(String key, String value) {
+        client.addFeatureCode(key, value);
+    }
+
+    /**
+     * Clears all feature codes.
+     */
+    public void clearFeatureCodes() {
+        client.clearFeatureCodes();
     }
 
     /**

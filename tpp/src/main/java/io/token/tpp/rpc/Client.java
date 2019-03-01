@@ -47,8 +47,6 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
-import io.token.proto.gateway.Gateway.CreateBlobRequest;
-import io.token.proto.gateway.Gateway.CreateBlobResponse;
 import io.token.proto.gateway.Gateway.CreateCustomizationRequest;
 import io.token.proto.gateway.Gateway.CreateCustomizationResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
@@ -113,8 +111,7 @@ public final class Client extends io.token.rpc.Client {
      * @return observable that completes when request handled
      */
     public Observable<Profile> setProfile(Profile profile) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .setProfile(SetProfileRequest.newBuilder()
                         .setProfile(profile)
                         .build()))
@@ -132,8 +129,7 @@ public final class Client extends io.token.rpc.Client {
      * @return their profile text
      */
     public Observable<Profile> getProfile(String memberId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getProfile(Gateway.GetProfileRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
@@ -151,8 +147,7 @@ public final class Client extends io.token.rpc.Client {
      * @return observable that completes when request handled
      */
     public Completable setProfilePicture(Blob.Payload payload) {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext())
+        return toCompletable(gateway()
                 .setProfilePicture(SetProfilePictureRequest.newBuilder()
                         .setPayload(payload)
                         .build()));
@@ -166,8 +161,7 @@ public final class Client extends io.token.rpc.Client {
      * @return blob with picture; empty blob (no fields set) if has no picture
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getProfilePicture(Gateway.GetProfilePictureRequest.newBuilder()
                         .setMemberId(memberId)
                         .setSize(size)
@@ -186,8 +180,7 @@ public final class Client extends io.token.rpc.Client {
      * @return Blob
      */
     public Observable<Blob> getBlob(String blobId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getBlob(GetBlobRequest
                         .newBuilder()
                         .setBlobId(blobId)
@@ -249,8 +242,7 @@ public final class Client extends io.token.rpc.Client {
     public Observable<String> storeTokenRequest(
             TokenRequestPayload payload,
             TokenRequestOptions options) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .storeTokenRequest(StoreTokenRequestRequest.newBuilder()
                         .setRequestPayload(payload)
                         .setRequestOptions(options)
@@ -279,8 +271,7 @@ public final class Client extends io.token.rpc.Client {
             String consentText,
             String name,
             String appName) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .createCustomization(CreateCustomizationRequest.newBuilder()
                         .setLogo(logo)
                         .putAllColors(colors)
@@ -304,8 +295,7 @@ public final class Client extends io.token.rpc.Client {
      * @return token returned by the server
      */
     public Observable<Token> getActiveAccessToken(String toMemberId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getActiveAccessToken(GetActiveAccessTokenRequest
                         .newBuilder()
                         .setToMemberId(toMemberId)
@@ -329,8 +319,7 @@ public final class Client extends io.token.rpc.Client {
             GetTokensRequest.Type type,
             @Nullable String offset,
             int limit) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getTokens(GetTokensRequest
                         .newBuilder()
                         .setType(type)
@@ -350,8 +339,7 @@ public final class Client extends io.token.rpc.Client {
      * @return token returned by the server
      */
     public Observable<Token> getToken(String tokenId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getToken(GetTokenRequest
                         .newBuilder()
                         .setTokenId(tokenId)
@@ -370,8 +358,7 @@ public final class Client extends io.token.rpc.Client {
      * @return transfer record
      */
     public Observable<Transfer> getTransfer(String transferId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getTransfer(GetTransferRequest
                         .newBuilder()
                         .setTransferId(transferId)
@@ -407,8 +394,7 @@ public final class Client extends io.token.rpc.Client {
                     .build());
         }
 
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getTransfers(request.build()))
                 .map(new Function<GetTransfersResponse, PagedList<Transfer, String>>() {
                     public PagedList<Transfer, String> apply(GetTransfersResponse response) {
@@ -441,8 +427,7 @@ public final class Client extends io.token.rpc.Client {
      */
     public Observable<Transfer> createTransfer(TransferProtos.TransferPayload transfer) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .createTransfer(CreateTransferRequest
                         .newBuilder()
                         .setPayload(transfer)
@@ -467,8 +452,7 @@ public final class Client extends io.token.rpc.Client {
      */
     public Observable<TokenOperationResult> cancelToken(Token token) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .cancelToken(CancelTokenRequest
                         .newBuilder()
                         .setTokenId(token.getId())
@@ -492,8 +476,7 @@ public final class Client extends io.token.rpc.Client {
      * @return notification status
      */
     public Observable<NotifyStatus> triggerBalanceStepUpNotification(List<String> accountIds) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .triggerStepUpNotification(TriggerStepUpNotificationRequest.newBuilder()
                         .setBalanceStepUp(NotificationProtos.BalanceStepUp.newBuilder()
                                 .addAllAccountId(accountIds))
@@ -512,8 +495,7 @@ public final class Client extends io.token.rpc.Client {
      * @return notification status
      */
     public Observable<NotifyStatus> triggerTransactionStepUpNotification(String accountId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .triggerStepUpNotification(TriggerStepUpNotificationRequest
                         .newBuilder()
                         .setTransactionStepUp(NotificationProtos.TransactionStepUp.newBuilder()

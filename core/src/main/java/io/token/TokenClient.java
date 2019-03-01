@@ -69,7 +69,9 @@ import io.token.security.TokenCryptoEngineFactory;
 import java.io.Closeable;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -79,6 +81,7 @@ public class TokenClient implements Closeable {
     protected final ManagedChannel channel;
     protected final CryptoEngineFactory cryptoFactory;
     protected final TokenCluster tokenCluster;
+    private final UnauthenticatedClient client;
 
     /**
      * Creates an instance of a Token SDK.
@@ -94,6 +97,7 @@ public class TokenClient implements Closeable {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.tokenCluster = tokenCluster;
+        this.client = ClientFactory.unauthenticated(channel);
     }
 
     @Override
@@ -139,8 +143,7 @@ public class TokenClient implements Closeable {
      * @return TokenMember
      */
     public Observable<TokenMember> resolveAlias(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.resolveAlias(alias);
+        return client.resolveAlias(alias);
     }
 
     /**
@@ -161,8 +164,7 @@ public class TokenClient implements Closeable {
      * @return member id, or throws exception if member not found
      */
     public Observable<String> getMemberId(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getMemberId(alias);
+        return client.getMemberId(alias);
     }
 
     /**
@@ -191,8 +193,7 @@ public class TokenClient implements Closeable {
             final Alias alias,
             final CreateMemberType memberType,
             @Nullable String partnerId) {
-        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
+        return client
                 .createMemberId(memberType, null, partnerId)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
@@ -217,8 +218,7 @@ public class TokenClient implements Closeable {
      * @return newly created member
      */
     protected Observable<Member> setUpMemberImpl(final Alias alias, final String memberId) {
-        final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getDefaultAgent()
+        return client.getDefaultAgent()
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
                     public Observable<MemberProtos.Member> apply(String agentId) {
                         CryptoEngine crypto = cryptoFactory.create(memberId);
@@ -240,7 +240,7 @@ public class TokenClient implements Closeable {
                                 : singletonList(toAddAliasOperationMetadata(
                                         normalizeAlias(alias)));
                         Signer signer = crypto.createSigner(PRIVILEGED);
-                        return unauthenticated.createMember(
+                        return client.createMember(
                                 memberId,
                                 operations,
                                 metadata,
@@ -299,8 +299,7 @@ public class TokenClient implements Closeable {
             List<MemberRecoveryOperation> recoveryOperations,
             SecurityProtos.Key privilegedKey,
             final CryptoEngine cryptoEngine) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
+        return client
                 .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
                 .map(new Function<MemberProtos.Member, Member>() {
                     public Member apply(MemberProtos.Member member) {
@@ -330,8 +329,7 @@ public class TokenClient implements Closeable {
             String verificationId,
             String code,
             final CryptoEngine cryptoEngine) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
+        return client
                 .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
                 .map(new Function<MemberProtos.Member, Member>() {
                     public Member apply(MemberProtos.Member member) {
@@ -351,8 +349,7 @@ public class TokenClient implements Closeable {
      * @return the verification id
      */
     public Observable<String> beginRecovery(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.beginRecovery(alias);
+        return client.beginRecovery(alias);
     }
 
     /**
@@ -375,8 +372,7 @@ public class TokenClient implements Closeable {
     public Observable<Authorization> createRecoveryAuthorization(
             String memberId,
             Key privilegedKey) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.createRecoveryAuthorization(memberId, privilegedKey);
+        return client.createRecoveryAuthorization(memberId, privilegedKey);
     }
 
 
@@ -406,8 +402,7 @@ public class TokenClient implements Closeable {
             String verificationId,
             String code,
             Key key) throws VerificationException {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getRecoveryAuthorization(verificationId, code, key);
+        return client.getRecoveryAuthorization(verificationId, code, key);
     }
 
 
@@ -496,8 +491,7 @@ public class TokenClient implements Closeable {
             @Nullable Integer perPage,
             @Nullable String sort,
             @Nullable String provider) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getBanks(bankIds, search, country, page, perPage, sort, provider);
+        return client.getBanks(bankIds, search, country, page, perPage, sort, provider);
     }
 
     /**
@@ -582,8 +576,7 @@ public class TokenClient implements Closeable {
      * @return a list of country codes
      */
     public Observable<List<String>> getCountries(String provider) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getCountries(provider);
+        return client.getCountries(provider);
     }
 
     /**
@@ -595,6 +588,23 @@ public class TokenClient implements Closeable {
      */
     public List<String> getCountriesBlocking(String provider) {
         return getCountries(provider).blockingSingle();
+    }
+
+    /**
+     * Adds a feature code.
+     *
+     * @param key feature code key
+     * @param value feature code value
+     */
+    public void addFeatureCode(String key, String value) {
+        client.addFeatureCode(key, value);
+    }
+
+    /**
+     * Clears all feature codes.
+     */
+    public void clearFeatureCodes() {
+        client.clearFeatureCodes();
     }
 
     /**

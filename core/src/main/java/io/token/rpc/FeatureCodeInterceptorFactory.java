@@ -22,36 +22,30 @@
 
 package io.token.rpc;
 
-import com.google.auto.value.AutoValue;
-import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
-import io.token.security.CryptoEngine;
+import io.grpc.MethodDescriptor;
+import io.token.rpc.interceptor.InterceptorFactory;
+import io.token.rpc.interceptor.SimpleInterceptor;
 
-import javax.annotation.Nullable;
+import java.util.Map;
 
 /**
- * Authentication context. Stores the values of On-Behalf-Of and Key-Level to be used for request
- * authentication and signing.
+ * Responsible for creation of {@link FeatureCodeInterceptor} instance which
+ * are created per RPC method call when feature codes are set.
  */
-@AutoValue
-public abstract class AuthenticationContext {
-    static AuthenticationContext create(
-            @Nullable String onBehalfOf,
-            boolean customerInitiated,
-            Key.Level keyLevel,
-            SecurityMetadata securityMetadata) {
-        return new AutoValue_AuthenticationContext(
-                onBehalfOf,
-                customerInitiated,
-                keyLevel,
-                securityMetadata);
+public class FeatureCodeInterceptorFactory implements InterceptorFactory {
+    private final Map<String, String> featureCodes;
+
+    /**
+     * Creates an instance.
+     *
+     * @param featureCodes map of feature codes
+     */
+    public FeatureCodeInterceptorFactory(Map<String, String> featureCodes) {
+        this.featureCodes = featureCodes;
     }
 
-    abstract @Nullable String getOnBehalfOf();
-
-    abstract boolean getCustomerInitiated();
-
-    abstract Key.Level getKeyLevel();
-
-    abstract SecurityMetadata getSecurityMetadata();
+    @Override
+    public <ReqT, ResT> SimpleInterceptor<ReqT, ResT> create(MethodDescriptor<ReqT, ResT> method) {
+        return new FeatureCodeInterceptor<>(featureCodes);
+    }
 }

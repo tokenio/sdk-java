@@ -139,8 +139,7 @@ public final class Client extends io.token.rpc.Client {
      * @return observable that completes when request handled
      */
     public Observable<Profile> setProfile(Profile profile) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .setProfile(SetProfileRequest.newBuilder()
                         .setProfile(profile)
                         .build()))
@@ -158,8 +157,7 @@ public final class Client extends io.token.rpc.Client {
      * @return their profile text
      */
     public Observable<Profile> getProfile(String memberId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getProfile(GetProfileRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
@@ -177,8 +175,7 @@ public final class Client extends io.token.rpc.Client {
      * @return observable that completes when request handled
      */
     public Completable setProfilePicture(Blob.Payload payload) {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext())
+        return toCompletable(gateway()
                 .setProfilePicture(SetProfilePictureRequest.newBuilder()
                         .setPayload(payload)
                         .build()));
@@ -192,8 +189,7 @@ public final class Client extends io.token.rpc.Client {
      * @return blob with picture; empty blob (no fields set) if has no picture
      */
     public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getProfilePicture(Gateway.GetProfilePictureRequest.newBuilder()
                         .setMemberId(memberId)
                         .setSize(size)
@@ -211,8 +207,7 @@ public final class Client extends io.token.rpc.Client {
      * @return the bank account
      */
     public Observable<Account> getDefaultAccount() {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
@@ -230,8 +225,7 @@ public final class Client extends io.token.rpc.Client {
      * @return completable indicating if the default bank account was successfully set
      */
     public Completable setDefaultAccount(String accountId) {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext())
+        return toCompletable(gateway()
                 .setDefaultAccount(SetDefaultAccountRequest
                         .newBuilder()
                         .setMemberId(memberId)
@@ -246,8 +240,7 @@ public final class Client extends io.token.rpc.Client {
      * @return true if the account is default; false otherwise
      */
     public Observable<Boolean> isDefault(final String accountId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
@@ -265,8 +258,7 @@ public final class Client extends io.token.rpc.Client {
      * @return transfer record
      */
     public Observable<Transfer> getTransfer(String transferId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getTransfer(GetTransferRequest
                         .newBuilder()
                         .setTransferId(transferId)
@@ -302,8 +294,7 @@ public final class Client extends io.token.rpc.Client {
                     .build());
         }
 
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getTransfers(request.build()))
                 .map(new Function<GetTransfersResponse, PagedList<Transfer, String>>() {
                     public PagedList<Transfer, String> apply(GetTransfersResponse response) {
@@ -319,8 +310,7 @@ public final class Client extends io.token.rpc.Client {
      * @return transfer token returned by the server
      */
     public Observable<Token> createTransferToken(TokenPayload payload) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .createTransferToken(CreateTransferTokenRequest
                         .newBuilder()
                         .setPayload(payload)
@@ -343,8 +333,7 @@ public final class Client extends io.token.rpc.Client {
      * @return transfer token returned by the server
      */
     public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .createTransferToken(CreateTransferTokenRequest
                         .newBuilder()
                         .setPayload(payload)
@@ -370,8 +359,7 @@ public final class Client extends io.token.rpc.Client {
     public Observable<Token> createAccessToken(
             TokenPayload tokenPayload,
             @Nullable String tokenRequestId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .createAccessToken(CreateAccessTokenRequest.newBuilder()
                         .setPayload(tokenPayload)
                         .setTokenRequestId(tokenRequestId == null ? "" : tokenRequestId)
@@ -393,8 +381,7 @@ public final class Client extends io.token.rpc.Client {
      */
     public Observable<TokenOperationResult> endorseToken(Token token, Key.Level keyLevel) {
         Signer signer = crypto.createSigner(keyLevel);
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .endorseToken(EndorseTokenRequest
                         .newBuilder()
                         .setTokenId(token.getId())
@@ -420,8 +407,7 @@ public final class Client extends io.token.rpc.Client {
      */
     public Observable<TokenOperationResult> cancelToken(Token token) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .cancelToken(CancelTokenRequest
                         .newBuilder()
                         .setTokenId(token.getId())
@@ -461,8 +447,7 @@ public final class Client extends io.token.rpc.Client {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable setReceiptContact(ReceiptContact contact) {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext())
+        return toCompletable(gateway()
                 .setReceiptContact(SetReceiptContactRequest.newBuilder()
                         .setContact(contact)
                         .build()));
@@ -474,8 +459,7 @@ public final class Client extends io.token.rpc.Client {
      * @return receipt contact
      */
     public Observable<ReceiptContact> getReceiptContact() {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getReceiptContact(GetReceiptContactRequest.getDefaultInstance()))
                 .map(new Function<GetReceiptContactResponse, ReceiptContact>() {
                     @Override
@@ -494,8 +478,7 @@ public final class Client extends io.token.rpc.Client {
      * @return token returned by the server
      */
     public Observable<Token> getActiveAccessToken(String toMemberId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getActiveAccessToken(GetActiveAccessTokenRequest
                         .newBuilder()
                         .setToMemberId(toMemberId)
@@ -519,8 +502,7 @@ public final class Client extends io.token.rpc.Client {
             GetTokensRequest.Type type,
             @Nullable String offset,
             int limit) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getTokens(GetTokensRequest
                         .newBuilder()
                         .setType(type)
@@ -540,8 +522,7 @@ public final class Client extends io.token.rpc.Client {
      * @return token returned by the server
      */
     public Observable<Token> getToken(String tokenId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getToken(GetTokenRequest
                         .newBuilder()
                         .setTokenId(tokenId)
@@ -561,8 +542,7 @@ public final class Client extends io.token.rpc.Client {
      */
     public Observable<Transfer> createTransfer(TransferProtos.TransferPayload transfer) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .createTransfer(CreateTransferRequest
                         .newBuilder()
                         .setPayload(transfer)
@@ -586,8 +566,7 @@ public final class Client extends io.token.rpc.Client {
      * @return list of linked accounts
      */
     public Observable<List<Account>> linkAccounts(BankAuthorization authorization) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .linkAccounts(LinkAccountsRequest
                         .newBuilder()
                         .setBankAuthorization(authorization)
@@ -606,8 +585,7 @@ public final class Client extends io.token.rpc.Client {
      * @return nothing
      */
     public Completable unlinkAccounts(List<String> accountIds) {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext())
+        return toCompletable(gateway()
                 .unlinkAccounts(UnlinkAccountsRequest.newBuilder()
                         .addAllAccountIds(accountIds)
                         .build()));
@@ -621,8 +599,7 @@ public final class Client extends io.token.rpc.Client {
      * @return nothing
      */
     public Completable unsubscribeFromNotifications(String subscriberId) {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext())
+        return toCompletable(gateway()
                 .unsubscribeFromNotifications(UnsubscribeFromNotificationsRequest
                         .newBuilder()
                         .setSubscriberId(subscriberId)
@@ -639,8 +616,7 @@ public final class Client extends io.token.rpc.Client {
     public Observable<PagedList<Notification, String>> getNotifications(
             @Nullable String offset,
             int limit) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getNotifications(GetNotificationsRequest
                         .newBuilder()
                         .setPage(pageBuilder(offset, limit))
@@ -662,8 +638,7 @@ public final class Client extends io.token.rpc.Client {
      * @return notification
      */
     public Observable<Notification> getNotification(String notificationId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getNotification(GetNotificationRequest
                         .newBuilder()
                         .setNotificationId(notificationId)
@@ -690,8 +665,7 @@ public final class Client extends io.token.rpc.Client {
                 .setHandler(handler)
                 .putAllHandlerInstructions(handlerInstructions)
                 .build();
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .subscribeToNotifications(request))
                 .map(new Function<SubscribeToNotificationsResponse, Subscriber>() {
                     public Subscriber apply(SubscribeToNotificationsResponse response) {
@@ -707,8 +681,7 @@ public final class Client extends io.token.rpc.Client {
      * @return notification subscriber
      */
     public Observable<Subscriber> getSubscriber(String subscriberId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getSubscriber(GetSubscriberRequest
                         .newBuilder()
                         .setSubscriberId(subscriberId)
@@ -726,8 +699,7 @@ public final class Client extends io.token.rpc.Client {
      * @return list of notification subscribers
      */
     public Observable<List<Subscriber>> getSubscribers() {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .getSubscribers(GetSubscribersRequest
                         .newBuilder()
                         .build()))
@@ -751,8 +723,7 @@ public final class Client extends io.token.rpc.Client {
             String tokenRequestId,
             String tokenId,
             String state) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .signTokenRequestState(SignTokenRequestStateRequest.newBuilder()
                         .setPayload(TokenRequestStatePayload.newBuilder()
                                 .setTokenId(tokenId)
@@ -773,8 +744,7 @@ public final class Client extends io.token.rpc.Client {
      * @return completable
      */
     public Completable applySca(List<String> accountIds) {
-        return toCompletable(gateway
-                .withAuthentication(authenticationContext(STANDARD))
+        return toCompletable(gateway(authenticationContext(STANDARD))
                 .applySca(ApplyScaRequest.newBuilder()
                         .addAllAccountId(accountIds)
                         .build()));
@@ -784,8 +754,7 @@ public final class Client extends io.token.rpc.Client {
             Token tokenToCancel,
             CreateToken.Builder createToken) {
         Signer signer = crypto.createSigner(Key.Level.LOW);
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
+        return toObservable(gateway()
                 .replaceToken(ReplaceTokenRequest
                         .newBuilder()
                         .setCancelToken(CancelToken

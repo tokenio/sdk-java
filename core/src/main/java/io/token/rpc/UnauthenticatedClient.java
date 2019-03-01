@@ -69,8 +69,10 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
@@ -79,15 +81,17 @@ import javax.annotation.Nullable;
  * getMember an existing one and switch to the authenticated {@link Client}.
  */
 public class UnauthenticatedClient {
-    protected final GatewayServiceFutureStub gateway;
+    protected final GatewayProvider gateway;
+    protected Map<String, String> featureCodes;
 
     /**
      * Creates an instance.
      *
-     * @param gateway gateway gRPC stub
+     * @param gateway gateway service builder
      */
-    public UnauthenticatedClient(GatewayServiceFutureStub gateway) {
+    public UnauthenticatedClient(GatewayProvider gateway) {
         this.gateway = gateway;
+        this.featureCodes = new HashMap<>();
     }
 
     /**
@@ -98,7 +102,7 @@ public class UnauthenticatedClient {
      * @return TokenMember
      */
     public Observable<TokenMember> resolveAlias(Alias alias) {
-        return toObservable(gateway
+        return toObservable(gateway()
                 .resolveAlias(ResolveAliasRequest
                         .newBuilder()
                         .setAlias(alias)
@@ -117,8 +121,8 @@ public class UnauthenticatedClient {
      * @return member id, or throws exception if member not found
      */
     public Observable<String> getMemberId(final Alias alias) {
-        return toObservable(
-                gateway.resolveAlias(ResolveAliasRequest.newBuilder()
+        return toObservable(gateway()
+                .resolveAlias(ResolveAliasRequest.newBuilder()
                         .setAlias(alias)
                         .build()))
                 .map(new Function<ResolveAliasResponse, String>() {
@@ -145,7 +149,8 @@ public class UnauthenticatedClient {
             @Nullable String tokenRequestId,
             @Nullable String partnerId) {
         return
-                toObservable(gateway.createMember(CreateMemberRequest.newBuilder()
+                toObservable(gateway()
+                        .createMember(CreateMemberRequest.newBuilder()
                         .setNonce(generateNonce())
                         .setMemberType(memberType)
                         .setTokenRequestId(nullToEmpty(tokenRequestId))
@@ -175,7 +180,8 @@ public class UnauthenticatedClient {
         MemberUpdate.Builder update = MemberUpdate.newBuilder()
                 .setMemberId(memberId)
                 .addAllOperations(operations);
-        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+        return toObservable(gateway()
+                .updateMember(UpdateMemberRequest.newBuilder()
                 .setUpdate(update)
                 .setUpdateSignature(Signature.newBuilder()
                         .setMemberId(memberId)
@@ -197,7 +203,7 @@ public class UnauthenticatedClient {
      * @return the verification id
      */
     public Observable<String> beginRecovery(Alias alias) {
-        return toObservable(gateway
+        return toObservable(gateway()
                 .beginRecovery(BeginRecoveryRequest.newBuilder()
                         .setAlias(normalizeAlias(alias))
                         .build()))
@@ -218,7 +224,8 @@ public class UnauthenticatedClient {
     public Observable<Authorization> createRecoveryAuthorization(
             final String memberId,
             final Key privilegedKey) {
-        return toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+        return toObservable(gateway()
+                .getMember(GetMemberRequest.newBuilder()
                 .setMemberId(memberId)
                 .build()))
                 .map(new Function<GetMemberResponse, Authorization>() {
@@ -253,7 +260,8 @@ public class UnauthenticatedClient {
         for (MemberRecoveryOperation op : recoveryOperations) {
             operations.add(MemberOperation.newBuilder().setRecover(op).build());
         }
-        return toObservable(gateway.getMember(GetMemberRequest.newBuilder()
+        return toObservable(gateway()
+                .getMember(GetMemberRequest.newBuilder()
                 .setMemberId(memberId)
                 .build()))
                 .map(new Function<GetMemberResponse, MemberUpdate>() {
@@ -271,7 +279,8 @@ public class UnauthenticatedClient {
                 })
                 .flatMap(new Function<MemberUpdate, Observable<Member>>() {
                     public Observable<Member> apply(MemberUpdate memberUpdate) {
-                        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                        return toObservable(gateway()
+                                .updateMember(UpdateMemberRequest.newBuilder()
                                 .setUpdate(memberUpdate)
                                 .setUpdateSignature(Signature.newBuilder()
                                         .setKeyId(signer.getKeyId())
@@ -305,7 +314,7 @@ public class UnauthenticatedClient {
         final Key standardKey = cryptoEngine.generateKey(STANDARD);
         final Key lowKey = cryptoEngine.generateKey(LOW);
         final Signer signer = cryptoEngine.createSigner(PRIVILEGED);
-        return toObservable(gateway
+        return toObservable(gateway()
                 .completeRecovery(CompleteRecoveryRequest.newBuilder()
                         .setVerificationId(verificationId)
                         .setCode(code)
@@ -313,7 +322,7 @@ public class UnauthenticatedClient {
                         .build()))
                 .flatMap(new Function<CompleteRecoveryResponse, Observable<MemberUpdate>>() {
                     public Observable<MemberUpdate> apply(final CompleteRecoveryResponse res) {
-                        return toObservable(gateway
+                        return toObservable(gateway()
                                 .getMember(GetMemberRequest.newBuilder()
                                         .setMemberId(memberId)
                                         .build()))
@@ -335,7 +344,8 @@ public class UnauthenticatedClient {
                 })
                 .flatMap(new Function<MemberUpdate, Observable<Member>>() {
                     public Observable<Member> apply(MemberUpdate memberUpdate) {
-                        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                        return toObservable(gateway()
+                                .updateMember(UpdateMemberRequest.newBuilder()
                                 .setUpdate(memberUpdate)
                                 .setUpdateSignature(Signature.newBuilder()
                                         .setKeyId(signer.getKeyId())
@@ -364,7 +374,8 @@ public class UnauthenticatedClient {
             String verificationId,
             String code,
             Key privilegedKey) throws VerificationException {
-        return toObservable(gateway.completeRecovery(CompleteRecoveryRequest.newBuilder()
+        return toObservable(gateway()
+                .completeRecovery(CompleteRecoveryRequest.newBuilder()
                 .setVerificationId(verificationId)
                 .setCode(code)
                 .setKey(privilegedKey)
@@ -429,7 +440,8 @@ public class UnauthenticatedClient {
             request.setProvider(provider);
         }
 
-        return toObservable(gateway.getBanks(request.build()))
+        return toObservable(gateway()
+                .getBanks(request.build()))
                 .map(new Function<GetBanksResponse, List<Bank>>() {
                     public List<Bank> apply(GetBanksResponse response) {
                         return response.getBanksList();
@@ -451,7 +463,8 @@ public class UnauthenticatedClient {
             BankFilter filter = BankFilter.newBuilder().setProvider(provider).build();
             request.setFilter(filter);
         }
-        return toObservable(gateway.getBanksCountries(request.build()))
+        return toObservable(gateway()
+                .getBanksCountries(request.build()))
                 .map(new Function<GetBanksCountriesResponse, List<String>>() {
                     public List<String> apply(GetBanksCountriesResponse response) {
                         return response.getCountriesList();
@@ -466,8 +479,8 @@ public class UnauthenticatedClient {
      */
     public Observable<String> getDefaultAgent() {
         // TODO(sibin): Use GetDefaultAgentRequest instead after the call is available.
-        return toObservable(gateway.resolveAlias(
-                ResolveAliasRequest.newBuilder()
+        return toObservable(gateway()
+                .resolveAlias(ResolveAliasRequest.newBuilder()
                         .setAlias(Alias.newBuilder()
                                 .setType(Alias.Type.DOMAIN)
                                 .setValue("token.io")
@@ -481,7 +494,24 @@ public class UnauthenticatedClient {
                 });
     }
 
-    private List<MemberOperation> toMemberOperations(Key... keys) {
+    /**
+     * Adds a feature code.
+     *
+     * @param key feature code key
+     * @param value feature code value
+     */
+    public void addFeatureCode(String key, String value) {
+        this.featureCodes.put(key, value);
+    }
+
+    /**
+     * Clears all feature codes.
+     */
+    public void clearFeatureCodes() {
+        this.featureCodes = new HashMap<>();
+    }
+
+    protected List<MemberOperation> toMemberOperations(Key... keys) {
         List<MemberOperation> operations = new LinkedList<>();
         for (Key key : keys) {
             operations.add(MemberOperation.newBuilder()
@@ -490,5 +520,10 @@ public class UnauthenticatedClient {
                     .build());
         }
         return operations;
+    }
+
+    protected GatewayServiceFutureStub gateway() {
+        return gateway.serviceBuilder()
+                .withFeatureCodes(featureCodes).build();
     }
 }

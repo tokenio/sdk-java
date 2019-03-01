@@ -66,6 +66,7 @@ import javax.annotation.Nullable;
 
 public class TokenClient extends io.token.TokenClient {
     private final BrowserFactory browserFactory;
+    private final UnauthenticatedClient client;
 
     /**
      * Creates an instance of a Token SDK.
@@ -81,6 +82,7 @@ public class TokenClient extends io.token.TokenClient {
             BrowserFactory browserFactory) {
         super(channel, cryptoFactory, tokenCluster);
         this.browserFactory = browserFactory;
+        this.client = ClientFactory.unauthenticated(channel);
     }
 
     /**
@@ -317,8 +319,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return device information
      */
     public Observable<DeviceInfo> provisionDevice(Alias alias) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated
+        return client
                 .getMemberId(alias)
                 .map(new Function<String, DeviceInfo>() {
                     public DeviceInfo apply(String memberId) {
@@ -418,8 +419,7 @@ public class TokenClient extends io.token.TokenClient {
             @Nullable List<SecurityProtos.Key> keys,
             @Nullable DeviceMetadata deviceMetadata,
             @Nullable ReceiptContact receiptContact) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.notifyCreateAndEndorseToken(
+        return client.notifyCreateAndEndorseToken(
                 tokenRequestId,
                 AddKey.newBuilder()
                         .addAllKeys(keys)
@@ -453,8 +453,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return status of the invalidation request
      */
     public Observable<NotifyStatus> invalidateNotification(String notificationId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.invalidateNotification(notificationId);
+        return client.invalidateNotification(notificationId);
     }
 
     /**
@@ -474,8 +473,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return Blob
      */
     public Observable<BlobProtos.Blob> getBlob(String blobId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getBlob(blobId);
+        return client.getBlob(blobId);
     }
 
     /**
@@ -495,8 +493,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return token request result
      */
     public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenRequestResult(tokenRequestId);
+        return client.getTokenRequestResult(tokenRequestId);
     }
 
     /**
@@ -516,8 +513,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return token request that was stored with the request id
      */
     public Observable<TokenRequest> retrieveTokenRequest(String requestId) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.retrieveTokenRequest(requestId);
+        return client.retrieveTokenRequest(requestId);
     }
 
     /**
@@ -538,8 +534,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return completable
      */
     public Completable updateTokenRequest(String requestId, TokenRequestOptions options) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.updateTokenRequest(requestId, options);
+        return client.updateTokenRequest(requestId, options);
     }
 
     /**

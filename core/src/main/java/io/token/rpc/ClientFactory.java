@@ -23,10 +23,6 @@
 package io.token.rpc;
 
 import io.grpc.ManagedChannel;
-import io.token.proto.gateway.GatewayServiceGrpc;
-import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
-import io.token.rpc.client.Interceptor;
-import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 
 /**
@@ -44,10 +40,8 @@ public abstract class ClientFactory {
      * @return newly created client
      */
     public static UnauthenticatedClient unauthenticated(ManagedChannel channel) {
-        return new UnauthenticatedClient(GatewayServiceGrpc.newFutureStub(
-                RpcChannelFactory.intercept(
-                        channel,
-                        new ErrorHandlerFactory())));
+        GatewayProvider serviceBuilder = new GatewayProvider(channel);
+        return new UnauthenticatedClient(serviceBuilder);
     }
 
     /**
@@ -63,21 +57,7 @@ public abstract class ClientFactory {
             final ManagedChannel channel,
             final String memberId,
             final CryptoEngine crypto) {
-        final GatewayServiceFutureStub stub = GatewayServiceGrpc.newFutureStub(
-                RpcChannelFactory.intercept(
-                        channel,
-                        new ErrorHandlerFactory()));
-
-        GatewayProvider provider = new GatewayProvider() {
-            @Override
-            public GatewayServiceFutureStub withAuthentication(AuthenticationContext context) {
-                return stub.withInterceptors(new Interceptor(new ClientAuthenticatorFactory(
-                        memberId,
-                        crypto,
-                        context)));
-            }
-        };
-
-        return new Client(memberId, crypto, provider);
+        GatewayProvider serviceBuilder = new GatewayProvider(channel, memberId, crypto);
+        return new Client(memberId, crypto, serviceBuilder);
     }
 }
