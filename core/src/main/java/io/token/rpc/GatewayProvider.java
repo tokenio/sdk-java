@@ -109,7 +109,7 @@ public class GatewayProvider {
          * @param featureCodes map of feature codes
          * @return builder
          */
-        GatewayServiceBuilder withFeatureCodes(Map<String, String> featureCodes) {
+        GatewayServiceBuilder withFeatureCodes(List<String> featureCodes) {
             if (!featureCodes.isEmpty()) {
                 interceptors.add(new Interceptor(new FeatureCodeInterceptorFactory(featureCodes)));
             }

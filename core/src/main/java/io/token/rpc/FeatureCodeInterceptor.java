@@ -27,19 +27,23 @@ import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import io.grpc.Metadata;
 import io.token.rpc.interceptor.SimpleInterceptor;
 
-import java.util.Map;
+import java.util.List;
+
+import org.apache.commons.lang3.StringUtils;
 
 public class FeatureCodeInterceptor<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
-    private final Map<String, String> featureCodes;
+    private static final String FEATURE_CODE_KEY = "feature-codes";
+    private final List<String> featureCodes;
 
-    FeatureCodeInterceptor(Map<String, String> featureCodes) {
+    FeatureCodeInterceptor(List<String> featureCodes) {
         this.featureCodes = featureCodes;
     }
 
     @Override
     public void onStart(ReqT reqT, Metadata metadata) {
-        for (Map.Entry<String, String> code : featureCodes.entrySet()) {
-            metadata.put(Metadata.Key.of(code.getKey(), ASCII_STRING_MARSHALLER), code.getValue());
+        if (featureCodes.size() > 0) {
+            String value = StringUtils.join(featureCodes, '|');
+            metadata.put(Metadata.Key.of(FEATURE_CODE_KEY, ASCII_STRING_MARSHALLER), value);
         }
     }
 }

@@ -174,4 +174,16 @@ public interface Representable {
      * @return transfer endpoints
      */
     List<TransferEndpoint> resolveTransferDestinationsBlocking(String accountId);
+
+    /**
+     * Adds a feature code.
+     *
+     * @param code feature code
+     */
+    void addFeatureCode(String code);
+
+    /**
+     * Clears all feature codes.
+     */
+    void clearFeatureCodes();
 }

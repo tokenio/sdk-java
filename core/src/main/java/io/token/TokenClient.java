@@ -593,11 +593,10 @@ public class TokenClient implements Closeable {
     /**
      * Adds a feature code.
      *
-     * @param key feature code key
-     * @param value feature code value
+     * @param code feature code
      */
-    public void addFeatureCode(String key, String value) {
-        client.addFeatureCode(key, value);
+    public void addFeatureCode(String code) {
+        client.addFeatureCode(code);
     }
 
     /**

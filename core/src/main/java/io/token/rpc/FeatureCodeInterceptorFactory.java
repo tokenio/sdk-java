@@ -26,21 +26,21 @@ import io.grpc.MethodDescriptor;
 import io.token.rpc.interceptor.InterceptorFactory;
 import io.token.rpc.interceptor.SimpleInterceptor;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * Responsible for creation of {@link FeatureCodeInterceptor} instance which
  * are created per RPC method call when feature codes are set.
  */
 public class FeatureCodeInterceptorFactory implements InterceptorFactory {
-    private final Map<String, String> featureCodes;
+    private final List<String> featureCodes;
 
     /**
      * Creates an instance.
      *
      * @param featureCodes map of feature codes
      */
-    public FeatureCodeInterceptorFactory(Map<String, String> featureCodes) {
+    public FeatureCodeInterceptorFactory(List<String> featureCodes) {
         this.featureCodes = featureCodes;
     }
 

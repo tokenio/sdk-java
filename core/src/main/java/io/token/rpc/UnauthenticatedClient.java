@@ -69,6 +69,7 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -82,7 +83,7 @@ import javax.annotation.Nullable;
  */
 public class UnauthenticatedClient {
     protected final GatewayProvider gateway;
-    protected Map<String, String> featureCodes;
+    protected List<String> featureCodes;
 
     /**
      * Creates an instance.
@@ -91,7 +92,7 @@ public class UnauthenticatedClient {
      */
     public UnauthenticatedClient(GatewayProvider gateway) {
         this.gateway = gateway;
-        this.featureCodes = new HashMap<>();
+        this.featureCodes = new ArrayList<>();
     }
 
     /**
@@ -497,18 +498,17 @@ public class UnauthenticatedClient {
     /**
      * Adds a feature code.
      *
-     * @param key feature code key
-     * @param value feature code value
+     * @param code feature code
      */
-    public void addFeatureCode(String key, String value) {
-        this.featureCodes.put(key, value);
+    public void addFeatureCode(String code) {
+        this.featureCodes.add(code);
     }
 
     /**
      * Clears all feature codes.
      */
     public void clearFeatureCodes() {
-        this.featureCodes = new HashMap<>();
+        this.featureCodes = new ArrayList<>();
     }
 
     protected List<MemberOperation> toMemberOperations(Key... keys) {

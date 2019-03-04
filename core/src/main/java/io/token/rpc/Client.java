@@ -113,7 +113,7 @@ public class Client {
     protected final GatewayProvider gateway;
     protected boolean customerInitiated = false;
     protected SecurityMetadata trackingMetadata = SecurityMetadata.getDefaultInstance();
-    protected Map<String, String> featureCodes = new HashMap<>();
+    protected List<String> featureCodes = new ArrayList<>();
 
     /**
      * Creates a client instance.
@@ -595,18 +595,17 @@ public class Client {
     /**
      * Adds a feature code.
      *
-     * @param key feature code key
-     * @param value feature code value
+     * @param code feature code
      */
-    public void addFeatureCode(String key, String value) {
-        this.featureCodes.put(key, value);
+    public void addFeatureCode(String code) {
+        this.featureCodes.add(code);
     }
 
     /**
      * Clears all feature codes.
      */
     public void clearFeatureCodes() {
-        this.featureCodes = new HashMap<>();
+        this.featureCodes = new ArrayList<>();
     }
 
     @Override
