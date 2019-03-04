@@ -122,7 +122,11 @@ public class TokenClient extends io.token.TokenClient {
                                 channel,
                                 mem.memberId(),
                                 crypto);
-                        return new Member(mem, client);
+                        return new Member(
+                                mem.memberId(),
+                                mem.partnerId(),
+                                client,
+                                mem.getTokenCluster());
                     }
                 });
     }
@@ -157,7 +161,11 @@ public class TokenClient extends io.token.TokenClient {
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
-                        return new Member(mem, client);
+                        return new Member(
+                                mem.memberId(),
+                                mem.partnerId(),
+                                client,
+                                mem.getTokenCluster());
                     }
                 });
     }
@@ -175,7 +183,11 @@ public class TokenClient extends io.token.TokenClient {
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
-                        return new Member(mem, client);
+                        return new Member(
+                                mem.memberId(),
+                                mem.partnerId(),
+                                client,
+                                mem.getTokenCluster());
                     }
                 });
     }
@@ -212,7 +224,11 @@ public class TokenClient extends io.token.TokenClient {
                                 channel,
                                 mem.memberId(),
                                 cryptoEngine);
-                        return new Member(mem, client);
+                        return new Member(
+                                mem.memberId(),
+                                mem.partnerId(),
+                                client,
+                                mem.getTokenCluster());
                     }
                 });
     }
@@ -257,7 +273,11 @@ public class TokenClient extends io.token.TokenClient {
                                 channel,
                                 mem.memberId(),
                                 cryptoEngine);
-                        return new Member(mem, client);
+                        return new Member(
+                                mem.memberId(),
+                                mem.partnerId(),
+                                client,
+                                mem.getTokenCluster());
                     }
                 });
     }
