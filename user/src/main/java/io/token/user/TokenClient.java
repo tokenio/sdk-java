@@ -79,10 +79,11 @@ public class TokenClient extends io.token.TokenClient {
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
             TokenCluster tokenCluster,
+            UnauthenticatedClient client,
             BrowserFactory browserFactory) {
-        super(channel, cryptoFactory, tokenCluster);
+        super(channel, cryptoFactory, tokenCluster, client);
+        this.client = client;
         this.browserFactory = browserFactory;
-        this.client = ClientFactory.unauthenticated(channel);
     }
 
     /**
@@ -571,17 +572,19 @@ public class TokenClient extends io.token.TokenClient {
         @Override
         public TokenClient build() {
             Metadata headers = getHeaders();
+            ManagedChannel channel = RpcChannelFactory
+                    .builder(hostName, port, useSsl)
+                    .withTimeout(timeoutMs)
+                    .withMetadata(headers)
+                    .withClientSsl(sslConfig)
+                    .build();
             return new TokenClient(
-                    RpcChannelFactory
-                            .builder(hostName, port, useSsl)
-                            .withTimeout(timeoutMs)
-                            .withMetadata(headers)
-                            .withClientSsl(sslConfig)
-                            .build(),
+                    channel,
                     cryptoEngine != null
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
                     tokenCluster == null ? SANDBOX : tokenCluster,
+                    ClientFactory.unauthenticated(channel),
                     browserFactory);
         }
     }

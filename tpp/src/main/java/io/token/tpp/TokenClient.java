@@ -73,13 +73,15 @@ public class TokenClient extends io.token.TokenClient {
      * @param channel GRPC channel
      * @param cryptoFactory crypto factory instance
      * @param tokenCluster token cluster
+     * @param client unauthenticated client
      */
     TokenClient(
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
-            TokenCluster tokenCluster) {
-        super(channel, cryptoFactory, tokenCluster);
-        this.client = ClientFactory.unauthenticated(channel);
+            TokenCluster tokenCluster,
+            UnauthenticatedClient client) {
+        super(channel, cryptoFactory, tokenCluster, client);
+        this.client = client;
     }
 
     /**
@@ -599,17 +601,19 @@ public class TokenClient extends io.token.TokenClient {
         @Override
         public TokenClient build() {
             Metadata headers = getHeaders();
-            return new TokenClient(
-                    RpcChannelFactory
+            ManagedChannel channel = RpcChannelFactory
                             .builder(hostName, port, useSsl)
-                            .withTimeout(timeoutMs)
-                            .withMetadata(headers)
-                            .withClientSsl(sslConfig)
-                            .build(),
+                    .withTimeout(timeoutMs)
+                    .withMetadata(headers)
+                    .withClientSsl(sslConfig)
+                    .build();
+            return new TokenClient(
+                    channel,
                     cryptoEngine != null
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
-                    tokenCluster == null ? SANDBOX : tokenCluster);
+                    tokenCluster == null ? SANDBOX : tokenCluster,
+                    ClientFactory.unauthenticated(channel));
         }
     }
 }

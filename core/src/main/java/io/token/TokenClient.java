@@ -93,11 +93,12 @@ public class TokenClient implements Closeable {
     protected TokenClient(
             ManagedChannel channel,
             CryptoEngineFactory cryptoFactory,
-            TokenCluster tokenCluster) {
+            TokenCluster tokenCluster,
+            UnauthenticatedClient client) {
         this.channel = channel;
         this.cryptoFactory = cryptoFactory;
         this.tokenCluster = tokenCluster;
-        this.client = ClientFactory.unauthenticated(channel);
+        this.client = client;
     }
 
     @Override
@@ -751,17 +752,19 @@ public class TokenClient implements Closeable {
          */
         public TokenClient build() {
             Metadata headers = getHeaders();
+            ManagedChannel channel = RpcChannelFactory
+                    .builder(hostName, port, useSsl)
+                    .withTimeout(timeoutMs)
+                    .withMetadata(headers)
+                    .withClientSsl(sslConfig)
+                    .build();
             return new TokenClient(
-                    RpcChannelFactory
-                            .builder(hostName, port, useSsl)
-                            .withTimeout(timeoutMs)
-                            .withMetadata(headers)
-                            .withClientSsl(sslConfig)
-                            .build(),
+                    channel,
                     cryptoEngine != null
                             ? cryptoEngine
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
-                    tokenCluster == null ? SANDBOX : tokenCluster);
+                    tokenCluster == null ? SANDBOX : tokenCluster,
+                    ClientFactory.unauthenticated(channel));
         }
 
         protected Metadata getHeaders() {
