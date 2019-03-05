@@ -96,23 +96,19 @@ public class Member extends io.token.Member {
     /**
      * Creates an instance of {@link Member}.
      *
-     * @param member internal member representation, fetched from server
+     * @param memberId member ID
+     * @param partnerId member ID of partner
      * @param client RPC client used to perform operations against the server
      * @param cluster Token cluster, e.g. sandbox, production
      * @param browserFactory browser factory for displaying UI for linking
      */
     Member(
-            MemberProtos.Member member,
+            String memberId,
+            @Nullable String partnerId,
             Client client,
             TokenCluster cluster,
             BrowserFactory browserFactory) {
-        super(member, client, cluster);
-        this.client = client;
-        this.browserFactory = browserFactory;
-    }
-
-    Member(io.token.Member member, Client client, BrowserFactory browserFactory) {
-        super(member);
+        super(memberId, partnerId, client, cluster);
         this.client = client;
         this.browserFactory = browserFactory;
     }

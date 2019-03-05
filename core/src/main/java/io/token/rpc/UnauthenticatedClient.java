@@ -137,16 +137,19 @@ public class UnauthenticatedClient {
      *
      * @param memberType the type of member to register
      * @param tokenRequestId (optional) token request id
+     * @param partnerId ID of partner member
      * @return newly created member id
      */
     public Observable<String> createMemberId(
             CreateMemberType memberType,
-            @Nullable String tokenRequestId) {
+            @Nullable String tokenRequestId,
+            @Nullable String partnerId) {
         return
                 toObservable(gateway.createMember(CreateMemberRequest.newBuilder()
                         .setNonce(generateNonce())
                         .setMemberType(memberType)
                         .setTokenRequestId(nullToEmpty(tokenRequestId))
+                        .setPartnerId(nullToEmpty(partnerId))
                         .build()))
                         .map(new Function<CreateMemberResponse, String>() {
                             public String apply(CreateMemberResponse response) {

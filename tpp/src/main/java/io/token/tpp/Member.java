@@ -22,7 +22,6 @@
 
 package io.token.tpp;
 
-import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.DEFAULT;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
@@ -35,7 +34,6 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenClient.TokenCluster;
 import io.token.proto.PagedList;
-import io.token.proto.common.blob.BlobProtos.Attachment;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
@@ -67,20 +65,17 @@ public class Member extends io.token.Member implements Representable {
     /**
      * Creates an instance of {@link Member}.
      *
-     * @param member internal member representation, fetched from server
+     * @param memberId member ID
+     * @param partnerId member ID of partner
      * @param client RPC client used to perform operations against the server
      * @param cluster Token cluster, e.g. sandbox, production
      */
     Member(
-            MemberProtos.Member member,
+            String memberId,
+            @Nullable String partnerId,
             Client client,
             TokenCluster cluster) {
-        super(member, client, cluster);
-        this.client = client;
-    }
-
-    Member(io.token.Member member, Client client) {
-        super(member);
+        super(memberId, partnerId, client, cluster);
         this.client = client;
     }
 
@@ -273,7 +268,7 @@ public class Member extends io.token.Member implements Representable {
 
     Member forAccessTokenInternal(String tokenId, boolean customerInitiated) {
         Client cloned = client.forAccessToken(tokenId, customerInitiated);
-        return new Member(member.build(), cloned, cluster);
+        return new Member(memberId, partnerId, cloned, cluster);
     }
 
     /**

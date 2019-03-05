@@ -178,17 +178,22 @@ public class TokenClient implements Closeable {
     /**
      * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
      *
+     * <p>Impl method returns incomplete member object that can be used for its instance
+     * fields but will not be able to make calls.
+     *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
      * @param memberType the type of member to register
+     * @param partnerId ID of the partner member
      * @return newly created member
      */
     protected Observable<Member> createMemberImpl(
             final Alias alias,
-            final CreateMemberType memberType) {
+            final CreateMemberType memberType,
+            @Nullable String partnerId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .createMemberId(memberType, null)
+                .createMemberId(memberType, null, partnerId)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
                         return setUpMemberImpl(alias, memberId);
@@ -200,6 +205,9 @@ public class TokenClient implements Closeable {
      * Sets up a member given a specific ID of a member that already exists in the system. If
      * the member ID already has keys, this will not succeed. Used for testing since this
      * gives more control over the member creation process.
+     *
+     * <p>Impl method returns incomplete member object that can be used for its instance
+     * fields but will not be able to make calls.
      *
      * <p>Adds an alias and a set of auto-generated keys to the member.</p>
      *
@@ -241,14 +249,10 @@ public class TokenClient implements Closeable {
                 })
                 .flatMap(new Function<MemberProtos.Member, Observable<Member>>() {
                     public Observable<Member> apply(MemberProtos.Member member) {
-                        CryptoEngine crypto = cryptoFactory.create(member.getId());
-                        Client client = ClientFactory.authenticated(
-                                channel,
-                                member.getId(),
-                                crypto);
                         return Observable.just(new Member(
-                                member,
-                                client,
+                                member.getId(),
+                                member.getPartnerId(),
+                                null,
                                 tokenCluster));
                     }
                 });
@@ -256,6 +260,9 @@ public class TokenClient implements Closeable {
 
     /**
      * Return a Member set up to use some Token member's keys (assuming we have them).
+     *
+     * <p>Impl method returns incomplete member object that can be used for its instance
+     * fields but will not be able to make calls.
      *
      * @param memberId member id
      * @param client client
@@ -266,13 +273,20 @@ public class TokenClient implements Closeable {
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, Member>() {
                     public Member apply(MemberProtos.Member member) {
-                        return new Member(member, client, tokenCluster);
+                        return new Member(
+                                member.getId(),
+                                member.getPartnerId(),
+                                null,
+                                tokenCluster);
                     }
                 });
     }
 
     /**
      * Completes account recovery.
+     *
+     * <p>Impl method returns incomplete member object that can be used for its instance
+     * fields but will not be able to make calls.
      *
      * @param memberId the member id
      * @param recoveryOperations the member recovery operations
@@ -281,7 +295,7 @@ public class TokenClient implements Closeable {
      * @return an observable of the updated member
      */
     public Observable<Member> completeRecoveryImpl(
-            String memberId,
+            final String memberId,
             List<MemberRecoveryOperation> recoveryOperations,
             SecurityProtos.Key privilegedKey,
             final CryptoEngine cryptoEngine) {
@@ -290,17 +304,20 @@ public class TokenClient implements Closeable {
                 .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
                 .map(new Function<MemberProtos.Member, Member>() {
                     public Member apply(MemberProtos.Member member) {
-                        Client client = ClientFactory.authenticated(
-                                channel,
+                        return new Member(
                                 member.getId(),
-                                cryptoEngine);
-                        return new Member(member, client, tokenCluster);
+                                member.getPartnerId(),
+                                null,
+                                tokenCluster);
                     }
                 });
     }
 
     /**
      * Completes account recovery if the default recovery rule was set.
+     *
+     * <p>Impl method returns incomplete member object that can be used for its instance
+     * fields but will not be able to make calls.
      *
      * @param memberId the member id
      * @param verificationId the verification id
@@ -318,11 +335,11 @@ public class TokenClient implements Closeable {
                 .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
                 .map(new Function<MemberProtos.Member, Member>() {
                     public Member apply(MemberProtos.Member member) {
-                        Client client = ClientFactory.authenticated(
-                                channel,
+                        return new Member(
                                 member.getId(),
-                                cryptoEngine);
-                        return new Member(member, client, tokenCluster);
+                                member.getPartnerId(),
+                                null,
+                                tokenCluster);
                     }
                 });
     }

@@ -68,30 +68,28 @@ import javax.annotation.Nullable;
  * and public key pair that is used to perform authentication.
  */
 public class Member {
+    protected final String memberId;
+    protected final String partnerId;
     protected final Client client;
-    protected final Builder member;
     protected final TokenCluster cluster;
 
     /**
      * Creates an instance of {@link Member}.
      *
-     * @param member internal member representation, fetched from server
+     * @param memberId member ID
+     * @param partnerId member ID of the partner, if applicable
      * @param client RPC client used to perform operations against the server
      * @param cluster Token cluster, e.g. sandbox, production
      */
     protected Member(
-            MemberProtos.Member member,
+            String memberId,
+            @Nullable String partnerId,
             Client client,
             TokenCluster cluster) {
+        this.memberId = memberId;
+        this.partnerId = partnerId;
         this.client = client;
-        this.member = member.toBuilder();
         this.cluster = cluster;
-    }
-
-    protected Member(Member member) {
-        this.client = member.client;
-        this.member = member.member;
-        this.cluster = member.cluster;
     }
 
     /**
@@ -100,7 +98,17 @@ public class Member {
      * @return a unique ID that identifies the member in the Token system
      */
     public String memberId() {
-        return member.getId();
+        return memberId;
+    }
+
+    /**
+     * Gets member ID of partner.
+     *
+     * @return partner member ID
+     */
+    @Nullable
+    public String partnerId() {
+        return partnerId;
     }
 
     /**
@@ -110,7 +118,7 @@ public class Member {
      */
     public Observable<String> lastHash() {
         return client
-                .getMember(member.getId())
+                .getMember(memberId)
                 .map(new Function<MemberProtos.Member, String>() {
                     public String apply(MemberProtos.Member member) {
                         return member.getLastHash();
@@ -181,8 +189,8 @@ public class Member {
         return client.getMember(memberId())
                 .map(new Function<MemberProtos.Member, List<Key>>() {
                     @Override
-                    public List<Key> apply(MemberProtos.Member updated) {
-                        return member.clear().mergeFrom(updated).getKeysList();
+                    public List<Key> apply(MemberProtos.Member member) {
+                        return member.getKeysList();
                     }
                 });
     }
@@ -261,7 +269,6 @@ public class Member {
         final List<MemberOperation> operations = new LinkedList<>();
         final List<MemberOperationMetadata> metadata = new LinkedList<>();
         for (Alias alias : aliasList) {
-            String partnerId = member.getPartnerId();
             if (!partnerId.isEmpty() && !partnerId.equals(TOKEN_REALM)) {
                 // Realm must equal member's partner ID if affiliated
                 if (!alias.getRealm().isEmpty() && !alias.getRealm().equals(partnerId)) {
@@ -275,23 +282,17 @@ public class Member {
             operations.add(Util.toAddAliasOperation(normalizeAlias(alias)));
             metadata.add(Util.toAddAliasOperationMetadata(normalizeAlias(alias)));
         }
-        return fromObservable(client
+        return client
                 .getMember(memberId())
-                .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
-                    public Observable<Boolean> apply(MemberProtos.Member latest) {
-                        return client
+                .flatMapCompletable(new Function<MemberProtos.Member, Completable>() {
+                    public Completable apply(MemberProtos.Member latest) {
+                        return fromObservable(client
                                 .updateMember(
-                                        member.setLastHash(latest.getLastHash()).build(),
+                                        latest,
                                         operations,
-                                        metadata)
-                                .map(new Function<MemberProtos.Member, Boolean>() {
-                                    public Boolean apply(MemberProtos.Member proto) {
-                                        member.clear().mergeFrom(proto);
-                                        return true;
-                                    }
-                                });
+                                        metadata));
                     }
-                }));
+                });
     }
 
     /**
@@ -464,22 +465,16 @@ public class Member {
                             .setAliasHash(hashAlias(alias)))
                     .build());
         }
-        return fromObservable(client
+        return client
                 .getMember(memberId())
-                .flatMap(new Function<MemberProtos.Member, Observable<Boolean>>() {
-                    public Observable<Boolean> apply(MemberProtos.Member latest) {
-                        return client
+                .flatMapCompletable(new Function<MemberProtos.Member, Completable>() {
+                    public Completable apply(MemberProtos.Member latest) {
+                        return fromObservable(client
                                 .updateMember(
-                                        member.setLastHash(latest.getLastHash()).build(),
-                                        operations)
-                                .map(new Function<MemberProtos.Member, Boolean>() {
-                                    public Boolean apply(MemberProtos.Member proto) {
-                                        member.clear().mergeFrom(proto);
-                                        return true;
-                                    }
-                                });
+                                        latest,
+                                        operations));
                     }
-                }));
+                });
     }
 
     /**
@@ -552,7 +547,7 @@ public class Member {
         for (Key key : keys) {
             operations.add(Util.toAddKeyOperation(key));
         }
-        return fromObservable(updateKeys(operations));
+        return updateKeys(operations);
     }
 
     /**
@@ -600,7 +595,7 @@ public class Member {
                             .setKeyId(keyId))
                     .build());
         }
-        return fromObservable(updateKeys(operations));
+        return updateKeys(operations);
     }
 
     /**
@@ -835,7 +830,8 @@ public class Member {
         }
 
         Member other = (Member) obj;
-        return member.build().equals(other.member.build())
+        return memberId.equals(other.memberId())
+                && partnerId.equals(other.partnerId)
                 && client.equals(other.client);
     }
 
@@ -844,20 +840,15 @@ public class Member {
         return reflectionToString(this);
     }
 
-    private Observable<Builder> updateKeys(final List<MemberOperation> operations) {
+    private Completable updateKeys(final List<MemberOperation> operations) {
         return client
                 .getMember(memberId())
-                .flatMap(new Function<MemberProtos.Member, Observable<Builder>>() {
-                    public Observable<Builder> apply(MemberProtos.Member latest) {
-                        return client
+                .flatMapCompletable(new Function<MemberProtos.Member, Completable>() {
+                    public Completable apply(MemberProtos.Member latest) {
+                        return fromObservable(client
                                 .updateMember(
-                                        member.setLastHash(latest.getLastHash()).build(),
-                                        operations)
-                                .map(new Function<MemberProtos.Member, Builder>() {
-                                    public Builder apply(MemberProtos.Member proto) {
-                                        return member.clear().mergeFrom(proto);
-                                    }
-                                });
+                                        latest,
+                                        operations));
                     }
                 });
     }
