@@ -116,7 +116,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return newly created member
      */
     public Observable<Member> createMember(final Alias alias) {
-        return createMemberImpl(alias, PERSONAL)
+        return createMemberImpl(alias, PERSONAL, null)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {

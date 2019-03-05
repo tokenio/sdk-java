@@ -60,6 +60,7 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 public class TokenClient extends io.token.TokenClient {
     private static final String TOKEN_REQUEST_TEMPLATE =
@@ -113,7 +114,21 @@ public class TokenClient extends io.token.TokenClient {
      * @return newly created member
      */
     public Observable<Member> createMember(final Alias alias) {
-        return createMemberImpl(alias, BUSINESS)
+        return createMember(alias, null);
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param partnerId ID of partner member
+     * @return newly created member
+     */
+    public Observable<Member> createMember(
+            final Alias alias,
+            @Nullable final String partnerId) {
+        return createMemberImpl(alias, BUSINESS, partnerId)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -131,14 +146,27 @@ public class TokenClient extends io.token.TokenClient {
                 });
     }
 
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @return newly created member
+     */
+    public Member createMemberBlocking(final Alias alias) {
+        return createMember(alias).blockingSingle();
+    }
+
     /**
      * Creates a new business-use Token member with a set of auto-generated keys and and an alias.
      *
      * @param alias alias to associate with member
+     * @param partnerId ID of partner member
      * @return newly created member
      */
-    public Member createMemberBlocking(Alias alias) {
-        return createMember(alias).blockingSingle();
+    public Member createMemberBlocking(Alias alias, String partnerId) {
+        return createMember(alias, partnerId).blockingSingle();
     }
 
     /**

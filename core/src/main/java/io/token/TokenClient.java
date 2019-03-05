@@ -184,14 +184,16 @@ public class TokenClient implements Closeable {
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
      * @param memberType the type of member to register
+     * @param partnerId ID of the partner member
      * @return newly created member
      */
     protected Observable<Member> createMemberImpl(
             final Alias alias,
-            final CreateMemberType memberType) {
+            final CreateMemberType memberType,
+            @Nullable String partnerId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .createMemberId(memberType, null)
+                .createMemberId(memberType, null, partnerId)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
                         return setUpMemberImpl(alias, memberId);
