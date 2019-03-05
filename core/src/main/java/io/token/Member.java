@@ -101,6 +101,12 @@ public class Member {
         return memberId;
     }
 
+    /**
+     * Gets member ID of partner.
+     *
+     * @return partner member ID
+     */
+    @Nullable
     public String partnerId() {
         return partnerId;
     }
