@@ -43,7 +43,6 @@ import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
-import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
@@ -79,7 +78,6 @@ public class TokenClient extends io.token.TokenClient {
             TokenCluster tokenCluster) {
         super(channel, cryptoFactory, tokenCluster);
     }
-
 
     /**
      * Creates a new {@link Builder} instance that is used to configure and
