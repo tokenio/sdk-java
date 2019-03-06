@@ -74,8 +74,6 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
-import org.apache.commons.lang3.StringUtils;
-
 public class TokenClient implements Closeable {
     private static final long SHUTDOWN_DURATION_MS = 10000L;
 
@@ -638,7 +636,7 @@ public class TokenClient implements Closeable {
         protected CryptoEngineFactory cryptoEngine;
         protected String devKey;
         protected SslConfig sslConfig;
-        protected String[] featureCodes;
+        protected List<String> featureCodes;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -747,7 +745,7 @@ public class TokenClient implements Closeable {
          * @return this builder instance
          */
         public T withFeatureCodes(String... featureCodes) {
-            this.featureCodes = featureCodes;
+            this.featureCodes = Arrays.asList(featureCodes);
             return (T) this;
         }
 
@@ -804,9 +802,12 @@ public class TokenClient implements Closeable {
                                 + " in this module"));
             }
 
-            if (featureCodes != null && featureCodes.length > 0) {
-                headers.put(Metadata.Key.of(FEATURE_CODE_KEY, ASCII_STRING_MARSHALLER),
-                        StringUtils.join(featureCodes, "|"));
+            if (featureCodes != null) {
+                for (String featureCode : featureCodes) {
+                    headers.put(
+                            Metadata.Key.of(FEATURE_CODE_KEY, ASCII_STRING_MARSHALLER),
+                            featureCode);
+                }
             }
             return headers;
         }
