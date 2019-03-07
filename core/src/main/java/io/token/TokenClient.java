@@ -68,6 +68,7 @@ import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
@@ -625,6 +626,7 @@ public class TokenClient implements Closeable {
     public static class Builder<T extends Builder<T>> {
         private static final long DEFAULT_TIMEOUT_MS = 10_000L;
         private static final int DEFAULT_SSL_PORT = 443;
+        private static final String FEATURE_CODE_KEY = "feature-codes";
 
         protected int port;
         protected boolean useSsl;
@@ -634,6 +636,7 @@ public class TokenClient implements Closeable {
         protected CryptoEngineFactory cryptoEngine;
         protected String devKey;
         protected SslConfig sslConfig;
+        protected List<String> featureCodes;
 
         /**
          * Creates new builder instance with the defaults initialized.
@@ -736,6 +739,17 @@ public class TokenClient implements Closeable {
         }
 
         /**
+         * Sets the feature codes to be used with the client.
+         *
+         * @param featureCodes feature codes
+         * @return this builder instance
+         */
+        public T withFeatureCodes(String... featureCodes) {
+            this.featureCodes = Arrays.asList(featureCodes);
+            return (T) this;
+        }
+
+        /**
          * Builds and returns a new {@link TokenClient} instance.
          *
          * @return {@link TokenClient} instance
@@ -786,6 +800,14 @@ public class TokenClient implements Closeable {
                 throw new StatusRuntimeException(NOT_FOUND
                         .withDescription("Plugin io.token.gradle.TokenProject is not found"
                                 + " in this module"));
+            }
+
+            if (featureCodes != null) {
+                for (String featureCode : featureCodes) {
+                    headers.put(
+                            Metadata.Key.of(FEATURE_CODE_KEY, ASCII_STRING_MARSHALLER),
+                            featureCode);
+                }
             }
             return headers;
         }
