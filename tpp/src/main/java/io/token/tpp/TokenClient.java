@@ -611,5 +611,10 @@ public class TokenClient extends io.token.TokenClient {
                             : new TokenCryptoEngineFactory(new InMemoryKeyStore()),
                     tokenCluster == null ? SANDBOX : tokenCluster);
         }
+
+        @Override
+        protected String getPlatform() {
+            return "java-tpp";
+        }
     }
 }

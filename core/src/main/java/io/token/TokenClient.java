@@ -24,6 +24,7 @@ package io.token;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
 import static io.grpc.Status.NOT_FOUND;
+import static io.grpc.Status.UNIMPLEMENTED;
 import static io.token.TokenClient.TokenCluster.SANDBOX;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
@@ -780,19 +781,15 @@ public class TokenClient implements Closeable {
                     Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
                     devKey);
 
-            ClassLoader classLoader = io.token.TokenClient.class.getClassLoader();
+            headers.put(
+                    Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
+                    getPlatform());
             try {
+                ClassLoader classLoader = io.token.TokenClient.class.getClassLoader();
                 Class<?> projectClass = classLoader.loadClass("io.token.gradle.TokenProject");
-
                 String version = (String) projectClass
                         .getMethod("getVersion")
                         .invoke(null);
-                String platform = (String) projectClass
-                        .getMethod("getPlatform")
-                        .invoke(null);
-                headers.put(
-                        Metadata.Key.of("token-sdk", ASCII_STRING_MARSHALLER),
-                        platform);
                 headers.put(
                         Metadata.Key.of("token-sdk-version", ASCII_STRING_MARSHALLER),
                         version);
@@ -810,6 +807,10 @@ public class TokenClient implements Closeable {
                 }
             }
             return headers;
+        }
+
+        protected String getPlatform() {
+            throw UNIMPLEMENTED.asRuntimeException();
         }
     }
 }

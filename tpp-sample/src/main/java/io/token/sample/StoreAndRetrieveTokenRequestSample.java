@@ -8,6 +8,7 @@ import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
+import io.token.tpp.util.Util;
 
 /**
  * Stores and retrieves a token request.
