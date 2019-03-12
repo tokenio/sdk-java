@@ -719,6 +719,33 @@ public class Member {
     }
 
     /**
+     * Confirm that the given account has sufficient funds to cover the charge.
+     *
+     * @param accountId account ID
+     * @param amount charge amount
+     * @param currency charge currency
+     * @return true if the account's balance is higher than the amount
+     */
+    public Observable<Boolean> confirmFunds(String accountId, double amount, String currency) {
+        return client.confirmFunds(accountId, MoneyProtos.Money.newBuilder()
+                .setCurrency(currency)
+                .setValue(Double.toString(amount))
+                .build());
+    }
+
+    /**
+     * Confirm that the given account has sufficient funds to cover the charge.
+     *
+     * @param accountId account ID
+     * @param amount charge amount
+     * @param currency charge currency
+     * @return true if the account's balance is higher than the amount
+     */
+    public boolean confirmFundsBlocking(String accountId, double amount, String currency) {
+        return confirmFunds(accountId, amount, currency).blockingSingle();
+    }
+
+    /**
      * Returns linking information for the specified bank id.
      *
      * @param bankId the bank id

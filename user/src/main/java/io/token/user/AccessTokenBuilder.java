@@ -188,6 +188,23 @@ public final class AccessTokenBuilder {
     }
 
     /**
+     * Grants the ability to confirm whether the account has sufficient funds to cover
+     * a given charge.
+     *
+     * @param accountId account ID
+     * @return {@link AccessTokenBuilder}
+     */
+    public AccessTokenBuilder forFundsConfirmation(String accountId) {
+        payload
+                .getAccessBuilder()
+                .addResources(Resource.newBuilder()
+                        .setFundsConfirmation(Resource.FundsConfirmation.newBuilder()
+                                .setAccountId(accountId)
+                                .build()));
+        return this;
+    }
+
+    /**
      * Sets "from" field on the payload.
      *
      * @param memberId token member ID to set

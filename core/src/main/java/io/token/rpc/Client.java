@@ -58,6 +58,7 @@ import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway;
+import io.token.proto.gateway.Gateway.ConfirmFundsRequest;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountRequest;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountResponse;
 import io.token.proto.gateway.Gateway.DeleteMemberRequest;
@@ -393,6 +394,28 @@ public class Client {
                         } else {
                             throw new StepUpRequiredException("Transactions step up required.");
                         }
+                    }
+                });
+    }
+
+    /**
+     * Confirm that the given account has sufficient funds to cover the charge.
+     *
+     * @param accountId account ID
+     * @param amount charge amount
+     * @return true if the account's balance is higher than the amount
+     */
+    public Observable<Boolean> confirmFunds(String accountId, MoneyProtos.Money amount) {
+        return toObservable(gateway
+                .withAuthentication(onBehalfOf())
+                .confirmFunds(ConfirmFundsRequest.newBuilder()
+                        .setAccountId(accountId)
+                        .setAmount(amount)
+                        .build()))
+                .map(new Function<Gateway.ConfirmFundsResponse, Boolean>() {
+                    @Override
+                    public Boolean apply(Gateway.ConfirmFundsResponse response) {
+                        return response.getFundsAvailable();
                     }
                 });
     }
