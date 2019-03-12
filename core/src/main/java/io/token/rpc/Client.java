@@ -47,7 +47,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
-import io.token.proto.common.money.MoneyProtos;
+import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -59,6 +59,7 @@ import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.ConfirmFundsRequest;
+import io.token.proto.gateway.Gateway.ConfirmFundsResponse;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountRequest;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountResponse;
 import io.token.proto.gateway.Gateway.DeleteMemberRequest;
@@ -399,22 +400,22 @@ public class Client {
     }
 
     /**
-     * Confirm that the given account has sufficient funds to cover the charge.
+     * Confirm that the account has sufficient funds to cover the charge.
      *
      * @param accountId account ID
      * @param amount charge amount
      * @return true if the account's balance is higher than the amount
      */
-    public Observable<Boolean> confirmFunds(String accountId, MoneyProtos.Money amount) {
+    public Observable<Boolean> confirmFunds(String accountId, Money amount) {
         return toObservable(gateway
                 .withAuthentication(onBehalfOf())
                 .confirmFunds(ConfirmFundsRequest.newBuilder()
                         .setAccountId(accountId)
                         .setAmount(amount)
                         .build()))
-                .map(new Function<Gateway.ConfirmFundsResponse, Boolean>() {
+                .map(new Function<ConfirmFundsResponse, Boolean>() {
                     @Override
-                    public Boolean apply(Gateway.ConfirmFundsResponse response) {
+                    public Boolean apply(ConfirmFundsResponse response) {
                         return response.getFundsAvailable();
                     }
                 });
@@ -472,7 +473,7 @@ public class Client {
      * @param balance account balance to set
      * @return linked account
      */
-    public Observable<Account> createAndLinkTestBankAccount(MoneyProtos.Money balance) {
+    public Observable<Account> createAndLinkTestBankAccount(Money balance) {
         return createTestBankAuth(balance)
                 .flatMap(new Function<OauthBankAuthorization, Observable<Account>>() {
                     @Override
@@ -694,7 +695,7 @@ public class Client {
                 action.name().toLowerCase());
     }
 
-    private Observable<OauthBankAuthorization> createTestBankAuth(MoneyProtos.Money balance) {
+    private Observable<OauthBankAuthorization> createTestBankAuth(Money balance) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()

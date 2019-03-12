@@ -40,7 +40,6 @@ import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.member.MemberProtos.Member.Builder;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
@@ -48,7 +47,7 @@ import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authori
 import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
-import io.token.proto.common.money.MoneyProtos;
+import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -727,7 +726,7 @@ public class Member {
      * @return true if the account's balance is higher than the amount
      */
     public Observable<Boolean> confirmFunds(String accountId, double amount, String currency) {
-        return client.confirmFunds(accountId, MoneyProtos.Money.newBuilder()
+        return client.confirmFunds(accountId, Money.newBuilder()
                 .setCurrency(currency)
                 .setValue(Double.toString(amount))
                 .build());
@@ -838,7 +837,7 @@ public class Member {
             double balance,
             String currency) {
         return toAccount(client.createAndLinkTestBankAccount(
-                MoneyProtos.Money.newBuilder()
+                Money.newBuilder()
                         .setValue(Double.toString(balance))
                         .setCurrency(currency)
                         .build()

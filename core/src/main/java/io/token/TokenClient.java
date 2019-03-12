@@ -64,7 +64,6 @@ import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
 import io.token.security.KeyStore;
 import io.token.security.Signer;
-import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
 
 import java.io.Closeable;

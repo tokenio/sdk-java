@@ -23,7 +23,6 @@
 package io.token.tokenrequest;
 
 import com.google.auto.value.AutoValue;
-import com.google.gson.JsonObject;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
@@ -32,7 +31,6 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.Re
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.util.Util;
-import io.token.util.codec.ByteEncoding;
 
 import java.util.Arrays;
 

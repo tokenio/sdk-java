@@ -31,6 +31,7 @@ import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountBalance;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountTransactions;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.Address;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.FundsConfirmation;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.TransferDestinations;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.TokenMember;
@@ -198,7 +199,7 @@ public final class AccessTokenBuilder {
         payload
                 .getAccessBuilder()
                 .addResources(Resource.newBuilder()
-                        .setFundsConfirmation(Resource.FundsConfirmation.newBuilder()
+                        .setFundsConfirmation(FundsConfirmation.newBuilder()
                                 .setAccountId(accountId)
                                 .build()));
         return this;
