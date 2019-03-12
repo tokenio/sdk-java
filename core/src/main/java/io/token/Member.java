@@ -723,7 +723,7 @@ public class Member {
      * @param accountId account ID
      * @param amount charge amount
      * @param currency charge currency
-     * @return true if the account's balance is higher than the amount
+     * @return true if the account has sufficient funds to cover the charge
      */
     public Observable<Boolean> confirmFunds(String accountId, double amount, String currency) {
         return client.confirmFunds(accountId, Money.newBuilder()
@@ -738,7 +738,7 @@ public class Member {
      * @param accountId account ID
      * @param amount charge amount
      * @param currency charge currency
-     * @return true if the account's balance is higher than the amount
+     * @return true if the account has sufficient funds to cover the charge
      */
     public boolean confirmFundsBlocking(String accountId, double amount, String currency) {
         return confirmFunds(accountId, amount, currency).blockingSingle();

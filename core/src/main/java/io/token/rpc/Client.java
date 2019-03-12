@@ -400,11 +400,11 @@ public class Client {
     }
 
     /**
-     * Confirm that the account has sufficient funds to cover the charge.
+     * Confirm that the given account has sufficient funds to cover the charge.
      *
      * @param accountId account ID
      * @param amount charge amount
-     * @return true if the account's balance is higher than the amount
+     * @return true if the account has sufficient funds to cover the charge
      */
     public Observable<Boolean> confirmFunds(String accountId, Money amount) {
         return toObservable(gateway

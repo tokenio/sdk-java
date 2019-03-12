@@ -181,7 +181,7 @@ public interface Representable {
      * @param accountId account ID
      * @param amount charge amount
      * @param currency charge currency
-     * @return true if the account's balance is higher than the amount
+     * @return true if the account has sufficient funds to cover the charge
      */
     Observable<Boolean> confirmFunds(String accountId, double amount, String currency);
 
@@ -191,7 +191,7 @@ public interface Representable {
      * @param accountId account ID
      * @param amount charge amount
      * @param currency charge currency
-     * @return true if the account's balance is higher than the amount
+     * @return true if the account has sufficient funds to cover the charge
      */
     boolean confirmFundsBlocking(String accountId, double amount, String currency);
 }
