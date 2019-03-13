@@ -31,6 +31,7 @@ import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountBalance;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountTransactions;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.Address;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.FundsConfirmation;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.TransferDestinations;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.TokenMember;
@@ -184,6 +185,23 @@ public final class AccessTokenBuilder {
                 .addResources(Resource.newBuilder()
                         .setTransferDestinations(TransferDestinations.newBuilder()
                                 .setAccountId(accountId)));
+        return this;
+    }
+
+    /**
+     * Grants the ability to confirm whether the account has sufficient funds to cover
+     * a given charge.
+     *
+     * @param accountId account ID
+     * @return {@link AccessTokenBuilder}
+     */
+    public AccessTokenBuilder forFundsConfirmation(String accountId) {
+        payload
+                .getAccessBuilder()
+                .addResources(Resource.newBuilder()
+                        .setFundsConfirmation(FundsConfirmation.newBuilder()
+                                .setAccountId(accountId)
+                                .build()));
         return this;
     }
 

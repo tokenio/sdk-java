@@ -28,7 +28,6 @@ import com.google.auto.value.AutoValue;
 import io.token.proto.ProtoJson;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.tpp.exceptions.InvalidTokenRequestQuery;
-import io.token.tpp.util.Util;
 
 import java.util.Map;
 

@@ -174,4 +174,24 @@ public interface Representable {
      * @return transfer endpoints
      */
     List<TransferEndpoint> resolveTransferDestinationsBlocking(String accountId);
+
+    /**
+     * Confirm that the given account has sufficient funds to cover the charge.
+     *
+     * @param accountId account ID
+     * @param amount charge amount
+     * @param currency charge currency
+     * @return true if the account has sufficient funds to cover the charge
+     */
+    Observable<Boolean> confirmFunds(String accountId, double amount, String currency);
+
+    /**
+     * Confirm that the given account has sufficient funds to cover the charge.
+     *
+     * @param accountId account ID
+     * @param amount charge amount
+     * @param currency charge currency
+     * @return true if the account has sufficient funds to cover the charge
+     */
+    boolean confirmFundsBlocking(String accountId, double amount, String currency);
 }

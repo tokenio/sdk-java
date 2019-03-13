@@ -47,8 +47,6 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
-import io.token.proto.gateway.Gateway.CreateBlobRequest;
-import io.token.proto.gateway.Gateway.CreateBlobResponse;
 import io.token.proto.gateway.Gateway.CreateCustomizationRequest;
 import io.token.proto.gateway.Gateway.CreateCustomizationResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;

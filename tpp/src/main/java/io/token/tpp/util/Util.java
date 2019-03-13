@@ -25,7 +25,6 @@ package io.token.tpp.util;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
 
-import com.google.common.hash.Hashing;
 import com.google.protobuf.Message;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.Member;
@@ -38,7 +37,6 @@ import io.token.security.crypto.CryptoRegistry;
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.nio.charset.Charset;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
