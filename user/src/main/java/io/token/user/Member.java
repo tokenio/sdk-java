@@ -168,6 +168,25 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Set the default bank account for this member.
+     *
+     * @param accountId ID of default account to set
+     * @return completable
+     */
+    public Completable setDefaultAccount(String accountId) {
+        return client.setDefaultAccount(accountId);
+    }
+
+    /**
+     * Set the default bank account for this member.
+     *
+     * @param accountId ID of default account to set
+     */
+    public void setDefaultAccountBlocking(String accountId) {
+        client.setDefaultAccount(accountId).blockingAwait();
+    }
+
+    /**
      * Get the default bank account for this member.
      *
      * @return observable account
