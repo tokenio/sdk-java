@@ -22,6 +22,7 @@
 
 package io.token.util;
 
+import static io.token.proto.AliasHasher.normalizeAndHash;
 import static io.token.proto.ProtoHasher.hashAndSerializeJson;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
 
@@ -34,6 +35,7 @@ import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.token.TokenClient.TokenCluster;
+import io.token.proto.AliasHasher;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
@@ -105,26 +107,6 @@ public class Util {
     }
 
     /**
-     * Get alias with normalized value. E.g. "Captain@gmail.com" to "captain@gmail.com".
-     *
-     * @param rawAlias { EMAIL, "Captain@gmail.com" }
-     * @return alias with possibly-different value field
-     */
-    public static Alias normalizeAlias(Alias rawAlias) {
-        switch (rawAlias.getType()) {
-            case EMAIL:
-            case DOMAIN:
-                return rawAlias.toBuilder()
-                        .setValue(rawAlias.getValue().toLowerCase().trim())
-                        .build();
-
-            default:
-                return rawAlias.toBuilder()
-                        .build();
-        }
-    }
-
-    /**
      * Converts alias to AddAlias operation.
      *
      * @param alias alias to add
@@ -135,7 +117,7 @@ public class Util {
                 .newBuilder()
                 .setAddAlias(MemberAliasOperation
                         .newBuilder()
-                        .setAliasHash(hashAlias(alias))
+                        .setAliasHash(normalizeAndHash(alias))
                         .setRealm(alias.getRealm()))
                 .build();
     }
@@ -150,7 +132,7 @@ public class Util {
         return MemberOperationMetadata.newBuilder()
                 .setAddAliasMetadata(AddAliasMetadata.newBuilder()
                         .setAlias(alias)
-                        .setAliasHash(hashAlias(alias)))
+                        .setAliasHash(normalizeAndHash(alias)))
                 .build();
     }
 
@@ -165,20 +147,6 @@ public class Util {
                 .sha256()
                 .hashString(value, Charset.forName("ASCII"))
                 .toString();
-    }
-
-    /**
-     * Hashes an alias to a String.
-     *
-     * @param alias alias to hash
-     * @return hashed alias
-     */
-    public static String hashAlias(Alias alias) {
-        if (alias.getType() == USERNAME) {
-            return alias.getValue();
-        }
-        Alias toHash = alias.toBuilder().clearRealm().build();
-        return hashAndSerializeJson(toHash);
     }
 
     /**
