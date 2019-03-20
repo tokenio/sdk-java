@@ -639,6 +639,7 @@ public class TokenClient implements Closeable {
          * Creates new builder instance with the defaults initialized.
          */
         public Builder() {
+            this.devKey = DEFAULT_DEV_KEY;
             this.timeoutMs = DEFAULT_TIMEOUT_MS;
             this.port = DEFAULT_SSL_PORT;
             this.useSsl = true;
@@ -767,9 +768,6 @@ public class TokenClient implements Closeable {
         }
 
         protected Metadata getHeaders() {
-            if (devKey == null || devKey.isEmpty()) {
-                devKey = DEFAULT_DEV_KEY;
-            }
             Metadata headers = new Metadata();
             headers.put(
                     Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
