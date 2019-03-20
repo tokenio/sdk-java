@@ -1,5 +1,6 @@
 package io.token.sample;
 
+import static io.token.TokenClient.TokenCluster.DEVELOPMENT;
 import static io.token.TokenClient.TokenCluster.SANDBOX;
 import static org.apache.commons.lang3.RandomStringUtils.randomAlphabetic;
 
@@ -26,7 +27,7 @@ public final class CreateMemberSample {
             Path keys = Files.createDirectories(Paths.get("./keys"));
             TokenClient tokenClient = TokenClient.builder()
                     .withKeyStore(new UnsecuredFileSystemKeyStore(keys.toFile()))
-                    .connectTo(SANDBOX)
+                    .connectTo(DEVELOPMENT)
                     .build();
 
             // An alias is a "human-readable" reference to a member.

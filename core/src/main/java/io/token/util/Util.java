@@ -22,6 +22,8 @@
 
 package io.token.util;
 
+import static io.token.proto.AliasHasher.hash;
+import static io.token.proto.AliasHasher.normalize;
 import static io.token.proto.AliasHasher.normalizeAndHash;
 import static io.token.proto.ProtoHasher.hashAndSerializeJson;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
@@ -129,10 +131,11 @@ public class Util {
      * @return member operation metadata
      */
     public static MemberOperationMetadata toAddAliasOperationMetadata(Alias alias) {
+        Alias normalized = normalize(alias);
         return MemberOperationMetadata.newBuilder()
                 .setAddAliasMetadata(AddAliasMetadata.newBuilder()
-                        .setAlias(alias)
-                        .setAliasHash(normalizeAndHash(alias)))
+                        .setAlias(normalized)
+                        .setAliasHash(hash(normalized)))
                 .build();
     }
 
