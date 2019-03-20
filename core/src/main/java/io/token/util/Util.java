@@ -25,8 +25,6 @@ package io.token.util;
 import static io.token.proto.AliasHasher.hash;
 import static io.token.proto.AliasHasher.normalize;
 import static io.token.proto.AliasHasher.normalizeAndHash;
-import static io.token.proto.ProtoHasher.hashAndSerializeJson;
-import static io.token.proto.common.alias.AliasProtos.Alias.Type.USERNAME;
 
 import com.google.common.hash.Hashing;
 import com.google.common.util.concurrent.ListenableFuture;
@@ -37,7 +35,6 @@ import io.reactivex.Single;
 import io.reactivex.SingleEmitter;
 import io.reactivex.SingleOnSubscribe;
 import io.token.TokenClient.TokenCluster;
-import io.token.proto.AliasHasher;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;

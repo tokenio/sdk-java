@@ -8,9 +8,8 @@ import static io.token.util.Util.generateNonce;
 
 import com.google.common.io.BaseEncoding;
 import io.token.proto.common.alias.AliasProtos.Alias;
-
 import io.token.proto.common.member.MemberProtos.Profile;
-import io.token.proto.common.security.SecurityProtos;
+import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.security.CryptoEngine;
 import io.token.user.Member;
@@ -73,11 +72,11 @@ public class MemberMethodsSample {
      * @param member member
      */
     public static void keys(CryptoEngine crypto, Member member) {
-        SecurityProtos.Key lowKey = crypto.generateKey(LOW);
+        Key lowKey = crypto.generateKey(LOW);
         member.approveKeyBlocking(lowKey);
 
-        SecurityProtos.Key standardKey = crypto.generateKey(STANDARD);
-        SecurityProtos.Key privilegedKey = crypto.generateKey(PRIVILEGED);
+        Key standardKey = crypto.generateKey(STANDARD);
+        Key privilegedKey = crypto.generateKey(PRIVILEGED);
         member.approveKeysBlocking(Arrays.asList(standardKey, privilegedKey));
 
         member.removeKeyBlocking(lowKey.getId());

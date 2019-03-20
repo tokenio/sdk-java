@@ -34,7 +34,6 @@ import io.reactivex.functions.Function;
 import io.token.TokenClient.TokenCluster;
 import io.token.exceptions.InvalidRealmException;
 import io.token.exceptions.NoAliasesFoundException;
-import io.token.proto.AliasHasher;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
