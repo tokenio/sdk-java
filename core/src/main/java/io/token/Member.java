@@ -23,9 +23,8 @@
 package io.token;
 
 import static io.reactivex.Completable.fromObservable;
+import static io.token.proto.AliasHasher.normalizeAndHash;
 import static io.token.util.Util.TOKEN_REALM;
-import static io.token.util.Util.hashAlias;
-import static io.token.util.Util.normalizeAlias;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
@@ -278,8 +277,8 @@ public class Member {
                         .build();
             }
 
-            operations.add(Util.toAddAliasOperation(normalizeAlias(alias)));
-            metadata.add(Util.toAddAliasOperationMetadata(normalizeAlias(alias)));
+            operations.add(Util.toAddAliasOperation(alias));
+            metadata.add(Util.toAddAliasOperationMetadata(alias));
         }
         return client
                 .getMember(memberId())
@@ -461,7 +460,7 @@ public class Member {
                     .newBuilder()
                     .setRemoveAlias(MemberAliasOperation
                             .newBuilder()
-                            .setAliasHash(hashAlias(alias)))
+                            .setAliasHash(normalizeAndHash(alias)))
                     .build());
         }
         return client

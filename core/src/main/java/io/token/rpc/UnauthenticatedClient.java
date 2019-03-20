@@ -28,13 +28,13 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.normalizeAlias;
 import static io.token.util.Util.toObservable;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.MemberNotFoundException;
 import io.token.exceptions.VerificationException;
+import io.token.proto.AliasHasher;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankFilter;
@@ -199,7 +199,7 @@ public class UnauthenticatedClient {
     public Observable<String> beginRecovery(Alias alias) {
         return toObservable(gateway
                 .beginRecovery(BeginRecoveryRequest.newBuilder()
-                        .setAlias(normalizeAlias(alias))
+                        .setAlias(AliasHasher.normalize(alias))
                         .build()))
                 .map(new Function<BeginRecoveryResponse, String>() {
                     public String apply(BeginRecoveryResponse response) {
