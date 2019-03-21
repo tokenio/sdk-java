@@ -620,7 +620,7 @@ public class TokenClient implements Closeable {
      * Used to create a new {@link TokenClient} instances.
      */
     public static class Builder<T extends Builder<T>> {
-        private static final String DEFAULT_DEV_KEY = "f3982819-5d8d-4123-9601-886df2780f42";
+        private static final String DEFAULT_DEV_KEY = "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI";
         private static final long DEFAULT_TIMEOUT_MS = 10_000L;
         private static final int DEFAULT_SSL_PORT = 443;
         private static final String FEATURE_CODE_KEY = "feature-codes";
