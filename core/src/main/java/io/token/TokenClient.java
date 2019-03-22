@@ -37,7 +37,6 @@ import static java.util.Collections.singletonList;
 
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
-import io.grpc.Status;
 import io.grpc.StatusRuntimeException;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
@@ -621,6 +620,7 @@ public class TokenClient implements Closeable {
      * Used to create a new {@link TokenClient} instances.
      */
     public static class Builder<T extends Builder<T>> {
+        private static final String DEFAULT_DEV_KEY = "4qY7lqQw8NOl9gng0ZHgT4xdiDqxqoGVutuZwrUYQsI";
         private static final long DEFAULT_TIMEOUT_MS = 10_000L;
         private static final int DEFAULT_SSL_PORT = 443;
         private static final String FEATURE_CODE_KEY = "feature-codes";
@@ -639,6 +639,7 @@ public class TokenClient implements Closeable {
          * Creates new builder instance with the defaults initialized.
          */
         public Builder() {
+            this.devKey = DEFAULT_DEV_KEY;
             this.timeoutMs = DEFAULT_TIMEOUT_MS;
             this.port = DEFAULT_SSL_PORT;
             this.useSsl = true;
@@ -767,11 +768,6 @@ public class TokenClient implements Closeable {
         }
 
         protected Metadata getHeaders() {
-            if (devKey == null || devKey.isEmpty()) {
-                throw new StatusRuntimeException(Status.INVALID_ARGUMENT
-                        .withDescription("Please provide a developer key."
-                                + " Contact Token for more details."));
-            }
             Metadata headers = new Metadata();
             headers.put(
                     Metadata.Key.of("token-dev-key", ASCII_STRING_MARSHALLER),
