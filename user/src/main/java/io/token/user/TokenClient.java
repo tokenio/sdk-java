@@ -113,7 +113,6 @@ public class TokenClient extends io.token.TokenClient {
      * @param developerKey developer key
      * @return {@link TokenClient} instance
      */
-    @Deprecated
     public static TokenClient create(TokenCluster cluster, String developerKey) {
         return TokenClient.builder()
                 .connectTo(cluster)
