@@ -731,6 +731,7 @@ public class TokenClient implements Closeable {
          * @param devKey developer key
          * @return this builder instance
          */
+        @Deprecated
         public T devKey(String devKey) {
             this.devKey = devKey;
             return (T) this;
