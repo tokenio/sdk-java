@@ -97,6 +97,19 @@ public class TokenClient extends io.token.TokenClient {
      * the specified environment.
      *
      * @param cluster token cluster to connect to
+     * @return {@link TokenClient} instance
+     */
+    public static TokenClient create(TokenCluster cluster) {
+        return TokenClient.builder()
+                .connectTo(cluster)
+                .build();
+    }
+
+    /**
+     * Creates a new instance of {@link TokenClient} that's configured to use
+     * the specified environment.
+     *
+     * @param cluster token cluster to connect to
      * @param developerKey developer key
      * @return {@link TokenClient} instance
      */
