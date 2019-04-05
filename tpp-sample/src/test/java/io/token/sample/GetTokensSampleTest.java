@@ -27,7 +27,7 @@ public class GetTokensSampleTest {
 
             Token token = createTransferToken(payer, payeeAlias);
 
-            assertThat(payee.getTokenBlocking(token.getId()).getId())
+            assertThat(getToken(payee, token.getId()).getId())
                     .isEqualTo(token.getId());
 
             assertThat(getToken(payee, token.getId()).getPayloadSignaturesList()
@@ -40,7 +40,7 @@ public class GetTokensSampleTest {
             payee.cancelTokenBlocking(token);
 
             // check for CANCELLED signature
-            assertThat(payee.getTokenBlocking(token.getId()).getPayloadSignaturesList()
+            assertThat(getToken(payee, token.getId()).getPayloadSignaturesList()
                     .stream()
                     .map(sig -> sig.getAction() == CANCELLED)
                     .collect(Collectors.toList()))
