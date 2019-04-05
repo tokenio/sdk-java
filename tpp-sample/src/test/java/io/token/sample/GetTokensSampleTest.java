@@ -35,10 +35,10 @@ public class GetTokensSampleTest {
                     .collect(Collectors.toList()))
                     .isEmpty();
 
-            // endorse token
+            // cancel token
             payee.cancelTokenBlocking(token);
 
-            // check for ENDORSED signature
+            // check for CANCELLED signature
             assertThat(payee.getTokenBlocking(token.getId()).getPayloadSignaturesList()
                     .stream()
                     .map(sig -> sig.getAction() == CANCELLED)
