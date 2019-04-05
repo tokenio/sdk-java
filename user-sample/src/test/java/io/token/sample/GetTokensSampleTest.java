@@ -2,6 +2,7 @@ package io.token.sample;
 
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
+import static io.token.sample.GetTokensSample.getToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
 import static io.token.sample.TestUtil.randomAlias;
@@ -29,7 +30,7 @@ public class GetTokensSampleTest {
             assertThat(payee.getTokenBlocking(token.getId()).getId())
                     .isEqualTo(token.getId());
 
-            assertThat(payee.getTokenBlocking(token.getId()).getPayloadSignaturesList()
+            assertThat(getToken(payer, token.getId()).getPayloadSignaturesList()
                     .stream()
                     .filter(sig -> sig.getAction() == CANCELLED)
                     .collect(Collectors.toList()))
