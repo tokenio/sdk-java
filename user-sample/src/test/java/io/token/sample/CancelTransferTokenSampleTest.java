@@ -19,12 +19,12 @@ public class CancelTransferTokenSampleTest {
     @Test
     public void cancelTransferTokenByGrantorTest() {
         try (TokenClient tokenClient = createClient()) {
-            Member grantor = createMemberAndLinkAccounts(tokenClient);
+            Member payer = createMemberAndLinkAccounts(tokenClient);
             Alias granteeAlias = randomAlias();
-            Member grantee = tokenClient.createMemberBlocking(granteeAlias);
+            Member payee = tokenClient.createMemberBlocking(granteeAlias);
 
-            Token token = createTransferToken(grantor, granteeAlias);
-            TokenOperationResult result = cancelTransferToken(grantor, token.getId());
+            Token token = createTransferToken(payer, granteeAlias);
+            TokenOperationResult result = cancelTransferToken(payer, token.getId());
             assertThat(result.getStatus()).isEqualTo(TokenOperationResult.Status.SUCCESS);
         }
     }

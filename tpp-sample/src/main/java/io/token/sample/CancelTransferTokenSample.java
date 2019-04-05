@@ -11,15 +11,15 @@ public final class CancelTransferTokenSample {
     /**
      * Cancels a transfer token.
      *
-     * @param grantee grantee Token member
+     * @param payee payee Token member
      * @param tokenId token ID to cancel
      * @return operation result
      */
-    public static TokenOperationResult cancelTransferToken(Member grantee, String tokenId) {
+    public static TokenOperationResult cancelTransferToken(Member payee, String tokenId) {
         // Retrieve a transfer token to cancel.
-        Token transferToken = grantee.getTokenBlocking(tokenId);
+        Token transferToken = payee.getTokenBlocking(tokenId);
 
         // Cancel transfer token.
-        return grantee.cancelTokenBlocking(transferToken);
+        return payee.cancelTokenBlocking(transferToken);
     }
 }
