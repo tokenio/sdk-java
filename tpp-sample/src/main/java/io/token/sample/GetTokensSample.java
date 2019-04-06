@@ -14,6 +14,7 @@ public class GetTokensSample {
      *
      * @param member member represented by the token (payer/payee/grantor/grantee)
      * @param tokenId token ID
+     * @return token
      */
     public static Token getToken(Member member, String tokenId) {
         Token token = member.getTokenBlocking(tokenId);
