@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
+import static io.token.sample.GetTokensSample.getToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createTransferToken;
 import static io.token.sample.TestUtil.createUserMember;
@@ -26,10 +27,10 @@ public class GetTokensSampleTest {
 
             Token token = createTransferToken(payer, payeeAlias);
 
-            assertThat(payee.getTokenBlocking(token.getId()).getId())
+            assertThat(getToken(payee, token.getId()).getId())
                     .isEqualTo(token.getId());
 
-            assertThat(payee.getTokenBlocking(token.getId()).getPayloadSignaturesList()
+            assertThat(getToken(payee, token.getId()).getPayloadSignaturesList()
                     .stream()
                     .filter(sig -> sig.getAction() == CANCELLED)
                     .collect(Collectors.toList()))
@@ -39,7 +40,7 @@ public class GetTokensSampleTest {
             payee.cancelTokenBlocking(token);
 
             // check for CANCELLED signature
-            assertThat(payee.getTokenBlocking(token.getId()).getPayloadSignaturesList()
+            assertThat(getToken(payee, token.getId()).getPayloadSignaturesList()
                     .stream()
                     .map(sig -> sig.getAction() == CANCELLED)
                     .collect(Collectors.toList()))
