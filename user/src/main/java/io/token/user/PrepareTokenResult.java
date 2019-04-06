@@ -20,12 +20,19 @@
  * THE SOFTWARE.
  */
 
-package io.token.tpp.exceptions;
+package io.token.user;
 
-import static java.lang.String.format;
+import com.google.auto.value.AutoValue;
+import io.token.proto.common.token.TokenProtos.Policy;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
 
-public class InvalidStateException extends RuntimeException {
-    public InvalidStateException(String csrfToken) {
-        super(format("CSRF token %s does not match CSRF token in state (hashed)", csrfToken));
+@AutoValue
+public abstract class PrepareTokenResult {
+    public static PrepareTokenResult create(TokenPayload tokenPayload, Policy policy) {
+        return new AutoValue_PrepareTokenResult(tokenPayload, policy);
     }
+
+    public abstract TokenPayload getTokenPayload();
+
+    public abstract Policy getPolicy();
 }

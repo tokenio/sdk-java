@@ -33,10 +33,14 @@ import io.grpc.Metadata.Key;
 import io.grpc.Status;
 import io.token.exceptions.VersionMismatchException;
 import io.token.rpc.interceptor.SimpleInterceptor;
+import io.token.security.InvalidSignatureException;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import javax.annotation.Nullable;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * gRPC interceptor that facilitates handling cross-cutting API errors. Converts generic
@@ -44,6 +48,8 @@ import javax.annotation.Nullable;
  */
 final class ErrorHandler<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
     private static final String ERROR_UNSUPPORTED_CLIENT_VERSION = "unsupported-client-version";
+    private static final String ERROR_INVALID_SIGNATURE = "invalid-signature";
+    private static final Logger logger = LoggerFactory.getLogger(ErrorHandler.class);
 
     @Override
     public void onStart(ReqT req, Metadata headers) {
@@ -81,11 +87,23 @@ final class ErrorHandler<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT> {
             String description = formatMessage(status.getDescription(), errorDetails);
             String customError = trailers.get(customErrorKey);
             if (customError != null) {
-                if (ERROR_UNSUPPORTED_CLIENT_VERSION.equals(customError)) {
-                    RuntimeException exception = new VersionMismatchException(description);
+                RuntimeException exception;
+                switch (customError) {
+                    case ERROR_UNSUPPORTED_CLIENT_VERSION:
+                        exception = new VersionMismatchException(description);
+                        break;
+                    case ERROR_INVALID_SIGNATURE:
+                        exception = new InvalidSignatureException(description);
+                        break;
+                    default:
+                        exception = null;
+                }
+                if (exception != null) {
                     return status
                             .withCause(exception)
                             .withDescription(description);
+                } else {
+                    logger.warn("Unrecognized exception header: " + customError);
                 }
             }
 

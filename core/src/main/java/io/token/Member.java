@@ -50,10 +50,13 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.rpc.Client;
+import io.token.security.Signer;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
@@ -603,6 +606,17 @@ public class Member {
      */
     public void removeKeysBlocking(List<String> keyIds) {
         removeKeys(keyIds).blockingAwait();
+    }
+
+    /**
+     * Signs a token payload.
+     *
+     * @param payload token payload
+     * @param keyLevel key level
+     * @return token payload signature
+     */
+    public Signature signTokenPayload(TokenPayload payload, Key.Level keyLevel) {
+        return client.signTokenPayload(payload, keyLevel);
     }
 
     /**

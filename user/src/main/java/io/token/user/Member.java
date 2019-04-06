@@ -261,6 +261,103 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Prepares a transfer token, returning the resolved token payload and policy.
+     *
+     * @param transferTokenBuilder transfer token builder
+     * @return resolved token payload and policy
+     */
+    public Observable<PrepareTokenResult> prepareTransferToken(
+            TransferTokenBuilder transferTokenBuilder) {
+        transferTokenBuilder.from(memberId());
+        return client.prepareToken(transferTokenBuilder.buildPayload());
+    }
+
+    /**
+     * Prepares a transfer token, returning the resolved token payload and policy.
+     *
+     * @param transferTokenBuilder transfer token builder
+     * @return resolved token payload and policy
+     */
+    public PrepareTokenResult prepareTransferTokenBlocking(
+            TransferTokenBuilder transferTokenBuilder) {
+        return prepareTransferToken(transferTokenBuilder).blockingSingle();
+    }
+
+    /**
+     * Prepares an access token, returning the resolved token payload and policy.
+     *
+     * @param accessTokenBuilder access token builder
+     * @return resolved token payload and policy
+     */
+    public Observable<PrepareTokenResult> prepareAccessToken(
+            AccessTokenBuilder accessTokenBuilder) {
+        accessTokenBuilder.from(memberId());
+        return client.prepareToken(accessTokenBuilder.build());
+    }
+
+    /**
+     * Prepares an access token, returning the resolved token payload and policy.
+     *
+     * @param accessTokenBuilder access token builder
+     * @return resolved token payload and policy
+     */
+    public PrepareTokenResult prepareAccessTokenBlocking(AccessTokenBuilder accessTokenBuilder) {
+        return prepareAccessToken(accessTokenBuilder).blockingSingle();
+    }
+
+    /**
+     * Creates a token directly from a resolved token payload and list of token signatures.
+     *
+     * @param payload token payload
+     * @param signatures list of signatures
+     * @return token returned by the server
+     */
+    public Observable<Token> createToken(TokenPayload payload, List<Signature> signatures) {
+        return createToken(payload, signatures, null);
+    }
+
+    /**
+     * Creates a token directly from a resolved token payload and list of token signatures.
+     *
+     * @param payload token payload
+     * @param signatures list of signatures
+     * @param tokenRequestId token request ID
+     * @return token returned by server
+     */
+    public Observable<Token> createToken(
+            TokenPayload payload,
+            List<Signature> signatures,
+            @Nullable String tokenRequestId) {
+        return client.createToken(payload, tokenRequestId, signatures);
+    }
+
+    /**
+     * Creates a token directly from a resolved token payload and list of token signatures.
+     *
+     * @param payload token payload
+     * @param signatures list of signatures
+     * @return token returned by the server
+     */
+    public Token createTokenBlocking(TokenPayload payload, List<Signature> signatures) {
+        return createToken(payload, signatures).blockingSingle();
+    }
+
+    /**
+     * Creates a token directly from a resolved token payload and list of token signatures.
+     *
+     * @param payload token payload
+     * @param signatures list of signatures
+     * @param tokenRequestId token request ID
+     * @return token returned by server
+     */
+    public Token createTokenBlocking(
+            TokenPayload payload,
+            List<Signature> signatures,
+            @Nullable String tokenRequestId) {
+        return createToken(payload, signatures, tokenRequestId).blockingSingle();
+    }
+
+    /**
      * Creates a new transfer token builder.
      *
      * @param amount transfer amount
