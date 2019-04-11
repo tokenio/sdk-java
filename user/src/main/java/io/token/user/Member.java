@@ -364,6 +364,7 @@ public class Member extends io.token.Member {
      * @param currency currency code, e.g. "USD"
      * @return transfer token builder
      */
+    @Deprecated
     public TransferTokenBuilder createTransferToken(double amount, String currency) {
         return new TransferTokenBuilder(this, amount, currency);
     }
@@ -379,22 +380,28 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * DEPRECATED: Use {@link Member#createToken(TokenPayload, List)} instead.
+     *
+     * <p>Creates a new transfer token from a token payload.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Observable<Token> createTransferToken(TokenPayload payload) {
         return client.createTransferToken(payload);
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * DEPRECATED: Use {@link Member#createToken(TokenPayload, List, String)} instead.
+     *
+     * <p>Creates a new transfer token from a token payload.
      *
      * @param payload transfer token payload
      * @param tokenRequestId token request id
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
         return client.createTransferToken(payload, tokenRequestId);
     }
@@ -410,22 +417,28 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * DEPRECATED: Use {@link Member#createTokenBlocking(TokenPayload, List)} instead.
+     *
+     * <p>Creates a new transfer token from a token payload.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Token createTransferTokenBlocking(TokenPayload payload) {
         return createTransferToken(payload).blockingSingle();
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * DEPRECATED: Use {@link Member#createTokenBlocking(TokenPayload, List, String)} instead.
+     *
+     * <p>Creates a new transfer token from a token payload.
      *
      * @param payload transfer token payload
      * @param tokenRequestId token request id
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Token createTransferTokenBlocking(TokenPayload payload, String tokenRequestId) {
         return createTransferToken(payload, tokenRequestId).blockingSingle();
     }
