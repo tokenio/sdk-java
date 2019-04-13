@@ -332,6 +332,35 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Creates a token with the member's own signature.
+     *
+     * @param payload token payload
+     * @param keyLevel key level
+     * @return token returned by the server
+     */
+    public Observable<Token> createToken(TokenPayload payload, Key.Level keyLevel) {
+        return createToken(payload, null, keyLevel);
+    }
+
+    /**
+     * Creates a token with the member's own signature.
+     *
+     * @param payload token payload
+     * @param tokenRequestId token request ID
+     * @param keyLevel key level
+     * @return token returned by the server
+     */
+    public Observable<Token> createToken(
+            TokenPayload payload,
+            @Nullable String tokenRequestId,
+            Key.Level keyLevel) {
+        return client.createToken(
+                payload,
+                tokenRequestId,
+                Collections.singletonList(signTokenPayload(payload, keyLevel)));
+    }
+
+    /**
      * Creates a token directly from a resolved token payload and list of token signatures.
      *
      * @param payload token payload
@@ -355,6 +384,32 @@ public class Member extends io.token.Member {
             List<Signature> signatures,
             @Nullable String tokenRequestId) {
         return createToken(payload, signatures, tokenRequestId).blockingSingle();
+    }
+
+    /**
+     * Creates a token with the member's own signature.
+     *
+     * @param payload token payload
+     * @param keyLevel key level
+     * @return token returned by the server
+     */
+    public Token createTokenBlocking(TokenPayload payload, Key.Level keyLevel) {
+        return createToken(payload, keyLevel).blockingSingle();
+    }
+
+    /**
+     * Creates a token with the member's own signature.
+     *
+     * @param payload token payload
+     * @param tokenRequestId token request ID
+     * @param keyLevel key level
+     * @return token returned by the server
+     */
+    public Token createTokenBlocking(
+            TokenPayload payload,
+            @Nullable String tokenRequestId,
+            Key.Level keyLevel) {
+        return createToken(payload, tokenRequestId, keyLevel).blockingSingle();
     }
 
     /**

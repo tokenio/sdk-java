@@ -113,6 +113,7 @@ import io.token.security.Signer;
 import io.token.user.PrepareTokenResult;
 import io.token.user.exceptions.TransferTokenException;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -357,7 +358,7 @@ public final class Client extends io.token.rpc.Client {
             request.setTokenRequestId(tokenRequestId);
         }
         if (!signatures.isEmpty()) {
-            request.addAllSignature(signatures);
+            request.addAllSignatures(signatures);
         }
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
