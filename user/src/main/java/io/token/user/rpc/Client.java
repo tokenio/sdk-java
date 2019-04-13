@@ -55,6 +55,8 @@ import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
 import io.token.proto.gateway.Gateway.CreateAccessTokenResponse;
+import io.token.proto.gateway.Gateway.CreateTokenRequest;
+import io.token.proto.gateway.Gateway.CreateTokenResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
 import io.token.proto.gateway.Gateway.CreateTransferResponse;
 import io.token.proto.gateway.Gateway.CreateTransferTokenRequest;
@@ -88,6 +90,8 @@ import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetTransfersResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsRequest;
 import io.token.proto.gateway.Gateway.LinkAccountsResponse;
+import io.token.proto.gateway.Gateway.PrepareTokenRequest;
+import io.token.proto.gateway.Gateway.PrepareTokenResponse;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
@@ -106,8 +110,10 @@ import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.user.PrepareTokenResult;
 import io.token.user.exceptions.TransferTokenException;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -308,6 +314,59 @@ public final class Client extends io.token.rpc.Client {
                 .map(new Function<GetTransfersResponse, PagedList<Transfer, String>>() {
                     public PagedList<Transfer, String> apply(GetTransfersResponse response) {
                         return PagedList.create(response.getTransfersList(), response.getOffset());
+                    }
+                });
+    }
+
+    /**
+     * Prepare a token, resolving the payload and determining the policy.
+     *
+     * @param payload token payload
+     * @return resolved payload and policy
+     */
+    public Observable<PrepareTokenResult> prepareToken(TokenPayload payload) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .prepareToken(PrepareTokenRequest.newBuilder()
+                        .setPayload(payload)
+                        .build()))
+                .map(new Function<PrepareTokenResponse, PrepareTokenResult>() {
+                    @Override
+                    public PrepareTokenResult apply(PrepareTokenResponse response) {
+                        return PrepareTokenResult.create(
+                                response.getResolvedPayload(),
+                                response.getPolicy());
+                    }
+                });
+    }
+
+    /**
+     * Creates a new token.
+     *
+     * @param payload token payload
+     * @param tokenRequestId token request ID
+     * @param signatures list of token payload signatures
+     * @return token returned by server
+     */
+    public Observable<Token> createToken(
+            TokenPayload payload,
+            @Nullable String tokenRequestId,
+            List<Signature> signatures) {
+        CreateTokenRequest.Builder request = CreateTokenRequest.newBuilder()
+                .setPayload(payload);
+        if (tokenRequestId != null) {
+            request.setTokenRequestId(tokenRequestId);
+        }
+        if (!signatures.isEmpty()) {
+            request.addAllSignatures(signatures);
+        }
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .createToken(request.build()))
+                .map(new Function<CreateTokenResponse, Token>() {
+                    @Override
+                    public Token apply(CreateTokenResponse response) {
+                        return response.getToken();
                     }
                 });
     }

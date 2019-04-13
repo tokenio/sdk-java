@@ -20,12 +20,13 @@
  * THE SOFTWARE.
  */
 
-package io.token.tpp.exceptions;
+package io.token.exceptions;
 
-import static java.lang.String.format;
-
-public class InvalidStateException extends RuntimeException {
-    public InvalidStateException(String csrfToken) {
-        super(format("CSRF token %s does not match CSRF token in state (hashed)", csrfToken));
+/**
+ * Thrown when the signature included in a request fails validation.
+ */
+public class InvalidSignatureException extends RuntimeException {
+    public InvalidSignatureException(String message) {
+        super(message);
     }
 }

@@ -44,6 +44,8 @@ import javax.annotation.Nullable;
  * Helps building an access token payload.
  */
 public final class AccessTokenBuilder {
+    private static final int REF_ID_MAX_LENGTH = 18;
+
     private final TokenPayload.Builder payload;
 
     // Token request ID
@@ -115,6 +117,23 @@ public final class AccessTokenBuilder {
             builder.setActingAs(tokenRequest.getRequestPayload().getActingAs());
         }
         return new AccessTokenBuilder(builder, tokenRequest.getId());
+    }
+
+    /**
+     * Sets the referenceId of the token.
+     *
+     * @param refId the reference Id, at most 18 characters long
+     * @return builder
+     */
+    public AccessTokenBuilder setRefId(String refId) {
+        if (refId.length() > REF_ID_MAX_LENGTH) {
+            throw new IllegalArgumentException(String.format(
+                    "The length of the refId is at most %s, got: %s",
+                    REF_ID_MAX_LENGTH,
+                    refId.length()));
+        }
+        payload.setRefId(refId);
+        return this;
     }
 
     /**

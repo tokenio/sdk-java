@@ -26,6 +26,7 @@ import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.proto.common.transaction.TransactionProtos.RequestStatus.SUCCESSFUL_REQUEST;
 import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
@@ -243,6 +244,22 @@ public class Client {
                                         .build()));
                     }
                 });
+    }
+
+    /**
+     * Signs a token payload.
+     *
+     * @param payload token payload
+     * @param keyLevel key level
+     * @return token payload signature
+     */
+    public Signature signTokenPayload(TokenPayload payload, Key.Level keyLevel) {
+        final Signer signer = crypto.createSigner(keyLevel);
+        return Signature.newBuilder()
+                .setKeyId(signer.getKeyId())
+                .setMemberId(memberId)
+                .setSignature(signer.sign(tokenAction(payload, ENDORSED)))
+                .build();
     }
 
     /**

@@ -34,6 +34,7 @@ import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.token.TokenProtos.TransferBody;
@@ -82,10 +83,7 @@ public final class TransferTokenBuilder {
                         .setLifetimeAmount(Double.toString(amount)));
 
         if (member != null) {
-            payload.setFrom(TokenProtos.TokenMember.newBuilder()
-                    .setId(member.memberId())
-                    .build());
-
+            from(member.memberId());
             List<Alias> aliases = member.aliases().blockingSingle();
             if (!aliases.isEmpty()) {
                 payload.getFromBuilder().setAlias(aliases.get(0));
@@ -287,7 +285,7 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the referenceId of the token.
+     * Sets the reference ID of the token.
      *
      * @param refId the reference Id, at most 18 characters long
      * @return builder
@@ -351,6 +349,11 @@ public final class TransferTokenBuilder {
         return this;
     }
 
+    TransferTokenBuilder from(String memberId) {
+        payload.setFrom(TokenMember.newBuilder().setId(member.memberId()));
+        return this;
+    }
+
     /**
      * Builds a token payload, without uploading blobs or attachments.
      *
@@ -361,14 +364,22 @@ public final class TransferTokenBuilder {
             throw new IllegalArgumentException("No payee on token request");
         }
 
+        if (payload.getRefId().isEmpty()) {
+            logger.warn("refId is not set. A random ID will be used.");
+            payload.setRefId(generateNonce());
+        }
         return payload.build();
     }
 
     /**
-     * Executes the request asynchronously.
+     * DEPRECATED: Use {@link Member#prepareTransferToken(TransferTokenBuilder)} and
+     * {@link Member#createToken(TokenPayload, List)} instead.
+     *
+     * <p>Executes the request asynchronously.
      *
      * @return Token
      */
+    @Deprecated
     public Observable<Token> execute() {
         AccountCase sourceCase =
                 payload.getTransfer().getInstructions().getSource().getAccount().getAccountCase();
@@ -387,10 +398,14 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Executes the request, creating a token.
+     * DEPRECATED: Use {@link Member#prepareTransferToken(TransferTokenBuilder)} and
+     * {@link Member#createToken(TokenPayload, List)} instead.
+     *
+     * <p>Executes the request, creating a token.
      *
      * @return Token
      */
+    @Deprecated
     public Token executeBlocking() {
         return execute().blockingSingle();
     }

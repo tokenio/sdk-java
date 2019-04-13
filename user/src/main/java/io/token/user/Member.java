@@ -261,12 +261,165 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Prepares a transfer token, returning the resolved token payload and policy.
+     *
+     * @param transferTokenBuilder transfer token builder
+     * @return resolved token payload and policy
+     */
+    public Observable<PrepareTokenResult> prepareTransferToken(
+            TransferTokenBuilder transferTokenBuilder) {
+        transferTokenBuilder.from(memberId());
+        return client.prepareToken(transferTokenBuilder.buildPayload());
+    }
+
+    /**
+     * Prepares a transfer token, returning the resolved token payload and policy.
+     *
+     * @param transferTokenBuilder transfer token builder
+     * @return resolved token payload and policy
+     */
+    public PrepareTokenResult prepareTransferTokenBlocking(
+            TransferTokenBuilder transferTokenBuilder) {
+        return prepareTransferToken(transferTokenBuilder).blockingSingle();
+    }
+
+    /**
+     * Prepares an access token, returning the resolved token payload and policy.
+     *
+     * @param accessTokenBuilder access token builder
+     * @return resolved token payload and policy
+     */
+    public Observable<PrepareTokenResult> prepareAccessToken(
+            AccessTokenBuilder accessTokenBuilder) {
+        accessTokenBuilder.from(memberId());
+        return client.prepareToken(accessTokenBuilder.build());
+    }
+
+    /**
+     * Prepares an access token, returning the resolved token payload and policy.
+     *
+     * @param accessTokenBuilder access token builder
+     * @return resolved token payload and policy
+     */
+    public PrepareTokenResult prepareAccessTokenBlocking(AccessTokenBuilder accessTokenBuilder) {
+        return prepareAccessToken(accessTokenBuilder).blockingSingle();
+    }
+
+    /**
+     * Creates a token directly from a resolved token payload and list of token signatures.
+     *
+     * @param payload token payload
+     * @param signatures list of signatures
+     * @return token returned by the server
+     */
+    public Observable<Token> createToken(TokenPayload payload, List<Signature> signatures) {
+        return createToken(payload, signatures, null);
+    }
+
+    /**
+     * Creates a token directly from a resolved token payload and list of token signatures.
+     *
+     * @param payload token payload
+     * @param signatures list of signatures
+     * @param tokenRequestId token request ID
+     * @return token returned by server
+     */
+    public Observable<Token> createToken(
+            TokenPayload payload,
+            List<Signature> signatures,
+            @Nullable String tokenRequestId) {
+        return client.createToken(payload, tokenRequestId, signatures);
+    }
+
+    /**
+     * Creates a token with the member's own signature.
+     *
+     * @param payload token payload
+     * @param keyLevel key level
+     * @return token returned by the server
+     */
+    public Observable<Token> createToken(TokenPayload payload, Key.Level keyLevel) {
+        return createToken(payload, null, keyLevel);
+    }
+
+    /**
+     * Creates a token with the member's own signature.
+     *
+     * @param payload token payload
+     * @param tokenRequestId token request ID
+     * @param keyLevel key level
+     * @return token returned by the server
+     */
+    public Observable<Token> createToken(
+            TokenPayload payload,
+            @Nullable String tokenRequestId,
+            Key.Level keyLevel) {
+        return client.createToken(
+                payload,
+                tokenRequestId,
+                Collections.singletonList(signTokenPayload(payload, keyLevel)));
+    }
+
+    /**
+     * Creates a token directly from a resolved token payload and list of token signatures.
+     *
+     * @param payload token payload
+     * @param signatures list of signatures
+     * @return token returned by the server
+     */
+    public Token createTokenBlocking(TokenPayload payload, List<Signature> signatures) {
+        return createToken(payload, signatures).blockingSingle();
+    }
+
+    /**
+     * Creates a token directly from a resolved token payload and list of token signatures.
+     *
+     * @param payload token payload
+     * @param signatures list of signatures
+     * @param tokenRequestId token request ID
+     * @return token returned by server
+     */
+    public Token createTokenBlocking(
+            TokenPayload payload,
+            List<Signature> signatures,
+            @Nullable String tokenRequestId) {
+        return createToken(payload, signatures, tokenRequestId).blockingSingle();
+    }
+
+    /**
+     * Creates a token with the member's own signature.
+     *
+     * @param payload token payload
+     * @param keyLevel key level
+     * @return token returned by the server
+     */
+    public Token createTokenBlocking(TokenPayload payload, Key.Level keyLevel) {
+        return createToken(payload, keyLevel).blockingSingle();
+    }
+
+    /**
+     * Creates a token with the member's own signature.
+     *
+     * @param payload token payload
+     * @param tokenRequestId token request ID
+     * @param keyLevel key level
+     * @return token returned by the server
+     */
+    public Token createTokenBlocking(
+            TokenPayload payload,
+            @Nullable String tokenRequestId,
+            Key.Level keyLevel) {
+        return createToken(payload, tokenRequestId, keyLevel).blockingSingle();
+    }
+
+    /**
      * Creates a new transfer token builder.
      *
      * @param amount transfer amount
      * @param currency currency code, e.g. "USD"
      * @return transfer token builder
      */
+    @Deprecated
     public TransferTokenBuilder createTransferToken(double amount, String currency) {
         return new TransferTokenBuilder(this, amount, currency);
     }
@@ -282,22 +435,28 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * DEPRECATED: Use {@link Member#createToken(TokenPayload, List)} instead.
+     *
+     * <p>Creates a new transfer token from a token payload.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Observable<Token> createTransferToken(TokenPayload payload) {
         return client.createTransferToken(payload);
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * DEPRECATED: Use {@link Member#createToken(TokenPayload, List, String)} instead.
+     *
+     * <p>Creates a new transfer token from a token payload.
      *
      * @param payload transfer token payload
      * @param tokenRequestId token request id
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
         return client.createTransferToken(payload, tokenRequestId);
     }
@@ -313,22 +472,28 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * DEPRECATED: Use {@link Member#createTokenBlocking(TokenPayload, List)} instead.
+     *
+     * <p>Creates a new transfer token from a token payload.
      *
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Token createTransferTokenBlocking(TokenPayload payload) {
         return createTransferToken(payload).blockingSingle();
     }
 
     /**
-     * Creates a new transfer token from a token payload.
+     * DEPRECATED: Use {@link Member#createTokenBlocking(TokenPayload, List, String)} instead.
+     *
+     * <p>Creates a new transfer token from a token payload.
      *
      * @param payload transfer token payload
      * @param tokenRequestId token request id
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Token createTransferTokenBlocking(TokenPayload payload, String tokenRequestId) {
         return createTransferToken(payload, tokenRequestId).blockingSingle();
     }
