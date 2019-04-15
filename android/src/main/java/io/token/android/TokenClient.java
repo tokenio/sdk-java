@@ -25,5 +25,10 @@ public class TokenClient extends io.token.user.TokenClient {
         protected String getPlatform() {
             return "android";
         }
+
+        @Override
+        public TokenClient build() {
+            return (TokenClient) super.build();
+        }
     }
 }
