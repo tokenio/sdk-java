@@ -29,10 +29,8 @@ import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
+
 import com.google.common.hash.Hashing;
-import io.token.exceptions.SecureHardwareKeystoreRequiredException;
-import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.util.codec.ByteEncoding;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -42,9 +40,10 @@ import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
+import java.security.PrivateKey;
+import java.security.cert.Certificate;
 import java.security.spec.ECGenParameterSpec;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Calendar;
@@ -52,8 +51,15 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
+
 import javax.annotation.Nullable;
 import javax.security.auth.x500.X500Principal;
+
+import io.token.exceptions.SecureHardwareKeystoreRequiredException;
+import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
+import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.util.codec.ByteEncoding;
 
 /**
  * Android KeyStore implementation of the {@link CryptoEngine}. The keys are
@@ -61,7 +67,7 @@ import javax.security.auth.x500.X500Principal;
  */
 public final class AKSCryptoEngine implements CryptoEngine {
     private static final String KEY_NAME = "tokenapp_key";
-    private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ECDSA_SHA256;
+    private static final Algorithm KEY_ALGORITHM = Algorithm.ECDSA_SHA256;
 
     private final String memberId;
     private final Context context;
@@ -89,7 +95,8 @@ public final class AKSCryptoEngine implements CryptoEngine {
         this.useSecureHardwareKeystoreOnly = useSecureHardwareKeystoreOnly;
         try {
             this.keyStore = KeyStore.getInstance("AndroidKeyStore");
-        } catch (KeyStoreException ex) {
+            keyStore.load(null);
+        } catch (GeneralSecurityException | IOException ex) {
             throw new RuntimeException(ex);
         }
     }
@@ -103,7 +110,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
      * @return public key
      */
     @Override
-    public Key generateKey(Key.Level keyLevel) {
+    public Key generateKey(Level keyLevel) {
         String serializedPk = generatePublicKey(keyLevel, null);
         return Key.newBuilder()
                 .setId(keyIdFor(serializedPk))
@@ -123,7 +130,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
      * @return public key
      */
     @Override
-    public Key generateKey(Key.Level keyLevel, long expiresAtMs) {
+    public Key generateKey(Level keyLevel, long expiresAtMs) {
         String serializedPk = generatePublicKey(keyLevel, expiresAtMs);
         return Key.newBuilder()
                 .setId(keyIdFor(serializedPk))
@@ -143,15 +150,26 @@ public final class AKSCryptoEngine implements CryptoEngine {
      * @return Sign
      */
     @Override
-    public Signer createSigner(Key.Level keyLevel) {
-        KeyStore.Entry entry = getKeyFromKeyStore(keyLevel);
-        if (entry == null) {
+    public Signer createSigner(Level keyLevel) {
+        String alias = lookUpUnexpiredAliasInKeyStore(keyLevel);
+        if (alias == null) {
             throw new IllegalArgumentException("No key found at level: " + keyLevel);
         }
-        return new AKSSigner(
-                entry,
+
+        try {
+            java.security.Key key = keyStore.getKey(alias, null);
+            if (!(key instanceof PrivateKey)) {
+                throw new RuntimeException("Invalid private key");
+            }
+
+            return new AKSSigner(
+                (PrivateKey) key,
+                keyStore.getCertificate(alias),
                 keyLevel,
                 userAuthenticationStore);
+        } catch (GeneralSecurityException exception) {
+            throw new RuntimeException(exception);
+        }
     }
 
     /**
@@ -169,7 +187,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
                 String alias = aliases.nextElement();
                 byte[] publicKey = keyStore.getCertificate(alias).getPublicKey().getEncoded();
                 String serializedPk = ByteEncoding.serialize(publicKey);
-                Key.Level keyLevel = getKeyLevel(alias);
+                Level keyLevel = getKeyLevel(alias);
                 String memberId = getMemberId(alias);
                 if (keyLevel == null || !this.memberId.equals(memberId)) {
                     // skip if the key in the keystore is not a AKSCryptoEngine-managed key
@@ -197,74 +215,64 @@ public final class AKSCryptoEngine implements CryptoEngine {
      */
     @Override
     public Verifier createVerifier(String keyId) {
-        return new AKSVerifier(getKeyFromKeyStore(keyId));
+        return new AKSVerifier(lookUpUnexpiredCertificateInKeyStore(keyId));
     }
 
     /**
-     * Gets a key Entry from the keystore, by the keyLevel.
+     * Looks up an unexpired alias in the keystore, by the keyLevel.
      *
      * @param keyLevel keyLevel
-     * @return Entry
+     * @return alias
      */
-    private KeyStore.Entry getKeyFromKeyStore(Key.Level keyLevel) {
+    private String lookUpUnexpiredAliasInKeyStore(Level keyLevel) {
         try {
-            keyStore.load(null);
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 if (alias.startsWith(getAliasPrefix(keyLevel)) && !isExpired(alias)) {
-                    KeyStore.Entry entry = keyStore.getEntry(alias, null);
-                    if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
-                        throw new RuntimeException("Invalid private key");
-                    }
-                    return entry;
+                    return alias;
                 }
             }
             return null;
-        } catch (GeneralSecurityException | IOException exception) {
+        } catch (GeneralSecurityException exception) {
             throw new RuntimeException(exception);
         }
     }
 
     /**
-     * Gets a key Entry from the keystore, by the keyId.
+     * Looks up an unexpired certificate in the keystore, by the keyId.
      *
      * @param keyId keyId
-     * @return Entry
+     * @return certificate
      */
-    private KeyStore.Entry getKeyFromKeyStore(String keyId) {
+    private Certificate lookUpUnexpiredCertificateInKeyStore(String keyId) {
         try {
-            keyStore.load(null);
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                byte[] publicKey = keyStore.getCertificate(alias).getPublicKey().getEncoded();
-                if (keyIdFor(ByteEncoding.serialize(publicKey)).equals(keyId)) {
-                    KeyStore.Entry entry = keyStore.getEntry(alias, null);
-                    if (!(entry instanceof KeyStore.PrivateKeyEntry)) {
-                        throw new RuntimeException("Invalid private key");
-                    }
+                Certificate certificate = keyStore.getCertificate(alias);
+                if (keyIdFor(certificate).equals(keyId)) {
                     if (isExpired(alias)) {
                         throw new IllegalArgumentException(
                                 "Key with id: " + keyId + " has expired");
                     }
-                    return entry;
+                    return certificate;
                 }
             }
-        } catch (GeneralSecurityException | IOException exception) {
+        } catch (GeneralSecurityException exception) {
             throw new RuntimeException(exception);
         }
         throw new KeyNotFoundException(keyId);
     }
 
     /**
-     * Generate an alias for a key of a certain level.
+     * Generates an alias for a key of a certain level.
      *
      * @param keyLevel    keyLevel
      * @param expiresAtMs expiration date in milliseconds
      * @return alias
      */
-    private String createAlias(Key.Level keyLevel, @Nullable Long expiresAtMs) {
+    private String createAlias(Level keyLevel, @Nullable Long expiresAtMs) {
         String alias = String.format("%s-%s-%s-%s",
                 KEY_NAME, memberId, keyLevel.toString(),
                 UUID.randomUUID().toString().replace("-", ""));
@@ -276,7 +284,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
         return alias;
     }
 
-    private String getAliasPrefix(Key.Level keyLevel) {
+    private String getAliasPrefix(Level keyLevel) {
         return String.format("%s-%s-%s", KEY_NAME, memberId, keyLevel.toString());
     }
 
@@ -286,12 +294,12 @@ public final class AKSCryptoEngine implements CryptoEngine {
      * @param alias key store alias
      * @return keyLevel
      */
-    private static Key.Level getKeyLevel(String alias) {
+    private static Level getKeyLevel(String alias) {
         String[] aliasParts = alias.split("-");
         if (aliasParts.length < 3) {
             return null;
         }
-        return Key.Level.valueOf(aliasParts[2]);
+        return Level.valueOf(aliasParts[2]);
     }
 
     /**
@@ -322,7 +330,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
         return aliasParts[1];
     }
 
-    private String generatePublicKey(Key.Level keyLevel, @Nullable Long expiresAtMs) {
+    private String generatePublicKey(Level keyLevel, @Nullable Long expiresAtMs) {
         KeyPairGenerator kpg;
         KeyPair kp;
 
@@ -347,7 +355,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
                     // We can also invalidate the key if the user changes their biometrics
                     builder = builder
                             .setInvalidatedByBiometricEnrollment(true)
-                            .setUserAuthenticationRequired(keyLevel != Key.Level.LOW)
+                            .setUserAuthenticationRequired(keyLevel != Level.LOW)
                             .setUserAuthenticationValidityDurationSeconds(
                                     userAuthenticationStore.authenticationDurationSeconds());
                     if (expiresAtMs != null) {
@@ -432,10 +440,20 @@ public final class AKSCryptoEngine implements CryptoEngine {
         return ByteEncoding.serialize(hash).substring(0, 16);
     }
 
+    /**
+     * Calculates the keyId by hashing the key bytes.
+     *
+     * @param certificate certificate in the Android KeyStore
+     * @return keyId
+     */
+    public static String keyIdFor(Certificate certificate) {
+        byte[] publicKeyEncoded = certificate.getPublicKey().getEncoded();
+        return keyIdFor(ByteEncoding.serialize(publicKeyEncoded));
+    }
+
     @Override
     public void deleteKeys() {
         try {
-            keyStore.load(null);
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
@@ -443,7 +461,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
                     keyStore.deleteEntry(alias);
                 }
             }
-        } catch (GeneralSecurityException | IOException exception) {
+        } catch (GeneralSecurityException exception) {
             throw new RuntimeException(exception);
         }
     }
