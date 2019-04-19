@@ -30,12 +30,13 @@ import org.junit.runner.RunWith;
 @RunWith(AndroidJUnit4.class)
 public class AKSCryptoEngineTest {
     private static final long ONE_DAY = 86400000L;
+
     @Test
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getTargetContext();
 
-        assertEquals("io.token.android.test", appContext.getPackageName());
+        assertEquals("io.token.browser.test", appContext.getPackageName());
     }
 
     @Test

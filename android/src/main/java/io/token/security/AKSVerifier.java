@@ -1,31 +1,36 @@
 package io.token.security;
 
 import com.google.protobuf.Message;
-import io.token.proto.ProtoJson;
-import io.token.util.codec.ByteEncoding;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
-import java.security.KeyStore.Entry;
-import java.security.KeyStore.PrivateKeyEntry;
 import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
+import java.security.cert.Certificate;
+
+import io.token.proto.ProtoJson;
+import io.token.util.codec.ByteEncoding;
 
 /**
  * Verifies signatures from Android KeyStore;
  */
 public class AKSVerifier implements Verifier {
-    private final Entry entry;
+    private final Certificate certificate;
 
-    AKSVerifier(Entry entry) {
-        this.entry = entry;
+    /**
+     * Creates a KeyStore verifier.
+     *
+     * @param certificate certificate in the Android KeyStore
+     */
+    AKSVerifier(Certificate certificate) {
+        this.certificate = certificate;
     }
 
     /**
      * Verifies the signature, first converting to JSON. Throws if verification fails.
      *
-     * @param message profobuf message
+     * @param message protobuf message
      * @param signature signature
      */
     @Override
@@ -43,7 +48,7 @@ public class AKSVerifier implements Verifier {
     public void verify(String payload, String signature) {
         try {
             Signature s = Signature.getInstance("SHA256withECDSA");
-            s.initVerify(((PrivateKeyEntry) entry).getCertificate());
+            s.initVerify(certificate);
             s.update(payload.getBytes("UTF-8"));
             boolean verified = s.verify(ByteEncoding.parse(signature));
             if (!verified) {
