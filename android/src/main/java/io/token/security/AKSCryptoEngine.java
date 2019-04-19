@@ -151,7 +151,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
      */
     @Override
     public Signer createSigner(Level keyLevel) {
-        String alias = lookupUnexpiredAliasInKeyStore(keyLevel);
+        String alias = lookUpUnexpiredAliasInKeyStore(keyLevel);
         if (alias == null) {
             throw new IllegalArgumentException("No key found at level: " + keyLevel);
         }
@@ -215,7 +215,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
      */
     @Override
     public Verifier createVerifier(String keyId) {
-        return new AKSVerifier(lookupUnexpiredCertificateInKeyStore(keyId));
+        return new AKSVerifier(lookUpUnexpiredCertificateInKeyStore(keyId));
     }
 
     /**
@@ -224,7 +224,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
      * @param keyLevel keyLevel
      * @return alias
      */
-    private String lookupUnexpiredAliasInKeyStore(Level keyLevel) {
+    private String lookUpUnexpiredAliasInKeyStore(Level keyLevel) {
         try {
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
@@ -245,7 +245,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
      * @param keyId keyId
      * @return certificate
      */
-    private Certificate lookupUnexpiredCertificateInKeyStore(String keyId) {
+    private Certificate lookUpUnexpiredCertificateInKeyStore(String keyId) {
         try {
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
