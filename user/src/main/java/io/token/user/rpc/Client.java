@@ -96,6 +96,7 @@ import io.token.proto.gateway.Gateway.ReplaceTokenRequest;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CancelToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenRequest.CreateToken;
 import io.token.proto.gateway.Gateway.ReplaceTokenResponse;
+import io.token.proto.gateway.Gateway.SetAppCallbackUrlRequest;
 import io.token.proto.gateway.Gateway.SetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
@@ -113,7 +114,6 @@ import io.token.security.Signer;
 import io.token.user.PrepareTokenResult;
 import io.token.user.exceptions.TransferTokenException;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -836,6 +836,20 @@ public final class Client extends io.token.rpc.Client {
                 .withAuthentication(authenticationContext(STANDARD))
                 .applySca(ApplyScaRequest.newBuilder()
                         .addAllAccountId(accountIds)
+                        .build()));
+    }
+
+    /**
+     * Sets the app callback url of a member.
+     *
+     * @param appCallbackUrl the app callback url
+     * @return completable
+     */
+    public Completable setAppCallbackUrl(String appCallbackUrl) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .setAppCallbackUrl(SetAppCallbackUrlRequest.newBuilder()
+                        .setAppCallbackUrl(appCallbackUrl)
                         .build()));
     }
 

@@ -70,6 +70,8 @@ import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.user.browser.Browser;
 import io.token.user.browser.BrowserFactory;
 import io.token.user.rpc.Client;
+import io.token.user.rpc.ClientFactory;
+import io.token.user.rpc.UnauthenticatedClient;
 
 import java.net.URL;
 import java.net.URLEncoder;
@@ -1561,6 +1563,25 @@ public class Member extends io.token.Member {
      */
     public Account createTestBankAccountBlocking(double balance, String currency) {
         return createTestBankAccount(balance, currency).blockingSingle();
+    }
+
+    /**
+     * Sets the app callback url of a member.
+     *
+     * @param appCallBackUrl the app callback url
+     * @return completable
+     */
+    public Completable setAppCallbackUrl(String appCallBackUrl) {
+        return client.setAppCallbackUrl(appCallBackUrl);
+    }
+
+    /**
+     * Sets the app callback url of a member.
+     *
+     * @param appCallBackUrl the app callback url
+     */
+    public void setAppCallbackUrlBlocking(String appCallBackUrl) {
+        setAppCallbackUrl(appCallBackUrl).blockingAwait();
     }
 
     private Observable<List<Account>> toAccountList(
