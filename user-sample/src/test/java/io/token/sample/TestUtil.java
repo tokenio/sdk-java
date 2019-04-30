@@ -16,6 +16,7 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class TestUtil {
     private static String DEV_KEY = "f3982819-5d8d-4123-9601-886df2780f42";
+    private static String TOKEN_REALM = "token";
 
     private TestUtil() {
     }
@@ -37,6 +38,7 @@ public abstract class TestUtil {
     public static Alias randomAlias() {
         return Alias.newBuilder()
                 .setType(EMAIL)
+                .setRealm(TOKEN_REALM)
                 .setValue("alias-" + generateNonce().toLowerCase() + "+noverify@example.com")
                 .build();
     }
