@@ -25,6 +25,8 @@ package io.token;
 import io.reactivex.Observable;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.account.AccountProtos.AccountDetails;
+import io.token.proto.common.account.AccountProtos.AccountFeatures;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
@@ -100,6 +102,24 @@ public class Account {
      */
     public String bankId() {
         return account.getBankId();
+    }
+
+    /**
+     * Gets the account details.
+     *
+     * @return account details
+     */
+    public AccountDetails accountDetails() {
+        return account.getAccountDetails();
+    }
+
+    /**
+     * Gets the account features.
+     *
+     * @return account features
+     */
+    public AccountFeatures accountFeatures() {
+        return account.getAccountFeatures();
     }
 
     /**
