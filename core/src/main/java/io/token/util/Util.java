@@ -117,7 +117,8 @@ public class Util {
                 .setAddAlias(MemberAliasOperation
                         .newBuilder()
                         .setAliasHash(normalizeAndHash(alias))
-                        .setRealm(alias.getRealm()))
+                        .setRealm(alias.getRealm())
+                        .build())
                 .build();
     }
 
@@ -132,7 +133,8 @@ public class Util {
         return MemberOperationMetadata.newBuilder()
                 .setAddAliasMetadata(AddAliasMetadata.newBuilder()
                         .setAlias(normalized)
-                        .setAliasHash(hash(normalized)))
+                        .setAliasHash(hash(normalized))
+                        .build())
                 .build();
     }
 

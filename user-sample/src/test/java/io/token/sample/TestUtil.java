@@ -38,6 +38,7 @@ public abstract class TestUtil {
         return Alias.newBuilder()
                 .setType(EMAIL)
                 .setValue("alias-" + generateNonce().toLowerCase() + "+noverify@example.com")
+                .setRealm("token")
                 .build();
     }
 
