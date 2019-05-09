@@ -69,6 +69,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -189,13 +190,14 @@ public class TokenClient implements Closeable {
     protected Observable<Member> createMemberImpl(
             final Alias alias,
             final CreateMemberType memberType,
-            @Nullable String partnerId) {
+            @Nullable String partnerId,
+            final Optional<String> recoveryAgent) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType, null, partnerId)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
-                        return setUpMemberImpl(alias, memberId);
+                        return setUpMemberImpl(alias, memberId, recoveryAgent);
                     }
                 });
     }
@@ -215,9 +217,11 @@ public class TokenClient implements Closeable {
      * @param memberId member id
      * @return newly created member
      */
-    protected Observable<Member> setUpMemberImpl(final Alias alias, final String memberId) {
+    protected Observable<Member> setUpMemberImpl(final Alias alias,
+                                                 final String memberId,
+                                                 final Optional<String> agent) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getDefaultAgent()
+        return unauthenticated.getAgent(agent)
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
                     public Observable<MemberProtos.Member> apply(String agentId) {
                         CryptoEngine crypto = cryptoFactory.create(memberId);

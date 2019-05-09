@@ -60,7 +60,9 @@ import io.token.user.rpc.ClientFactory;
 import io.token.user.rpc.UnauthenticatedClient;
 
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
+import javax.swing.text.html.Option;
 
 public class TokenClient extends io.token.TokenClient {
     private final BrowserFactory browserFactory;
@@ -128,7 +130,35 @@ public class TokenClient extends io.token.TokenClient {
      * @return newly created member
      */
     public Observable<Member> createMember(final Alias alias) {
-        return createMemberImpl(alias, PERSONAL, null)
+        return createMemberImpl(alias, PERSONAL, null, Optional.<String>empty())
+                .map(new Function<io.token.Member, Member>() {
+                    @Override
+                    public Member apply(io.token.Member mem) {
+                        CryptoEngine crypto = cryptoFactory.create(mem.memberId());
+                        final Client client = ClientFactory.authenticated(
+                                channel,
+                                mem.memberId(),
+                                crypto);
+                        return new Member(
+                                mem.memberId(),
+                                mem.partnerId(),
+                                client,
+                                mem.getTokenCluster(),
+                                browserFactory);
+                    }
+                });
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, member type
+     * and recovery agent.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @return newly created member
+     */
+    public Observable<Member> createMember(final Alias alias, final String recoveryAgent) {
+        return createMemberImpl(alias, PERSONAL, null, Optional.of(recoveryAgent))
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -158,6 +188,17 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
+     * Creates a new personal-use Token member for the Banks with a set of
+     * auto-generated keys, an alias and recovery agent set as the Bank.
+     *
+     * @param alias alias to associate with member
+     * @return newly created member
+     */
+    public Member createMemberBlocking(Alias alias, String recoveryAgent) {
+        return createMember(alias, recoveryAgent).blockingSingle();
+    }
+
+    /**
      * Sets up a member given a specific ID of a member that already exists in the system. If
      * the member ID already has keys, this will not succeed. Used for testing since this
      * gives more control over the member creation process.
@@ -173,7 +214,7 @@ public class TokenClient extends io.token.TokenClient {
     public Observable<Member> setUpMember(final Alias alias, final String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
-        return setUpMemberImpl(alias, memberId)
+        return setUpMemberImpl(alias, memberId, Optional.<String>empty())
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {

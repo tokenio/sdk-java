@@ -30,6 +30,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toObservable;
 
+import com.google.common.base.Supplier;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.MemberNotFoundException;
@@ -71,6 +72,7 @@ import io.token.security.Signer;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -457,6 +459,38 @@ public class UnauthenticatedClient {
                         return response.getCountriesList();
                     }
                 });
+    }
+
+    /**
+     * Get agent id considering bank as the recovery Agent or get default.
+     *
+     * @param agent the recovery agent
+     * @return the recovery agent id.
+     */
+    public Observable<String> getAgent(Optional<String> agent) {
+        // TODO(sibin): Use GetDefaultAgentRequest instead after the call is available.
+        return agent.map(new java.util.function.Function<String, Observable<String>>() {
+                @Override
+                public Observable<String> apply(String agent) {
+                    return toObservable(gateway.resolveAlias(ResolveAliasRequest.newBuilder()
+                            .setAlias(Alias.newBuilder()
+                                    .setType(Alias.Type.BANK)
+                                    .setValue(agent)
+                                    .build())
+                            .build()))
+                            .map(new Function<ResolveAliasResponse, String>() {
+                                @Override
+                                public String apply(ResolveAliasResponse response) {
+                                    return response.getMember().getId();
+                                }
+                            });
+                }
+        }).orElseGet(new Supplier<Observable<String>>() {
+            @Override
+            public Observable<String> get() {
+                return getDefaultAgent();
+            }
+        });
     }
 
     /**
