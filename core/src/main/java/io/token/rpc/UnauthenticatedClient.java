@@ -462,38 +462,6 @@ public class UnauthenticatedClient {
     }
 
     /**
-     * Get agent id considering bank as the recovery Agent or get default.
-     *
-     * @param agent the recovery agent
-     * @return the recovery agent id.
-     */
-    public Observable<String> getAgent(Optional<String> agent) {
-        // TODO(sibin): Use GetDefaultAgentRequest instead after the call is available.
-        return agent.map(new java.util.function.Function<String, Observable<String>>() {
-                @Override
-                public Observable<String> apply(String agent) {
-                    return toObservable(gateway.resolveAlias(ResolveAliasRequest.newBuilder()
-                            .setAlias(Alias.newBuilder()
-                                    .setType(Alias.Type.BANK)
-                                    .setValue(agent)
-                                    .build())
-                            .build()))
-                            .map(new Function<ResolveAliasResponse, String>() {
-                                @Override
-                                public String apply(ResolveAliasResponse response) {
-                                    return response.getMember().getId();
-                                }
-                            });
-                }
-        }).orElseGet(new Supplier<Observable<String>>() {
-            @Override
-            public Observable<String> get() {
-                return getDefaultAgent();
-            }
-        });
-    }
-
-    /**
      * Get the default recovery agent id.
      *
      * @return the default recovery agent id.

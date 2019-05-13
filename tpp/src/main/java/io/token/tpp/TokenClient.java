@@ -59,7 +59,6 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.annotation.Nullable;
 
 public class TokenClient extends io.token.TokenClient {
@@ -127,7 +126,7 @@ public class TokenClient extends io.token.TokenClient {
     public Observable<Member> createMember(
             final Alias alias,
             @Nullable final String partnerId) {
-        return createMemberImpl(alias, BUSINESS, partnerId, Optional.empty())
+        return createMemberImpl(alias, BUSINESS, partnerId, null)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -184,7 +183,7 @@ public class TokenClient extends io.token.TokenClient {
     public Observable<Member> setUpMember(final Alias alias, final String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
-        return setUpMemberImpl(alias, memberId, Optional.empty())
+        return setUpMemberImpl(alias, memberId, null)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {

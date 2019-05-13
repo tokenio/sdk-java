@@ -59,10 +59,9 @@ import io.token.user.rpc.Client;
 import io.token.user.rpc.ClientFactory;
 import io.token.user.rpc.UnauthenticatedClient;
 
+import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nullable;
-import javax.swing.text.html.Option;
 
 public class TokenClient extends io.token.TokenClient {
     private final BrowserFactory browserFactory;
@@ -130,23 +129,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return newly created member
      */
     public Observable<Member> createMember(final Alias alias) {
-        return createMemberImpl(alias, PERSONAL, null, Optional.<String>empty())
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        CryptoEngine crypto = cryptoFactory.create(mem.memberId());
-                        final Client client = ClientFactory.authenticated(
-                                channel,
-                                mem.memberId(),
-                                crypto);
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                client,
-                                mem.getTokenCluster(),
-                                browserFactory);
-                    }
-                });
+        return createMember(alias, null);
     }
 
     /**
@@ -155,10 +138,12 @@ public class TokenClient extends io.token.TokenClient {
      *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
+     * @param recoveryAgent member id of the primary recovery agent.
      * @return newly created member
      */
-    public Observable<Member> createMember(final Alias alias, final String recoveryAgent) {
-        return createMemberImpl(alias, PERSONAL, null, Optional.of(recoveryAgent))
+    public Observable<Member> createMember(final Alias alias,
+                                           @Nullable final String recoveryAgent) {
+        return createMemberImpl(alias, PERSONAL, null, recoveryAgent)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -192,6 +177,7 @@ public class TokenClient extends io.token.TokenClient {
      * auto-generated keys, an alias and recovery agent set as the Bank.
      *
      * @param alias alias to associate with member
+     * @param recoveryAgent memver id of the primary recovery agent.
      * @return newly created member
      */
     public Member createMemberBlocking(Alias alias, String recoveryAgent) {
@@ -214,7 +200,7 @@ public class TokenClient extends io.token.TokenClient {
     public Observable<Member> setUpMember(final Alias alias, final String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
-        return setUpMemberImpl(alias, memberId, Optional.<String>empty())
+        return setUpMemberImpl(alias, memberId, null)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -309,6 +295,47 @@ public class TokenClient extends io.token.TokenClient {
             final CryptoEngine cryptoEngine) {
         return completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
                 .blockingSingle();
+    }
+
+    /**
+     * Recover member.
+     *
+     * @param authorization trusted authorization created by the agent (like Bank) to recover
+     * Member.
+     * @param agentSignature the signature of the agent responsible to recover Member.
+     * @return an observable of the recovered member.
+     */
+    public Observable<Member> recover(
+            MemberRecoveryOperation.Authorization authorization,
+            SecurityProtos.Signature agentSignature) {
+
+        String memberId = authorization.getMemberId();
+        CryptoEngine cryptoEngine = cryptoFactory.create(memberId);
+        SecurityProtos.Key privilegedKey = authorization.getMemberKey();
+
+        MemberRecoveryOperation mro = MemberRecoveryOperation.newBuilder()
+                .setAuthorization(authorization)
+                .setAgentSignature(agentSignature)
+                .build();
+
+        return completeRecovery(
+                memberId,
+                Arrays.asList(mro),
+                privilegedKey,
+                cryptoEngine);
+    }
+
+    /**
+     * Recover member.
+     *
+     * @param authorization trusted authorizationcreated by the agent (like Bank) to recover
+     * Member.
+     * @param agentSignature the signature of the agent responsible to recover Member.
+     * @return the recovered member.
+     */
+    public Member recoverBlocking(MemberRecoveryOperation.Authorization authorization,
+                                  SecurityProtos.Signature agentSignature) {
+        return recover(authorization, agentSignature).blockingSingle();
     }
 
     /**

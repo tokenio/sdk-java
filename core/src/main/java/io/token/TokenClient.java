@@ -185,13 +185,14 @@ public class TokenClient implements Closeable {
      *     be created with the member.
      * @param memberType the type of member to register
      * @param partnerId ID of the partner member
+     * @param recoveryAgent member id of the primary recovery agent.
      * @return newly created member
      */
     protected Observable<Member> createMemberImpl(
             final Alias alias,
             final CreateMemberType memberType,
             @Nullable String partnerId,
-            final Optional<String> recoveryAgent) {
+            @Nullable final String recoveryAgent) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType, null, partnerId)
@@ -215,13 +216,14 @@ public class TokenClient implements Closeable {
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member
      * @param memberId member id
+     * @param agent member id of the primary recovery agent.
      * @return newly created member
      */
     protected Observable<Member> setUpMemberImpl(final Alias alias,
                                                  final String memberId,
-                                                 final Optional<String> agent) {
+                                                 final String agent) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getAgent(agent)
+        return (agent == null ? unauthenticated.getDefaultAgent() : Observable.just(agent))
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
                     public Observable<MemberProtos.Member> apply(String agentId) {
                         CryptoEngine crypto = cryptoFactory.create(memberId);
