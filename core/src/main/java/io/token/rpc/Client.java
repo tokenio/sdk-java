@@ -26,6 +26,7 @@ import static io.token.proto.ProtoJson.toJson;
 import static io.token.proto.banklink.Banklink.AccountLinkingStatus.FAILURE_BANK_AUTHORIZATION_REQUIRED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
 import static io.token.proto.common.transaction.TransactionProtos.RequestStatus.SUCCESSFUL_REQUEST;
 import static io.token.rpc.util.Converters.toCompletable;
@@ -556,7 +557,7 @@ public class Client {
      * @return the signature
      */
     public Observable<Signature> authorizeRecovery(Authorization authorization) {
-        Signer signer = crypto.createSigner(PRIVILEGED);
+        Signer signer = crypto.createSigner(STANDARD);
         return Observable.just(Signature.newBuilder()
                 .setMemberId(memberId)
                 .setKeyId(signer.getKeyId())
