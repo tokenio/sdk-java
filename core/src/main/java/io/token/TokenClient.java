@@ -184,18 +184,20 @@ public class TokenClient implements Closeable {
      *     be created with the member.
      * @param memberType the type of member to register
      * @param partnerId ID of the partner member
+     * @param recoveryAgent member id of the primary recovery agent.
      * @return newly created member
      */
     protected Observable<Member> createMemberImpl(
             final Alias alias,
             final CreateMemberType memberType,
-            @Nullable String partnerId) {
+            @Nullable String partnerId,
+            @Nullable final String recoveryAgent) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType, null, partnerId)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
-                        return setUpMemberImpl(alias, memberId);
+                        return setUpMemberImpl(alias, memberId, recoveryAgent);
                     }
                 });
     }
@@ -213,11 +215,14 @@ public class TokenClient implements Closeable {
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member
      * @param memberId member id
+     * @param agent member id of the primary recovery agent.
      * @return newly created member
      */
-    protected Observable<Member> setUpMemberImpl(final Alias alias, final String memberId) {
+    protected Observable<Member> setUpMemberImpl(final Alias alias,
+                                                 final String memberId,
+                                                 final String agent) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getDefaultAgent()
+        return (agent == null ? unauthenticated.getDefaultAgent() : Observable.just(agent))
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
                     public Observable<MemberProtos.Member> apply(String agentId) {
                         CryptoEngine crypto = cryptoFactory.create(memberId);

@@ -30,6 +30,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toObservable;
 
+import com.google.common.base.Supplier;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.MemberNotFoundException;
@@ -71,6 +72,7 @@ import io.token.security.Signer;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**

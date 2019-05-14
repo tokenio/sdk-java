@@ -59,6 +59,7 @@ import io.token.user.rpc.Client;
 import io.token.user.rpc.ClientFactory;
 import io.token.user.rpc.UnauthenticatedClient;
 
+import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -128,7 +129,21 @@ public class TokenClient extends io.token.TokenClient {
      * @return newly created member
      */
     public Observable<Member> createMember(final Alias alias) {
-        return createMemberImpl(alias, PERSONAL, null)
+        return createMember(alias, null);
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, member type
+     * and recovery agent.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param recoveryAgent member id of the primary recovery agent.
+     * @return newly created member
+     */
+    public Observable<Member> createMember(final Alias alias,
+                                           @Nullable final String recoveryAgent) {
+        return createMemberImpl(alias, PERSONAL, null, recoveryAgent)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -158,6 +173,18 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
+     * Creates a new personal-use Token member for the Banks with a set of
+     * auto-generated keys, an alias and recovery agent set as the Bank.
+     *
+     * @param alias alias to associate with member
+     * @param recoveryAgent memver id of the primary recovery agent.
+     * @return newly created member
+     */
+    public Member createMemberBlocking(Alias alias, String recoveryAgent) {
+        return createMember(alias, recoveryAgent).blockingSingle();
+    }
+
+    /**
      * Sets up a member given a specific ID of a member that already exists in the system. If
      * the member ID already has keys, this will not succeed. Used for testing since this
      * gives more control over the member creation process.
@@ -173,7 +200,7 @@ public class TokenClient extends io.token.TokenClient {
     public Observable<Member> setUpMember(final Alias alias, final String memberId) {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
-        return setUpMemberImpl(alias, memberId)
+        return setUpMemberImpl(alias, memberId, null)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
