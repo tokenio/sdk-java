@@ -298,47 +298,6 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Recover member.
-     *
-     * @param authorization trusted authorization created by the agent (like Bank) to recover
-     * Member.
-     * @param agentSignature the signature of the agent responsible to recover Member.
-     * @return an observable of the recovered member.
-     */
-    public Observable<Member> recover(
-            MemberRecoveryOperation.Authorization authorization,
-            SecurityProtos.Signature agentSignature) {
-
-        String memberId = authorization.getMemberId();
-        CryptoEngine cryptoEngine = cryptoFactory.create(memberId);
-        SecurityProtos.Key privilegedKey = authorization.getMemberKey();
-
-        MemberRecoveryOperation mro = MemberRecoveryOperation.newBuilder()
-                .setAuthorization(authorization)
-                .setAgentSignature(agentSignature)
-                .build();
-
-        return completeRecovery(
-                memberId,
-                Arrays.asList(mro),
-                privilegedKey,
-                cryptoEngine);
-    }
-
-    /**
-     * Recover member.
-     *
-     * @param authorization trusted authorizationcreated by the agent (like Bank) to recover
-     * Member.
-     * @param agentSignature the signature of the agent responsible to recover Member.
-     * @return the recovered member.
-     */
-    public Member recoverBlocking(MemberRecoveryOperation.Authorization authorization,
-                                  SecurityProtos.Signature agentSignature) {
-        return recover(authorization, agentSignature).blockingSingle();
-    }
-
-    /**
      * Completes account recovery if the default recovery rule was set.
      *
      * @param memberId the member id
