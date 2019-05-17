@@ -50,13 +50,11 @@ import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.rpc.Client;
-import io.token.security.Signer;
 import io.token.security.keystore.SecretKeyPair;
 import io.token.util.Util;
 
@@ -798,9 +796,9 @@ public class Member {
      * Resolves transfer destinations for the given account ID.
      *
      * @param accountId account ID
-     * @return transfer endpoints
+     * @return transfer destinations
      */
-    public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
+    public Observable<List<TransferDestination>> resolveTransferDestinations(String accountId) {
         return client.resolveTransferDestinations(accountId);
     }
 
@@ -808,9 +806,9 @@ public class Member {
      * Resolves transfer destinations for the given account ID.
      *
      * @param accountId account ID
-     * @return transfer endpoints
+     * @return transfer destinations
      */
-    public List<TransferEndpoint> resolveTransferDestinationsBlocking(String accountId) {
+    public List<TransferDestination> resolveTransferDestinationsBlocking(String accountId) {
         return resolveTransferDestinations(accountId).blockingSingle();
     }
 

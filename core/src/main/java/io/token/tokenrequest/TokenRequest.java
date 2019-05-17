@@ -29,6 +29,7 @@ import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.util.Util;
 
@@ -303,6 +304,19 @@ public abstract class TokenRequest {
          * @param destination destination
          * @return builder
          */
+        public TransferBuilder addDestination(TransferDestination destination) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .addTransferDestinations(destination);
+            return this;
+        }
+
+        /**
+         * Adds a transfer destination to a transfer token request.
+         *
+         * @param destination destination
+         * @return builder
+         */
+        @Deprecated
         public TransferBuilder addDestination(TransferEndpoint destination) {
             this.requestPayload.getTransferBodyBuilder()
                     .addDestinations(destination);

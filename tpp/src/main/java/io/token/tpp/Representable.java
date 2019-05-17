@@ -28,7 +28,7 @@ import static io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import io.reactivex.Observable;
 import io.token.proto.PagedList;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 
 import java.util.List;
 import javax.annotation.Nullable;
@@ -163,17 +163,17 @@ public interface Representable {
      * Resolves transfer destinations for the given account ID.
      *
      * @param accountId account ID
-     * @return transfer endpoints
+     * @return transfer destinations
      */
-    Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId);
+    Observable<List<TransferDestination>> resolveTransferDestinations(String accountId);
 
     /**
      * Resolves transfer destinations for the given account ID.
      *
      * @param accountId account ID
-     * @return transfer endpoints
+     * @return transfer destinations
      */
-    List<TransferEndpoint> resolveTransferDestinationsBlocking(String accountId);
+    List<TransferDestination> resolveTransferDestinationsBlocking(String accountId);
 
     /**
      * Confirm that the given account has sufficient funds to cover the charge.
