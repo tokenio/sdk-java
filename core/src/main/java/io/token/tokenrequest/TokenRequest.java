@@ -305,7 +305,7 @@ public abstract class TokenRequest {
          * @return builder
          */
         public TransferBuilder addDestination(TransferDestination destination) {
-            this.requestPayload.getTransferBodyBuilder()
+            this.requestPayload.getTransferBodyBuilder().getInstructionsBuilder()
                     .addTransferDestinations(destination);
             return this;
         }
