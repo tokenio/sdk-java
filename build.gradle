@@ -25,12 +25,12 @@ allprojects {
     ext {
         ver = [
             tokenProto           : '1.1.94',
-            tokenRpc             : '1.1.41',
+            tokenRpc             : '1.1.36',
             tokenSecurity        : '1.1.6',
             rxjava               : '2.1.1',
         ]
     }
 
     group = 'io.token.sdk'
-    version = '2.0.4-beta-9'
+    version = '2.0.4-beta-10'
 }
