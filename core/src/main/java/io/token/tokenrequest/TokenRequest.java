@@ -31,6 +31,8 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.Re
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata.ProviderSpecificMetadata;
 import io.token.util.Util;
 
 import java.util.Arrays;
@@ -332,6 +334,20 @@ public abstract class TokenRequest {
         public TransferBuilder setChargeAmount(double chargeAmount) {
             this.requestPayload.getTransferBodyBuilder()
                     .setAmount(Double.toString(chargeAmount))
+                    .build();
+            return this;
+        }
+
+        /**
+         * Adds metadata for a specific provider.
+         *
+         * @param metadata provider-specific metadata
+         * @return builder
+         */
+        public TransferBuilder setProviderMetadata(ProviderSpecificMetadata metadata) {
+            this.requestPayload.getTransferBodyBuilder().getInstructionsBuilder()
+                    .setMetadata(Metadata.newBuilder()
+                            .setProviderMetadata(metadata))
                     .build();
             return this;
         }
