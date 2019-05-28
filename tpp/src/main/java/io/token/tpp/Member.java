@@ -450,6 +450,25 @@ public class Member extends io.token.Member implements Representable {
      * @param amount transfer amount
      * @param currency transfer currency code, e.g. "EUR"
      * @param description transfer description
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable String refId) {
+        return redeemTokenInternal(token, amount, currency, description, null, refId);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
      * @param destination the transfer instruction destination
      * @param refId transfer reference id
      * @return transfer record
@@ -717,6 +736,25 @@ public class Member extends io.token.Member implements Representable {
             @Nullable TransferEndpoint destination) {
         return redeemToken(token, amount, currency, description, destination)
                 .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable String refId) {
+        return redeemToken(token, amount, currency, description, refId).blockingSingle();
     }
 
     /**
