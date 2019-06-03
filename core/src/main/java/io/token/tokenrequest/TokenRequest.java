@@ -345,7 +345,8 @@ public abstract class TokenRequest {
          * @return builder
          */
         public TransferBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
-            this.requestPayload.getTransferBodyBuilder().getInstructionsBuilder()
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
                     .setMetadata(Metadata.newBuilder()
                             .setProviderTransferMetadata(metadata))
                     .build();
