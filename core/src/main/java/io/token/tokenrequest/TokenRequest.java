@@ -24,6 +24,7 @@ package io.token.tokenrequest;
 
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
@@ -32,7 +33,6 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata.ProviderSpecificMetadata;
 import io.token.util.Util;
 
 import java.util.Arrays;
@@ -344,10 +344,11 @@ public abstract class TokenRequest {
          * @param metadata provider-specific metadata
          * @return builder
          */
-        public TransferBuilder setProviderMetadata(ProviderSpecificMetadata metadata) {
-            this.requestPayload.getTransferBodyBuilder().getInstructionsBuilder()
+        public TransferBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
                     .setMetadata(Metadata.newBuilder()
-                            .setProviderMetadata(metadata))
+                            .setProviderTransferMetadata(metadata))
                     .build();
             return this;
         }
