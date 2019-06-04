@@ -20,6 +20,16 @@ public class TokenClient extends io.token.user.TokenClient {
         super(channel, cryptoFactory, tokenCluster, browserFactory);
     }
 
+    /**
+     * Creates a new {@link Builder} instance that is used to configure and
+     * build a {@link TokenClient} instance.
+     *
+     * @return builder
+     */
+    public static Builder builder() {
+        return new Builder();
+    }
+
     public static final class Builder extends io.token.user.TokenClient.Builder {
         @Override
         protected String getPlatform() {
