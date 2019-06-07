@@ -24,12 +24,15 @@ package io.token.tokenrequest;
 
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata;
 import io.token.util.Util;
 
 import java.util.Arrays;
@@ -303,6 +306,19 @@ public abstract class TokenRequest {
          * @param destination destination
          * @return builder
          */
+        public TransferBuilder addDestination(TransferDestination destination) {
+            this.requestPayload.getTransferBodyBuilder().getInstructionsBuilder()
+                    .addTransferDestinations(destination);
+            return this;
+        }
+
+        /**
+         * Adds a transfer destination to a transfer token request.
+         *
+         * @param destination destination
+         * @return builder
+         */
+        @Deprecated
         public TransferBuilder addDestination(TransferEndpoint destination) {
             this.requestPayload.getTransferBodyBuilder()
                     .addDestinations(destination);
@@ -318,6 +334,21 @@ public abstract class TokenRequest {
         public TransferBuilder setChargeAmount(double chargeAmount) {
             this.requestPayload.getTransferBodyBuilder()
                     .setAmount(Double.toString(chargeAmount))
+                    .build();
+            return this;
+        }
+
+        /**
+         * Adds metadata for a specific provider.
+         *
+         * @param metadata provider-specific metadata
+         * @return builder
+         */
+        public TransferBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .setMetadata(Metadata.newBuilder()
+                            .setProviderTransferMetadata(metadata))
                     .build();
             return this;
         }

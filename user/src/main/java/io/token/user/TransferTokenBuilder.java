@@ -38,7 +38,9 @@ import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.token.TokenProtos.TransferBody;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
@@ -254,10 +256,24 @@ public final class TransferTokenBuilder {
      * @param destination destination
      * @return builder
      */
+    @Deprecated
     public TransferTokenBuilder addDestination(TransferEndpoint destination) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .addDestinations(destination);
+        return this;
+    }
+
+    /**
+     * Adds a transfer destination.
+     *
+     * @param destination destination
+     * @return builder
+     */
+    public TransferTokenBuilder addDestination(TransferDestination destination) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .addTransferDestinations(destination);
         return this;
     }
 

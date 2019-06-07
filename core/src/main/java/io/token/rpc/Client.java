@@ -58,6 +58,8 @@ import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.ConfirmFundsRequest;
@@ -101,7 +103,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
-
 
 /**
  * An authenticated RPC client that is used to talk to Token gateway. The
@@ -612,19 +613,19 @@ public class Client {
      * Resolves transfer destinations for the given account ID.
      *
      * @param accountId account ID
-     * @return transfer endpoints
+     * @return transfer destinations
      */
-    public Observable<List<TransferEndpoint>> resolveTransferDestinations(String accountId) {
+    public Observable<List<TransferDestination>> resolveTransferDestinations(String accountId) {
         return toObservable(gateway
                 .withAuthentication(onBehalfOf())
                 .resolveTransferDestinations(ResolveTransferDestinationsRequest.newBuilder()
                         .setAccountId(accountId)
                         .build()))
-                .map(new Function<ResolveTransferDestinationsResponse, List<TransferEndpoint>>() {
+                .map(new Function<ResolveTransferDestinationsResponse,List<TransferDestination>>() {
                     @Override
-                    public List<TransferEndpoint> apply(
+                    public List<TransferDestination> apply(
                             ResolveTransferDestinationsResponse response) {
-                        return response.getDestinationsList();
+                        return response.getTransferDestinationsList();
                     }
                 });
     }

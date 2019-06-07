@@ -65,6 +65,8 @@ import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.user.browser.Browser;
@@ -737,7 +739,7 @@ public class Member extends io.token.Member {
      * @return transfer record
      */
     public Observable<Transfer> redeemToken(Token token) {
-        return redeemToken(token, null, null, null, null, null);
+        return redeemTokenInternal(token, null, null, null, null, null);
     }
 
     /**
@@ -748,7 +750,7 @@ public class Member extends io.token.Member {
      * @return transfer record
      */
     public Observable<Transfer> redeemToken(Token token, String refId) {
-        return redeemToken(token, null, null, null, null, refId);
+        return redeemTokenInternal(token, null, null, null, null, refId);
     }
 
     /**
@@ -758,6 +760,18 @@ public class Member extends io.token.Member {
      * @param destination transfer instruction destination
      * @return transfer record
      */
+    public Observable<Transfer> redeemToken(Token token, TransferDestination destination) {
+        return redeemToken(token, null, null, null, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @return transfer record
+     */
+    @Deprecated
     public Observable<Transfer> redeemToken(Token token, TransferEndpoint destination) {
         return redeemToken(token, null, null, null, destination, null);
     }
@@ -769,7 +783,25 @@ public class Member extends io.token.Member {
      * @param destination transfer instruction destination
      * @param refId transfer reference id
      * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
      */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            TransferDestination destination,
+            String refId) {
+        return redeemToken(token, null, null, null, destination, refId);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @param refId transfer reference id
+     * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
+     */
+    @Deprecated
     public Observable<Transfer> redeemToken(
             Token token,
             TransferEndpoint destination,
@@ -791,7 +823,7 @@ public class Member extends io.token.Member {
             @Nullable Double amount,
             @Nullable String currency,
             @Nullable String description) {
-        return redeemToken(token, amount, currency, description, null, null);
+        return redeemTokenInternal(token, amount, currency, description, null, null);
     }
 
     /**
@@ -803,6 +835,25 @@ public class Member extends io.token.Member {
      * @param destination transfer instruction destination
      * @return transfer record
      */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable TransferDestination destination) {
+        return redeemToken(token, amount, currency, null, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param destination transfer instruction destination
+     * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
+     */
+    @Deprecated
     public Observable<Transfer> redeemToken(
             Token token,
             @Nullable Double amount,
@@ -826,8 +877,48 @@ public class Member extends io.token.Member {
             @Nullable Double amount,
             @Nullable String currency,
             @Nullable String description,
+            @Nullable TransferDestination destination) {
+        return redeemToken(token, amount, currency, description, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
+     */
+    @Deprecated
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
             @Nullable TransferEndpoint destination) {
         return redeemToken(token, amount, currency, description, destination, null);
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable String refId) {
+        return redeemTokenInternal(token, amount, currency, description, null, refId);
     }
 
     /**
@@ -842,6 +933,65 @@ public class Member extends io.token.Member {
      * @return transfer record
      */
     public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferDestination destination,
+            @Nullable String refId) {
+        TransferPayload.Builder payload = TransferPayload.newBuilder()
+                .setTokenId(token.getId())
+                .setDescription(token
+                        .getPayload()
+                        .getDescription());
+
+        if (destination != null) {
+            payload.addTransferDestinations(destination);
+        }
+        if (amount != null) {
+            payload.getAmountBuilder().setValue(Double.toString(amount));
+        }
+        if (currency != null) {
+            payload.getAmountBuilder().setCurrency(currency);
+        }
+        if (description != null) {
+            payload.setDescription(description);
+        }
+        if (refId != null) {
+            payload.setRefId(refId);
+        } else {
+            logger.warn("refId is not set. A random ID will be used.");
+            payload.setRefId(generateNonce());
+        }
+
+        return client.createTransfer(payload.build());
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination the transfer instruction destination
+     * @param refId transfer reference id
+     * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
+     */
+    @Deprecated
+    public Observable<Transfer> redeemToken(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination,
+            @Nullable String refId) {
+        return redeemTokenInternal(token, amount, currency, description, destination, refId);
+    }
+
+    // Remove when deprecated TransferEndpoint methods are removed.
+    private Observable<Transfer> redeemTokenInternal(
             Token token,
             @Nullable Double amount,
             @Nullable String currency,
@@ -904,6 +1054,19 @@ public class Member extends io.token.Member {
      * @param destination transfer instruction destination
      * @return transfer record
      */
+    public Transfer redeemTokenBlocking(Token token, TransferDestination destination) {
+        return redeemToken(token, destination).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
+     */
+    @Deprecated
     public Transfer redeemTokenBlocking(Token token, TransferEndpoint destination) {
         return redeemToken(token, destination).blockingSingle();
     }
@@ -915,6 +1078,22 @@ public class Member extends io.token.Member {
      * @param destination transfer instruction destination
      * @param refId transfer reference id
      * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            TransferDestination destination,
+            String refId) {
+        return redeemToken(token, destination, refId).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param destination transfer instruction destination
+     * @param refId transfer reference id
+     * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
      */
     public Transfer redeemTokenBlocking(Token token, TransferEndpoint destination, String refId) {
         return redeemToken(token, destination, refId).blockingSingle();
@@ -934,7 +1113,7 @@ public class Member extends io.token.Member {
             @Nullable Double amount,
             @Nullable String currency,
             @Nullable String description) {
-        return redeemToken(token, amount, currency, description, null, null)
+        return redeemToken(token, amount, currency, description)
                 .blockingSingle();
     }
 
@@ -951,8 +1130,28 @@ public class Member extends io.token.Member {
             Token token,
             @Nullable Double amount,
             @Nullable String currency,
+            @Nullable TransferDestination destination) {
+        return redeemToken(token, amount, currency, destination)
+                .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param destination transfer instruction destination
+     * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
+     */
+    @Deprecated
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
             @Nullable TransferEndpoint destination) {
-        return redeemToken(token, amount, currency, null, destination, null)
+        return redeemToken(token, amount, currency, destination)
                 .blockingSingle();
     }
 
@@ -971,9 +1170,50 @@ public class Member extends io.token.Member {
             @Nullable Double amount,
             @Nullable String currency,
             @Nullable String description,
-            @Nullable TransferEndpoint destination) {
-        return redeemToken(token, amount, currency, description, destination, null)
+            @Nullable TransferDestination destination) {
+        return redeemToken(token, amount, currency, description, destination)
                 .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
+     */
+    @Deprecated
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferEndpoint destination) {
+        return redeemToken(token, amount, currency, description, destination)
+                .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param refId transfer reference id
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable String refId) {
+        return redeemToken(token, amount, currency, description, refId).blockingSingle();
     }
 
     /**
@@ -987,6 +1227,30 @@ public class Member extends io.token.Member {
      * @param refId transfer reference id
      * @return transfer record
      */
+    public Transfer redeemTokenBlocking(
+            Token token,
+            @Nullable Double amount,
+            @Nullable String currency,
+            @Nullable String description,
+            @Nullable TransferDestination destination,
+            @Nullable String refId) {
+        return redeemToken(token, amount, currency, description, destination, refId)
+                .blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
+     * @param token transfer token to redeem
+     * @param amount transfer amount
+     * @param currency transfer currency code, e.g. "EUR"
+     * @param description transfer description
+     * @param destination transfer instruction destination
+     * @param refId transfer reference id
+     * @return transfer record
+     * @deprecated Use TransferDestination instead of TransferEndpoint.
+     */
+    @Deprecated
     public Transfer redeemTokenBlocking(
             Token token,
             @Nullable Double amount,
