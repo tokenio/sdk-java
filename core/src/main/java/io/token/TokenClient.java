@@ -191,10 +191,11 @@ public class TokenClient implements Closeable {
             final Alias alias,
             final CreateMemberType memberType,
             @Nullable String partnerId,
-            @Nullable final String recoveryAgent) {
+            @Nullable final String recoveryAgent,
+            @Nullable final String realmId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .createMemberId(memberType, null, partnerId)
+                .createMemberId(memberType, null, partnerId, realmId)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
                         return setUpMemberImpl(alias, memberId, recoveryAgent);
