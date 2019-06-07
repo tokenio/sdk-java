@@ -4,7 +4,7 @@ Token open source SDKs simplify the interactions with the Token global open bank
 The Token SDKs handle digital signatures and, where applicable, chain Token API calls. This makes 
 it easier to develop Token- integrated applications, while providing most of the flexibility of 
 the full Token API.
-More information at [https://developer.token.io/sdk/](https://developer.token.io/sdk/)
+More information at [https://developer.token.io/docs/](https://developer.token.io/docs/)
 
 Requirements
 ============
