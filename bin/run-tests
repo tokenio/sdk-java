@@ -4,5 +4,5 @@ args=${1:-""}
 
 ./gradlew \
   -PmaxTestForks=4 \
-  cleanTest :java:javadoc check ${args}
+  cleanTest :core:javadoc :tpp:javadoc :user:javadoc check ${args}
 
