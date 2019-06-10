@@ -286,28 +286,6 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Prepares an access token, returning the resolved token payload and policy.
-     *
-     * @param accessTokenBuilder access token builder
-     * @return resolved token payload and policy
-     */
-    public Observable<PrepareTokenResult> prepareAccessToken(
-            AccessTokenBuilder accessTokenBuilder) {
-        accessTokenBuilder.from(memberId());
-        return client.prepareToken(accessTokenBuilder.build());
-    }
-
-    /**
-     * Prepares an access token, returning the resolved token payload and policy.
-     *
-     * @param accessTokenBuilder access token builder
-     * @return resolved token payload and policy
-     */
-    public PrepareTokenResult prepareAccessTokenBlocking(AccessTokenBuilder accessTokenBuilder) {
-        return prepareAccessToken(accessTokenBuilder).blockingSingle();
-    }
-
-    /**
      * Creates a token directly from a resolved token payload and list of token signatures.
      *
      * @param payload token payload
@@ -421,7 +399,6 @@ public class Member extends io.token.Member {
      * @param currency currency code, e.g. "USD"
      * @return transfer token builder
      */
-    @Deprecated
     public TransferTokenBuilder createTransferToken(double amount, String currency) {
         return new TransferTokenBuilder(this, amount, currency);
     }
@@ -1095,6 +1072,7 @@ public class Member extends io.token.Member {
      * @return transfer record
      * @deprecated Use TransferDestination instead of TransferEndpoint.
      */
+    @Deprecated
     public Transfer redeemTokenBlocking(Token token, TransferEndpoint destination, String refId) {
         return redeemToken(token, destination, refId).blockingSingle();
     }

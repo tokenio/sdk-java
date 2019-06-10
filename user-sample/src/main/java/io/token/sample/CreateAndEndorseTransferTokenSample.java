@@ -1,5 +1,7 @@
 package io.token.sample;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment.PERSONAL_EXPENSES;
 
 import io.token.proto.common.account.AccountProtos.BankAccount;
@@ -8,8 +10,12 @@ import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.pricing.PricingProtos.TransferQuote;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos.Token;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.user.Member;
+import io.token.user.PrepareTokenResult;
+import io.token.user.TransferTokenBuilder;
 import io.token.user.util.Util;
 
 /**
@@ -32,9 +38,9 @@ public final class CreateAndEndorseTransferTokenSample {
         // We don't have a db, so we fake it with a random string:
         String purchaseId = Util.generateNonce();
 
-        // Create a transfer token.
-        Token transferToken = payer.createTransferToken(
-                100.0, // amount
+        // Set the details of the token.
+        TransferTokenBuilder builder = payer.createTransferToken(
+                10.0, // amount
                 "EUR")  // currency
                 // source account:
                 .setAccountId(payer.getAccountsBlocking().get(0).id())
@@ -42,15 +48,16 @@ public final class CreateAndEndorseTransferTokenSample {
                 .setToAlias(payeeAlias)
                 // optional description:
                 .setDescription("Book purchase")
-                // ref id (if not set, will get random ID)
-                .setRefId(purchaseId)
-                .executeBlocking();
+                // ref ID (if not set, will get random ID)
+                .setRefId(purchaseId);
 
-        // Payer endorses a token to a payee by signing it
-        // with her secure private key.
-        transferToken = payer.endorseTokenBlocking(
-                transferToken,
-                Key.Level.STANDARD).getToken();
+        // Get the token redemption policy and resolve the token payload.
+        PrepareTokenResult result = payer.prepareTransferTokenBlocking(builder);
+
+        // Create the token: Default behavior is to provide the member's signature
+        // at the specified level. In other cases, it may be necessary to provide
+        // additional signatures with payer.createToken(payload, signatures).
+        Token transferToken = payer.createTokenBlocking(result.getTokenPayload(), LOW);
 
         return transferToken;
     }
@@ -65,43 +72,30 @@ public final class CreateAndEndorseTransferTokenSample {
     public static Token createTransferTokenWithOtherOptions(
             Member payer,
             String payeeId) {
-
         long now = System.currentTimeMillis();
 
-        TransferQuote srcQuote = TransferQuote.newBuilder()
-                .setId("b40d2555df187098da241e6b9079cf45")
-                .setAccountCurrency("EUR")
-                .setFeesTotal("0.02")
-                .addFees(TransferQuote.Fee
-                        .newBuilder()
-                        .setAmount("0.02")
-                        .setDescription("Transfer fee"))
-                .build();
+        // Set the details of the token.
+        TransferTokenBuilder builder = payer.createTransferToken(
+                120.0, // amount
+                "EUR")  // currency
+                // source account:
+                .setAccountId(payer.getAccountsBlocking().get(0).id())
+                .setToMemberId(payeeId)
+                .setToMemberId(payeeId)
+                // effective in one second:
+                .setEffectiveAtMs(now + 1000)
+                // expires in 300 seconds:
+                .setExpiresAtMs(now + (300 * 1000))
+                .setRefId("a713c8a61994a749")
+                .setChargeAmount(10.0)
+                .setDescription("Book purchase")
+                .setPurposeOfPayment(PERSONAL_EXPENSES);
 
-        // Create a transfer token.
-        Token transferToken =
-                payer.createTransferToken(
-                        120.0, // amount
-                        "EUR")  // currency
-                        // source account:
-                        .setAccountId(payer.getAccountsBlocking().get(0).id())
-                        .setToMemberId(payeeId)
-                        .setToMemberId(payeeId)
-                        // effective in one second:
-                        .setEffectiveAtMs(now + 1000)
-                        // expires in 300 seconds:
-                        .setExpiresAtMs(now + (300 * 1000))
-                        .setRefId("a713c8a61994a749")
-                        .setChargeAmount(10.0)
-                        .setDescription("Book purchase")
-                        .setPurposeOfPayment(PERSONAL_EXPENSES)
-                        .executeBlocking();
+        // Get the token redemption policy and resolve the token payload.
+        PrepareTokenResult result = payer.prepareTransferTokenBlocking(builder);
 
-        // Payer endorses a token to a payee by signing it
-        // with her secure private key.
-        transferToken = payer.endorseTokenBlocking(
-                transferToken,
-                Key.Level.STANDARD).getToken();
+        // Create the token, signing with the payer's STANDARD-level key
+        Token transferToken = payer.createTokenBlocking(result.getTokenPayload(), STANDARD);
 
         return transferToken;
     }
@@ -116,30 +110,28 @@ public final class CreateAndEndorseTransferTokenSample {
     public static Token createTransferTokenToDestination(
             Member payer,
             Alias payeeAlias) {
-
-        // Set SEPA destination
-        TransferEndpoint sepaDestination = TransferEndpoint
+        // Set SEPA destination.
+        TransferDestination sepaDestination = TransferDestination
                 .newBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setSepa(Sepa.newBuilder()
-                                .setBic("XUIWC2489")
-                                .setIban("DE89 3704 0044 0532 0130 00")))
+                .setSepa(TransferDestination.Sepa.newBuilder()
+                        .setBic("XUIWC2489")
+                        .setIban("DE89 3704 0044 0532 0130 00"))
                 .build();
 
-        // Create a transfer token.
-        Token transferToken =
+        // Set the destination and other details.
+        TransferTokenBuilder builder =
                 payer.createTransferToken(
                         100.0, // amount
                         "EUR")  // currency
                         .setAccountId(payer.getAccountsBlocking().get(0).id())
                         .setToAlias(payeeAlias)
-                        .addDestination(sepaDestination)
-                        .executeBlocking();
+                        .addDestination(sepaDestination);
 
-        // Payer endorses a token to a payee by signing it with her secure private key.
-        transferToken = payer.endorseTokenBlocking(
-                transferToken,
-                Key.Level.STANDARD).getToken();
+        // Get the token redemption policy and resolve the token payload.
+        PrepareTokenResult result = payer.prepareTransferTokenBlocking(builder);
+
+        // Create the token, signing with the payer's STANDARD-level key
+        Token transferToken = payer.createTokenBlocking(result.getTokenPayload(), STANDARD);
 
         return transferToken;
     }
