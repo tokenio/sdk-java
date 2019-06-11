@@ -9,11 +9,16 @@ import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.user.Account;
 import io.token.user.Member;
+import io.token.user.PrepareTokenResult;
 import io.token.user.TokenClient;
+import io.token.user.TransferTokenBuilder;
 
 import java.util.Optional;
 
@@ -31,17 +36,18 @@ public class PollNotificationsSampleTest {
             Account account = LinkMemberAndBankSample.linkBankAccounts(payer);
             LinkMemberAndBankSample.linkBankAccounts(payee);
 
-            TransferEndpoint tokenDestination = TransferEndpoint.newBuilder()
-                    .setAccount(BankAccount.newBuilder()
-                            .setToken(BankAccount.Token.newBuilder()
-                                    .setMemberId(payee.memberId())))
+            TransferDestination tokenDestination = TransferDestination.newBuilder()
+                    .setToken(TransferDestination.Token.newBuilder()
+                                    .setMemberId(payee.memberId()))
                     .build();
-            TokenProtos.Token token = payer.createTransferToken(100.00, "EUR")
+
+            TransferTokenBuilder builder = payer.createTransferToken(100.00, "EUR")
                     .setAccountId(account.id())
                     .setToAlias(payeeAlias)
-                    .addDestination(tokenDestination)
-                    .executeBlocking();
-            payer.endorseTokenBlocking(token, Key.Level.STANDARD);
+                    .addDestination(tokenDestination);
+
+            PrepareTokenResult result = payer.prepareTransferTokenBlocking(builder);
+            Token token = payer.createTokenBlocking(result.getTokenPayload(), Key.Level.STANDARD);
             Transfer transfer = payee.redeemTokenBlocking(token);
 
             Optional<Notification> notification = PollNotificationsSample.poll(payee);
