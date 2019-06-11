@@ -59,7 +59,6 @@ import io.token.user.rpc.Client;
 import io.token.user.rpc.ClientFactory;
 import io.token.user.rpc.UnauthenticatedClient;
 
-import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -145,25 +144,13 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Creates a new Token member in the provided realm with a set of auto-generated keys, an alias,
-     * and member type.
-     *
-     * @param alias nullable member alias to use, must be unique. If null, then no alias will
-     *     be created with the member.
-     * @param realmId member id of the Member whose realm this new Member belongs.
-     * @return newly created member
-     */
-    public Observable<Member> createMemberInRealm(final Alias alias, @Nullable String realmId) {
-        return createMember(alias, null, realmId);
-    }
-
-    /**
      * Creates a new Token member with a set of auto-generated keys, an alias, member type
      * and recovery agent.
      *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
      * @param recoveryAgent member id of the primary recovery agent.
+     * @param realmId member id of an existing Member to whose realm this new member belongs.
      * @return newly created member
      */
     public Observable<Member> createMember(final Alias alias,
@@ -219,9 +206,22 @@ public class TokenClient extends io.token.TokenClient {
      * @param realmId member id of the Member whose realm this new Member belongs.
      * @return newly created member
      */
+    public Observable<Member> createMemberInRealm(final Alias alias, @Nullable String realmId) {
+        return createMember(alias, null, realmId);
+    }
+
+    /**
+     * Creates a new Token member in the provided realm with a set of auto-generated keys, an alias,
+     * and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param realmId member id of the Member whose realm this new Member belongs.
+     * @return newly created member
+     */
     public Member createMemberInRealmBlocking(final Alias alias,
                                               @Nullable String realmId) {
-        return createMember(alias, null, realmId).blockingSingle();
+        return createMemberInRealm(alias, realmId).blockingSingle();
     }
 
     /**
