@@ -3,6 +3,8 @@ package io.token.sample;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.user.Member;
 import io.token.user.util.Util;
@@ -33,11 +35,10 @@ public final class RedeemTransferTokenSample {
         Token transferToken = payee.getTokenBlocking(tokenId);
 
         // Set token destination
-        TransferEndpoint tokenDestination = TransferEndpoint.newBuilder()
-                .setAccount(AccountProtos.BankAccount.newBuilder()
-                        .setToken(AccountProtos.BankAccount.Token.newBuilder()
+        TransferDestination tokenDestination = TransferDestination.newBuilder()
+                .setToken(TransferDestination.Token.newBuilder()
                                 .setMemberId(payee.memberId())
-                                .setAccountId(accountId)))
+                                .setAccountId(accountId))
                 .build();
 
         // Payee redeems a transfer token.
