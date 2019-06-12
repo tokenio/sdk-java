@@ -184,7 +184,8 @@ public class TokenClient implements Closeable {
      *     be created with the member.
      * @param memberType the type of member to register
      * @param partnerId ID of the partner member
-     * @param recoveryAgent member id of the primary recovery agent.
+     * @param recoveryAgent member id of the primary recovery agent
+     * @param realmId member id of an existing Member to whom the new member belongs.
      * @return newly created member
      */
     protected Observable<Member> createMemberImpl(

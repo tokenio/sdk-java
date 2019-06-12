@@ -123,7 +123,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param partnerId ID of partner member.
      * @return newly created member
      */
-    public Observable<Member> createMember(final Alias alias, @Nullable String partnerId) {
+    public Observable<Member> createMember(final Alias alias, String partnerId) {
         return createMember(alias, partnerId, null);
     }
 
@@ -190,7 +190,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param realmId member id of an existing Member to whose realm this new member belongs.
      * @return newly created member
      */
-    public Observable<Member> createMemberInRealm(final Alias alias, @Nullable String realmId) {
+    public Observable<Member> createMemberInRealm(final Alias alias, String realmId) {
         return createMember(alias, null, realmId);
     }
 
@@ -204,7 +204,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return newly created member
      */
     public Member createMemberInRealmBlocking(final Alias alias,
-                                              @Nullable String realmId) {
+                                              String realmId) {
         return createMemberInRealm(alias, realmId).blockingSingle();
     }
 
