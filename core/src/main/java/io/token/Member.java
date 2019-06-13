@@ -25,19 +25,26 @@ package io.token;
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.AliasHasher.normalizeAndHash;
 import static io.token.util.Util.TOKEN_REALM;
+import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
+import com.google.common.io.BaseEncoding;
+import io.grpc.Status;
+import io.grpc.StatusRuntimeException;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenClient.TokenCluster;
 import io.token.exceptions.InvalidRealmException;
 import io.token.exceptions.NoAliasesFoundException;
+import io.token.exceptions.NoRealmFoundException;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.eidas.EidasProtos.VerificationStatus;
+import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -277,7 +284,6 @@ public class Member {
                         .setRealm(partnerId)
                         .build();
             }
-
             operations.add(Util.toAddAliasOperation(alias));
             metadata.add(Util.toAddAliasOperationMetadata(alias));
         }
@@ -417,6 +423,30 @@ public class Member {
      */
     public Completable verifyAlias(String verificationId, String code) {
         return client.verifyAlias(verificationId, code);
+    }
+
+    /**
+     * Verifies eIDAS alias with an eIDAS certificate, containing auth number equal to the value
+     * of the alias.
+     * An eIDAS-type alias containing auth number of the TPP should be added to the
+     * member before making this call. The member must be under the realm of a bank.
+     *
+     * @param payload payload containing the member id and the certificate in PEM format
+     * @param signature the payload signed with a private key corresponding to the certificate
+     *     public key using "SHA1withDSA" algorithm
+     *     // TODO: include the algorithm in the payload?
+     * @return a status of the verification process
+     */
+    public Observable<VerificationStatus> verifyAlias(
+            VerifyEidasPayload payload,
+            byte[] signature) {
+        // verify that the member has a not-empty realmId
+        String realmId = "";// TODO: get realm id of the member: realmId()
+        if (realmId == null) {
+            throw new NoRealmFoundException(memberId);
+        }
+        // create a request
+        return client.verifyEidasAlias(payload, BaseEncoding.base64().encode(signature));
     }
 
     /**

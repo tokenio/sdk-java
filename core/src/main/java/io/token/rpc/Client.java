@@ -42,6 +42,8 @@ import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.eidas.EidasProtos.VerificationStatus;
+import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
@@ -58,9 +60,7 @@ import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.ConfirmFundsRequest;
 import io.token.proto.gateway.Gateway.ConfirmFundsResponse;
@@ -96,6 +96,8 @@ import io.token.proto.gateway.Gateway.RetryVerificationResponse;
 import io.token.proto.gateway.Gateway.UpdateMemberRequest;
 import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
+import io.token.proto.gateway.Gateway.VerifyEidasRequest;
+import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
@@ -578,6 +580,30 @@ public class Client {
                 .map(new Function<GetDefaultAgentResponse, String>() {
                     public String apply(GetDefaultAgentResponse response) {
                         return response.getMemberId();
+                    }
+                });
+    }
+
+    /**
+     * Verifies eIDAS alias.
+     * @param payload payload containing member id and the certificate
+     * @param signature payload signed with the private key corresponding to the certificate
+     * @return the verification status of the eIDAS verification
+     */
+    public Observable<VerificationStatus> verifyEidasAlias(
+            VerifyEidasPayload payload,
+            String signature) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .verifyEidasAlias(VerifyEidasRequest.newBuilder()
+                        .setPayload(payload)
+                        .setSignature(signature)
+                        .build()))
+                .map(new Function<VerifyEidasResponse, VerificationStatus>() {
+                    @Override
+                    public VerificationStatus apply(
+                            VerifyEidasResponse response) {
+                        return response.getVerificationStatus();
                     }
                 });
     }
