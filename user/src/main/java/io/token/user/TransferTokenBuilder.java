@@ -103,6 +103,9 @@ public final class TransferTokenBuilder {
         if (tokenRequest.getRequestPayload().getRequestBodyCase() != TRANSFER_BODY) {
             throw new IllegalArgumentException("Require token request with transfer body.");
         }
+        if (!tokenRequest.getRequestPayload().hasTo()) {
+            throw new IllegalArgumentException("No payee on token request");
+        }
         this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
@@ -376,10 +379,6 @@ public final class TransferTokenBuilder {
      * @return token payload
      */
     public TokenPayload buildPayload() {
-        if (!payload.hasTo()) {
-            throw new IllegalArgumentException("No payee on token request");
-        }
-
         if (payload.getRefId().isEmpty()) {
             logger.warn("refId is not set. A random ID will be used.");
             payload.setRefId(generateNonce());
