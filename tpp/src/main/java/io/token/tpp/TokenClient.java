@@ -152,6 +152,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }
@@ -231,6 +232,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }
@@ -253,6 +255,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }
@@ -294,6 +297,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }
@@ -343,6 +347,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }

@@ -107,10 +107,11 @@ public class Member extends io.token.Member {
     Member(
             String memberId,
             @Nullable String partnerId,
+            @Nullable String realmId,
             Client client,
             TokenCluster cluster,
             BrowserFactory browserFactory) {
-        super(memberId, partnerId, client, cluster);
+        super(memberId, partnerId, realmId, client, cluster);
         this.client = client;
         this.browserFactory = browserFactory;
     }

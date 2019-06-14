@@ -256,6 +256,7 @@ public class TokenClient implements Closeable {
                         return Observable.just(new Member(
                                 member.getId(),
                                 member.getPartnerId(),
+                                member.getRealmId(),
                                 null,
                                 tokenCluster));
                     }
@@ -272,7 +273,7 @@ public class TokenClient implements Closeable {
      * @param client client
      * @return member
      */
-    protected Observable<Member> getMemberImpl(String memberId, final Client client) {
+    protected Observable<Member> getMemberImpl(final String memberId, final Client client) {
         return client
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, Member>() {
@@ -280,6 +281,7 @@ public class TokenClient implements Closeable {
                         return new Member(
                                 member.getId(),
                                 member.getPartnerId(),
+                                member.getRealmId(),
                                 null,
                                 tokenCluster);
                     }
@@ -311,6 +313,7 @@ public class TokenClient implements Closeable {
                         return new Member(
                                 member.getId(),
                                 member.getPartnerId(),
+                                member.getRealmId(),
                                 null,
                                 tokenCluster);
                     }
@@ -342,6 +345,7 @@ public class TokenClient implements Closeable {
                         return new Member(
                                 member.getId(),
                                 member.getPartnerId(),
+                                member.getRealmId(),
                                 null,
                                 tokenCluster);
                     }
