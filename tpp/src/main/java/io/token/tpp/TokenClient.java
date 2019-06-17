@@ -204,8 +204,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param realmId member id of the Member whose realm this new Member belongs.
      * @return newly created member
      */
-    public Member createMemberInRealmBlocking(final Alias alias,
-                                              String realmId) {
+    public Member createMemberInRealmBlocking(final Alias alias, String realmId) {
         return createMemberInRealm(alias, realmId).blockingSingle();
     }
 
