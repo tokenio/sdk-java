@@ -291,6 +291,12 @@ public class Member {
                         .build();
             }
 
+            if (realmId != null) {
+                alias = alias.toBuilder()
+                        .setRealmId(realmId)
+                        .build();
+            }
+
             operations.add(Util.toAddAliasOperation(alias));
             metadata.add(Util.toAddAliasOperationMetadata(alias));
         }
