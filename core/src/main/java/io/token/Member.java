@@ -38,6 +38,7 @@ import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -45,6 +46,8 @@ import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
+import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -626,6 +629,48 @@ public class Member {
     }
 
     /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return their profile
+     */
+    public Observable<Profile> getProfile(String memberId) {
+        return client.getProfile(memberId);
+    }
+
+    /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return profile info
+     */
+    public Profile getProfileBlocking(String memberId) {
+        return getProfile(memberId).blockingSingle();
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @param size desired size category (small, medium, large, original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
+        return client.getProfilePicture(memberId, size);
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @param size Size category desired (small/medium/large/original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Blob getProfilePictureBlocking(String memberId, ProfilePictureSize size) {
+        return getProfilePicture(memberId, size).blockingSingle();
+    }
+
+    /**
      * Signs a token payload.
      *
      * @param payload token payload
@@ -807,7 +852,7 @@ public class Member {
     /**
      * Delete the member.
      */
-    public void deleteMemberBlocking()  {
+    public void deleteMemberBlocking() {
         deleteMember().blockingAwait();
     }
 
