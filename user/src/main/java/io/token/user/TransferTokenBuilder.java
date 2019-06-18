@@ -114,6 +114,7 @@ public final class TransferTokenBuilder {
                 .setTo(tokenRequest.getRequestPayload().getTo())
                 .setDescription(tokenRequest.getRequestPayload().getDescription())
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
+                .setTokenRequestId(tokenRequest.getId())
                 .setTransfer(TransferBody.newBuilder()
                         .setLifetimeAmount(tokenRequest
                                 .getRequestPayload()
