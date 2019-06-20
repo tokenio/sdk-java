@@ -140,7 +140,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return newly created member
      */
     public Observable<Member> createMember(final Alias alias, String recoveryAgent) {
-        return createMember(alias, recoveryAgent, recoveryAgent);
+        return createMember(alias, recoveryAgent, null);
     }
 
     /**
