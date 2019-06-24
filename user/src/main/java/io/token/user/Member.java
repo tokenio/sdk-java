@@ -1306,8 +1306,9 @@ public class Member extends io.token.Member {
                                                     }
                                                 });
                                 String linkingUrl = bankInfo.getBankLinkingUri();
-                                String url = String.format(
-                                        "%s&redirect_uri=%s",
+                                String url = String.format("%s&redirect_uri=%s"
+                                                // request BALANCE and TRANSACTION access on linking
+                                                + "&resource=BALANCES&resource=TRANSACTIONS",
                                         linkingUrl,
                                         URLEncoder.encode(callbackUrl, "UTF-8"));
                                 browser.goTo(new URL(url));
