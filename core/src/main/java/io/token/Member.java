@@ -25,13 +25,10 @@ package io.token;
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.AliasHasher.normalizeAndHash;
 import static io.token.util.Util.TOKEN_REALM;
-import static java.lang.String.format;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
 import com.google.common.io.BaseEncoding;
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
@@ -43,7 +40,7 @@ import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
-import io.token.proto.common.eidas.EidasProtos.VerificationStatus;
+import io.token.proto.common.eidas.EidasProtos;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
@@ -437,16 +434,10 @@ public class Member {
      *     // TODO: include the algorithm in the payload?
      * @return a status of the verification process
      */
-    public Observable<VerificationStatus> verifyAlias(
+    public Observable<EidasProtos.VerifyEidasStatus> verifyEidas(
             VerifyEidasPayload payload,
-            byte[] signature) {
-        // verify that the member has a not-empty realmId
-        String realmId = "";// TODO: get realm id of the member: realmId()
-        if (realmId == null) {
-            throw new NoRealmFoundException(memberId);
-        }
-        // create a request
-        return client.verifyEidasAlias(payload, BaseEncoding.base64().encode(signature));
+            String signature) {
+        return client.verifyEidas(payload, signature);
     }
 
     /**

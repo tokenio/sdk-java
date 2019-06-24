@@ -42,8 +42,8 @@ import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
-import io.token.proto.common.eidas.EidasProtos.VerificationStatus;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
+import io.token.proto.common.eidas.EidasProtos.VerifyEidasStatus;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
@@ -585,25 +585,25 @@ public class Client {
     }
 
     /**
-     * Verifies eIDAS alias.
+     * Verifies eIDAS certificate.
      * @param payload payload containing member id and the certificate
      * @param signature payload signed with the private key corresponding to the certificate
      * @return the verification status of the eIDAS verification
      */
-    public Observable<VerificationStatus> verifyEidasAlias(
+    public Observable<VerifyEidasStatus> verifyEidas(
             VerifyEidasPayload payload,
             String signature) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
-                .verifyEidasAlias(VerifyEidasRequest.newBuilder()
+                .verifyEidas(VerifyEidasRequest.newBuilder()
                         .setPayload(payload)
                         .setSignature(signature)
                         .build()))
-                .map(new Function<VerifyEidasResponse, VerificationStatus>() {
+                .map(new Function<VerifyEidasResponse, VerifyEidasStatus>() {
                     @Override
-                    public VerificationStatus apply(
+                    public VerifyEidasStatus apply(
                             VerifyEidasResponse response) {
-                        return response.getVerificationStatus();
+                        return response.getStatus();
                     }
                 });
     }
