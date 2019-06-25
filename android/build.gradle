@@ -1,4 +1,4 @@
-/*apply plugin: 'com.android.library'
+apply plugin: 'com.android.library'
 apply plugin: 'com.github.dcendents.android-maven'
 
 android {
@@ -135,4 +135,3 @@ signing {
     required { project.hasProperty('signing.keyId') }
     sign configurations.archives
 }
-*/
