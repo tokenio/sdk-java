@@ -430,6 +430,7 @@ public class Member extends io.token.Member {
      * @param currency currency code, e.g. "USD"
      * @return transfer token builder
      */
+    @Deprecated
     public TransferTokenBuilder createTransferToken(double amount, String currency) {
         return createTransferTokenBuilder(amount, currency);
     }
@@ -442,6 +443,7 @@ public class Member extends io.token.Member {
      * @param tokenRequest token request
      * @return transfer token builder
      */
+    @Deprecated
     public TransferTokenBuilder createTransferToken(TokenRequest tokenRequest) {
         return createTransferTokenBuilder(tokenRequest);
     }
@@ -481,6 +483,7 @@ public class Member extends io.token.Member {
      * @param tokenRequest token request
      * @return transfer token builder
      */
+    @Deprecated
     public TransferTokenBuilder createTransferTokenBlocking(TokenRequest tokenRequest) {
         return createTransferToken(tokenRequest);
     }
