@@ -73,9 +73,10 @@ public class Member extends io.token.Member implements Representable {
     Member(
             String memberId,
             @Nullable String partnerId,
+            @Nullable String realmId,
             Client client,
             TokenCluster cluster) {
-        super(memberId, partnerId, client, cluster);
+        super(memberId, partnerId, realmId, client, cluster);
         this.client = client;
     }
 
@@ -226,7 +227,7 @@ public class Member extends io.token.Member implements Representable {
 
     Member forAccessTokenInternal(String tokenId, boolean customerInitiated) {
         Client cloned = client.forAccessToken(tokenId, customerInitiated);
-        return new Member(memberId, partnerId, cloned, cluster);
+        return new Member(memberId, partnerId, realmId, cloned, cluster);
     }
 
     /**

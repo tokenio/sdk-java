@@ -59,7 +59,6 @@ import io.token.user.rpc.Client;
 import io.token.user.rpc.ClientFactory;
 import io.token.user.rpc.UnauthenticatedClient;
 
-import java.util.Arrays;
 import java.util.List;
 import javax.annotation.Nullable;
 
@@ -129,7 +128,19 @@ public class TokenClient extends io.token.TokenClient {
      * @return newly created member
      */
     public Observable<Member> createMember(final Alias alias) {
-        return createMember(alias, null);
+        return createMember(alias, null, null);
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param recoveryAgent member id of the primary recovery agent.
+     * @return newly created member
+     */
+    public Observable<Member> createMember(final Alias alias, String recoveryAgent) {
+        return createMember(alias, recoveryAgent, null);
     }
 
     /**
@@ -139,11 +150,13 @@ public class TokenClient extends io.token.TokenClient {
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
      * @param recoveryAgent member id of the primary recovery agent.
+     * @param realmId member id of an existing Member to whose realm this new member belongs.
      * @return newly created member
      */
     public Observable<Member> createMember(final Alias alias,
-                                           @Nullable final String recoveryAgent) {
-        return createMemberImpl(alias, PERSONAL, null, recoveryAgent)
+                                           @Nullable final String recoveryAgent,
+                                           @Nullable final String realmId) {
+        return createMemberImpl(alias, PERSONAL, null, recoveryAgent, realmId)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -155,6 +168,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster(),
                                 browserFactory);
@@ -177,11 +191,37 @@ public class TokenClient extends io.token.TokenClient {
      * auto-generated keys, an alias and recovery agent set as the Bank.
      *
      * @param alias alias to associate with member
-     * @param recoveryAgent memver id of the primary recovery agent.
+     * @param recoveryAgent member id of the primary recovery agent.
      * @return newly created member
      */
     public Member createMemberBlocking(Alias alias, String recoveryAgent) {
         return createMember(alias, recoveryAgent).blockingSingle();
+    }
+
+    /**
+     * Creates a new Token member in the provided realm with a set of auto-generated keys, an alias,
+     * and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param realmId member id of an existing Member to whose realm this new member belongs.
+     * @return newly created member
+     */
+    public Observable<Member> createMemberInRealm(final Alias alias, String realmId) {
+        return createMember(alias, realmId, realmId);
+    }
+
+    /**
+     * Creates a new Token member in the provided realm with a set of auto-generated keys, an alias,
+     * and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param realmId member id of the Member whose realm this new Member belongs.
+     * @return newly created member
+     */
+    public Member createMemberInRealmBlocking(final Alias alias, String realmId) {
+        return createMemberInRealm(alias, realmId).blockingSingle();
     }
 
     /**
@@ -207,6 +247,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster(),
                                 browserFactory);
@@ -230,6 +271,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster(),
                                 browserFactory);
@@ -272,6 +314,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster(),
                                 browserFactory);
@@ -322,6 +365,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster(),
                                 browserFactory);

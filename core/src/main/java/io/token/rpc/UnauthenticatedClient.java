@@ -72,7 +72,6 @@ import io.token.security.Signer;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -140,18 +139,21 @@ public class UnauthenticatedClient {
      * @param memberType the type of member to register
      * @param tokenRequestId (optional) token request id
      * @param partnerId ID of partner member
+     * @param realmId member id of the Member to which this new member will belong
      * @return newly created member id
      */
     public Observable<String> createMemberId(
             CreateMemberType memberType,
             @Nullable String tokenRequestId,
-            @Nullable String partnerId) {
+            @Nullable String partnerId,
+            @Nullable String realmId) {
         return
                 toObservable(gateway.createMember(CreateMemberRequest.newBuilder()
                         .setNonce(generateNonce())
                         .setMemberType(memberType)
                         .setTokenRequestId(nullToEmpty(tokenRequestId))
                         .setPartnerId(nullToEmpty(partnerId))
+                        .setRealmId(nullToEmpty(realmId))
                         .build()))
                         .map(new Function<CreateMemberResponse, String>() {
                             public String apply(CreateMemberResponse response) {

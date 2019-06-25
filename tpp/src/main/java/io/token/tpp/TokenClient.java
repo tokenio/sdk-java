@@ -120,13 +120,27 @@ public class TokenClient extends io.token.TokenClient {
      *
      * @param alias nullable member alias to use, must be unique. If null, then no alias will
      *     be created with the member.
+     * @param partnerId ID of partner member.
+     * @return newly created member
+     */
+    public Observable<Member> createMember(final Alias alias, String partnerId) {
+        return createMember(alias, partnerId, null);
+    }
+
+    /**
+     * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
      * @param partnerId ID of partner member
+     * @param realmId member Id of existing member to which this new member is associated with
      * @return newly created member
      */
     public Observable<Member> createMember(
             final Alias alias,
-            @Nullable final String partnerId) {
-        return createMemberImpl(alias, BUSINESS, partnerId, null)
+            @Nullable final String partnerId,
+            @Nullable final String realmId) {
+        return createMemberImpl(alias, BUSINESS, partnerId, null, realmId)
                 .map(new Function<io.token.Member, Member>() {
                     @Override
                     public Member apply(io.token.Member mem) {
@@ -138,6 +152,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }
@@ -168,6 +183,32 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
+     * Creates a new Token member in the provided realm with a set of auto-generated keys, an alias,
+     * and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param realmId member id of an existing Member to whose realm this new member belongs.
+     * @return newly created member
+     */
+    public Observable<Member> createMemberInRealm(final Alias alias, String realmId) {
+        return createMember(alias, null, realmId);
+    }
+
+    /**
+     * Creates a new Token member in the provided realm with a set of auto-generated keys, an alias,
+     * and member type.
+     *
+     * @param alias nullable member alias to use, must be unique. If null, then no alias will
+     *     be created with the member.
+     * @param realmId member id of the Member whose realm this new Member belongs.
+     * @return newly created member
+     */
+    public Member createMemberInRealmBlocking(final Alias alias, String realmId) {
+        return createMemberInRealm(alias, realmId).blockingSingle();
+    }
+
+    /**
      * Sets up a member given a specific ID of a member that already exists in the system. If
      * the member ID already has keys, this will not succeed. Used for testing since this
      * gives more control over the member creation process.
@@ -190,6 +231,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }
@@ -212,6 +254,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }
@@ -253,6 +296,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }
@@ -302,6 +346,7 @@ public class TokenClient extends io.token.TokenClient {
                         return new Member(
                                 mem.memberId(),
                                 mem.partnerId(),
+                                mem.realmId(),
                                 client,
                                 mem.getTokenCluster());
                     }

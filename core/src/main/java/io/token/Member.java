@@ -72,6 +72,7 @@ import javax.annotation.Nullable;
 public class Member {
     protected final String memberId;
     protected final String partnerId;
+    protected final String realmId;
     protected final Client client;
     protected final TokenCluster cluster;
 
@@ -86,10 +87,12 @@ public class Member {
     protected Member(
             String memberId,
             @Nullable String partnerId,
+            @Nullable String realmId,
             Client client,
             TokenCluster cluster) {
         this.memberId = memberId;
         this.partnerId = partnerId;
+        this.realmId = realmId;
         this.client = client;
         this.cluster = cluster;
     }
@@ -111,6 +114,16 @@ public class Member {
     @Nullable
     public String partnerId() {
         return partnerId;
+    }
+
+    /**
+     * Gets member ID of realm owner.
+     *
+     * @return realm owner member ID
+     */
+    @Nullable
+    public String realmId() {
+        return realmId;
     }
 
     /**
@@ -278,6 +291,12 @@ public class Member {
                 }
                 alias = alias.toBuilder()
                         .setRealm(partnerId)
+                        .build();
+            }
+
+            if (realmId != null) {
+                alias = alias.toBuilder()
+                        .setRealmId(realmId)
                         .build();
             }
 
