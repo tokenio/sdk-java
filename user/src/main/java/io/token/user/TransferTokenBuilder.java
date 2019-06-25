@@ -32,11 +32,13 @@ import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
@@ -106,6 +108,8 @@ public final class TransferTokenBuilder {
             throw new IllegalArgumentException("No payee on token request");
         }
         this.member = member;
+        TokenRequestPayload.TransferBody transferBody = tokenRequest.getRequestPayload()
+                .getTransferBody();
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setRefId(tokenRequest.getRequestPayload().getRefId())
@@ -115,27 +119,14 @@ public final class TransferTokenBuilder {
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
                 .setTokenRequestId(tokenRequest.getId())
                 .setTransfer(TransferBody.newBuilder()
-                        .setLifetimeAmount(tokenRequest
-                                .getRequestPayload()
-                                .getTransferBody()
-                                .getLifetimeAmount())
-                        .setCurrency(tokenRequest
-                                .getRequestPayload()
-                                .getTransferBody()
-                                .getCurrency())
-                        .setAmount(tokenRequest.getRequestPayload().getTransferBody().getAmount())
-                        .setInstructions(tokenRequest.getRequestPayload()
-                                .getTransferBody()
-                                .hasInstructions()
-                                ? tokenRequest.getRequestPayload()
-                                        .getTransferBody()
-                                        .getInstructions()
+                        .setLifetimeAmount(transferBody.getLifetimeAmount())
+                        .setCurrency(transferBody.getCurrency())
+                        .setAmount(transferBody.getAmount())
+                        .setInstructions(transferBody.hasInstructions()
+                                ? transferBody.getInstructions()
                                 // for backwards compatibility
                                 : TransferInstructions.newBuilder()
-                                        .addAllDestinations(tokenRequest
-                                                .getRequestPayload()
-                                                .getTransferBody()
-                                                .getDestinationsList())
+                                        .addAllDestinations(transferBody.getDestinationsList())
                                         .build()));
         if (tokenRequest.getRequestPayload().hasActingAs()) {
             this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
