@@ -397,7 +397,7 @@ public class Member extends io.token.Member {
      * @param currency currency code, e.g. "USD"
      * @return transfer token builder
      */
-    public TransferTokenBuilder createTransferToken(double amount, String currency) {
+    public TransferTokenBuilder createTransferTokenBuilder(double amount, String currency) {
         return new TransferTokenBuilder(this, amount, currency);
     }
 
@@ -407,8 +407,45 @@ public class Member extends io.token.Member {
      * @param tokenRequest token request
      * @return transfer token builder
      */
-    public TransferTokenBuilder createTransferToken(TokenRequest tokenRequest) {
+    public TransferTokenBuilder createTransferTokenBuilder(TokenRequest tokenRequest) {
         return new TransferTokenBuilder(this, tokenRequest);
+    }
+
+    /**
+     * Creates a new transfer token builder from a token payload.
+     *
+     * @param tokenPayload token payload
+     * @return transfer token builder
+     */
+    public TransferTokenBuilder createTransferTokenBuilder(TokenPayload tokenPayload) {
+        return new TransferTokenBuilder(this, tokenPayload);
+    }
+
+    /**
+     * DEPRECATED: Use {@link Member#createTransferTokenBuilder(double, String)} instead.
+     *
+     * <p>Creates a new transfer token builder.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @return transfer token builder
+     */
+    @Deprecated
+    public TransferTokenBuilder createTransferToken(double amount, String currency) {
+        return createTransferTokenBuilder(amount, currency);
+    }
+
+    /**
+     * DEPRECATED: Use {@link Member#createTransferTokenBuilder(TokenRequest)} instead.
+     *
+     * <p>Creates a new transfer token builder from a token request.
+     *
+     * @param tokenRequest token request
+     * @return transfer token builder
+     */
+    @Deprecated
+    public TransferTokenBuilder createTransferToken(TokenRequest tokenRequest) {
+        return createTransferTokenBuilder(tokenRequest);
     }
 
     /**
@@ -439,11 +476,14 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a new transfer token builder from a token request.
+     * DEPRECATED: Use {@link Member#createTransferTokenBuilder(TokenRequest)} instead.
+     *
+     * <p>Creates a new transfer token builder from a token request.
      *
      * @param tokenRequest token request
      * @return transfer token builder
      */
+    @Deprecated
     public TransferTokenBuilder createTransferTokenBlocking(TokenRequest tokenRequest) {
         return createTransferToken(tokenRequest);
     }
@@ -1783,5 +1823,24 @@ public class Member extends io.token.Member {
                         return new Account(Member.this, account, client);
                     }
                 });
+    }
+
+    /**
+     * Sets the app's callback url.
+     *
+     * @param appCallbackUrl the app callback url to set
+     * @return completable
+     */
+    public Completable setAppCallbackUrl(String appCallbackUrl) {
+        return client.setAppCallbackUrl(appCallbackUrl);
+    }
+
+    /**
+     * Sets the app's callback url.
+     *
+     * @param appCallbackUrl the app callback url to set
+     */
+    public void setAppCallbackUrlBlocking(String appCallbackUrl) {
+        client.setAppCallbackUrl(appCallbackUrl).blockingAwait();
     }
 }
