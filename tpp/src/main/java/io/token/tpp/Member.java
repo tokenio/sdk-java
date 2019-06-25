@@ -37,7 +37,6 @@ import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
-import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -74,9 +73,10 @@ public class Member extends io.token.Member implements Representable {
     Member(
             String memberId,
             @Nullable String partnerId,
+            @Nullable String realmId,
             Client client,
             TokenCluster cluster) {
-        super(memberId, partnerId, client, cluster);
+        super(memberId, partnerId, realmId, client, cluster);
         this.client = client;
     }
 
@@ -98,26 +98,6 @@ public class Member extends io.token.Member implements Representable {
      */
     public MemberProtos.Profile setProfileBlocking(MemberProtos.Profile profile) {
         return setProfile(profile).blockingSingle();
-    }
-
-    /**
-     * Gets a member's public profile. Unlike setProfile, you can get another member's profile.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @return their profile
-     */
-    public Observable<MemberProtos.Profile> getProfile(String memberId) {
-        return client.getProfile(memberId);
-    }
-
-    /**
-     * Gets a member's public profile.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @return profile info
-     */
-    public MemberProtos.Profile getProfileBlocking(String memberId) {
-        return getProfile(memberId).blockingSingle();
     }
 
     /**
@@ -149,28 +129,6 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
-     * Gets a member's public profile picture. Unlike set, you can get another member's picture.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @param size desired size category (small, medium, large, original)
-     * @return blob with picture; empty blob (no fields set) if has no picture
-     */
-    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
-        return client.getProfilePicture(memberId, size);
-    }
-
-    /**
-     * Gets a member's public profile picture.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @param size Size category desired (small/medium/large/original)
-     * @return blob with picture; empty blob (no fields set) if has no picture
-     */
-    public Blob getProfilePictureBlocking(String memberId, ProfilePictureSize size) {
-        return getProfilePicture(memberId, size).blockingSingle();
-    }
-
-    /**
      * Links a funding bank account to Token and returns it to the caller.
      *
      * @return list of accounts
@@ -179,7 +137,7 @@ public class Member extends io.token.Member implements Representable {
         return getAccountsImpl()
                 .map(new Function<List<io.token.Account>, List<Account>>() {
                     @Override
-                    public List<Account> apply(List<io.token.Account> accs)  {
+                    public List<Account> apply(List<io.token.Account> accs) {
                         List<Account> accounts = Lists.newArrayList();
                         for (io.token.Account acc : accs) {
                             accounts.add(new Account(acc, Member.this));
@@ -269,7 +227,7 @@ public class Member extends io.token.Member implements Representable {
 
     Member forAccessTokenInternal(String tokenId, boolean customerInitiated) {
         Client cloned = client.forAccessToken(tokenId, customerInitiated);
-        return new Member(memberId, partnerId, cloned, cluster);
+        return new Member(memberId, partnerId, realmId, cloned, cluster);
     }
 
     /**

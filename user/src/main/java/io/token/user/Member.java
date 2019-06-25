@@ -47,11 +47,9 @@ import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.bank.BankProtos.BankInfo;
-import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Profile;
-import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
@@ -65,7 +63,6 @@ import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -107,10 +104,11 @@ public class Member extends io.token.Member {
     Member(
             String memberId,
             @Nullable String partnerId,
+            @Nullable String realmId,
             Client client,
             TokenCluster cluster,
             BrowserFactory browserFactory) {
-        super(memberId, partnerId, client, cluster);
+        super(memberId, partnerId, realmId, client, cluster);
         this.client = client;
         this.browserFactory = browserFactory;
     }
@@ -1509,26 +1507,6 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Gets a member's public profile. Unlike setProfile, you can get another member's profile.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @return their profile
-     */
-    public Observable<Profile> getProfile(String memberId) {
-        return client.getProfile(memberId);
-    }
-
-    /**
-     * Gets a member's public profile.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @return profile info
-     */
-    public Profile getProfileBlocking(String memberId) {
-        return getProfile(memberId).blockingSingle();
-    }
-
-    /**
      * Replaces auth'd member's public profile picture.
      *
      * @param type MIME type of picture
@@ -1554,28 +1532,6 @@ public class Member extends io.token.Member {
      */
     public void setProfilePictureBlocking(final String type, byte[] data) {
         setProfilePicture(type, data).blockingAwait();
-    }
-
-    /**
-     * Gets a member's public profile picture. Unlike set, you can get another member's picture.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @param size desired size category (small, medium, large, original)
-     * @return blob with picture; empty blob (no fields set) if has no picture
-     */
-    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
-        return client.getProfilePicture(memberId, size);
-    }
-
-    /**
-     * Gets a member's public profile picture.
-     *
-     * @param memberId member ID of member whose profile we want
-     * @param size Size category desired (small/medium/large/original)
-     * @return blob with picture; empty blob (no fields set) if has no picture
-     */
-    public Blob getProfilePictureBlocking(String memberId, ProfilePictureSize size) {
-        return getProfilePicture(memberId, size).blockingSingle();
     }
 
     /**
@@ -1631,8 +1587,7 @@ public class Member extends io.token.Member {
      * @return completable that indicates whether the operation finished or had an error
      */
     public Completable unsubscribeFromNotifications(String subscriberId) {
-        return client
-                .unsubscribeFromNotifications(subscriberId);
+        return client.unsubscribeFromNotifications(subscriberId);
     }
 
     /**

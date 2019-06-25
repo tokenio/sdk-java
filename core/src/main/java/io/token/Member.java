@@ -28,18 +28,17 @@ import static io.token.util.Util.TOKEN_REALM;
 import static java.util.Collections.singletonList;
 import static org.apache.commons.lang3.builder.ToStringBuilder.reflectionToString;
 
-import com.google.common.io.BaseEncoding;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenClient.TokenCluster;
 import io.token.exceptions.InvalidRealmException;
 import io.token.exceptions.NoAliasesFoundException;
-import io.token.exceptions.NoRealmFoundException;
 import io.token.proto.PagedList;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.eidas.EidasProtos;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos;
@@ -49,6 +48,8 @@ import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberRemoveKeyOperation;
+import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -73,6 +74,7 @@ import javax.annotation.Nullable;
 public class Member {
     protected final String memberId;
     protected final String partnerId;
+    protected final String realmId;
     protected final Client client;
     protected final TokenCluster cluster;
 
@@ -87,10 +89,12 @@ public class Member {
     protected Member(
             String memberId,
             @Nullable String partnerId,
+            @Nullable String realmId,
             Client client,
             TokenCluster cluster) {
         this.memberId = memberId;
         this.partnerId = partnerId;
+        this.realmId = realmId;
         this.client = client;
         this.cluster = cluster;
     }
@@ -112,6 +116,16 @@ public class Member {
     @Nullable
     public String partnerId() {
         return partnerId;
+    }
+
+    /**
+     * Gets member ID of realm owner.
+     *
+     * @return realm owner member ID
+     */
+    @Nullable
+    public String realmId() {
+        return realmId;
     }
 
     /**
@@ -279,6 +293,12 @@ public class Member {
                 }
                 alias = alias.toBuilder()
                         .setRealm(partnerId)
+                        .build();
+            }
+
+            if (realmId != null) {
+                alias = alias.toBuilder()
+                        .setRealmId(realmId)
                         .build();
             }
             operations.add(Util.toAddAliasOperation(alias));
@@ -628,6 +648,48 @@ public class Member {
     }
 
     /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return their profile
+     */
+    public Observable<Profile> getProfile(String memberId) {
+        return client.getProfile(memberId);
+    }
+
+    /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return profile info
+     */
+    public Profile getProfileBlocking(String memberId) {
+        return getProfile(memberId).blockingSingle();
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @param size desired size category (small, medium, large, original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
+        return client.getProfilePicture(memberId, size);
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @param size Size category desired (small/medium/large/original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Blob getProfilePictureBlocking(String memberId, ProfilePictureSize size) {
+        return getProfilePicture(memberId, size).blockingSingle();
+    }
+
+    /**
      * Signs a token payload.
      *
      * @param payload token payload
@@ -809,7 +871,7 @@ public class Member {
     /**
      * Delete the member.
      */
-    public void deleteMemberBlocking()  {
+    public void deleteMemberBlocking() {
         deleteMember().blockingAwait();
     }
 

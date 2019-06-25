@@ -31,14 +31,13 @@ import io.reactivex.Observable;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.token.TokenProtos.TransferBody;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -114,6 +113,7 @@ public final class TransferTokenBuilder {
                 .setTo(tokenRequest.getRequestPayload().getTo())
                 .setDescription(tokenRequest.getRequestPayload().getDescription())
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
+                .setTokenRequestId(tokenRequest.getId())
                 .setTransfer(TransferBody.newBuilder()
                         .setLifetimeAmount(tokenRequest
                                 .getRequestPayload()
@@ -365,6 +365,20 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder setReceiptRequested(boolean receiptRequested) {
         payload.setReceiptRequested(receiptRequested);
+        return this;
+    }
+
+    /**
+     * Sets provider transfer metadata.
+     *
+     * @param metadata the metadata
+     * @return the provider transfer metadata
+     */
+    public TransferTokenBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .getMetadataBuilder()
+                .setProviderTransferMetadata(metadata);
         return this;
     }
 

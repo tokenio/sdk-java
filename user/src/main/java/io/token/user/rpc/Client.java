@@ -158,25 +158,6 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
-     * Gets a member's public profile.
-     *
-     * @param memberId member Id whose profile we want
-     * @return their profile text
-     */
-    public Observable<Profile> getProfile(String memberId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .getProfile(GetProfileRequest.newBuilder()
-                        .setMemberId(memberId)
-                        .build()))
-                .map(new Function<GetProfileResponse, Profile>() {
-                    public Profile apply(GetProfileResponse response) {
-                        return response.getProfile();
-                    }
-                });
-    }
-
-    /**
      * Replaces a member's public profile picture.
      *
      * @param payload Picture data
@@ -188,27 +169,6 @@ public final class Client extends io.token.rpc.Client {
                 .setProfilePicture(SetProfilePictureRequest.newBuilder()
                         .setPayload(payload)
                         .build()));
-    }
-
-    /**
-     * Gets a member's public profile picture.
-     *
-     * @param memberId member Id whose profile we want
-     * @param size size category we want (small, medium, large, original)
-     * @return blob with picture; empty blob (no fields set) if has no picture
-     */
-    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .getProfilePicture(Gateway.GetProfilePictureRequest.newBuilder()
-                        .setMemberId(memberId)
-                        .setSize(size)
-                        .build()))
-                .map(new Function<GetProfilePictureResponse, Blob>() {
-                    public Blob apply(GetProfilePictureResponse response) {
-                        return response.getBlob();
-                    }
-                });
     }
 
     /**

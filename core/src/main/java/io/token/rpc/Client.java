@@ -42,6 +42,7 @@ import io.token.proto.banklink.Banklink.OauthBankAuthorization;
 import io.token.proto.common.account.AccountProtos.Account;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
+import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasStatus;
 import io.token.proto.common.member.MemberProtos.Member;
@@ -50,6 +51,8 @@ import io.token.proto.common.member.MemberProtos.MemberOperationMetadata;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation.Authorization;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryRulesOperation;
 import io.token.proto.common.member.MemberProtos.MemberUpdate;
+import io.token.proto.common.member.MemberProtos.Profile;
+import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
@@ -83,6 +86,10 @@ import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAgentResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.GetProfilePictureRequest;
+import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
+import io.token.proto.gateway.Gateway.GetProfileRequest;
+import io.token.proto.gateway.Gateway.GetProfileResponse;
 import io.token.proto.gateway.Gateway.GetTransactionRequest;
 import io.token.proto.gateway.Gateway.GetTransactionResponse;
 import io.token.proto.gateway.Gateway.GetTransactionsRequest;
@@ -246,6 +253,46 @@ public class Client {
                                                 .setMemberId(memberId)
                                                 .setSignature(signer.sign(update)))
                                         .build()));
+                    }
+                });
+    }
+
+    /**
+     * Gets a member's public profile.
+     *
+     * @param memberId member Id whose profile we want
+     * @return their profile text
+     */
+    public Observable<Profile> getProfile(String memberId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfile(GetProfileRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(new Function<GetProfileResponse, Profile>() {
+                    public Profile apply(GetProfileResponse response) {
+                        return response.getProfile();
+                    }
+                });
+    }
+
+    /**
+     * Gets a member's public profile picture.
+     *
+     * @param memberId member Id whose profile we want
+     * @param size size category we want (small, medium, large, original)
+     * @return blob with picture; empty blob (no fields set) if has no picture
+     */
+    public Observable<Blob> getProfilePicture(String memberId, ProfilePictureSize size) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfilePicture(GetProfilePictureRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .setSize(size)
+                        .build()))
+                .map(new Function<GetProfilePictureResponse, Blob>() {
+                    public Blob apply(GetProfilePictureResponse response) {
+                        return response.getBlob();
                     }
                 });
     }

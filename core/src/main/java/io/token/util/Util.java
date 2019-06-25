@@ -117,7 +117,8 @@ public class Util {
                 .setAddAlias(MemberAliasOperation
                         .newBuilder()
                         .setAliasHash(normalizeAndHash(alias))
-                        .setRealm(alias.getRealm()))
+                        .setRealm(alias.getRealm())
+                        .setRealmId(alias.getRealmId()))
                 .build();
     }
 

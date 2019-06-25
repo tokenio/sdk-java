@@ -184,17 +184,19 @@ public class TokenClient implements Closeable {
      *     be created with the member.
      * @param memberType the type of member to register
      * @param partnerId ID of the partner member
-     * @param recoveryAgent member id of the primary recovery agent.
+     * @param recoveryAgent member id of the primary recovery agent
+     * @param realmId member id of an existing Member to whom the new member belongs.
      * @return newly created member
      */
     protected Observable<Member> createMemberImpl(
             final Alias alias,
             final CreateMemberType memberType,
             @Nullable String partnerId,
-            @Nullable final String recoveryAgent) {
+            @Nullable final String recoveryAgent,
+            @Nullable final String realmId) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
-                .createMemberId(memberType, null, partnerId)
+                .createMemberId(memberType, null, partnerId, realmId)
                 .flatMap(new Function<String, Observable<Member>>() {
                     public Observable<Member> apply(String memberId) {
                         return setUpMemberImpl(alias, memberId, recoveryAgent);
@@ -254,6 +256,7 @@ public class TokenClient implements Closeable {
                         return Observable.just(new Member(
                                 member.getId(),
                                 member.getPartnerId(),
+                                member.getRealmId(),
                                 null,
                                 tokenCluster));
                     }
@@ -270,7 +273,7 @@ public class TokenClient implements Closeable {
      * @param client client
      * @return member
      */
-    protected Observable<Member> getMemberImpl(String memberId, final Client client) {
+    protected Observable<Member> getMemberImpl(final String memberId, final Client client) {
         return client
                 .getMember(memberId)
                 .map(new Function<MemberProtos.Member, Member>() {
@@ -278,6 +281,7 @@ public class TokenClient implements Closeable {
                         return new Member(
                                 member.getId(),
                                 member.getPartnerId(),
+                                member.getRealmId(),
                                 null,
                                 tokenCluster);
                     }
@@ -309,6 +313,7 @@ public class TokenClient implements Closeable {
                         return new Member(
                                 member.getId(),
                                 member.getPartnerId(),
+                                member.getRealmId(),
                                 null,
                                 tokenCluster);
                     }
@@ -340,6 +345,7 @@ public class TokenClient implements Closeable {
                         return new Member(
                                 member.getId(),
                                 member.getPartnerId(),
+                                member.getRealmId(),
                                 null,
                                 tokenCluster);
                     }
