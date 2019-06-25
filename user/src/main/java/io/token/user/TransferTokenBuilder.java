@@ -124,12 +124,19 @@ public final class TransferTokenBuilder {
                                 .getTransferBody()
                                 .getCurrency())
                         .setAmount(tokenRequest.getRequestPayload().getTransferBody().getAmount())
-                        .setInstructions(TransferInstructions.newBuilder()
-                                .addAllDestinations(tokenRequest
-                                        .getRequestPayload()
+                        .setInstructions(tokenRequest.getRequestPayload()
+                                .getTransferBody()
+                                .hasInstructions()
+                                ? tokenRequest.getRequestPayload()
                                         .getTransferBody()
-                                        .getDestinationsList()))
-                        .build());
+                                        .getInstructions()
+                                // for backwards compatibility
+                                : TransferInstructions.newBuilder()
+                                        .addAllDestinations(tokenRequest
+                                                .getRequestPayload()
+                                                .getTransferBody()
+                                                .getDestinationsList())
+                                        .build()));
         if (tokenRequest.getRequestPayload().hasActingAs()) {
             this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
         }
