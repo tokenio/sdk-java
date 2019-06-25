@@ -799,6 +799,20 @@ public final class Client extends io.token.rpc.Client {
                         .build()));
     }
 
+    /**
+     * Sets the app's callback url.
+     *
+     * @param appCallbackUrl the app callback url to set
+     * @return completable
+     */
+    public Completable setAppCallbackUrl(String appCallbackUrl) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .setAppCallbackUrl(Gateway.SetAppCallbackUrlRequest.newBuilder()
+                        .setAppCallbackUrl(appCallbackUrl)
+                        .build()));
+    }
+
     private Observable<TokenOperationResult> cancelAndReplace(
             Token tokenToCancel,
             CreateToken.Builder createToken) {

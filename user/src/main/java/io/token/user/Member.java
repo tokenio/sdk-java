@@ -1821,4 +1821,23 @@ public class Member extends io.token.Member {
                     }
                 });
     }
+
+    /**
+     * Sets the app's callback url.
+     *
+     * @param appCallbackUrl the app callback url to set
+     * @return completable
+     */
+    public Completable setAppCallbackUrl(String appCallbackUrl) {
+        return client.setAppCallbackUrl(appCallbackUrl);
+    }
+
+    /**
+     * Sets the app's callback url.
+     *
+     * @param appCallbackUrl the app callback url to set
+     */
+    public void setAppCallbackUrlBlocking(String appCallbackUrl) {
+        client.setAppCallbackUrl(appCallbackUrl).blockingAwait();
+    }
 }
