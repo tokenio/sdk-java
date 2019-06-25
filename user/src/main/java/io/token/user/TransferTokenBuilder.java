@@ -24,6 +24,7 @@ package io.token.user;
 
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.BANK;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
+import static io.token.proto.common.token.TokenProtos.TokenPayload.BodyCase.TRANSFER;
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.TRANSFER_BODY;
 import static io.token.util.Util.generateNonce;
 
@@ -113,7 +114,9 @@ public final class TransferTokenBuilder {
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setRefId(tokenRequest.getRequestPayload().getRefId())
-                .setFrom(tokenRequest.getRequestOptions().getFrom())
+                .setFrom(tokenRequest.getRequestOptions().hasFrom()
+                        ? tokenRequest.getRequestOptions().getFrom()
+                        : TokenMember.newBuilder().setId(member.memberId()).build())
                 .setTo(tokenRequest.getRequestPayload().getTo())
                 .setDescription(tokenRequest.getRequestPayload().getDescription())
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
@@ -132,6 +135,27 @@ public final class TransferTokenBuilder {
             this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
         }
         this.tokenRequestId = tokenRequest.getId();
+    }
+
+    /**
+     * Creates the builder object from a token payload.
+     *
+     * @param member payer of the token
+     * @param tokenPayload token payload
+     */
+    public TransferTokenBuilder(Member member, TokenPayload tokenPayload) {
+        if (tokenPayload.getBodyCase() != TRANSFER) {
+            throw new IllegalArgumentException("Require token payload with transfer body.");
+        }
+        if (!tokenPayload.hasTo()) {
+            throw new IllegalArgumentException("No payee on token payload");
+        }
+        this.member = member;
+        this.payload = tokenPayload.toBuilder();
+
+        if (!this.payload.hasFrom()) {
+            this.payload.setFrom(TokenMember.newBuilder().setId(member.memberId()));
+        }
     }
 
     /**
