@@ -360,6 +360,7 @@ public final class TransferTokenBuilder {
      * @return builder
      */
     public TransferTokenBuilder setTokenRequestId(String tokenRequestId) {
+        payload.setTokenRequestId(tokenRequestId);
         this.tokenRequestId = tokenRequestId;
         return this;
     }
