@@ -39,8 +39,6 @@ import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.BankInfo;
 import io.token.proto.common.blob.BlobProtos.Blob;
-import io.token.proto.common.eidas.EidasProtos;
-import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberAliasOperation;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -440,24 +438,6 @@ public class Member {
      */
     public Completable verifyAlias(String verificationId, String code) {
         return client.verifyAlias(verificationId, code);
-    }
-
-    /**
-     * Verifies eIDAS alias with an eIDAS certificate, containing auth number equal to the value
-     * of the alias.
-     * An eIDAS-type alias containing auth number of the TPP should be added to the
-     * member before making this call. The member must be under the realm of a bank.
-     *
-     * @param payload payload containing the member id and the certificate in PEM format
-     * @param signature the payload signed with a private key corresponding to the certificate
-     *     public key using "SHA1withDSA" algorithm
-     *     // TODO: include the algorithm in the payload?
-     * @return a status of the verification process
-     */
-    public Observable<EidasProtos.VerifyEidasStatus> verifyEidas(
-            VerifyEidasPayload payload,
-            String signature) {
-        return client.verifyEidas(payload, signature);
     }
 
     /**
