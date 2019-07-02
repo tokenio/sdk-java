@@ -31,6 +31,7 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Blob;
+import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
@@ -68,6 +69,7 @@ import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
 import io.token.proto.gateway.Gateway.StoreTokenRequestResponse;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
+import io.token.proto.gateway.Gateway.VerifyEidasRequest;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
@@ -478,6 +480,24 @@ public final class Client extends io.token.rpc.Client {
                         return response.getStatus();
                     }
                 });
+    }
+
+    /**
+     * Verifies eIDAS certificate.
+     *
+     * @param payload payload containing member id and the certificate
+     * @param signature payload signed with the private key corresponding to the certificate
+     * @return a completable
+     */
+    public Completable verifyEidas(
+            VerifyEidasPayload payload,
+            String signature) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .verifyEidas(VerifyEidasRequest.newBuilder()
+                        .setPayload(payload)
+                        .setSignature(signature)
+                        .build()));
     }
 
     @Override

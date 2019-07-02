@@ -299,7 +299,6 @@ public class Member {
                         .setRealmId(realmId)
                         .build();
             }
-
             operations.add(Util.toAddAliasOperation(alias));
             metadata.add(Util.toAddAliasOperationMetadata(alias));
         }

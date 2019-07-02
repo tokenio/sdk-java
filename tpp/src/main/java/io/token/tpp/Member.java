@@ -36,6 +36,7 @@ import io.token.TokenClient.TokenCluster;
 import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
+import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -1049,5 +1050,21 @@ public class Member extends io.token.Member implements Representable {
      */
     public Account createTestBankAccountBlocking(double balance, String currency) {
         return createTestBankAccount(balance, currency).blockingSingle();
+    }
+
+    /**
+     * Verifies eIDAS alias with an eIDAS certificate, containing auth number equal to the value
+     * of the alias.
+     * An eIDAS-type alias containing auth number of the TPP should be added to the
+     * member before making this call. The member must be under the realm of a bank.
+     *
+     * @param payload payload containing the member id and the certificate in PEM format
+     * @param signature the payload signed with a private key corresponding to the certificate
+     * @return a completable
+     */
+    public Completable verifyEidas(
+            VerifyEidasPayload payload,
+            String signature) {
+        return client.verifyEidas(payload, signature);
     }
 }

@@ -159,7 +159,6 @@ public class TokenClient extends io.token.TokenClient {
                 });
     }
 
-
     /**
      * Creates a new Token member with a set of auto-generated keys, an alias, and member type.
      *
