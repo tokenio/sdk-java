@@ -352,5 +352,19 @@ public abstract class TokenRequest {
                     .build();
             return this;
         }
+
+        /**
+         * Adds information about source.
+         *
+         * @param source endpoint from where the transfer is initiated
+         * @return builder
+         */
+        public TransferBuilder addSource(TransferEndpoint source) {
+            this.requestPayload
+                    .getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .setSource(source);
+            return this;
+        }
     }
 }
