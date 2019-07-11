@@ -24,6 +24,7 @@ package io.token.user;
 
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
+import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.user.util.Util.generateNonce;
 import static io.token.user.util.Util.getWebAppUrl;
 import static io.token.user.util.Util.parseOauthAccessToken;
@@ -53,6 +54,7 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.Notification.Status;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -66,6 +68,7 @@ import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
+import io.token.proto.gateway.Gateway.UpdateNotificationStatusRequest;
 import io.token.user.browser.Browser;
 import io.token.user.browser.BrowserFactory;
 import io.token.user.rpc.Client;
@@ -1619,6 +1622,27 @@ public class Member extends io.token.Member {
      */
     public Notification getNotificationBlocking(String notificationId) {
         return getNotification(notificationId).blockingSingle();
+    }
+
+    /**
+     * Updates the status of a notification.
+     *
+     * @param notificationId the notification id to update
+     * @param status the status to update
+     * @return nothing
+     */
+    public Completable updateNotificationStatus(String notificationId, Status status) {
+        return client.updateNotificationStatus(notificationId, status);
+    }
+
+    /**
+     * Updates the status of a notification.
+     *
+     * @param notificationId the notification id to update
+     * @param status the status to update
+     */
+    public void updateNotificationStatusBlocking(String notificationId, Status status) {
+        updateNotificationStatus(notificationId, status).blockingAwait();
     }
 
     /**
