@@ -81,6 +81,7 @@ public class Member {
      *
      * @param memberId member ID
      * @param partnerId member ID of the partner, if applicable
+     * @param realmId the realm id
      * @param client RPC client used to perform operations against the server
      * @param cluster Token cluster, e.g. sandbox, production
      */

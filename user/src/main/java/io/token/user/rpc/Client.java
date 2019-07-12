@@ -39,6 +39,7 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.ReceiptContact;
 import io.token.proto.common.notification.NotificationProtos.Notification;
+import io.token.proto.common.notification.NotificationProtos.Notification.Status;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
@@ -107,6 +108,7 @@ import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
 import io.token.proto.gateway.Gateway.UnsubscribeFromNotificationsRequest;
+import io.token.proto.gateway.Gateway.UpdateNotificationStatusRequest;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
@@ -672,6 +674,23 @@ public final class Client extends io.token.rpc.Client {
                                 response.getOffset());
                     }
                 });
+    }
+
+    /**
+     * Updates the status of a notification.
+     *
+     * @param notificationId the notification id to update
+     * @param status the status to update
+     * @return nothing
+     */
+    public Completable updateNotificationStatus(String notificationId, Status status) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .updateNotificationStatus(UpdateNotificationStatusRequest
+                        .newBuilder()
+                        .setNotificationId(notificationId)
+                        .setStatus(status)
+                        .build()));
     }
 
     /**
