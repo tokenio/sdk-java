@@ -10,14 +10,13 @@ buildscript {
         maven { url 'https://plugins.gradle.org/m2/' }
     }
     dependencies {
-        classpath 'io.token.gradle:token-gradle:1.1.8'
+        classpath 'io.token.gradle:token-gradle:1.1.12'
         classpath 'net.ltgt.gradle:gradle-apt-plugin:0.21'
-        classpath 'com.github.ben-manes:gradle-versions-plugin:0.14.0'
+        classpath 'com.github.ben-manes:gradle-versions-plugin:0.21.0'
         classpath 'gradle.plugin.nl.javadude.gradle.plugins:license-gradle-plugin:0.14.0'
-        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.5.4'
-        classpath 'com.android.tools.build:gradle:3.1.0'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.0'
-        classpath 'com.google.code.gson:gson:2.8.2'
+        classpath 'org.jfrog.buildinfo:build-info-extractor-gradle:4.9.7'
+        classpath 'com.android.tools.build:gradle:3.4.2'
+        classpath 'com.google.code.gson:gson:2.8.5'
     }
 }
 
@@ -25,12 +24,12 @@ allprojects {
     ext {
         ver = [
             tokenProto           : '1.1.121',
-            tokenRpc             : '1.1.44',
-            tokenSecurity        : '1.1.7',
+            tokenRpc             : '1.1.45',
+            tokenSecurity        : '1.1.13',
             rxjava               : '2.1.1',
         ]
     }
 
     group = 'io.token.sdk'
-    version = '2.1.9'
+    version = '2.2.0'
 }
