@@ -59,7 +59,9 @@ import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenSignature.Action;
+import io.token.proto.common.transaction.TransactionProtos;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
+import io.token.proto.common.transaction.TransactionProtos.StandingOrder;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.gateway.Gateway;
@@ -88,6 +90,8 @@ import io.token.proto.gateway.Gateway.GetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.GetProfileRequest;
 import io.token.proto.gateway.Gateway.GetProfileResponse;
+import io.token.proto.gateway.Gateway.GetStandingOrderRequest;
+import io.token.proto.gateway.Gateway.GetStandingOrdersRequest;
 import io.token.proto.gateway.Gateway.GetTransactionRequest;
 import io.token.proto.gateway.Gateway.GetTransactionResponse;
 import io.token.proto.gateway.Gateway.GetTransactionsRequest;
@@ -459,6 +463,66 @@ public class Client {
                         } else {
                             throw new StepUpRequiredException("Transactions step up required.");
                         }
+                    }
+                });
+    }
+
+    /**
+     * Look up an existing standing order and return the response.
+     *
+     * @param accountId account ID
+     * @param standingOrderId standing order ID
+     * @param keyLevel key level
+     * @return transaction
+     */
+    public Observable<StandingOrder> getStandingOrder(
+            String accountId,
+            String standingOrderId,
+            Key.Level keyLevel) {
+        return toObservable(gateway
+                .withAuthentication(onBehalfOf(keyLevel))
+                .getStandingOrder(GetStandingOrderRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .setStandingOrderId(standingOrderId)
+                        .build()))
+                .map(response -> {
+                    if (response.getStatus() == SUCCESSFUL_REQUEST) {
+                        return response.getStandingOrder();
+                    } else {
+                        throw new StepUpRequiredException("Step up required.");
+                    }
+                });
+    }
+
+    /**
+     * Look up standing orders and return response.
+     *
+     * @param accountId account ID
+     * @param offset offset
+     * @param limit limit
+     * @param keyLevel key level
+     * @return paged list of standing orders
+     */
+    public Observable<PagedList<StandingOrder, String>> getStandingOrders(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        return toObservable(gateway
+                .withAuthentication(onBehalfOf(keyLevel))
+                .getStandingOrders(GetStandingOrdersRequest
+                        .newBuilder()
+                        .setAccountId(accountId)
+                        .setPage(pageBuilder(offset, limit))
+                        .build()))
+                .map(response -> {
+                    if (response.getStatus() == SUCCESSFUL_REQUEST) {
+                        return PagedList.create(
+                                response.getStandingOrdersList(),
+                                response.getOffset());
+                    } else {
+                        throw new StepUpRequiredException("Step up required.");
                     }
                 });
     }

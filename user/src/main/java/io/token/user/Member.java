@@ -82,6 +82,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -495,6 +496,68 @@ public class Member extends io.token.Member {
      */
     public TransferTokenBuilder createTransferTokenBuilder(TokenPayload tokenPayload) {
         return new TransferTokenBuilder(this, tokenPayload);
+    }
+
+    /**
+     * Creates a new recurring transfer token builder. Defines a recurring payment
+     * for a fixed time span.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param frequency ISO 20022 code for the frequency of the recurring payment:
+     *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
+     * @param startDate start date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @param endDate end date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @return transfer token builder
+     */
+    public RecurringTransferTokenBuilder createRecurringTransferTokenBuilder(
+            double amount,
+            String currency,
+            String frequency,
+            String startDate,
+            String endDate) {
+        return new RecurringTransferTokenBuilder(
+                this,
+                amount,
+                currency,
+                frequency,
+                startDate,
+                Optional.of(endDate));
+    }
+
+    /**
+     * Creates a new indefinite recurring transfer token builder.
+     *
+     * @param amount transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param frequency ISO 20022 code for the frequency of the recurring payment:
+     *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
+     * @param startDate start date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @return transfer token builder
+     */
+    public RecurringTransferTokenBuilder createRecurringTransferTokenBuilder(
+            double amount,
+            String currency,
+            String frequency,
+            String startDate) {
+        return new RecurringTransferTokenBuilder(
+                this,
+                amount,
+                currency,
+                frequency,
+                startDate,
+                Optional.empty());
+    }
+
+    /**
+     * Creates a new recurring transfer token builder from a token request.
+     *
+     * @param tokenRequest token request
+     * @return transfer token builder
+     */
+    public RecurringTransferTokenBuilder createRecurringTransferTokenBuilder(
+            TokenRequest tokenRequest) {
+        return new RecurringTransferTokenBuilder(this, tokenRequest);
     }
 
     /**
@@ -1030,6 +1093,10 @@ public class Member extends io.token.Member {
             @Nullable String description,
             @Nullable TransferDestination destination,
             @Nullable String refId) {
+        if (!token.getPayload().hasTransfer()) {
+            throw new IllegalArgumentException("Expected transfer token; found "
+                    + token.getPayload().getBodyCase());
+        }
         TransferPayload.Builder payload = TransferPayload.newBuilder()
                 .setTokenId(token.getId())
                 .setDescription(token

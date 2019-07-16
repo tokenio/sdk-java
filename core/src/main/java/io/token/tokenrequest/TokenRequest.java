@@ -25,7 +25,9 @@ package io.token.tokenrequest;
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
+import io.token.proto.common.token.TokenProtos.RecurringTransferBody;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
@@ -326,7 +328,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Sets the maximum amount per charge on a transfer token request.
+         * Optional. Sets the maximum amount per charge on a transfer token request.
          *
          * @param chargeAmount amount
          * @return builder
@@ -339,13 +341,120 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Adds metadata for a specific provider.
+         * Optional. Adds metadata for a specific provider.
          *
          * @param metadata provider-specific metadata
          * @return builder
          */
         public TransferBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
             this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .setMetadata(Metadata.newBuilder()
+                            .setProviderTransferMetadata(metadata))
+                    .build();
+            return this;
+        }
+    }
+
+    public static class RecurringTransferBuilder extends Builder<RecurringTransferBuilder> {
+        RecurringTransferBuilder() {
+            this.requestPayload.setRecurringTransferBody(RecurringTransferBody.newBuilder());
+        }
+
+        /**
+         * Sets the amount per charge of the recurring payment.
+         *
+         * @param amount amount per individual charge
+         * @return builder
+         */
+        public RecurringTransferBuilder setAmount(double amount) {
+            this.requestPayload.getRecurringTransferBodyBuilder()
+                    .setAmount(Double.toString(amount));
+            return this;
+        }
+
+        /**
+         * Sets the currency for each charge in the recurring payment.
+         *
+         * @param currency currency
+         * @return builder
+         */
+        public RecurringTransferBuilder setCurrency(String currency) {
+            this.requestPayload.getRecurringTransferBodyBuilder()
+                    .setCurrency(currency);
+            return this;
+        }
+
+        /**
+         * Sets the frequency of the recurring payment. ISO 20022: DAIL, WEEK, TOWK,
+         * MNTH, TOMN, QUTR, SEMI, YEAR
+         *
+         * @param frequency frequency of the recurring payment
+         * @return builder
+         */
+        public RecurringTransferBuilder setFrequency(String frequency) {
+            this.requestPayload.getRecurringTransferBodyBuilder()
+                    .setFrequency(frequency);
+            return this;
+        }
+
+        /**
+         * Sets the start date of the recurring payment. ISO 8601: YYYY-MM-DD or YYYYMMDD.
+         *
+         * @param startDate start date of the recurring payment
+         * @return builder
+         */
+        public RecurringTransferBuilder setStartDate(String startDate) {
+            this.requestPayload.getRecurringTransferBodyBuilder()
+                    .setStartDate(startDate);
+            return this;
+        }
+
+        /**
+         * Sets the end date of the recurring payment. ISO 8601: YYYY-MM-DD or YYYYMMDD.
+         * If not specified, the recurring payment will occur indefinitely.
+         *
+         * @param endDate end date of the recurring payment
+         * @return builder
+         */
+        public RecurringTransferBuilder setEndDate(String endDate) {
+            this.requestPayload.getRecurringTransferBodyBuilder()
+                    .setEndDate(endDate);
+            return this;
+        }
+
+        /**
+         * Adds a transfer destination to a transfer token request.
+         *
+         * @param destination destination
+         * @return builder
+         */
+        public RecurringTransferBuilder addDestination(TransferDestination destination) {
+            this.requestPayload.getRecurringTransferBodyBuilder().getInstructionsBuilder()
+                    .addTransferDestinations(destination);
+            return this;
+        }
+
+        /**
+         * Optional. Sets the destination country in order to narrow down
+         * the country selection in the web-app UI.
+         *
+         * @param destinationCountry destination country
+         * @return builder
+         */
+        public RecurringTransferBuilder setDestinationCountry(String destinationCountry) {
+            this.requestPayload.setDestinationCountry(destinationCountry);
+            return this;
+        }
+
+        /**
+         * Optional. Adds metadata for a specific provider.
+         *
+         * @param metadata provider-specific metadata
+         * @return builder
+         */
+        public RecurringTransferBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
+            this.requestPayload.getRecurringTransferBodyBuilder()
                     .getInstructionsBuilder()
                     .setMetadata(Metadata.newBuilder()
                             .setProviderTransferMetadata(metadata))

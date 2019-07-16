@@ -28,7 +28,9 @@ import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.account.AccountProtos.AccountDetails;
 import io.token.proto.common.account.AccountProtos.AccountFeatures;
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.transaction.TransactionProtos;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
+import io.token.proto.common.transaction.TransactionProtos.StandingOrder;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.rpc.Client;
 
@@ -201,6 +203,62 @@ public class Account {
             int limit,
             Key.Level keyLevel) {
         return getTransactions(offset, limit, keyLevel).blockingSingle();
+    }
+
+    /**
+     * Looks up an existing standing order for a given account.
+     *
+     * @param standingOrderId ID of the standing order
+     * @param keyLevel key level
+     * @return standing order record
+     */
+    public Observable<StandingOrder> getStandingOrder(
+            String standingOrderId,
+            Key.Level keyLevel) {
+        return client.getStandingOrder(account.getId(), standingOrderId, keyLevel);
+    }
+
+    /**
+     * Looks up an existing standing order for a given account.
+     *
+     * @param standingOrderId ID of the standing order
+     * @param keyLevel key level
+     * @return standing order record
+     */
+    public StandingOrder getStandingOrderBlocking(
+            String standingOrderId,
+            Key.Level keyLevel) {
+        return getStandingOrder(standingOrderId, keyLevel).blockingSingle();
+    }
+
+    /**
+     * Looks up standing orders for a given account.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @return a paged list of standing order records
+     */
+    public Observable<PagedList<StandingOrder, String>> getStandingOrders(
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        return client.getStandingOrders(account.getId(), offset, limit, keyLevel);
+    }
+
+    /**
+     * Looks up standing orders for a given account.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @return a paged list of standing order records
+     */
+    public PagedList<StandingOrder, String> getStandingOrdersBlocking(
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel) {
+        return getStandingOrders(offset, limit, keyLevel).blockingSingle();
     }
 
     @Override

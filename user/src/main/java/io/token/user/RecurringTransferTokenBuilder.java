@@ -50,6 +50,7 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,9 +69,6 @@ public final class RecurringTransferTokenBuilder {
     private final Member member;
     private final TokenPayload.Builder payload;
 
-    // Token request ID
-    private String tokenRequestId;
-
     /**
      * Creates the builder object.
      *
@@ -79,19 +77,25 @@ public final class RecurringTransferTokenBuilder {
      * @param currency currency of the token
      * @param frequency ISO 20022 code for the frequency of the recurring payment:
      *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
+     * @param startDate start date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @param endDate end date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
      */
     public RecurringTransferTokenBuilder(
             Member member,
             double amount,
             String currency,
-            String frequency) {
+            String frequency,
+            String startDate,
+            Optional<String> endDate) {
         this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setRecurringTransfer(RecurringTransferBody.newBuilder()
                         .setCurrency(currency)
                         .setAmount(Double.toString(amount))
-                        .setFrequency(frequency));
+                        .setFrequency(frequency)
+                        .setStartDate(startDate)
+                        .setEndDate(endDate.orElse("")));
 
         if (member != null) {
             from(member.memberId());
@@ -133,7 +137,6 @@ public final class RecurringTransferTokenBuilder {
         if (tokenRequest.getRequestPayload().hasActingAs()) {
             this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
         }
-        this.tokenRequestId = tokenRequest.getId();
     }
 
     /**
@@ -334,7 +337,6 @@ public final class RecurringTransferTokenBuilder {
      */
     public RecurringTransferTokenBuilder setTokenRequestId(String tokenRequestId) {
         payload.setTokenRequestId(tokenRequestId);
-        this.tokenRequestId = tokenRequestId;
         return this;
     }
 
