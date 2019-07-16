@@ -25,11 +25,11 @@ allprojects {
         ver = [
             tokenProto           : '1.1.121',
             tokenRpc             : '1.1.45',
-            tokenSecurity        : '1.1.13',
+            tokenSecurity        : '1.1.14',
             rxjava               : '2.1.1',
         ]
     }
 
     group = 'io.token.sdk'
-    version = '2.2.0'
+    version = '2.2.1'
 }
