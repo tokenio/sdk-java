@@ -63,6 +63,8 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
+import io.token.proto.common.transfer.TransferProtos;
+import io.token.proto.common.transfer.TransferProtos.RecurringTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
@@ -234,6 +236,26 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Looks up an existing Token recurring transfer.
+     *
+     * @param recurringTransferId ID of the recurring transfer record
+     * @return recurring transfer record
+     */
+    public Observable<RecurringTransfer> getRecurringTransfer(String recurringTransferId) {
+        return client.getRecurringTransfer(recurringTransferId);
+    }
+
+    /**
+     * Looks up an existing Token recurring transfer.
+     *
+     * @param recurringTransferId ID of the recurring transfer record
+     * @return recurring transfer record
+     */
+    public RecurringTransfer getRecurringTransferBlocking(String recurringTransferId) {
+        return getRecurringTransfer(recurringTransferId).blockingSingle();
+    }
+
+    /**
      * Looks up existing token transfers.
      *
      * @param offset optional offset to start at
@@ -264,6 +286,32 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Looks up existing Token recurring transfers.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @return recurring transfer records
+     */
+    public Observable<PagedList<RecurringTransfer, String>> getRecurringTransfers(
+            @Nullable String offset,
+            int limit) {
+        return client.getRecurringTransfers(offset, limit);
+    }
+
+    /**
+     * Looks up existing Token recurring transfers.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @return recurring transfer records
+     */
+    public PagedList<RecurringTransfer, String> getRecurringTransfersBlocking(
+            @Nullable String offset,
+            int limit) {
+        return getRecurringTransfers(offset, limit).blockingSingle();
+    }
+
+    /**
      * Prepares a transfer token, returning the resolved token payload and policy.
      *
      * @param transferTokenBuilder transfer token builder
@@ -284,6 +332,31 @@ public class Member extends io.token.Member {
     public PrepareTokenResult prepareTransferTokenBlocking(
             TransferTokenBuilder transferTokenBuilder) {
         return prepareTransferToken(transferTokenBuilder).blockingSingle();
+    }
+
+    /**
+     * Prepares a recurring transfer token, returning the resolved token payload
+     * and policy.
+     *
+     * @param builder recurring transfer token builder
+     * @return resolved token payload and policy
+     */
+    public Observable<PrepareTokenResult> prepareRecurringTransferToken(
+            RecurringTransferTokenBuilder builder) {
+        builder.from(memberId());
+        return client.prepareToken(builder.buildPayload());
+    }
+
+    /**
+     * Prepares a recurring transfer token, returning the resolved token payload
+     * and policy.
+     *
+     * @param builder recurring transfer token builder
+     * @return resolved token payload and policy
+     */
+    public PrepareTokenResult prepareRecurringTransferTokenBlocking(
+            RecurringTransferTokenBuilder builder) {
+        return prepareRecurringTransferToken(builder).blockingSingle();
     }
 
     /**
@@ -1279,6 +1352,26 @@ public class Member extends io.token.Member {
             @Nullable String refId) {
         return redeemToken(token, amount, currency, description, destination, refId)
                 .blockingSingle();
+    }
+
+    /**
+     * Redeems a recurring transfer token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return recurring transfer record
+     */
+    public Observable<RecurringTransfer> redeemRecurringTransferToken(String tokenId) {
+        return client.createRecurringTransfer(tokenId);
+    }
+
+    /**
+     * Redeems a recurring transfer token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return recurring transfer record
+     */
+    public RecurringTransfer redeemRecurringTransferTokenBlocking(String tokenId) {
+        return redeemRecurringTransferToken(tokenId).blockingSingle();
     }
 
     /**

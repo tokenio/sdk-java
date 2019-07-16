@@ -43,17 +43,25 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.transfer.TransferProtos;
+import io.token.proto.common.transfer.TransferProtos.RecurringTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateCustomizationRequest;
 import io.token.proto.gateway.Gateway.CreateCustomizationResponse;
+import io.token.proto.gateway.Gateway.CreateRecurringTransferRequest;
+import io.token.proto.gateway.Gateway.CreateRecurringTransferResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
 import io.token.proto.gateway.Gateway.CreateTransferResponse;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenRequest;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
 import io.token.proto.gateway.Gateway.GetBlobRequest;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
+import io.token.proto.gateway.Gateway.GetRecurringTransferRequest;
+import io.token.proto.gateway.Gateway.GetRecurringTransferResponse;
+import io.token.proto.gateway.Gateway.GetRecurringTransfersRequest;
+import io.token.proto.gateway.Gateway.GetRecurringTransfersResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -340,6 +348,26 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
+     * Looks up an existing Token recurring transfer.
+     *
+     * @param recurringTransferId recurring transfer ID
+     * @return recurring transfer records
+     */
+    public Observable<RecurringTransfer> getRecurringTransfer(String recurringTransferId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getRecurringTransfer(GetRecurringTransferRequest
+                        .newBuilder()
+                        .setRecurringTransferId(recurringTransferId)
+                        .build()))
+                .map(new Function<GetRecurringTransferResponse, RecurringTransfer>() {
+                    public RecurringTransfer apply(GetRecurringTransferResponse response) {
+                        return response.getRecurringTransfer();
+                    }
+                });
+    }
+
+    /**
      * Looks up a list of existing transfers.
      *
      * @param offset optional offset to start at
@@ -369,6 +397,35 @@ public final class Client extends io.token.rpc.Client {
                 .map(new Function<GetTransfersResponse, PagedList<Transfer, String>>() {
                     public PagedList<Transfer, String> apply(GetTransfersResponse response) {
                         return PagedList.create(response.getTransfersList(), response.getOffset());
+                    }
+                });
+    }
+
+    /**
+     * Looks up a list of existing recurring transfers.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @return recurring transfer records
+     */
+    public Observable<PagedList<RecurringTransfer, String>> getRecurringTransfers(
+            @Nullable String offset,
+            int limit) {
+        GetRecurringTransfersRequest request = GetRecurringTransfersRequest.newBuilder()
+                .setPage(pageBuilder(offset, limit))
+                .build();
+
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getRecurringTransfers(request))
+                .map(new Function<GetRecurringTransfersResponse,
+                        PagedList<RecurringTransfer, String>>() {
+                    @Override
+                    public PagedList<RecurringTransfer, String> apply(
+                            GetRecurringTransfersResponse response) {
+                        return PagedList.create(
+                                response.getRecurringTransfersList(),
+                                response.getOffset());
                     }
                 });
     }
@@ -411,6 +468,26 @@ public final class Client extends io.token.rpc.Client {
                 .map(new Function<CreateTransferResponse, Transfer>() {
                     public Transfer apply(CreateTransferResponse response) {
                         return response.getTransfer();
+                    }
+                });
+    }
+
+    /**
+     * Redeems a recurring transfer token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return recurring transfer record
+     */
+    public Observable<RecurringTransfer> createRecurringTransfer(String tokenId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .createRecurringTransfer(CreateRecurringTransferRequest.newBuilder()
+                        .setTokenId(tokenId)
+                        .build()))
+                .map(new Function<CreateRecurringTransferResponse, RecurringTransfer>() {
+                    @Override
+                    public RecurringTransfer apply(CreateRecurringTransferResponse response) {
+                        return response.getRecurringTransfer();
                     }
                 });
     }

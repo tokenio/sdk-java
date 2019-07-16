@@ -25,6 +25,7 @@ package io.token.user;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.BANK;
 import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.proto.common.token.TokenProtos.TokenPayload.BodyCase.TRANSFER;
+import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.RECURRING_TRANSFER_BODY;
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.TRANSFER_BODY;
 import static io.token.util.Util.generateNonce;
 
@@ -35,6 +36,7 @@ import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
+import io.token.proto.common.token.TokenProtos.RecurringTransferBody;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -58,8 +60,9 @@ import org.slf4j.LoggerFactory;
  * accountId or BankAuthorization. Finally, a redeemer must be set, specified by either alias
  * or memberId.
  */
-public final class TransferTokenBuilder {
-    private static final Logger logger = LoggerFactory.getLogger(TransferTokenBuilder.class);
+public final class RecurringTransferTokenBuilder {
+    private static final Logger logger = LoggerFactory
+            .getLogger(RecurringTransferTokenBuilder.class);
     private static final int REF_ID_MAX_LENGTH = 18;
 
     private final Member member;
@@ -72,19 +75,23 @@ public final class TransferTokenBuilder {
      * Creates the builder object.
      *
      * @param member payer of the token
-     * @param amount lifetime amount of the token
+     * @param amount amount per charge of the recurring transfer token
      * @param currency currency of the token
+     * @param frequency ISO 20022 code for the frequency of the recurring payment:
+     *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
      */
-    public TransferTokenBuilder(
+    public RecurringTransferTokenBuilder(
             Member member,
             double amount,
-            String currency) {
+            String currency,
+            String frequency) {
         this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
-                .setTransfer(TransferBody.newBuilder()
+                .setRecurringTransfer(RecurringTransferBody.newBuilder()
                         .setCurrency(currency)
-                        .setLifetimeAmount(Double.toString(amount)));
+                        .setAmount(Double.toString(amount))
+                        .setFrequency(frequency));
 
         if (member != null) {
             from(member.memberId());
@@ -101,16 +108,17 @@ public final class TransferTokenBuilder {
      * @param member payer of the token
      * @param tokenRequest token request
      */
-    public TransferTokenBuilder(Member member, TokenRequest tokenRequest) {
-        if (tokenRequest.getRequestPayload().getRequestBodyCase() != TRANSFER_BODY) {
-            throw new IllegalArgumentException("Require token request with transfer body.");
+    public RecurringTransferTokenBuilder(Member member, TokenRequest tokenRequest) {
+        if (tokenRequest.getRequestPayload().getRequestBodyCase() != RECURRING_TRANSFER_BODY) {
+            throw new IllegalArgumentException(
+                    "Require token request with recurring transfer body.");
         }
         if (!tokenRequest.getRequestPayload().hasTo()) {
             throw new IllegalArgumentException("No payee on token request");
         }
         this.member = member;
-        TokenRequestPayload.TransferBody transferBody = tokenRequest.getRequestPayload()
-                .getTransferBody();
+        RecurringTransferBody transferBody = tokenRequest.getRequestPayload()
+                .getRecurringTransferBody();
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setRefId(tokenRequest.getRequestPayload().getRefId())
@@ -121,51 +129,11 @@ public final class TransferTokenBuilder {
                 .setDescription(tokenRequest.getRequestPayload().getDescription())
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
                 .setTokenRequestId(tokenRequest.getId())
-                .setTransfer(TransferBody.newBuilder()
-                        .setLifetimeAmount(transferBody.getLifetimeAmount())
-                        .setCurrency(transferBody.getCurrency())
-                        .setAmount(transferBody.getAmount())
-                        .setInstructions(transferBody.hasInstructions()
-                                ? transferBody.getInstructions()
-                                // for backwards compatibility
-                                : TransferInstructions.newBuilder()
-                                        .addAllDestinations(transferBody.getDestinationsList())
-                                        .build()));
+                .setRecurringTransfer(transferBody);
         if (tokenRequest.getRequestPayload().hasActingAs()) {
             this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
         }
         this.tokenRequestId = tokenRequest.getId();
-    }
-
-    /**
-     * Creates the builder object from a token payload.
-     *
-     * @param member payer of the token
-     * @param tokenPayload token payload
-     */
-    public TransferTokenBuilder(Member member, TokenPayload tokenPayload) {
-        if (tokenPayload.getBodyCase() != TRANSFER) {
-            throw new IllegalArgumentException("Require token payload with transfer body.");
-        }
-        if (!tokenPayload.hasTo()) {
-            throw new IllegalArgumentException("No payee on token payload");
-        }
-        this.member = member;
-        this.payload = tokenPayload.toBuilder();
-
-        if (!this.payload.hasFrom()) {
-            this.payload.setFrom(TokenMember.newBuilder().setId(member.memberId()));
-        }
-    }
-
-    /**
-     * Creates the builder object.
-     *
-     * @param amount lifetime amount of the token
-     * @param currency currency of the token
-     */
-    public TransferTokenBuilder(double amount, String currency) {
-        this(null, amount, currency);
     }
 
     /**
@@ -174,8 +142,8 @@ public final class TransferTokenBuilder {
      * @param accountId source accountId
      * @return builder
      */
-    public TransferTokenBuilder setAccountId(String accountId) {
-        payload.getTransferBuilder()
+    public RecurringTransferTokenBuilder setAccountId(String accountId) {
+        payload.getRecurringTransferBuilder()
                 .getInstructionsBuilder()
                 .getSourceBuilder()
                 .setAccount(BankAccount.newBuilder()
@@ -193,8 +161,10 @@ public final class TransferTokenBuilder {
      * @param authorization source custom authorization
      * @return builder
      */
-    public TransferTokenBuilder setCustomAuthorization(String bankId, String authorization) {
-        payload.getTransferBuilder()
+    public RecurringTransferTokenBuilder setCustomAuthorization(
+            String bankId,
+            String authorization) {
+        payload.getRecurringTransferBuilder()
                 .getInstructionsBuilder()
                 .getSourceBuilder()
                 .setAccount(BankAccount.newBuilder()
@@ -212,7 +182,7 @@ public final class TransferTokenBuilder {
      * @param expiresAtMs expiration date in ms.
      * @return builder
      */
-    public TransferTokenBuilder setExpiresAtMs(long expiresAtMs) {
+    public RecurringTransferTokenBuilder setExpiresAtMs(long expiresAtMs) {
         payload.setExpiresAtMs(expiresAtMs);
         return this;
     }
@@ -223,7 +193,7 @@ public final class TransferTokenBuilder {
      * @param effectiveAtMs effective date in ms.
      * @return builder
      */
-    public TransferTokenBuilder setEffectiveAtMs(long effectiveAtMs) {
+    public RecurringTransferTokenBuilder setEffectiveAtMs(long effectiveAtMs) {
         payload.setEffectiveAtMs(effectiveAtMs);
         return this;
     }
@@ -234,20 +204,8 @@ public final class TransferTokenBuilder {
      * @param endorseUntilMs endorse until, in milliseconds.
      * @return builder
      */
-    public TransferTokenBuilder setEndorseUntilMs(long endorseUntilMs) {
+    public RecurringTransferTokenBuilder setEndorseUntilMs(long endorseUntilMs) {
         payload.setEndorseUntilMs(endorseUntilMs);
-        return this;
-    }
-
-    /**
-     * Sets the maximum amount per charge.
-     *
-     * @param chargeAmount amount
-     * @return builder
-     */
-    public TransferTokenBuilder setChargeAmount(double chargeAmount) {
-        payload.getTransferBuilder()
-                .setAmount(Double.toString(chargeAmount));
         return this;
     }
 
@@ -257,7 +215,7 @@ public final class TransferTokenBuilder {
      * @param description description
      * @return builder
      */
-    public TransferTokenBuilder setDescription(String description) {
+    public RecurringTransferTokenBuilder setDescription(String description) {
         payload.setDescription(description);
         return this;
     }
@@ -268,8 +226,8 @@ public final class TransferTokenBuilder {
      * @param source the source
      * @return builder
      */
-    public TransferTokenBuilder setSource(TransferEndpoint source) {
-        payload.getTransferBuilder()
+    public RecurringTransferTokenBuilder setSource(TransferEndpoint source) {
+        payload.getRecurringTransferBuilder()
                 .getInstructionsBuilder()
                 .setSource(source);
         return this;
@@ -282,8 +240,8 @@ public final class TransferTokenBuilder {
      * @return builder
      */
     @Deprecated
-    public TransferTokenBuilder addDestination(TransferEndpoint destination) {
-        payload.getTransferBuilder()
+    public RecurringTransferTokenBuilder addDestination(TransferEndpoint destination) {
+        payload.getRecurringTransferBuilder()
                 .getInstructionsBuilder()
                 .addDestinations(destination);
         return this;
@@ -295,8 +253,8 @@ public final class TransferTokenBuilder {
      * @param destination destination
      * @return builder
      */
-    public TransferTokenBuilder addDestination(TransferDestination destination) {
-        payload.getTransferBuilder()
+    public RecurringTransferTokenBuilder addDestination(TransferDestination destination) {
+        payload.getRecurringTransferBuilder()
                 .getInstructionsBuilder()
                 .addTransferDestinations(destination);
         return this;
@@ -308,7 +266,7 @@ public final class TransferTokenBuilder {
      * @param toAlias alias
      * @return builder
      */
-    public TransferTokenBuilder setToAlias(Alias toAlias) {
+    public RecurringTransferTokenBuilder setToAlias(Alias toAlias) {
         payload.getToBuilder()
                 .setAlias(toAlias);
         return this;
@@ -320,7 +278,7 @@ public final class TransferTokenBuilder {
      * @param toMemberId memberId
      * @return builder
      */
-    public TransferTokenBuilder setToMemberId(String toMemberId) {
+    public RecurringTransferTokenBuilder setToMemberId(String toMemberId) {
         payload.getToBuilder().setId(toMemberId);
         return this;
     }
@@ -331,7 +289,7 @@ public final class TransferTokenBuilder {
      * @param refId the reference Id, at most 18 characters long
      * @return builder
      */
-    public TransferTokenBuilder setRefId(String refId) {
+    public RecurringTransferTokenBuilder setRefId(String refId) {
         if (refId.length() > REF_ID_MAX_LENGTH) {
             throw new IllegalArgumentException(String.format(
                     "The length of the refId is at most %s, got: %s",
@@ -348,9 +306,9 @@ public final class TransferTokenBuilder {
      * @param purposeOfPayment purpose of payment
      * @return builder
      */
-    public TransferTokenBuilder setPurposeOfPayment(PurposeOfPayment purposeOfPayment) {
+    public RecurringTransferTokenBuilder setPurposeOfPayment(PurposeOfPayment purposeOfPayment) {
         payload
-                .getTransferBuilder()
+                .getRecurringTransferBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setTransferPurpose(purposeOfPayment);
@@ -363,7 +321,7 @@ public final class TransferTokenBuilder {
      * @param actingAs entity the redeemer is acting on behalf of
      * @return builder
      */
-    public TransferTokenBuilder setActingAs(ActingAs actingAs) {
+    public RecurringTransferTokenBuilder setActingAs(ActingAs actingAs) {
         payload.setActingAs(actingAs);
         return this;
     }
@@ -374,7 +332,7 @@ public final class TransferTokenBuilder {
      * @param tokenRequestId token request id
      * @return builder
      */
-    public TransferTokenBuilder setTokenRequestId(String tokenRequestId) {
+    public RecurringTransferTokenBuilder setTokenRequestId(String tokenRequestId) {
         payload.setTokenRequestId(tokenRequestId);
         this.tokenRequestId = tokenRequestId;
         return this;
@@ -386,7 +344,7 @@ public final class TransferTokenBuilder {
      * @param receiptRequested receipt requested flag
      * @return builder
      */
-    public TransferTokenBuilder setReceiptRequested(boolean receiptRequested) {
+    public RecurringTransferTokenBuilder setReceiptRequested(boolean receiptRequested) {
         payload.setReceiptRequested(receiptRequested);
         return this;
     }
@@ -397,15 +355,16 @@ public final class TransferTokenBuilder {
      * @param metadata the metadata
      * @return the provider transfer metadata
      */
-    public TransferTokenBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
-        payload.getTransferBuilder()
+    public RecurringTransferTokenBuilder setProviderTransferMetadata(
+            ProviderTransferMetadata metadata) {
+        payload.getRecurringTransferBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setProviderTransferMetadata(metadata);
         return this;
     }
 
-    TransferTokenBuilder from(String memberId) {
+    RecurringTransferTokenBuilder from(String memberId) {
         payload.setFrom(TokenMember.newBuilder().setId(memberId));
         return this;
     }
@@ -421,44 +380,5 @@ public final class TransferTokenBuilder {
             payload.setRefId(generateNonce());
         }
         return payload.build();
-    }
-
-    /**
-     * DEPRECATED: Use {@link Member#prepareTransferToken(TransferTokenBuilder)} and
-     * {@link Member#createToken(TokenPayload, List)} instead.
-     *
-     * <p>Executes the request asynchronously.
-     *
-     * @return Token
-     */
-    @Deprecated
-    public Observable<Token> execute() {
-        AccountCase sourceCase =
-                payload.getTransfer().getInstructions().getSource().getAccount().getAccountCase();
-        if (!Arrays.asList(TOKEN, BANK).contains(sourceCase)) {
-            throw new IllegalArgumentException("No source on token");
-        }
-
-        if (payload.getRefId().isEmpty()) {
-            logger.warn("refId is not set. A random ID will be used.");
-            payload.setRefId(generateNonce());
-        }
-
-        return member.createTransferToken(
-                payload.build(),
-                tokenRequestId != null ? tokenRequestId : "");
-    }
-
-    /**
-     * DEPRECATED: Use {@link Member#prepareTransferToken(TransferTokenBuilder)} and
-     * {@link Member#createToken(TokenPayload, List)} instead.
-     *
-     * <p>Executes the request, creating a token.
-     *
-     * @return Token
-     */
-    @Deprecated
-    public Token executeBlocking() {
-        return execute().blockingSingle();
     }
 }
