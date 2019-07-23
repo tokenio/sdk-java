@@ -211,9 +211,7 @@ public class Account {
      * @param keyLevel key level
      * @return standing order record
      */
-    public Observable<StandingOrder> getStandingOrder(
-            String standingOrderId,
-            Key.Level keyLevel) {
+    public Observable<StandingOrder> getStandingOrder(String standingOrderId, Key.Level keyLevel) {
         return client.getStandingOrder(account.getId(), standingOrderId, keyLevel);
     }
 

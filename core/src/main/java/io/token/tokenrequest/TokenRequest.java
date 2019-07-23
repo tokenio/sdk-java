@@ -452,7 +452,8 @@ public abstract class TokenRequest {
          * @param metadata provider-specific metadata
          * @return builder
          */
-        public RecurringTransferBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
+        public RecurringTransferBuilder setProviderTransferMetadata(
+                ProviderTransferMetadata metadata) {
             this.requestPayload.getRecurringTransferBodyBuilder()
                     .getInstructionsBuilder()
                     .setMetadata(Metadata.newBuilder()
