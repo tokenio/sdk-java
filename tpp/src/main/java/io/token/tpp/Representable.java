@@ -28,7 +28,6 @@ import static io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import io.reactivex.Observable;
 import io.token.proto.PagedList;
-import io.token.proto.common.transaction.TransactionProtos;
 import io.token.proto.common.transaction.TransactionProtos.StandingOrder;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 

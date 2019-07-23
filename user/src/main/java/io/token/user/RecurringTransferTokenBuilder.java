@@ -22,33 +22,21 @@
 
 package io.token.user;
 
-import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.BANK;
-import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
-import static io.token.proto.common.token.TokenProtos.TokenPayload.BodyCase.TRANSFER;
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.RECURRING_TRANSFER_BODY;
-import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.TRANSFER_BODY;
 import static io.token.util.Util.generateNonce;
 
-import io.reactivex.Observable;
 import io.token.proto.common.account.AccountProtos.BankAccount;
-import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.RecurringTransferBody;
-import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
-import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
-import io.token.proto.common.token.TokenProtos.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 

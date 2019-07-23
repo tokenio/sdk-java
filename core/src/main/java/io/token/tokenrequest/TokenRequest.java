@@ -25,7 +25,6 @@ package io.token.tokenrequest;
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.RecurringTransferBody;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;

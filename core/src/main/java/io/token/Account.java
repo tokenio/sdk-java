@@ -28,7 +28,6 @@ import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.account.AccountProtos.AccountDetails;
 import io.token.proto.common.account.AccountProtos.AccountFeatures;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.transaction.TransactionProtos;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.StandingOrder;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
