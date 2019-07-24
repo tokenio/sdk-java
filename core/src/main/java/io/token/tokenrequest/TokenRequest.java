@@ -36,6 +36,8 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata;
 import io.token.util.Util;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 @AutoValue
@@ -335,6 +337,19 @@ public abstract class TokenRequest {
         public TransferBuilder setChargeAmount(double chargeAmount) {
             this.requestPayload.getTransferBodyBuilder()
                     .setAmount(Double.toString(chargeAmount))
+                    .build();
+            return this;
+        }
+
+        /**
+         * Sets the execution date of the transfer. Used for future-dated payments.
+         *
+         * @param executionDate execution date
+         * @return builder
+         */
+        public TransferBuilder setExecutionDate(LocalDate executionDate) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .setExecutionDate(executionDate.format(DateTimeFormatter.BASIC_ISO_DATE))
                     .build();
             return this;
         }
