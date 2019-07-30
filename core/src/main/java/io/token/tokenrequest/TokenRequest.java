@@ -26,7 +26,7 @@ import com.google.auto.value.AutoValue;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
-import io.token.proto.common.token.TokenProtos.RecurringTransferBody;
+import io.token.proto.common.token.TokenProtos.StandingOrderBody;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
@@ -370,69 +370,69 @@ public abstract class TokenRequest {
         }
     }
 
-    public static class RecurringTransferBuilder extends Builder<RecurringTransferBuilder> {
-        RecurringTransferBuilder() {
-            this.requestPayload.setRecurringTransferBody(RecurringTransferBody.newBuilder());
+    public static class StandingOrderBuilder extends Builder<StandingOrderBuilder> {
+        StandingOrderBuilder() {
+            this.requestPayload.setStandingOrderBody(StandingOrderBody.newBuilder());
         }
 
         /**
-         * Sets the amount per charge of the recurring payment.
+         * Sets the amount per charge of the standing order.
          *
          * @param amount amount per individual charge
          * @return builder
          */
-        public RecurringTransferBuilder setAmount(double amount) {
-            this.requestPayload.getRecurringTransferBodyBuilder()
+        public StandingOrderBuilder setAmount(double amount) {
+            this.requestPayload.getStandingOrderBodyBuilder()
                     .setAmount(Double.toString(amount));
             return this;
         }
 
         /**
-         * Sets the currency for each charge in the recurring payment.
+         * Sets the currency for each charge in the standing order.
          *
          * @param currency currency
          * @return builder
          */
-        public RecurringTransferBuilder setCurrency(String currency) {
-            this.requestPayload.getRecurringTransferBodyBuilder()
+        public StandingOrderBuilder setCurrency(String currency) {
+            this.requestPayload.getStandingOrderBodyBuilder()
                     .setCurrency(currency);
             return this;
         }
 
         /**
-         * Sets the frequency of the recurring payment. ISO 20022: DAIL, WEEK, TOWK,
+         * Sets the frequency of the standing order. ISO 20022: DAIL, WEEK, TOWK,
          * MNTH, TOMN, QUTR, SEMI, YEAR
          *
-         * @param frequency frequency of the recurring payment
+         * @param frequency frequency of the standing order
          * @return builder
          */
-        public RecurringTransferBuilder setFrequency(String frequency) {
-            this.requestPayload.getRecurringTransferBodyBuilder()
+        public StandingOrderBuilder setFrequency(String frequency) {
+            this.requestPayload.getStandingOrderBodyBuilder()
                     .setFrequency(frequency);
             return this;
         }
 
         /**
-         * Sets the start date of the recurring payment. ISO 8601: YYYY-MM-DD or YYYYMMDD.
+         * Sets the start date of the standing order. ISO 8601: YYYY-MM-DD or YYYYMMDD.
          *
-         * @param startDate start date of the recurring payment
+         * @param startDate start date of the standing order
          * @return builder
          */
-        public RecurringTransferBuilder setStartDate(String startDate) {
-            this.requestPayload.getRecurringTransferBodyBuilder()
+        public StandingOrderBuilder setStartDate(String startDate) {
+            this.requestPayload.getStandingOrderBodyBuilder()
                     .setStartDate(startDate);
             return this;
         }
 
         /**
-         * Sets the end date of the recurring payment. ISO 8601: YYYY-MM-DD or YYYYMMDD.
-         * If not specified, the recurring payment will occur indefinitely.
+         * Sets the end date of the standing order. ISO 8601: YYYY-MM-DD or YYYYMMDD.
+         * If not specified, the standing order will occur indefinitely.
          *
-         * @param endDate end date of the recurring payment
+         * @param endDate end date of the standing order
          * @return builder
          */
-        public RecurringTransferBuilder setEndDate(String endDate) {
-            this.requestPayload.getRecurringTransferBodyBuilder()
+        public StandingOrderBuilder setEndDate(String endDate) {
+            this.requestPayload.getStandingOrderBodyBuilder()
                     .setEndDate(endDate);
             return this;
         }
@@ -443,8 +443,8 @@ public abstract class TokenRequest {
          * @param destination destination
          * @return builder
          */
-        public RecurringTransferBuilder addDestination(TransferDestination destination) {
-            this.requestPayload.getRecurringTransferBodyBuilder().getInstructionsBuilder()
+        public StandingOrderBuilder addDestination(TransferDestination destination) {
+            this.requestPayload.getStandingOrderBodyBuilder().getInstructionsBuilder()
                     .addTransferDestinations(destination);
             return this;
         }
@@ -456,7 +456,7 @@ public abstract class TokenRequest {
          * @param destinationCountry destination country
          * @return builder
          */
-        public RecurringTransferBuilder setDestinationCountry(String destinationCountry) {
+        public StandingOrderBuilder setDestinationCountry(String destinationCountry) {
             this.requestPayload.setDestinationCountry(destinationCountry);
             return this;
         }
@@ -467,9 +467,9 @@ public abstract class TokenRequest {
          * @param metadata provider-specific metadata
          * @return builder
          */
-        public RecurringTransferBuilder setProviderTransferMetadata(
+        public StandingOrderBuilder setProviderTransferMetadata(
                 ProviderTransferMetadata metadata) {
-            this.requestPayload.getRecurringTransferBodyBuilder()
+            this.requestPayload.getStandingOrderBodyBuilder()
                     .getInstructionsBuilder()
                     .setMetadata(Metadata.newBuilder()
                             .setProviderTransferMetadata(metadata))

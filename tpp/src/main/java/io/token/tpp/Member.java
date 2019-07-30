@@ -39,10 +39,10 @@ import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transfer.TransferProtos;
-import io.token.proto.common.transfer.TransferProtos.RecurringTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -763,23 +763,23 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
-     * Redeems a recurring transfer token.
+     * Redeems a standing order token.
      *
      * @param tokenId ID of token to redeem
-     * @return recurring transfer record
+     * @return standing order submission
      */
-    public Observable<RecurringTransfer> redeemRecurringTransferToken(String tokenId) {
-        return client.createRecurringTransfer(tokenId);
+    public Observable<StandingOrderSubmission> redeemStandingOrderToken(String tokenId) {
+        return client.createStandingOrder(tokenId);
     }
 
     /**
-     * Redeems a recurring transfer token.
+     * Redeems a standing order token.
      *
      * @param tokenId ID of token to redeem
-     * @return recurring transfer record
+     * @return standing order submission
      */
-    public RecurringTransfer redeemRecurringTransferTokenBlocking(String tokenId) {
-        return redeemRecurringTransferToken(tokenId).blockingSingle();
+    public StandingOrderSubmission redeemStandingOrderTokenBlocking(String tokenId) {
+        return redeemStandingOrderToken(tokenId).blockingSingle();
     }
 
     /**
@@ -863,23 +863,23 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
-     * Looks up an existing Token recurring transfer.
+     * Looks up an existing Token standing order submission.
      *
-     * @param recurringTransferId ID of the recurring transfer record
-     * @return recurring transfer record
+     * @param submissionId ID of the standing orde submission
+     * @return standing order submission
      */
-    public Observable<RecurringTransfer> getRecurringTransfer(String recurringTransferId) {
-        return client.getRecurringTransfer(recurringTransferId);
+    public Observable<StandingOrderSubmission> getStandingOrderSubmission(String submissionId) {
+        return client.getStandingOrderSubmission(submissionId);
     }
 
     /**
-     * Looks up an existing Token recurring transfer.
+     * Looks up an existing Token standing order submission.
      *
-     * @param recurringTransferId ID of the recurring transfer record
-     * @return recurring transfer record
+     * @param submissionId ID of the standing orde submission
+     * @return standing order submission
      */
-    public RecurringTransfer getRecurringTransferBlocking(String recurringTransferId) {
-        return getRecurringTransfer(recurringTransferId).blockingSingle();
+    public StandingOrderSubmission getStandingOrderSubmissionBlocking(String submissionId) {
+        return getStandingOrderSubmission(submissionId).blockingSingle();
     }
 
     /**
@@ -913,29 +913,29 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
-     * Looks up existing Token recurring transfers.
+     * Looks up existing Token standing order submissions.
      *
      * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @return recurring transfer records
+     * @param limit max number of submissions to return
+     * @return standing order submissions
      */
-    public Observable<PagedList<RecurringTransfer, String>> getRecurringTransfers(
+    public Observable<PagedList<StandingOrderSubmission, String>> getStandingOrderSubmissions(
             @Nullable String offset,
             int limit) {
-        return client.getRecurringTransfers(offset, limit);
+        return client.getStandingOrderSubmissions(offset, limit);
     }
 
     /**
-     * Looks up existing Token recurring transfers.
+     * Looks up existing Token standing order submissions.
      *
      * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @return recurring transfer records
+     * @param limit max number of submissions to return
+     * @return standing order submissions
      */
-    public PagedList<RecurringTransfer, String> getRecurringTransfersBlocking(
+    public PagedList<StandingOrderSubmission, String> getStandingOrderSubmissionsBlocking(
             @Nullable String offset,
             int limit) {
-        return getRecurringTransfers(offset, limit).blockingSingle();
+        return getStandingOrderSubmissions(offset, limit).blockingSingle();
     }
 
     /**

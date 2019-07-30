@@ -22,14 +22,16 @@
 
 package io.token.user;
 
-import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.RECURRING_TRANSFER_BODY;
+import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.STANDING_ORDER_BODY;
 import static io.token.util.Util.generateNonce;
 
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
-import io.token.proto.common.token.TokenProtos.RecurringTransferBody;
+import io.token.proto.common.token.TokenProtos.StandingOrderBody;
+import io.token.proto.common.token.TokenProtos.StandingOrderBody;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
@@ -49,9 +51,9 @@ import org.slf4j.LoggerFactory;
  * accountId or BankAuthorization. Finally, a redeemer must be set, specified by either alias
  * or memberId.
  */
-public final class RecurringTransferTokenBuilder {
+public final class StandingOrderTokenBuilder {
     private static final Logger logger = LoggerFactory
-            .getLogger(RecurringTransferTokenBuilder.class);
+            .getLogger(StandingOrderTokenBuilder.class);
     private static final int REF_ID_MAX_LENGTH = 18;
 
     private final Member member;
@@ -61,14 +63,14 @@ public final class RecurringTransferTokenBuilder {
      * Creates the builder object.
      *
      * @param member payer of the token
-     * @param amount amount per charge of the recurring transfer token
+     * @param amount amount per charge of the standing order token
      * @param currency currency of the token
-     * @param frequency ISO 20022 code for the frequency of the recurring payment:
+     * @param frequency ISO 20022 code for the frequency of the standing order:
      *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
-     * @param startDate start date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
-     * @param endDate end date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @param endDate end date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
      */
-    public RecurringTransferTokenBuilder(
+    public StandingOrderTokenBuilder(
             Member member,
             double amount,
             String currency,
@@ -78,7 +80,7 @@ public final class RecurringTransferTokenBuilder {
         this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
-                .setRecurringTransfer(RecurringTransferBody.newBuilder()
+                .setStandingOrder(StandingOrderBody.newBuilder()
                         .setCurrency(currency)
                         .setAmount(Double.toString(amount))
                         .setFrequency(frequency)
@@ -100,17 +102,17 @@ public final class RecurringTransferTokenBuilder {
      * @param member payer of the token
      * @param tokenRequest token request
      */
-    public RecurringTransferTokenBuilder(Member member, TokenRequest tokenRequest) {
-        if (tokenRequest.getRequestPayload().getRequestBodyCase() != RECURRING_TRANSFER_BODY) {
+    public StandingOrderTokenBuilder(Member member, TokenRequest tokenRequest) {
+        if (tokenRequest.getRequestPayload().getRequestBodyCase() != STANDING_ORDER_BODY) {
             throw new IllegalArgumentException(
-                    "Require token request with recurring transfer body.");
+                    "Require token request with standing order body.");
         }
         if (!tokenRequest.getRequestPayload().hasTo()) {
             throw new IllegalArgumentException("No payee on token request");
         }
         this.member = member;
-        RecurringTransferBody transferBody = tokenRequest.getRequestPayload()
-                .getRecurringTransferBody();
+        StandingOrderBody body = tokenRequest.getRequestPayload()
+                .getStandingOrderBody();
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setRefId(tokenRequest.getRequestPayload().getRefId())
@@ -121,7 +123,7 @@ public final class RecurringTransferTokenBuilder {
                 .setDescription(tokenRequest.getRequestPayload().getDescription())
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
                 .setTokenRequestId(tokenRequest.getId())
-                .setRecurringTransfer(transferBody);
+                .setStandingOrder(body);
         if (tokenRequest.getRequestPayload().hasActingAs()) {
             this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
         }
@@ -133,8 +135,8 @@ public final class RecurringTransferTokenBuilder {
      * @param accountId source accountId
      * @return builder
      */
-    public RecurringTransferTokenBuilder setAccountId(String accountId) {
-        payload.getRecurringTransferBuilder()
+    public StandingOrderTokenBuilder setAccountId(String accountId) {
+        payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .getSourceBuilder()
                 .setAccount(BankAccount.newBuilder()
@@ -152,10 +154,10 @@ public final class RecurringTransferTokenBuilder {
      * @param authorization source custom authorization
      * @return builder
      */
-    public RecurringTransferTokenBuilder setCustomAuthorization(
+    public StandingOrderTokenBuilder setCustomAuthorization(
             String bankId,
             String authorization) {
-        payload.getRecurringTransferBuilder()
+        payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .getSourceBuilder()
                 .setAccount(BankAccount.newBuilder()
@@ -173,7 +175,7 @@ public final class RecurringTransferTokenBuilder {
      * @param expiresAtMs expiration date in ms.
      * @return builder
      */
-    public RecurringTransferTokenBuilder setExpiresAtMs(long expiresAtMs) {
+    public StandingOrderTokenBuilder setExpiresAtMs(long expiresAtMs) {
         payload.setExpiresAtMs(expiresAtMs);
         return this;
     }
@@ -184,7 +186,7 @@ public final class RecurringTransferTokenBuilder {
      * @param effectiveAtMs effective date in ms.
      * @return builder
      */
-    public RecurringTransferTokenBuilder setEffectiveAtMs(long effectiveAtMs) {
+    public StandingOrderTokenBuilder setEffectiveAtMs(long effectiveAtMs) {
         payload.setEffectiveAtMs(effectiveAtMs);
         return this;
     }
@@ -195,7 +197,7 @@ public final class RecurringTransferTokenBuilder {
      * @param endorseUntilMs endorse until, in milliseconds.
      * @return builder
      */
-    public RecurringTransferTokenBuilder setEndorseUntilMs(long endorseUntilMs) {
+    public StandingOrderTokenBuilder setEndorseUntilMs(long endorseUntilMs) {
         payload.setEndorseUntilMs(endorseUntilMs);
         return this;
     }
@@ -206,7 +208,7 @@ public final class RecurringTransferTokenBuilder {
      * @param description description
      * @return builder
      */
-    public RecurringTransferTokenBuilder setDescription(String description) {
+    public StandingOrderTokenBuilder setDescription(String description) {
         payload.setDescription(description);
         return this;
     }
@@ -217,8 +219,8 @@ public final class RecurringTransferTokenBuilder {
      * @param source the source
      * @return builder
      */
-    public RecurringTransferTokenBuilder setSource(TransferEndpoint source) {
-        payload.getRecurringTransferBuilder()
+    public StandingOrderTokenBuilder setSource(TransferEndpoint source) {
+        payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .setSource(source);
         return this;
@@ -231,8 +233,8 @@ public final class RecurringTransferTokenBuilder {
      * @return builder
      */
     @Deprecated
-    public RecurringTransferTokenBuilder addDestination(TransferEndpoint destination) {
-        payload.getRecurringTransferBuilder()
+    public StandingOrderTokenBuilder addDestination(TransferEndpoint destination) {
+        payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .addDestinations(destination);
         return this;
@@ -244,8 +246,8 @@ public final class RecurringTransferTokenBuilder {
      * @param destination destination
      * @return builder
      */
-    public RecurringTransferTokenBuilder addDestination(TransferDestination destination) {
-        payload.getRecurringTransferBuilder()
+    public StandingOrderTokenBuilder addDestination(TransferDestination destination) {
+        payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .addTransferDestinations(destination);
         return this;
@@ -257,7 +259,7 @@ public final class RecurringTransferTokenBuilder {
      * @param toAlias alias
      * @return builder
      */
-    public RecurringTransferTokenBuilder setToAlias(Alias toAlias) {
+    public StandingOrderTokenBuilder setToAlias(Alias toAlias) {
         payload.getToBuilder()
                 .setAlias(toAlias);
         return this;
@@ -269,7 +271,7 @@ public final class RecurringTransferTokenBuilder {
      * @param toMemberId memberId
      * @return builder
      */
-    public RecurringTransferTokenBuilder setToMemberId(String toMemberId) {
+    public StandingOrderTokenBuilder setToMemberId(String toMemberId) {
         payload.getToBuilder().setId(toMemberId);
         return this;
     }
@@ -280,7 +282,7 @@ public final class RecurringTransferTokenBuilder {
      * @param refId the reference Id, at most 18 characters long
      * @return builder
      */
-    public RecurringTransferTokenBuilder setRefId(String refId) {
+    public StandingOrderTokenBuilder setRefId(String refId) {
         if (refId.length() > REF_ID_MAX_LENGTH) {
             throw new IllegalArgumentException(String.format(
                     "The length of the refId is at most %s, got: %s",
@@ -297,9 +299,9 @@ public final class RecurringTransferTokenBuilder {
      * @param purposeOfPayment purpose of payment
      * @return builder
      */
-    public RecurringTransferTokenBuilder setPurposeOfPayment(PurposeOfPayment purposeOfPayment) {
+    public StandingOrderTokenBuilder setPurposeOfPayment(PurposeOfPayment purposeOfPayment) {
         payload
-                .getRecurringTransferBuilder()
+                .getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setTransferPurpose(purposeOfPayment);
@@ -312,7 +314,7 @@ public final class RecurringTransferTokenBuilder {
      * @param actingAs entity the redeemer is acting on behalf of
      * @return builder
      */
-    public RecurringTransferTokenBuilder setActingAs(ActingAs actingAs) {
+    public StandingOrderTokenBuilder setActingAs(ActingAs actingAs) {
         payload.setActingAs(actingAs);
         return this;
     }
@@ -323,7 +325,7 @@ public final class RecurringTransferTokenBuilder {
      * @param tokenRequestId token request id
      * @return builder
      */
-    public RecurringTransferTokenBuilder setTokenRequestId(String tokenRequestId) {
+    public StandingOrderTokenBuilder setTokenRequestId(String tokenRequestId) {
         payload.setTokenRequestId(tokenRequestId);
         return this;
     }
@@ -334,7 +336,7 @@ public final class RecurringTransferTokenBuilder {
      * @param receiptRequested receipt requested flag
      * @return builder
      */
-    public RecurringTransferTokenBuilder setReceiptRequested(boolean receiptRequested) {
+    public StandingOrderTokenBuilder setReceiptRequested(boolean receiptRequested) {
         payload.setReceiptRequested(receiptRequested);
         return this;
     }
@@ -345,16 +347,16 @@ public final class RecurringTransferTokenBuilder {
      * @param metadata the metadata
      * @return the provider transfer metadata
      */
-    public RecurringTransferTokenBuilder setProviderTransferMetadata(
+    public StandingOrderTokenBuilder setProviderTransferMetadata(
             ProviderTransferMetadata metadata) {
-        payload.getRecurringTransferBuilder()
+        payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setProviderTransferMetadata(metadata);
         return this;
     }
 
-    RecurringTransferTokenBuilder from(String memberId) {
+    StandingOrderTokenBuilder from(String memberId) {
         payload.setFrom(TokenMember.newBuilder().setId(memberId));
         return this;
     }

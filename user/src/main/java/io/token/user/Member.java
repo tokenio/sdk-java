@@ -56,13 +56,13 @@ import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
-import io.token.proto.common.transfer.TransferProtos.RecurringTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
@@ -234,23 +234,23 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Looks up an existing Token recurring transfer.
+     * Looks up an existing Token standing order submission.
      *
-     * @param recurringTransferId ID of the recurring transfer record
-     * @return recurring transfer record
+     * @param submissionId ID of the standing orde submission
+     * @return standing order submission
      */
-    public Observable<RecurringTransfer> getRecurringTransfer(String recurringTransferId) {
-        return client.getRecurringTransfer(recurringTransferId);
+    public Observable<StandingOrderSubmission> getStandingOrderSubmission(String submissionId) {
+        return client.getStandingOrderSubmission(submissionId);
     }
 
     /**
-     * Looks up an existing Token recurring transfer.
+     * Looks up an existing Token standing order submission.
      *
-     * @param recurringTransferId ID of the recurring transfer record
-     * @return recurring transfer record
+     * @param submissionId ID of the standing orde submission
+     * @return standing order submission
      */
-    public RecurringTransfer getRecurringTransferBlocking(String recurringTransferId) {
-        return getRecurringTransfer(recurringTransferId).blockingSingle();
+    public StandingOrderSubmission getStandingOrderSubmissionBlocking(String submissionId) {
+        return getStandingOrderSubmission(submissionId).blockingSingle();
     }
 
     /**
@@ -284,29 +284,29 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Looks up existing Token recurring transfers.
+     * Looks up existing Token standing order submissions.
      *
      * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @return recurring transfer records
+     * @param limit max number of submissions to return
+     * @return standing order submissions
      */
-    public Observable<PagedList<RecurringTransfer, String>> getRecurringTransfers(
+    public Observable<PagedList<StandingOrderSubmission, String>> getStandingOrderSubmissions(
             @Nullable String offset,
             int limit) {
-        return client.getRecurringTransfers(offset, limit);
+        return client.getStandingOrderSubmissions(offset, limit);
     }
 
     /**
-     * Looks up existing Token recurring transfers.
+     * Looks up existing Token standing order submissions.
      *
      * @param offset optional offset to start at
-     * @param limit max number of records to return
-     * @return recurring transfer records
+     * @param limit max number of submissions to return
+     * @return standing order submissions
      */
-    public PagedList<RecurringTransfer, String> getRecurringTransfersBlocking(
+    public PagedList<StandingOrderSubmission, String> getStandingOrderSubmissionsBlocking(
             @Nullable String offset,
             int limit) {
-        return getRecurringTransfers(offset, limit).blockingSingle();
+        return getStandingOrderSubmissions(offset, limit).blockingSingle();
     }
 
     /**
@@ -333,28 +333,28 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Prepares a recurring transfer token, returning the resolved token payload
+     * Prepares a standing order token, returning the resolved token payload
      * and policy.
      *
-     * @param builder recurring transfer token builder
+     * @param builder standing order token builder
      * @return resolved token payload and policy
      */
-    public Observable<PrepareTokenResult> prepareRecurringTransferToken(
-            RecurringTransferTokenBuilder builder) {
+    public Observable<PrepareTokenResult> prepareStandingOrderToken(
+            StandingOrderTokenBuilder builder) {
         builder.from(memberId());
         return client.prepareToken(builder.buildPayload());
     }
 
     /**
-     * Prepares a recurring transfer token, returning the resolved token payload
+     * Prepares a standing order token, returning the resolved token payload
      * and policy.
      *
-     * @param builder recurring transfer token builder
+     * @param builder standing order token builder
      * @return resolved token payload and policy
      */
-    public PrepareTokenResult prepareRecurringTransferTokenBlocking(
-            RecurringTransferTokenBuilder builder) {
-        return prepareRecurringTransferToken(builder).blockingSingle();
+    public PrepareTokenResult prepareStandingOrderTokenBlocking(
+            StandingOrderTokenBuilder builder) {
+        return prepareStandingOrderToken(builder).blockingSingle();
     }
 
     /**
@@ -496,24 +496,24 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a new recurring transfer token builder. Defines a recurring payment
+     * Creates a new standing order token builder. Defines a standing order
      * for a fixed time span.
      *
-     * @param amount transfer amount
+     * @param amount individual transfer amount
      * @param currency currency code, e.g. "USD"
-     * @param frequency ISO 20022 code for the frequency of the recurring payment:
+     * @param frequency ISO 20022 code for the frequency of the standing order:
      *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
-     * @param startDate start date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
-     * @param endDate end date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
-     * @return transfer token builder
+     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @param endDate end date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @return standing order token builder
      */
-    public RecurringTransferTokenBuilder createRecurringTransferTokenBuilder(
+    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
             double amount,
             String currency,
             String frequency,
             String startDate,
             String endDate) {
-        return new RecurringTransferTokenBuilder(
+        return new StandingOrderTokenBuilder(
                 this,
                 amount,
                 currency,
@@ -523,21 +523,21 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a new indefinite recurring transfer token builder.
+     * Creates a new indefinite standing order token builder.
      *
-     * @param amount transfer amount
+     * @param amount individual transfer amount
      * @param currency currency code, e.g. "USD"
-     * @param frequency ISO 20022 code for the frequency of the recurring payment:
+     * @param frequency ISO 20022 code for the frequency of the standing order:
      *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
-     * @param startDate start date of the recurring payment: ISO 8601 YYYY-MM-DD or YYYYMMDD
-     * @return transfer token builder
+     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @return standing order token builder
      */
-    public RecurringTransferTokenBuilder createRecurringTransferTokenBuilder(
+    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
             double amount,
             String currency,
             String frequency,
             String startDate) {
-        return new RecurringTransferTokenBuilder(
+        return new StandingOrderTokenBuilder(
                 this,
                 amount,
                 currency,
@@ -547,14 +547,14 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a new recurring transfer token builder from a token request.
+     * Creates a new standing order token builder from a token request.
      *
      * @param tokenRequest token request
      * @return transfer token builder
      */
-    public RecurringTransferTokenBuilder createRecurringTransferTokenBuilder(
+    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
             TokenRequest tokenRequest) {
-        return new RecurringTransferTokenBuilder(this, tokenRequest);
+        return new StandingOrderTokenBuilder(this, tokenRequest);
     }
 
     /**
@@ -1419,23 +1419,23 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Redeems a recurring transfer token.
+     * Redeems a standing order token.
      *
      * @param tokenId ID of token to redeem
-     * @return recurring transfer record
+     * @return standing order submission
      */
-    public Observable<RecurringTransfer> redeemRecurringTransferToken(String tokenId) {
-        return client.createRecurringTransfer(tokenId);
+    public Observable<StandingOrderSubmission> redeemStandingOrderToken(String tokenId) {
+        return client.createStandingOrder(tokenId);
     }
 
     /**
-     * Redeems a recurring transfer token.
+     * Redeems a standing order token.
      *
      * @param tokenId ID of token to redeem
-     * @return recurring transfer record
+     * @return standing order submission
      */
-    public RecurringTransfer redeemRecurringTransferTokenBlocking(String tokenId) {
-        return redeemRecurringTransferToken(tokenId).blockingSingle();
+    public StandingOrderSubmission redeemStandingOrderTokenBlocking(String tokenId) {
+        return redeemStandingOrderToken(tokenId).blockingSingle();
     }
 
     /**
