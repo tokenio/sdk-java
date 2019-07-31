@@ -23,6 +23,8 @@
 package io.token.tokenrequest;
 
 import com.google.auto.value.AutoValue;
+import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
@@ -121,17 +123,6 @@ public abstract class TokenRequest {
          */
         public T setFromAlias(Alias fromAlias) {
             this.requestOptions.getFromBuilder().setAlias(fromAlias);
-            return (T) this;
-        }
-
-        /**
-         * Optional. Sets the account ID of the source bank account.
-         *
-         * @param sourceAccountId source bank account ID
-         * @return builder
-         */
-        public T setSourceAccount(String sourceAccountId) {
-            this.requestOptions.setSourceAccountId(sourceAccountId);
             return (T) this;
         }
 
@@ -474,6 +465,20 @@ public abstract class TokenRequest {
                     .setMetadata(Metadata.newBuilder()
                             .setProviderTransferMetadata(metadata))
                     .build();
+            return this;
+        }
+
+        /**
+         * Optional. Sets the source account to bypass account selection.
+         *
+         * @param account source account
+         * @return builder
+         */
+        public StandingOrderBuilder setAccount(BankAccount account) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getSourceBuilder()
+                    .setAccount(account);
             return this;
         }
     }

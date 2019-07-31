@@ -148,6 +148,20 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
+     * Adds a source account to the token.
+     *
+     * @param account source account
+     * @return builder
+     */
+    public StandingOrderTokenBuilder setAccount(BankAccount account) {
+        payload.getStandingOrderBuilder()
+                .getInstructionsBuilder()
+                .getSourceBuilder()
+                .setAccount(account);
+        return this;
+    }
+
+    /**
      * Sets the source custom authorization.
      *
      * @param bankId source bank ID
