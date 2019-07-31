@@ -25,6 +25,7 @@ package io.token.user;
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.STANDING_ORDER_BODY;
 import static io.token.util.Util.generateNonce;
 
+import com.google.common.base.Preconditions;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
@@ -56,7 +57,6 @@ public final class StandingOrderTokenBuilder {
             .getLogger(StandingOrderTokenBuilder.class);
     private static final int REF_ID_MAX_LENGTH = 18;
 
-    private final Member member;
     private final TokenPayload.Builder payload;
 
     /**
@@ -77,32 +77,27 @@ public final class StandingOrderTokenBuilder {
             String frequency,
             String startDate,
             Optional<String> endDate) {
-        this.member = member;
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
+                .setFrom(TokenMember.newBuilder().setId(member.memberId()))
                 .setStandingOrder(StandingOrderBody.newBuilder()
                         .setCurrency(currency)
                         .setAmount(Double.toString(amount))
                         .setFrequency(frequency)
                         .setStartDate(startDate)
                         .setEndDate(endDate.orElse("")));
-
-        if (member != null) {
-            from(member.memberId());
-            List<Alias> aliases = member.aliases().blockingSingle();
-            if (!aliases.isEmpty()) {
-                payload.getFromBuilder().setAlias(aliases.get(0));
-            }
+        List<Alias> aliases = member.aliases().blockingSingle();
+        if (!aliases.isEmpty()) {
+            payload.getFromBuilder().setAlias(aliases.get(0));
         }
     }
 
     /**
      * Creates the builder object from a token request.
      *
-     * @param member payer of the token
      * @param tokenRequest token request
      */
-    public StandingOrderTokenBuilder(Member member, TokenRequest tokenRequest) {
+    public StandingOrderTokenBuilder(TokenRequest tokenRequest) {
         if (tokenRequest.getRequestPayload().getRequestBodyCase() != STANDING_ORDER_BODY) {
             throw new IllegalArgumentException(
                     "Require token request with standing order body.");
@@ -110,15 +105,12 @@ public final class StandingOrderTokenBuilder {
         if (!tokenRequest.getRequestPayload().hasTo()) {
             throw new IllegalArgumentException("No payee on token request");
         }
-        this.member = member;
         StandingOrderBody body = tokenRequest.getRequestPayload()
                 .getStandingOrderBody();
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setRefId(tokenRequest.getRequestPayload().getRefId())
-                .setFrom(tokenRequest.getRequestOptions().hasFrom()
-                        ? tokenRequest.getRequestOptions().getFrom()
-                        : TokenMember.newBuilder().setId(member.memberId()).build())
+                .setFrom(tokenRequest.getRequestOptions().getFrom())
                 .setTo(tokenRequest.getRequestPayload().getTo())
                 .setDescription(tokenRequest.getRequestPayload().getDescription())
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
@@ -127,60 +119,6 @@ public final class StandingOrderTokenBuilder {
         if (tokenRequest.getRequestPayload().hasActingAs()) {
             this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
         }
-    }
-
-    /**
-     * Adds a source accountId to the token.
-     *
-     * @param accountId source accountId
-     * @return builder
-     */
-    public StandingOrderTokenBuilder setAccountId(String accountId) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .getSourceBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setToken(BankAccount.Token.newBuilder()
-                                .setAccountId(accountId)
-                                .setMemberId(member.memberId()))
-                        .build());
-        return this;
-    }
-
-    /**
-     * Adds a source account to the token.
-     *
-     * @param account source account
-     * @return builder
-     */
-    public StandingOrderTokenBuilder setAccount(BankAccount account) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .getSourceBuilder()
-                .setAccount(account);
-        return this;
-    }
-
-    /**
-     * Sets the source custom authorization.
-     *
-     * @param bankId source bank ID
-     * @param authorization source custom authorization
-     * @return builder
-     */
-    public StandingOrderTokenBuilder setCustomAuthorization(
-            String bankId,
-            String authorization) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .getSourceBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setCustom(BankAccount.Custom.newBuilder()
-                                .setBankId(bankId)
-                                .setPayload(authorization)
-                                .build())
-                        .build());
-        return this;
     }
 
     /**
@@ -241,16 +179,19 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
-     * Adds a transfer destination.
+     * Adds a linked source account to the token.
      *
-     * @param destination destination
+     * @param accountId source accountId
      * @return builder
      */
-    @Deprecated
-    public StandingOrderTokenBuilder addDestination(TransferEndpoint destination) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .addDestinations(destination);
+    public StandingOrderTokenBuilder setAccountId(String accountId) {
+        Preconditions.checkState(!payload.getFrom().getId().isEmpty());
+        setSource(TransferEndpoint.newBuilder()
+                .setAccount(BankAccount.newBuilder()
+                        .setToken(BankAccount.Token.newBuilder()
+                                .setAccountId(accountId)
+                                .setMemberId(payload.getFrom().getId())))
+                .build());
         return this;
     }
 
@@ -367,11 +308,6 @@ public final class StandingOrderTokenBuilder {
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setProviderTransferMetadata(metadata);
-        return this;
-    }
-
-    StandingOrderTokenBuilder from(String memberId) {
-        payload.setFrom(TokenMember.newBuilder().setId(memberId));
         return this;
     }
 

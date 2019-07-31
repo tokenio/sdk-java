@@ -341,7 +341,6 @@ public class Member extends io.token.Member {
      */
     public Observable<PrepareTokenResult> prepareStandingOrderToken(
             StandingOrderTokenBuilder builder) {
-        builder.from(memberId());
         return client.prepareToken(builder.buildPayload());
     }
 
@@ -552,9 +551,8 @@ public class Member extends io.token.Member {
      * @param tokenRequest token request
      * @return transfer token builder
      */
-    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
-            TokenRequest tokenRequest) {
-        return new StandingOrderTokenBuilder(this, tokenRequest);
+    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(TokenRequest tokenRequest) {
+        return new StandingOrderTokenBuilder(tokenRequest);
     }
 
     /**

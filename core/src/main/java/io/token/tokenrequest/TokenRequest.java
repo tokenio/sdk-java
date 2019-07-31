@@ -127,6 +127,17 @@ public abstract class TokenRequest {
         }
 
         /**
+         * Optional. Sets the account ID of the source bank account.
+         *
+         * @param sourceAccountId source bank account ID
+         * @return builder
+         */
+        public T setSourceAccount(String sourceAccountId) {
+            this.requestOptions.setSourceAccountId(sourceAccountId);
+            return (T) this;
+        }
+
+        /**
          * Optional. True if a receipt should be sent to the payee/grantee's default
          * receipt email/SMS/etc.
          *
@@ -471,14 +482,13 @@ public abstract class TokenRequest {
         /**
          * Optional. Sets the source account to bypass account selection.
          *
-         * @param account source account
+         * @param source source
          * @return builder
          */
-        public StandingOrderBuilder setAccount(BankAccount account) {
+        public StandingOrderBuilder setSource(TransferEndpoint source) {
             this.requestPayload.getStandingOrderBodyBuilder()
                     .getInstructionsBuilder()
-                    .getSourceBuilder()
-                    .setAccount(account);
+                    .setSource(source);
             return this;
         }
     }
