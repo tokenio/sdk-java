@@ -3,9 +3,8 @@ apply plugin: 'io.token.gradle.lib'
 apply plugin: 'io.token.gradle.project'
 apply plugin: 'com.github.hierynomus.license'
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
-base.useJava7 = true
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 publish {
     isPublic = true

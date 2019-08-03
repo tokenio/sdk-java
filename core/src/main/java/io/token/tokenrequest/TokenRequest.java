@@ -23,9 +23,12 @@
 package io.token.tokenrequest;
 
 import com.google.auto.value.AutoValue;
+import io.token.proto.common.account.AccountProtos;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
+import io.token.proto.common.token.TokenProtos.StandingOrderBody;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
@@ -35,6 +38,8 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata;
 import io.token.util.Util;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 
 @AutoValue
@@ -326,7 +331,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Sets the maximum amount per charge on a transfer token request.
+         * Optional. Sets the maximum amount per charge on a transfer token request.
          *
          * @param chargeAmount amount
          * @return builder
@@ -339,7 +344,20 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Adds metadata for a specific provider.
+         * Sets the execution date of the transfer. Used for future-dated payments.
+         *
+         * @param executionDate execution date
+         * @return builder
+         */
+        public TransferBuilder setExecutionDate(LocalDate executionDate) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .setExecutionDate(executionDate.format(DateTimeFormatter.BASIC_ISO_DATE))
+                    .build();
+            return this;
+        }
+
+        /**
+         * Optional. Adds metadata for a specific provider.
          *
          * @param metadata provider-specific metadata
          * @return builder
@@ -350,6 +368,127 @@ public abstract class TokenRequest {
                     .setMetadata(Metadata.newBuilder()
                             .setProviderTransferMetadata(metadata))
                     .build();
+            return this;
+        }
+    }
+
+    public static class StandingOrderBuilder extends Builder<StandingOrderBuilder> {
+        StandingOrderBuilder() {
+            this.requestPayload.setStandingOrderBody(StandingOrderBody.newBuilder());
+        }
+
+        /**
+         * Sets the amount per charge of the standing order.
+         *
+         * @param amount amount per individual charge
+         * @return builder
+         */
+        public StandingOrderBuilder setAmount(double amount) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .setAmount(Double.toString(amount));
+            return this;
+        }
+
+        /**
+         * Sets the currency for each charge in the standing order.
+         *
+         * @param currency currency
+         * @return builder
+         */
+        public StandingOrderBuilder setCurrency(String currency) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .setCurrency(currency);
+            return this;
+        }
+
+        /**
+         * Sets the frequency of the standing order. ISO 20022: DAIL, WEEK, TOWK,
+         * MNTH, TOMN, QUTR, SEMI, YEAR
+         *
+         * @param frequency frequency of the standing order
+         * @return builder
+         */
+        public StandingOrderBuilder setFrequency(String frequency) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .setFrequency(frequency);
+            return this;
+        }
+
+        /**
+         * Sets the start date of the standing order. ISO 8601: YYYY-MM-DD or YYYYMMDD.
+         *
+         * @param startDate start date of the standing order
+         * @return builder
+         */
+        public StandingOrderBuilder setStartDate(String startDate) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .setStartDate(startDate);
+            return this;
+        }
+
+        /**
+         * Sets the end date of the standing order. ISO 8601: YYYY-MM-DD or YYYYMMDD.
+         * If not specified, the standing order will occur indefinitely.
+         *
+         * @param endDate end date of the standing order
+         * @return builder
+         */
+        public StandingOrderBuilder setEndDate(String endDate) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .setEndDate(endDate);
+            return this;
+        }
+
+        /**
+         * Adds a transfer destination to a transfer token request.
+         *
+         * @param destination destination
+         * @return builder
+         */
+        public StandingOrderBuilder addDestination(TransferDestination destination) {
+            this.requestPayload.getStandingOrderBodyBuilder().getInstructionsBuilder()
+                    .addTransferDestinations(destination);
+            return this;
+        }
+
+        /**
+         * Optional. Sets the destination country in order to narrow down
+         * the country selection in the web-app UI.
+         *
+         * @param destinationCountry destination country
+         * @return builder
+         */
+        public StandingOrderBuilder setDestinationCountry(String destinationCountry) {
+            this.requestPayload.setDestinationCountry(destinationCountry);
+            return this;
+        }
+
+        /**
+         * Optional. Adds metadata for a specific provider.
+         *
+         * @param metadata provider-specific metadata
+         * @return builder
+         */
+        public StandingOrderBuilder setProviderTransferMetadata(
+                ProviderTransferMetadata metadata) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .getInstructionsBuilder()
+                    .setMetadata(Metadata.newBuilder()
+                            .setProviderTransferMetadata(metadata))
+                    .build();
+            return this;
+        }
+
+        /**
+         * Optional. Sets the source account to bypass account selection.
+         *
+         * @param source source
+         * @return builder
+         */
+        public StandingOrderBuilder setSource(TransferEndpoint source) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .getInstructionsBuilder()
+                    .setSource(source);
             return this;
         }
     }

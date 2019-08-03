@@ -38,12 +38,14 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateCustomizationRequest;
@@ -54,6 +56,7 @@ import io.token.proto.gateway.Gateway.GetActiveAccessTokenRequest;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
 import io.token.proto.gateway.Gateway.GetBlobRequest;
 import io.token.proto.gateway.Gateway.GetBlobResponse;
+import io.token.proto.gateway.Gateway.GetStandingOrderSubmissionsRequest;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
@@ -340,6 +343,22 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
+     * Looks up an existing Token standing order submission.
+     *
+     * @param submissionId submission ID
+     * @return standing order submission record
+     */
+    public Observable<StandingOrderSubmission> getStandingOrderSubmission(String submissionId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getStandingOrderSubmission(Gateway.GetStandingOrderSubmissionRequest
+                        .newBuilder()
+                        .setSubmissionId(submissionId)
+                        .build()))
+                .map(response -> response.getSubmission());
+    }
+
+    /**
      * Looks up a list of existing transfers.
      *
      * @param offset optional offset to start at
@@ -371,6 +390,28 @@ public final class Client extends io.token.rpc.Client {
                         return PagedList.create(response.getTransfersList(), response.getOffset());
                     }
                 });
+    }
+
+    /**
+     * Looks up a list of existing standing order submissions.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @return standing order submissions
+     */
+    public Observable<PagedList<StandingOrderSubmission, String>> getStandingOrderSubmissions(
+            @Nullable String offset,
+            int limit) {
+        GetStandingOrderSubmissionsRequest request = GetStandingOrderSubmissionsRequest.newBuilder()
+                .setPage(pageBuilder(offset, limit))
+                .build();
+
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getStandingOrderSubmissions(request))
+                .map(response -> PagedList.create(
+                        response.getSubmissionsList(),
+                        response.getOffset()));
     }
 
     /**
@@ -413,6 +454,21 @@ public final class Client extends io.token.rpc.Client {
                         return response.getTransfer();
                     }
                 });
+    }
+
+    /**
+     * Redeems a standing order token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return standing order submission
+     */
+    public Observable<StandingOrderSubmission> createStandingOrder(String tokenId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .createStandingOrder(Gateway.CreateStandingOrderRequest.newBuilder()
+                        .setTokenId(tokenId)
+                        .build()))
+                .map(response -> response.getSubmission());
     }
 
     /**

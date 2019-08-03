@@ -33,7 +33,6 @@ import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
@@ -46,6 +45,8 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -392,6 +393,19 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the execution date of the transfer. Used for future-dated payments.
+     *
+     * @param executionDate execution date
+     * @return builder
+     */
+    public TransferTokenBuilder setExecutionDate(LocalDate executionDate) {
+        payload.getTransferBuilder()
+                .setExecutionDate(executionDate.format(DateTimeFormatter.BASIC_ISO_DATE))
+                .build();
+        return this;
+    }
+
+    /**
      * Sets provider transfer metadata.
      *
      * @param metadata the metadata
@@ -406,7 +420,7 @@ public final class TransferTokenBuilder {
     }
 
     TransferTokenBuilder from(String memberId) {
-        payload.setFrom(TokenMember.newBuilder().setId(member.memberId()));
+        payload.setFrom(TokenMember.newBuilder().setId(memberId));
         return this;
     }
 

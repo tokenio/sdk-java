@@ -24,7 +24,6 @@ package io.token.user;
 
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
-import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.user.util.Util.generateNonce;
 import static io.token.user.util.Util.getWebAppUrl;
 import static io.token.user.util.Util.parseOauthAccessToken;
@@ -57,6 +56,7 @@ import io.token.proto.common.notification.NotificationProtos.Notification;
 import io.token.proto.common.notification.NotificationProtos.Notification.Status;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
+import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -68,7 +68,6 @@ import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
-import io.token.proto.gateway.Gateway.UpdateNotificationStatusRequest;
 import io.token.user.browser.Browser;
 import io.token.user.browser.BrowserFactory;
 import io.token.user.rpc.Client;
@@ -80,6 +79,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -234,6 +234,26 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Looks up an existing Token standing order submission.
+     *
+     * @param submissionId ID of the standing orde submission
+     * @return standing order submission
+     */
+    public Observable<StandingOrderSubmission> getStandingOrderSubmission(String submissionId) {
+        return client.getStandingOrderSubmission(submissionId);
+    }
+
+    /**
+     * Looks up an existing Token standing order submission.
+     *
+     * @param submissionId ID of the standing orde submission
+     * @return standing order submission
+     */
+    public StandingOrderSubmission getStandingOrderSubmissionBlocking(String submissionId) {
+        return getStandingOrderSubmission(submissionId).blockingSingle();
+    }
+
+    /**
      * Looks up existing token transfers.
      *
      * @param offset optional offset to start at
@@ -264,6 +284,32 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Looks up existing Token standing order submissions.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of submissions to return
+     * @return standing order submissions
+     */
+    public Observable<PagedList<StandingOrderSubmission, String>> getStandingOrderSubmissions(
+            @Nullable String offset,
+            int limit) {
+        return client.getStandingOrderSubmissions(offset, limit);
+    }
+
+    /**
+     * Looks up existing Token standing order submissions.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of submissions to return
+     * @return standing order submissions
+     */
+    public PagedList<StandingOrderSubmission, String> getStandingOrderSubmissionsBlocking(
+            @Nullable String offset,
+            int limit) {
+        return getStandingOrderSubmissions(offset, limit).blockingSingle();
+    }
+
+    /**
      * Prepares a transfer token, returning the resolved token payload and policy.
      *
      * @param transferTokenBuilder transfer token builder
@@ -284,6 +330,30 @@ public class Member extends io.token.Member {
     public PrepareTokenResult prepareTransferTokenBlocking(
             TransferTokenBuilder transferTokenBuilder) {
         return prepareTransferToken(transferTokenBuilder).blockingSingle();
+    }
+
+    /**
+     * Prepares a standing order token, returning the resolved token payload
+     * and policy.
+     *
+     * @param builder standing order token builder
+     * @return resolved token payload and policy
+     */
+    public Observable<PrepareTokenResult> prepareStandingOrderToken(
+            StandingOrderTokenBuilder builder) {
+        return client.prepareToken(builder.buildPayload());
+    }
+
+    /**
+     * Prepares a standing order token, returning the resolved token payload
+     * and policy.
+     *
+     * @param builder standing order token builder
+     * @return resolved token payload and policy
+     */
+    public PrepareTokenResult prepareStandingOrderTokenBlocking(
+            StandingOrderTokenBuilder builder) {
+        return prepareStandingOrderToken(builder).blockingSingle();
     }
 
     /**
@@ -422,6 +492,67 @@ public class Member extends io.token.Member {
      */
     public TransferTokenBuilder createTransferTokenBuilder(TokenPayload tokenPayload) {
         return new TransferTokenBuilder(this, tokenPayload);
+    }
+
+    /**
+     * Creates a new standing order token builder. Defines a standing order
+     * for a fixed time span.
+     *
+     * @param amount individual transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param frequency ISO 20022 code for the frequency of the standing order:
+     *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
+     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @param endDate end date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @return standing order token builder
+     */
+    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
+            double amount,
+            String currency,
+            String frequency,
+            String startDate,
+            String endDate) {
+        return new StandingOrderTokenBuilder(
+                this,
+                amount,
+                currency,
+                frequency,
+                startDate,
+                Optional.of(endDate));
+    }
+
+    /**
+     * Creates a new indefinite standing order token builder.
+     *
+     * @param amount individual transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param frequency ISO 20022 code for the frequency of the standing order:
+     *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
+     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @return standing order token builder
+     */
+    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
+            double amount,
+            String currency,
+            String frequency,
+            String startDate) {
+        return new StandingOrderTokenBuilder(
+                this,
+                amount,
+                currency,
+                frequency,
+                startDate,
+                Optional.empty());
+    }
+
+    /**
+     * Creates a new standing order token builder from a token request.
+     *
+     * @param tokenRequest token request
+     * @return transfer token builder
+     */
+    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(TokenRequest tokenRequest) {
+        return new StandingOrderTokenBuilder(tokenRequest);
     }
 
     /**
@@ -957,6 +1088,10 @@ public class Member extends io.token.Member {
             @Nullable String description,
             @Nullable TransferDestination destination,
             @Nullable String refId) {
+        if (!token.getPayload().hasTransfer()) {
+            throw new IllegalArgumentException("Expected transfer token; found "
+                    + token.getPayload().getBodyCase());
+        }
         TransferPayload.Builder payload = TransferPayload.newBuilder()
                 .setTokenId(token.getId())
                 .setDescription(token
@@ -1279,6 +1414,26 @@ public class Member extends io.token.Member {
             @Nullable String refId) {
         return redeemToken(token, amount, currency, description, destination, refId)
                 .blockingSingle();
+    }
+
+    /**
+     * Redeems a standing order token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return standing order submission
+     */
+    public Observable<StandingOrderSubmission> redeemStandingOrderToken(String tokenId) {
+        return client.createStandingOrder(tokenId);
+    }
+
+    /**
+     * Redeems a standing order token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return standing order submission
+     */
+    public StandingOrderSubmission redeemStandingOrderTokenBlocking(String tokenId) {
+        return redeemStandingOrderToken(tokenId).blockingSingle();
     }
 
     /**

@@ -39,6 +39,7 @@ import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transfer.TransferProtos;
@@ -762,6 +763,26 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
+     * Redeems a standing order token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return standing order submission
+     */
+    public Observable<StandingOrderSubmission> redeemStandingOrderToken(String tokenId) {
+        return client.createStandingOrder(tokenId);
+    }
+
+    /**
+     * Redeems a standing order token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return standing order submission
+     */
+    public StandingOrderSubmission redeemStandingOrderTokenBlocking(String tokenId) {
+        return redeemStandingOrderToken(tokenId).blockingSingle();
+    }
+
+    /**
      * Stores a token request. This can be retrieved later by the token request id.
      *
      * @param tokenRequest token request
@@ -842,6 +863,26 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
+     * Looks up an existing Token standing order submission.
+     *
+     * @param submissionId ID of the standing orde submission
+     * @return standing order submission
+     */
+    public Observable<StandingOrderSubmission> getStandingOrderSubmission(String submissionId) {
+        return client.getStandingOrderSubmission(submissionId);
+    }
+
+    /**
+     * Looks up an existing Token standing order submission.
+     *
+     * @param submissionId ID of the standing orde submission
+     * @return standing order submission
+     */
+    public StandingOrderSubmission getStandingOrderSubmissionBlocking(String submissionId) {
+        return getStandingOrderSubmission(submissionId).blockingSingle();
+    }
+
+    /**
      * Looks up existing token transfers.
      *
      * @param offset optional offset to start at
@@ -869,6 +910,32 @@ public class Member extends io.token.Member implements Representable {
             int limit,
             @Nullable String tokenId) {
         return getTransfers(offset, limit, tokenId).blockingSingle();
+    }
+
+    /**
+     * Looks up existing Token standing order submissions.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of submissions to return
+     * @return standing order submissions
+     */
+    public Observable<PagedList<StandingOrderSubmission, String>> getStandingOrderSubmissions(
+            @Nullable String offset,
+            int limit) {
+        return client.getStandingOrderSubmissions(offset, limit);
+    }
+
+    /**
+     * Looks up existing Token standing order submissions.
+     *
+     * @param offset optional offset to start at
+     * @param limit max number of submissions to return
+     * @return standing order submissions
+     */
+    public PagedList<StandingOrderSubmission, String> getStandingOrderSubmissionsBlocking(
+            @Nullable String offset,
+            int limit) {
+        return getStandingOrderSubmissions(offset, limit).blockingSingle();
     }
 
     /**

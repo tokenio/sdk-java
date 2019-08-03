@@ -28,6 +28,7 @@ import static io.token.proto.common.transaction.TransactionProtos.Transaction;
 
 import io.reactivex.Observable;
 import io.token.proto.PagedList;
+import io.token.proto.common.transaction.TransactionProtos.StandingOrder;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 
 import java.util.List;
@@ -104,18 +105,16 @@ public interface Representable {
     List<Balance> getBalancesBlocking(List<String> accountIds, Key.Level keyLevel);
 
     /**
-     * Looks up transactions for a given account.
+     * Looks up an existing transaction for a given account.
      *
      * @param accountId the account id
-     * @param offset optional offset to start at
-     * @param limit max number of records to return
+     * @param transactionId ID of the transaction
      * @param keyLevel key level
-     * @return a paged list of transaction records
+     * @return transaction record
      */
-    Observable<PagedList<Transaction, String>> getTransactions(
+    Observable<Transaction> getTransaction(
             String accountId,
-            @Nullable String offset,
-            int limit,
+            String transactionId,
             Key.Level keyLevel);
 
     /**
@@ -132,16 +131,18 @@ public interface Representable {
             Key.Level keyLevel);
 
     /**
-     * Looks up an existing transaction for a given account.
+     * Looks up transactions for a given account.
      *
      * @param accountId the account id
-     * @param transactionId ID of the transaction
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
      * @param keyLevel key level
-     * @return transaction record
+     * @return a paged list of transaction records
      */
-    Observable<Transaction> getTransaction(
+    Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
-            String transactionId,
+            @Nullable String offset,
+            int limit,
             Key.Level keyLevel);
 
     /**
@@ -154,6 +155,62 @@ public interface Representable {
      * @return paged list of transactions
      */
     PagedList<Transaction, String> getTransactionsBlocking(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel);
+
+    /**
+     * Looks up an existing standing order for a given account.
+     *
+     * @param accountId the account ID
+     * @param standingOrderId ID of the standing order
+     * @param keyLevel key level
+     * @return standing order record
+     */
+    Observable<StandingOrder> getStandingOrder(
+            String accountId,
+            String standingOrderId,
+            Key.Level keyLevel);
+
+    /**
+     * Looks up an existing standing order for a given account.
+     *
+     * @param accountId the account ID
+     * @param standingOrderId ID of the standing order
+     * @param keyLevel key level
+     * @return standing order record
+     */
+    StandingOrder getStandingOrderBlocking(
+            String accountId,
+            String standingOrderId,
+            Key.Level keyLevel);
+
+    /**
+     * Looks up standing orders for a given account.
+     *
+     * @param accountId the account ID
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @return a paged list of standing order records
+     */
+    Observable<PagedList<StandingOrder, String>> getStandingOrders(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel);
+
+    /**
+     * Looks up standing orders for a given account.
+     *
+     * @param accountId the account ID
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @return a paged list of standing order records
+     */
+    PagedList<StandingOrder, String> getStandingOrdersBlocking(
             String accountId,
             @Nullable String offset,
             int limit,

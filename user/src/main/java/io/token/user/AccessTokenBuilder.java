@@ -29,6 +29,7 @@ import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.token.TokenProtos.AccessBody;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountBalance;
+import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountStandingOrders;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.AccountTransactions;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.Address;
 import io.token.proto.common.token.TokenProtos.AccessBody.Resource.FundsConfirmation;
@@ -175,6 +176,21 @@ public final class AccessTokenBuilder {
                 .getAccessBuilder()
                 .addResources(Resource.newBuilder()
                         .setTransactions(AccountTransactions.newBuilder().setAccountId(accountId)));
+        return this;
+    }
+
+    /**
+     * Grants access to a given account standing orders.
+     *
+     * @param accountId account ID to grant access to standing orders
+     * @return {@link AccessTokenBuilder}
+     */
+    public AccessTokenBuilder forAccountStandingOrders(String accountId) {
+        payload
+                .getAccessBuilder()
+                .addResources(Resource.newBuilder()
+                        .setStandingOrders(AccountStandingOrders.newBuilder()
+                                .setAccountId(accountId)));
         return this;
     }
 
