@@ -518,6 +518,8 @@ public class Member extends io.token.Member implements Representable {
         }
         if (refId != null) {
             payload.setRefId(refId);
+        } else if (!token.getPayload().getRefId().isEmpty()) {
+            payload.setRefId(token.getPayload().getRefId());
         } else {
             logger.warn("refId is not set. A random ID will be used.");
             payload.setRefId(generateNonce());
