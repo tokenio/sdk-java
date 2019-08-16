@@ -33,6 +33,7 @@ import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata;
@@ -365,8 +366,23 @@ public abstract class TokenRequest {
         public TransferBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
             this.requestPayload.getTransferBodyBuilder()
                     .getInstructionsBuilder()
-                    .setMetadata(Metadata.newBuilder()
-                            .setProviderTransferMetadata(metadata))
+                    .getMetadataBuilder()
+                    .setProviderTransferMetadata(metadata)
+                    .build();
+            return this;
+        }
+
+        /**
+         * Optional. Set the bearer for any Foreign Exchange fees incurred on the transfer.
+         *
+         * @param chargeBearer
+         * @return builder
+         */
+        public TransferBuilder setChargeBearer(TransferInstructionsProtos.ChargeBearer chargeBearer) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getMetadataBuilder()
+                    .setChargeBearer(chargeBearer)
                     .build();
             return this;
         }
