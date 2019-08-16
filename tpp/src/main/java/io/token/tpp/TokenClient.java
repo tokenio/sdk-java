@@ -24,6 +24,7 @@ package io.token.tpp;
 
 import static io.token.TokenClient.TokenCluster.SANDBOX;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
+import static io.token.tpp.util.Util.base64Encode;
 import static io.token.tpp.util.Util.hashString;
 import static io.token.tpp.util.Util.urlEncode;
 import static io.token.tpp.util.Util.verifySignature;
@@ -63,8 +64,10 @@ import javax.annotation.Nullable;
 
 public class TokenClient extends io.token.TokenClient {
     private static final String TOKEN_REQUEST_TEMPLATE =
-            "https://%s/request-token/%s?state=%s";
+            "https://%s/request-token/%s?state=%s&resume_flow=%s";
 
+    private static final String TOKEN_CONFIRMATION_REQUEST_TEMPLATE =
+            "https://&s/token/tpp/confirmation?callback=%s&amount=%s&currency=%s&alias=%s&state=%s";
     /**
      * Creates an instance of a Token SDK.
      *
@@ -378,7 +381,20 @@ public class TokenClient extends io.token.TokenClient {
      * @return token request url
      */
     public Observable<String> generateTokenRequestUrl(String requestId) {
-        return generateTokenRequestUrl(requestId, "", "");
+        return generateTokenRequestUrl(requestId, false, "", "");
+    }
+
+    /**
+     * Generate a Token request URL from a request ID. Users can choose whether to start
+     * a new Flow or resume from where the Token web app left. This does not set a CSRF token
+     * or pass in a state.
+     *
+     * @param requestId request id
+     * @param resumeFlow flag that suggests whether Token Web app should start a new UI flow or not
+     * @return token request url
+     */
+    public Observable<String> generateTokenRequestUrl(String requestId, boolean resumeFlow) {
+        return generateTokenRequestUrl(requestId, resumeFlow, "", "");
     }
 
     /**
@@ -392,7 +408,7 @@ public class TokenClient extends io.token.TokenClient {
     public Observable<String> generateTokenRequestUrl(
             String requestId,
             String state) {
-        return generateTokenRequestUrl(requestId, state, "");
+        return generateTokenRequestUrl(requestId, false, state, "");
     }
 
     /**
@@ -406,6 +422,7 @@ public class TokenClient extends io.token.TokenClient {
     @Deprecated // set state and csrf token on the TokenRequest builder
     public Observable<String> generateTokenRequestUrl(
             String requestId,
+            boolean resumeFlow,
             String state,
             String csrfToken) {
         String csrfTokenHash = hashString(csrfToken);
@@ -413,7 +430,8 @@ public class TokenClient extends io.token.TokenClient {
         return Observable.just(String.format(TOKEN_REQUEST_TEMPLATE,
                 getWebAppUrl(tokenCluster),
                 requestId,
-                urlEncode(tokenRequestState.serialize())));
+                urlEncode(tokenRequestState.serialize()),
+                resumeFlow));
     }
 
     /**
@@ -425,6 +443,21 @@ public class TokenClient extends io.token.TokenClient {
      */
     public String generateTokenRequestUrlBlocking(String requestId) {
         return generateTokenRequestUrl(requestId).blockingSingle();
+    }
+
+    /**
+     * Generate a Token request URL from a request ID. Users can choose whether to start
+     * a new Flow or resume from where the Token web app left. This does not set a CSRF token
+     * or pass in a state.
+     *
+     * @param requestId request id
+     * @param resumeFlow flag that suggests whether Token Web app should start a new UI flow or not
+     * @return token request url
+     */
+    public String generateTokenRequestUrlBlocking(
+            String requestId,
+            boolean resumeFlow) {
+        return generateTokenRequestUrl(requestId, resumeFlow).blockingSingle();
     }
 
     /**
@@ -452,7 +485,7 @@ public class TokenClient extends io.token.TokenClient {
             String requestId,
             String state,
             String csrfToken) {
-        return generateTokenRequestUrl(requestId, state, csrfToken).blockingSingle();
+        return generateTokenRequestUrl(requestId, false, state, csrfToken).blockingSingle();
     }
 
     /**
@@ -630,6 +663,104 @@ public class TokenClient extends io.token.TokenClient {
      */
     public TokenRequest retrieveTokenRequestBlocking(String requestId) {
         return retrieveTokenRequest(requestId).blockingSingle();
+    }
+
+    /**
+     * Generate a Token confirmation request with callback, amount, currency and tpp alias.
+     *
+     * @param callbackUrl TPP provided callbackUrl
+     * @param amount amount charged
+     * @param currency currency in which the amount is charged
+     * @param alias Alias of TPP to be displayed on consent page
+     * @return token confirmation request url
+     */
+    public Observable<String> generateTokenConfirmationRequestUrl(
+            String callbackUrl,
+            double amount,
+            String currency,
+            String alias
+    ) {
+        return generateTokenConfirmationRequestUrl(callbackUrl, amount, currency, alias, "", "");
+    }
+
+    /**
+     * Generate a Token confirmation request with callback, amount, currency, tpp alias and states.
+     *
+     * @param callbackUrl TPP provided callbackUrl
+     * @param amount amount charged
+     * @param currency currency in which the amount is charged
+     * @param alias Alias of TPP to be displayed on consent page
+     * @param state state
+     * @param csrfToken csrf token
+     * @return token confirmation request url
+     */
+    public Observable<String> generateTokenConfirmationRequestUrl(
+            String callbackUrl,
+            double amount,
+            String currency,
+            String alias,
+            String state,
+            String csrfToken
+    ) {
+        String csrfTokenHash = hashString(csrfToken);
+        TokenRequestState tokenRequestState = TokenRequestState.create(csrfTokenHash, state);
+        return Observable.just(String.format(TOKEN_CONFIRMATION_REQUEST_TEMPLATE,
+                getWebAppUrl(tokenCluster),
+                base64Encode(callbackUrl),
+                amount,
+                currency,
+                alias,
+                urlEncode(tokenRequestState.serialize())));
+    }
+
+    /**
+     * Generate a Token confirmation request with callback, amount, currency and tpp alias.
+     *
+     * @param callbackUrl TPP provided callbackUrl
+     * @param amount amount charged
+     * @param currency currency in which the amount is charged
+     * @param alias Alias of TPP to be displayed on consent page
+     * @return token confirmation request url
+     */
+    public String generateTokenConfirmationRequestUrlBlocking(
+            String callbackUrl,
+            double amount,
+            String currency,
+            String alias
+    ) {
+        return generateTokenConfirmationRequestUrl(
+                callbackUrl,
+                amount,
+                currency,
+                alias).blockingSingle();
+    }
+
+    /**
+     * Generate a Token confirmation request with callback, amount, currency, tpp alias and states.
+     *
+     * @param callbackUrl TPP provided callbackUrl
+     * @param amount amount charged
+     * @param currency currency in which the amount is charged
+     * @param alias Alias of TPP to be displayed on consent page
+     * @param state state
+     * @param csrfToken csrf token
+     * @return token confirmation request url
+     */
+    public String generateTokenConfirmationRequestUrlBlocking(
+            String callbackUrl,
+            double amount,
+            String currency,
+            String alias,
+            String state,
+            String csrfToken
+    ) {
+        return generateTokenConfirmationRequestUrl(
+                callbackUrl,
+                amount,
+                currency,
+                alias,
+                state,
+                csrfToken).blockingSingle();
     }
 
     public static final class Builder extends io.token.TokenClient.Builder<Builder> {

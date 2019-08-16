@@ -38,6 +38,8 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.PublicKey;
+import java.util.Arrays;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -144,5 +146,15 @@ public abstract class Util extends io.token.util.Util {
         }
 
         return key;
+    }
+
+    /**
+     * Base64 encodes a string
+     *
+     * @param string to encode
+     * @return encoded string
+     */
+    public static String base64Encode(String string) {
+        return Arrays.toString(Base64.getEncoder().encode(string.getBytes()));
     }
 }
