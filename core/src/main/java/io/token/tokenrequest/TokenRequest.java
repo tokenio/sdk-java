@@ -22,7 +22,10 @@
 
 package io.token.tokenrequest;
 
+import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceType.ACCOUNT_FUNDS_CONFIRMATION;
+
 import com.google.auto.value.AutoValue;
+import io.token.Account;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -31,6 +34,10 @@ import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.StandingOrderBody;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceList;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceList.AccountResource;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceType;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.GenericResourceList;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
@@ -56,6 +63,35 @@ public abstract class TokenRequest {
      */
     public static AccessBuilder accessTokenRequestBuilder(ResourceType... resources) {
         return new AccessBuilder(resources);
+    }
+
+    /**
+     * Create a new Builder instance for an access token request with account-specific resources.
+     *
+     * @param list list of account-specific access token resources
+     * @return Builder instance
+     */
+    public static AccessBuilder accessTokenRequestBuilder(AccountResourceList list) {
+        return new AccessBuilder(list);
+    }
+
+    /**
+     * Create a Builder instance for a funds confirmation request.
+     *
+     * @param bankId bank ID
+     * @param account the user's account
+     * @return Builder instance
+     */
+    public static AccessBuilder fundsConfirmationRequestBuilder(
+            String bankId,
+            BankAccount account) {
+        return new AccessBuilder(AccountResourceList.newBuilder()
+                .addResources(AccountResource.newBuilder()
+                        .setBankAccount(account)
+                        .setType(ACCOUNT_FUNDS_CONFIRMATION)
+                        .build())
+                .build())
+                .setBankId(bankId);
     }
 
     /**
@@ -281,7 +317,16 @@ public abstract class TokenRequest {
         AccessBuilder(ResourceType... resources) {
             this.requestPayload.setAccessBody(
                     TokenRequestPayload.AccessBody.newBuilder()
-                            .addAllType(Arrays.asList(resources)));
+                            .setGenericResourceList(GenericResourceList.newBuilder()
+                                    .addAllResources(Arrays.asList(resources))
+                                    .build()));
+        }
+
+        AccessBuilder(AccountResourceList list) {
+            this.requestPayload.setAccessBody(
+                    TokenRequestPayload.AccessBody.newBuilder()
+                            .setAccountResourceList(list)
+                            .build());
         }
     }
 
