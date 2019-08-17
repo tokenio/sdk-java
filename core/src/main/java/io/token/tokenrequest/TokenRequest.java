@@ -22,6 +22,8 @@
 
 package io.token.tokenrequest;
 
+import static io.token.proto.common.transferinstructions.TransferInstructionsProtos.*;
+
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.account.AccountProtos.BankAccount;
@@ -378,7 +380,7 @@ public abstract class TokenRequest {
          * @param chargeBearer
          * @return builder
          */
-        public TransferBuilder setChargeBearer(TransferInstructionsProtos.ChargeBearer chargeBearer) {
+        public TransferBuilder setChargeBearer(ChargeBearer chargeBearer) {
             this.requestPayload.getTransferBodyBuilder()
                     .getInstructionsBuilder()
                     .getMetadataBuilder()
