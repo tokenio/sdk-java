@@ -37,6 +37,7 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.Ac
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceTypeList;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.CustomerData;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata;
@@ -45,6 +46,7 @@ import io.token.util.Util;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Optional;
 
 @AutoValue
 public abstract class TokenRequest {
@@ -82,11 +84,26 @@ public abstract class TokenRequest {
     public static AccessBuilder fundsConfirmationRequestBuilder(
             String bankId,
             BankAccount account) {
+        return fundsConfirmationRequestBuilder(bankId, account, Optional.empty());
+    }
+
+    /**
+     * Create a Builder instance for a funds confirmation request.
+     *
+     * @param bankId bank ID
+     * @param account the user's account
+     * @return Builder instance
+     */
+    public static AccessBuilder fundsConfirmationRequestBuilder(
+            String bankId,
+            BankAccount account,
+            Optional<CustomerData> data) {
+        AccountResource.Builder builder = AccountResource.newBuilder()
+                .setBankAccount(account)
+                .setType(ACCOUNT_FUNDS_CONFIRMATION);
+        data.ifPresent(builder::setCustomerData);
         return new AccessBuilder(AccountResourceList.newBuilder()
-                .addResources(AccountResource.newBuilder()
-                        .setBankAccount(account)
-                        .setType(ACCOUNT_FUNDS_CONFIRMATION)
-                        .build())
+                .addResources(builder.build())
                 .build())
                 .setBankId(bankId);
     }
