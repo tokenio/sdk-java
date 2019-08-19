@@ -25,8 +25,6 @@ package io.token.tokenrequest;
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceType.ACCOUNT_FUNDS_CONFIRMATION;
 
 import com.google.auto.value.AutoValue;
-import io.token.Account;
-import io.token.proto.common.account.AccountProtos;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
@@ -36,9 +34,8 @@ import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceList;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceList.AccountResource;
-import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceType;
-import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.GenericResourceList;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceTypeList;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -317,7 +314,7 @@ public abstract class TokenRequest {
         AccessBuilder(ResourceType... resources) {
             this.requestPayload.setAccessBody(
                     TokenRequestPayload.AccessBody.newBuilder()
-                            .setGenericResourceList(GenericResourceList.newBuilder()
+                            .setResourceTypeList(ResourceTypeList.newBuilder()
                                     .addAllResources(Arrays.asList(resources))
                                     .build()));
         }
@@ -412,6 +409,19 @@ public abstract class TokenRequest {
                     .getInstructionsBuilder()
                     .setMetadata(Metadata.newBuilder()
                             .setProviderTransferMetadata(metadata))
+                    .build();
+            return this;
+        }
+
+        /**
+         * Optional. Sets whether CAF should be attempted before transfer.
+         *
+         * @param confirmFunds whether to attempt CAF before transfer
+         * @return builder
+         */
+        public TransferBuilder setConfirmFunds(boolean confirmFunds) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .setConfirmFunds(confirmFunds)
                     .build();
             return this;
         }
