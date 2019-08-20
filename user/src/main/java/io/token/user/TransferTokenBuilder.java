@@ -409,13 +409,25 @@ public final class TransferTokenBuilder {
      * Sets provider transfer metadata.
      *
      * @param metadata the metadata
-     * @return the provider transfer metadata
+     * @return builder
      */
     public TransferTokenBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setProviderTransferMetadata(metadata);
+        return this;
+    }
+
+    /**
+     * Sets whether CAF should be attempted before transfer.
+     *
+     * @param confirmFunds CAF flag
+     * @return builder
+     */
+    public TransferTokenBuilder setConfirmFunds(boolean confirmFunds) {
+        payload.getTransferBuilder()
+                .setConfirmFunds(confirmFunds);
         return this;
     }
 
