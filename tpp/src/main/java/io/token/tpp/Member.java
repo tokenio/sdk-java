@@ -443,7 +443,11 @@ public class Member extends io.token.Member implements Representable {
                 .setTokenId(token.getId())
                 .setDescription(token
                         .getPayload()
-                        .getDescription());
+                        .getDescription())
+                .setConfirmFunds(token
+                        .getPayload()
+                        .getTransfer()
+                        .getConfirmFunds());
 
         if (destination != null) {
             payload.addTransferDestinations(destination);
@@ -502,7 +506,11 @@ public class Member extends io.token.Member implements Representable {
                 .setTokenId(token.getId())
                 .setDescription(token
                         .getPayload()
-                        .getDescription());
+                        .getDescription())
+                .setConfirmFunds(token
+                        .getPayload()
+                        .getTransfer()
+                        .getConfirmFunds());
 
         if (destination != null) {
             payload.addDestinations(destination);
