@@ -126,6 +126,7 @@ public final class TransferTokenBuilder {
                         .setLifetimeAmount(transferBody.getLifetimeAmount())
                         .setCurrency(transferBody.getCurrency())
                         .setAmount(transferBody.getAmount())
+                        .setConfirmFunds(transferBody.getConfirmFunds())
                         .setInstructions(transferBody.hasInstructions()
                                 ? transferBody.getInstructions()
                                 // for backwards compatibility
