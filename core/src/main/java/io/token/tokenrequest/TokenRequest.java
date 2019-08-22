@@ -23,8 +23,6 @@
 package io.token.tokenrequest;
 
 import com.google.auto.value.AutoValue;
-import io.token.proto.common.account.AccountProtos;
-import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
@@ -33,6 +31,7 @@ import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.ChargeBearer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata;
@@ -365,9 +364,22 @@ public abstract class TokenRequest {
         public TransferBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
             this.requestPayload.getTransferBodyBuilder()
                     .getInstructionsBuilder()
-                    .setMetadata(Metadata.newBuilder()
-                            .setProviderTransferMetadata(metadata))
-                    .build();
+                    .getMetadataBuilder()
+                    .setProviderTransferMetadata(metadata);
+            return this;
+        }
+
+        /**
+         * Optional. Set the bearer for any Foreign Exchange fees incurred on the transfer.
+         *
+         * @param chargeBearer Bearer of the charges for any Fees related to the transfer.
+         * @return builder
+         */
+        public TransferBuilder setChargeBearer(ChargeBearer chargeBearer) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getMetadataBuilder()
+                    .setChargeBearer(chargeBearer);
             return this;
         }
     }
