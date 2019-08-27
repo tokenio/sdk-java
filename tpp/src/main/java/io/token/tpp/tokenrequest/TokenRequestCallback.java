@@ -30,8 +30,12 @@ import com.google.auto.value.AutoValue;
 
 @AutoValue
 public abstract class TokenRequestCallback {
-    public static TokenRequestCallback create(String tokenId, String state) {
-        return new AutoValue_TokenRequestCallback(tokenId, state);
+    public static TokenRequestCallback create(
+            String tokenId,
+            String state,
+            String country,
+            String bank) {
+        return new AutoValue_TokenRequestCallback(tokenId, state, country, bank);
     }
 
     /**
@@ -48,4 +52,20 @@ public abstract class TokenRequestCallback {
      * @return state
      */
     public abstract String getState();
+
+    /**
+     * Get the Country selected by the user on Token Request. This corresponds to the selection made
+     * at the bank selection page on web-app.
+     *
+     * @return country code
+     */
+    public abstract String getSelectedCountry();
+
+    /**
+     * Get the Bank selected by the user on Token Request. This corresponds to the selection made
+     * at the bank selection page on web-app.
+     *
+     * @return Bank code
+     */
+    public abstract String getSelectedBank();
 }
