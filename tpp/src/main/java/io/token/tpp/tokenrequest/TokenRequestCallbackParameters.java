@@ -42,7 +42,9 @@ public abstract class TokenRequestCallbackParameters {
 
     /**
      * Parses the token request callback URL's parameters. Extracts the state, the token ID, and
-     * the signature over (state | token ID).
+     * the signature over (state | token ID), or country, bank, state and signature depending upon
+     * the use case (redeem token or confirm transfer destination for cross border payment)
+     * of the callback url.
      *
      * @param parameters token request callback query parameters
      * @return TokenRequestCallbackParameters instance
