@@ -34,7 +34,6 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.ChargeBearer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions.Metadata;
 import io.token.util.Util;
 
 import java.time.LocalDate;
@@ -382,6 +381,48 @@ public abstract class TokenRequest {
                     .setChargeBearer(chargeBearer);
             return this;
         }
+
+        /**
+         * Optional. Sets the ultimate party to which an amount of money is due.
+         *
+         * @param ultimateCreditor the ultimate creditor
+         * @return builder
+         */
+        public TransferBuilder setUltimateCreditor(String ultimateCreditor) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getMetadataBuilder()
+                    .setUltimateCreditor(ultimateCreditor);
+            return this;
+        }
+
+        /**
+         * Sets ultimate party that owes an amount of money to the (ultimate) creditor.
+         *
+         * @param ultimateDebtor the ultimate debtor
+         * @return builder
+         */
+        public TransferBuilder setUltimateDebtor(String ultimateDebtor) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getMetadataBuilder()
+                    .setUltimateCreditor(ultimateDebtor);
+            return this;
+        }
+
+        /**
+         * Sets the purpose code. Refer to ISO 20022 external code sets.
+         *
+         * @param purposeCode the purpose code
+         * @return builder
+         */
+        public TransferBuilder setPurposeCode(String purposeCode) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getMetadataBuilder()
+                    .setPurposeCode(purposeCode);
+            return this;
+        }
     }
 
     public static class StandingOrderBuilder extends Builder<StandingOrderBuilder> {
@@ -476,22 +517,6 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Optional. Adds metadata for a specific provider.
-         *
-         * @param metadata provider-specific metadata
-         * @return builder
-         */
-        public StandingOrderBuilder setProviderTransferMetadata(
-                ProviderTransferMetadata metadata) {
-            this.requestPayload.getStandingOrderBodyBuilder()
-                    .getInstructionsBuilder()
-                    .setMetadata(Metadata.newBuilder()
-                            .setProviderTransferMetadata(metadata))
-                    .build();
-            return this;
-        }
-
-        /**
          * Optional. Sets the source account to bypass account selection.
          *
          * @param source source
@@ -501,6 +526,63 @@ public abstract class TokenRequest {
             this.requestPayload.getStandingOrderBodyBuilder()
                     .getInstructionsBuilder()
                     .setSource(source);
+            return this;
+        }
+
+        /**
+         * Optional. Adds metadata for a specific provider.
+         *
+         * @param metadata provider-specific metadata
+         * @return builder
+         */
+        public StandingOrderBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getMetadataBuilder()
+                    .setProviderTransferMetadata(metadata)
+                    .build();
+            return this;
+        }
+
+        /**
+         * Optional. Sets the ultimate party to which an amount of money is due.
+         *
+         * @param ultimateCreditor the ultimate creditor
+         * @return builder
+         */
+        public StandingOrderBuilder setUltimateCreditor(String ultimateCreditor) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getMetadataBuilder()
+                    .setUltimateCreditor(ultimateCreditor);
+            return this;
+        }
+
+        /**
+         * Sets ultimate party that owes an amount of money to the (ultimate) creditor.
+         *
+         * @param ultimateDebtor the ultimate debtor
+         * @return builder
+         */
+        public StandingOrderBuilder setUltimateDebtor(String ultimateDebtor) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getMetadataBuilder()
+                    .setUltimateCreditor(ultimateDebtor);
+            return this;
+        }
+
+        /**
+         * Sets the purpose code. Refer to ISO 20022 external code sets.
+         *
+         * @param purposeCode the purpose code
+         * @return builder
+         */
+        public StandingOrderBuilder setPurposeCode(String purposeCode) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .getMetadataBuilder()
+                    .setPurposeCode(purposeCode);
             return this;
         }
     }
