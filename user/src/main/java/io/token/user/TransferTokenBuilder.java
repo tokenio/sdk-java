@@ -404,7 +404,7 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets ultimate creditor.
+     * Sets the ultimate party to which an amount of money is due.
      *
      * @param ultimateCreditor the ultimate creditor
      * @return builder
@@ -418,7 +418,7 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets ultimate debtor.
+     * Sets ultimate party that owes an amount of money to the (ultimate) creditor.
      *
      * @param ultimateDebtor the ultimate debtor
      * @return builder

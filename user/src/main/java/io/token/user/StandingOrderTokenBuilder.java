@@ -294,7 +294,7 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
-     * Sets ultimate creditor.
+     * Sets the ultimate party to which an amount of money is due.
      *
      * @param ultimateCreditor the ultimate creditor
      * @return builder
@@ -308,7 +308,7 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
-     * Sets ultimate debtor.
+     * Sets ultimate party that owes an amount of money to the (ultimate) creditor.
      *
      * @param ultimateDebtor the ultimate debtor
      * @return builder
@@ -334,7 +334,6 @@ public final class StandingOrderTokenBuilder {
                 .setPurposeCode(purposeCode);
         return this;
     }
-
 
     /**
      * Builds a token payload, without uploading blobs or attachments.

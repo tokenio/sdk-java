@@ -397,7 +397,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Sets ultimate party that owes an amount of money to the (ultimate) creditor.
+         * Optional. Sets ultimate party that owes an amount of money to the (ultimate) creditor.
          *
          * @param ultimateDebtor the ultimate debtor
          * @return builder
@@ -411,7 +411,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Sets the purpose code. Refer to ISO 20022 external code sets.
+         * Optional. Sets the purpose code. Refer to ISO 20022 external code sets.
          *
          * @param purposeCode the purpose code
          * @return builder
@@ -559,7 +559,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Sets ultimate party that owes an amount of money to the (ultimate) creditor.
+         * Optional. Sets ultimate party that owes an amount of money to the (ultimate) creditor.
          *
          * @param ultimateDebtor the ultimate debtor
          * @return builder
@@ -573,7 +573,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Sets the purpose code. Refer to ISO 20022 external code sets.
+         * Optional. Sets the purpose code. Refer to ISO 20022 external code sets.
          *
          * @param purposeCode the purpose code
          * @return builder
