@@ -294,7 +294,7 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
-     * Sets the ultimate party to which an amount of money is due.
+     * Sets the ultimate party to which the money is due.
      *
      * @param ultimateCreditor the ultimate creditor
      * @return builder
@@ -308,7 +308,7 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
-     * Sets ultimate party that owes an amount of money to the (ultimate) creditor.
+     * Sets ultimate party that owes the money to the (ultimate) creditor.
      *
      * @param ultimateDebtor the ultimate debtor
      * @return builder

@@ -383,7 +383,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Optional. Sets the ultimate party to which an amount of money is due.
+         * Optional. Sets the ultimate party to which the money is due.
          *
          * @param ultimateCreditor the ultimate creditor
          * @return builder
@@ -397,7 +397,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Optional. Sets ultimate party that owes an amount of money to the (ultimate) creditor.
+         * Optional. Sets ultimate party that owes the money to the (ultimate) creditor.
          *
          * @param ultimateDebtor the ultimate debtor
          * @return builder
@@ -545,7 +545,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Optional. Sets the ultimate party to which an amount of money is due.
+         * Optional. Sets the ultimate party to which the money is due.
          *
          * @param ultimateCreditor the ultimate creditor
          * @return builder
@@ -559,7 +559,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Optional. Sets ultimate party that owes an amount of money to the (ultimate) creditor.
+         * Optional. Sets ultimate party that owes the money to the (ultimate) creditor.
          *
          * @param ultimateDebtor the ultimate debtor
          * @return builder
