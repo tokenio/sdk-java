@@ -40,7 +40,6 @@ import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.token.TokenProtos.TransferBody;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
@@ -344,21 +343,6 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the purpose of payment.
-     *
-     * @param purposeOfPayment purpose of payment
-     * @return builder
-     */
-    public TransferTokenBuilder setPurposeOfPayment(PurposeOfPayment purposeOfPayment) {
-        payload
-                .getTransferBuilder()
-                .getInstructionsBuilder()
-                .getMetadataBuilder()
-                .setTransferPurpose(purposeOfPayment);
-        return this;
-    }
-
-    /**
      * Sets acting as on the token.
      *
      * @param actingAs entity the redeemer is acting on behalf of
@@ -409,13 +393,55 @@ public final class TransferTokenBuilder {
      * Sets provider transfer metadata.
      *
      * @param metadata the metadata
-     * @return the provider transfer metadata
+     * @return builder
      */
     public TransferTokenBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setProviderTransferMetadata(metadata);
+        return this;
+    }
+
+    /**
+     * Sets the ultimate party to which the money is due.
+     *
+     * @param ultimateCreditor the ultimate creditor
+     * @return builder
+     */
+    public TransferTokenBuilder setUltimateCreditor(String ultimateCreditor) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .getMetadataBuilder()
+                .setUltimateCreditor(ultimateCreditor);
+        return this;
+    }
+
+    /**
+     * Sets ultimate party that owes the money to the (ultimate) creditor.
+     *
+     * @param ultimateDebtor the ultimate debtor
+     * @return builder
+     */
+    public TransferTokenBuilder setUltimateDebtor(String ultimateDebtor) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .getMetadataBuilder()
+                .setUltimateDebtor(ultimateDebtor);
+        return this;
+    }
+
+    /**
+     * Sets the purpose code. Refer to ISO 20022 external code sets.
+     *
+     * @param purposeCode the purpose code
+     * @return builder
+     */
+    public TransferTokenBuilder setPurposeCode(String purposeCode) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .getMetadataBuilder()
+                .setPurposeCode(purposeCode);
         return this;
     }
 
