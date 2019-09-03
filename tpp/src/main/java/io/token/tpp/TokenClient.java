@@ -598,7 +598,11 @@ public class TokenClient extends io.token.TokenClient {
                                 .build(),
                         params.getSignature());
 
-                return TokenRequestCallback.create(params.getTokenId(), state.getInnerState());
+                return TokenRequestCallback.create(
+                        params.getTokenId(),
+                        state.getInnerState(),
+                        params.getCountrySelected(),
+                        params.getBankSelected());
             }
         });
     }

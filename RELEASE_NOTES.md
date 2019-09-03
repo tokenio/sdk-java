@@ -1,6 +1,16 @@
 If you're upgrading to a new version of the SDK,
 see this list for Java APIs that have changed:
 
+## Release 2.3.4
+
+Added method to update Transfer Destinations, only once, for a given token request in TPP sdk.
+Changed `parseTokenRequestCallbackParams` to parse `country` and `bank` selected by the user, so
+that the same redirectUrl could be used by TPP to redeem token or update TransferDestinations.
+
+## Release 2.3.3
+
+Provision to set `ChargeBearer` for a `TransferToken` is made available in `TokenRequest`.
+
 ## Release 1.1.23
 
 The `login` methods in TokenIO and TokenIOAsync were removed.
