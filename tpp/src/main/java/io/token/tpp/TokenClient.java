@@ -39,6 +39,7 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.SetTransferDestinationsStatePayload;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
@@ -53,6 +54,8 @@ import io.token.tpp.rpc.ClientFactory;
 import io.token.tpp.rpc.UnauthenticatedClient;
 import io.token.tpp.tokenrequest.TokenRequestCallback;
 import io.token.tpp.tokenrequest.TokenRequestCallbackParameters;
+import io.token.tpp.tokenrequest.TokenRequestSetTransferDestinationUrl;
+import io.token.tpp.tokenrequest.TokenRequestSetTransferDestinationUrlParameters;
 import io.token.tpp.util.Util;
 
 import java.net.MalformedURLException;
@@ -487,6 +490,27 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
+     * Parse the Set Transfer Destinations Url callback parameters to extract state,
+     * region and supported . Check the CSRF token against the initial request and verify
+     * the signature.
+     *
+     * @param url token request callback url
+     * @param csrfToken csrfToken
+     * @return TokenRequestSetTransferDestinationUrl object containing the token id and
+     *         the original state
+     */
+    public Observable<TokenRequestSetTransferDestinationUrl> parseSetTransferDestinationsUrl(
+            final String url,
+            final String csrfToken) {
+        try {
+            String queryString = new URL(url).getQuery();
+            return parseSetTransferDestinationsUrlParams(Util.parseQueryString(queryString), csrfToken);
+        } catch (MalformedURLException e) {
+            throw new IllegalArgumentException("Invalid callback URL: " + url);
+        }
+    }
+
+    /**
      * Parse the token request callback URL to extract the state and the token ID. This assumes
      * that no CSRF token was set.
      *
@@ -510,6 +534,22 @@ public class TokenClient extends io.token.TokenClient {
             final String callbackUrl,
             final String csrfToken) {
         return parseTokenRequestCallbackUrl(callbackUrl, csrfToken).blockingSingle();
+    }
+
+    /**
+     * Parse the Set Transfer Destinations Url callback parameters to extract state,
+     * region and supported . Check the CSRF token against the initial request and verify
+     * the signature.
+     *
+     * @param url token request callback url
+     * @param csrfToken csrfToken
+     * @return TokenRequestSetTransferDestinationUrl object containing the token id and
+     *         the original state
+     */
+    public TokenRequestSetTransferDestinationUrl parseSetTransferDestinationsUrlBlocking(
+            final String url,
+            final String csrfToken) {
+        return parseSetTransferDestinationsUrl(url, csrfToken).blockingSingle();
     }
 
     /**
@@ -561,6 +601,53 @@ public class TokenClient extends io.token.TokenClient {
                 return TokenRequestCallback.create(params.getTokenId(), state.getInnerState());
             }
         });
+    }
+
+    /**
+     * Parse the Set Transfer Destinations Url callback parameters to extract state,
+     * region and supported . Check the CSRF token against the initial request and verify
+     * the signature.
+     *
+     * @param urlParams url parameters
+     * @param csrfToken CSRF token
+     * @return TokenRequestSetTransferDestinationUrl object containing region
+     */
+    public Observable<TokenRequestSetTransferDestinationUrl> parseSetTransferDestinationsUrlParams(
+            final Map<String, String> urlParams,
+            final String csrfToken) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.getTokenMember().map(
+                new Function<MemberProtos.Member, TokenRequestSetTransferDestinationUrl>() {
+
+                    @Override
+                    public TokenRequestSetTransferDestinationUrl apply(MemberProtos.Member tokenMember)
+                            throws Exception {
+
+                        TokenRequestSetTransferDestinationUrlParameters params =
+                                TokenRequestSetTransferDestinationUrlParameters
+                                        .create(urlParams);
+
+                        // check that CSRF token hashes match
+                        TokenRequestState state = TokenRequestState.parse(params.getSerializedState());
+                        if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
+                            throw new InvalidStateException(csrfToken);
+                        }
+
+                        verifySignature(tokenMember,
+                                SetTransferDestinationsStatePayload
+                                        .newBuilder()
+                                        .setRegion(params.getRegion())
+                                        .addAllSupportedPayments(params.getSupportedPayments())
+                                        .setState(urlEncode(params.getSerializedState())).build(),
+                                params.getSignature());
+
+                        return TokenRequestSetTransferDestinationUrl.create(
+                                params.getRegion(),
+                                params.getCountry(),
+                                params.getBank(),
+                                params.getSupportedPayments());
+                    }
+                });
     }
 
     /**

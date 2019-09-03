@@ -382,6 +382,20 @@ public abstract class TokenRequest {
                     .setChargeBearer(chargeBearer);
             return this;
         }
+
+        /**
+         * Optional. In the scenario where TPP wishes to know the user selection of country and
+         * bank, TPP should provide this url so that Token can make a call with relevant
+         * information. TPP can use that information to set transfer destination.
+         *
+         * @param url URL
+         * @return builder
+         */
+        public TransferBuilder setSetTransferDestinationUrl(String url) {
+            this.requestPayload.getTransferBody().toBuilder()
+                    .setSetTransferDestinationsUrl(url);
+            return this;
+        }
     }
 
     public static class StandingOrderBuilder extends Builder<StandingOrderBuilder> {
