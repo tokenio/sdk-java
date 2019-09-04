@@ -30,38 +30,24 @@ import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.tpp.exceptions.InvalidTokenRequestQuery;
 
 import java.util.Map;
-import java.util.Optional;
 
 @AutoValue
 public abstract class TokenRequestCallbackParameters {
     private static final String TOKEN_ID_FIELD = "tokenId";
     private static final String STATE_FIELD = "state";
     private static final String SIGNATURE_FIELD = "signature";
-    private static final String COUNTRY_SELECTED_FIELD = "countrySelected";
-    private static final String BANK_SELECTED_FIELD = "bankSelected";
 
     /**
      * Parses the token request callback URL's parameters. Extracts the state, the token ID, and
-     * the signature over (state | token ID), or country, bank, state and signature depending upon
-     * the use case (redeem token or confirm transfer destination for cross border payment)
-     * of the callback url.
+     * the signature over (state | token ID).
      *
      * @param parameters token request callback query parameters
      * @return TokenRequestCallbackParameters instance
      */
     public static TokenRequestCallbackParameters create(Map<String, String> parameters) {
-        if (!parameters.containsKey(COUNTRY_SELECTED_FIELD)
-                && (!parameters.containsKey(TOKEN_ID_FIELD)
-                || !parameters.containsKey(STATE_FIELD)
-                || !parameters.containsKey(SIGNATURE_FIELD))) {
-            throw new InvalidTokenRequestQuery();
-        }
-
         if (!parameters.containsKey(TOKEN_ID_FIELD)
-                && (!parameters.containsKey(COUNTRY_SELECTED_FIELD)
-                || !parameters.containsKey(BANK_SELECTED_FIELD)
                 || !parameters.containsKey(STATE_FIELD)
-                || !parameters.containsKey(SIGNATURE_FIELD))) {
+                || !parameters.containsKey(SIGNATURE_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
 
@@ -70,9 +56,7 @@ public abstract class TokenRequestCallbackParameters {
                 urlDecode(parameters.get(STATE_FIELD)),
                 (Signature) ProtoJson.fromJson(
                         urlDecode(parameters.get(SIGNATURE_FIELD)),
-                        Signature.newBuilder()),
-                parameters.getOrDefault(COUNTRY_SELECTED_FIELD, ""),
-                parameters.getOrDefault(BANK_SELECTED_FIELD, ""));
+                        Signature.newBuilder()));
     }
 
     public abstract String getTokenId();
@@ -80,8 +64,4 @@ public abstract class TokenRequestCallbackParameters {
     public abstract String getSerializedState();
 
     public abstract Signature getSignature();
-
-    public abstract String getCountrySelected();
-
-    public abstract String getBankSelected();
 }

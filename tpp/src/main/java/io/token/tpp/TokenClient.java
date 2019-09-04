@@ -504,7 +504,9 @@ public class TokenClient extends io.token.TokenClient {
             final String csrfToken) {
         try {
             String queryString = new URL(url).getQuery();
-            return parseSetTransferDestinationsUrlParams(Util.parseQueryString(queryString), csrfToken);
+            return parseSetTransferDestinationsUrlParams(
+                    Util.parseQueryString(queryString),
+                    csrfToken);
         } catch (MalformedURLException e) {
             throw new IllegalArgumentException("Invalid callback URL: " + url);
         }
@@ -600,9 +602,7 @@ public class TokenClient extends io.token.TokenClient {
 
                 return TokenRequestCallback.create(
                         params.getTokenId(),
-                        state.getInnerState(),
-                        params.getCountrySelected(),
-                        params.getBankSelected());
+                        state.getInnerState());
             }
         });
     }
@@ -624,32 +624,24 @@ public class TokenClient extends io.token.TokenClient {
                 new Function<MemberProtos.Member, TokenRequestSetTransferDestinationUrl>() {
 
                     @Override
-                    public TokenRequestSetTransferDestinationUrl apply(MemberProtos.Member tokenMember)
-                            throws Exception {
+                    public TokenRequestSetTransferDestinationUrl apply(
+                            MemberProtos.Member tokenMember) throws Exception {
 
                         TokenRequestSetTransferDestinationUrlParameters params =
                                 TokenRequestSetTransferDestinationUrlParameters
                                         .create(urlParams);
 
                         // check that CSRF token hashes match
-                        TokenRequestState state = TokenRequestState.parse(params.getSerializedState());
+                        TokenRequestState state = TokenRequestState
+                                .parse(params.getSerializedState());
+
                         if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
                             throw new InvalidStateException(csrfToken);
                         }
 
-                        verifySignature(tokenMember,
-                                SetTransferDestinationsStatePayload
-                                        .newBuilder()
-                                        .setRegion(params.getRegion())
-                                        .addAllSupportedPayments(params.getSupportedPayments())
-                                        .setState(urlEncode(params.getSerializedState())).build(),
-                                params.getSignature());
-
                         return TokenRequestSetTransferDestinationUrl.create(
-                                params.getRegion(),
                                 params.getCountry(),
-                                params.getBank(),
-                                params.getSupportedPayments());
+                                params.getBank());
                     }
                 });
     }

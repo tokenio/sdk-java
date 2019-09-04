@@ -1,61 +1,65 @@
+/**
+ * Copyright (c) 2019 Token, Inc.
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package io.token.tpp.tokenrequest;
 
 import static io.token.tpp.util.Util.urlDecode;
 
 import com.google.auto.value.AutoValue;
-import io.token.proto.ProtoJson;
-import io.token.proto.common.security.SecurityProtos.Signature;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PaymentSystem;
 import io.token.tpp.exceptions.InvalidTokenRequestQuery;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @AutoValue
 public abstract class TokenRequestSetTransferDestinationUrlParameters {
-    private static final String REGION_FIELD = "region";
     private static final String COUNTRY_FIELD = "country";
     private static final String BANK_FIELD = "bank";
-    private static final String SUPPORTED_PAYMENTS = "supportedPayments";
     private static final String STATE_FIELD = "state";
     private static final String SIGNATURE_FIELD = "signature";
 
+    /**
+     *  Parses url parameters such as country, bank and state for the use case
+     *  to allow TPP to set transfer destinations for cross border payment.
+     *
+     * @param parameters url callback parameters
+     * @return TokenRequestSetTransferDestinationUrlParameters instance
+     */
     public static TokenRequestSetTransferDestinationUrlParameters create(
             Map<String, String> parameters) {
-        if (!parameters.containsKey(REGION_FIELD)
-                || !parameters.containsKey(SUPPORTED_PAYMENTS)
-                || !parameters.containsKey(STATE_FIELD)
-                || !parameters.containsKey(SIGNATURE_FIELD)) {
+        if (!parameters.containsKey(COUNTRY_FIELD)
+                || !parameters.containsKey(BANK_FIELD)
+                || !parameters.containsKey(STATE_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
 
-        List<PaymentSystem> supportedPayments = Arrays.stream(urlDecode(parameters.get(
-                SUPPORTED_PAYMENTS)).split(","))
-                .map(paymentSystem -> PaymentSystem.valueOf(paymentSystem))
-                .collect(Collectors.toList());
-
         return new AutoValue_TokenRequestSetTransferDestinationUrlParameters(
-                urlDecode(parameters.get(REGION_FIELD)),
                 urlDecode(parameters.get(COUNTRY_FIELD)),
                 urlDecode(parameters.get(BANK_FIELD)),
-                supportedPayments,
-                urlDecode(parameters.get(STATE_FIELD)),
-                ProtoJson.fromJson(urlDecode(
-                        parameters.get(SIGNATURE_FIELD)),
-                        Signature.newBuilder()));
+                urlDecode(parameters.get(STATE_FIELD)));
     }
-
-    public abstract String getRegion();
 
     public abstract String getCountry();
 
     public abstract String getBank();
 
-    public abstract List<PaymentSystem> getSupportedPayments();
-
     public abstract String getSerializedState();
-
-    public abstract Signature getSignature();
 }

@@ -383,9 +383,9 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Optional. In the scenario where TPP wishes to know the user selection of country and
+         * Optional. In the scenario where TPP wishes to know the user's selection of country and
          * bank, TPP should provide this url so that Token can make a call with relevant
-         * information. TPP can use that information to set transfer destination.
+         * information as parameters. TPP can use that information to set transfer destination.
          *
          * @param url URL
          * @return builder
@@ -393,7 +393,10 @@ public abstract class TokenRequest {
         public TransferBuilder setSetTransferDestinationUrl(String url) {
             this.requestPayload.getTransferBody().toBuilder()
                     .setSetTransferDestinationsUrl(url);
+            return this;
+        }
           
+        /**
          * Optional. Sets the ultimate party to which the money is due.
          *
          * @param ultimateCreditor the ultimate creditor
