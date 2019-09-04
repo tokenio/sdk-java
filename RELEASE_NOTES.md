@@ -1,11 +1,12 @@
 If you're upgrading to a new version of the SDK,
 see this list for Java APIs that have changed:
 
-## Release 2.3.4
+## Release 2.3.6
 
 Added method to update Transfer Destinations, only once, for a given token request in TPP sdk.
-Changed `parseTokenRequestCallbackParams` to parse `country` and `bank` selected by the user, so
-that the same redirectUrl could be used by TPP to redeem token or update TransferDestinations.
+Added builder method `setSetTransferDestinationUrl` in TransferTokenBuilder
+Added `parseSetTransferDestinationsUrl` method to parse `country` and `bank` selected by the users
+from the callback url set in `setSetTransferDestinationUrl` builder method.
 
 ## Release 2.3.3
 

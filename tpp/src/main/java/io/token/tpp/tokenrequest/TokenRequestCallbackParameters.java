@@ -52,7 +52,7 @@ public abstract class TokenRequestCallbackParameters {
         }
 
         return new AutoValue_TokenRequestCallbackParameters(
-                urlDecode(parameters.getOrDefault(TOKEN_ID_FIELD, "")),
+                urlDecode(parameters.get(TOKEN_ID_FIELD)),
                 urlDecode(parameters.get(STATE_FIELD)),
                 (Signature) ProtoJson.fromJson(
                         urlDecode(parameters.get(SIGNATURE_FIELD)),
