@@ -1096,11 +1096,7 @@ public class Member extends io.token.Member {
                 .setTokenId(token.getId())
                 .setDescription(token
                         .getPayload()
-                        .getDescription())
-                .setConfirmFunds(token
-                        .getPayload()
-                        .getTransfer()
-                        .getConfirmFunds());
+                        .getDescription());
 
         if (destination != null) {
             payload.addTransferDestinations(destination);
@@ -1159,11 +1155,7 @@ public class Member extends io.token.Member {
                 .setTokenId(token.getId())
                 .setDescription(token
                         .getPayload()
-                        .getDescription())
-                .setConfirmFunds(token
-                        .getPayload()
-                        .getTransfer()
-                        .getConfirmFunds());
+                        .getDescription());
 
         if (destination != null) {
             payload.addDestinations(destination);
