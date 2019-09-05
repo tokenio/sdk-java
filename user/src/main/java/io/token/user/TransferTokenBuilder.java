@@ -125,6 +125,7 @@ public final class TransferTokenBuilder {
                         .setLifetimeAmount(transferBody.getLifetimeAmount())
                         .setCurrency(transferBody.getCurrency())
                         .setAmount(transferBody.getAmount())
+                        .setConfirmFunds(transferBody.getConfirmFunds())
                         .setInstructions(transferBody.hasInstructions()
                                 ? transferBody.getInstructions()
                                 // for backwards compatibility
@@ -400,6 +401,18 @@ public final class TransferTokenBuilder {
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setProviderTransferMetadata(metadata);
+        return this;
+    }
+
+    /**
+     * Sets whether CAF should be attempted before transfer.
+     *
+     * @param confirmFunds CAF flag
+     * @return builder
+     */
+    public TransferTokenBuilder setConfirmFunds(boolean confirmFunds) {
+        payload.getTransferBuilder()
+                .setConfirmFunds(confirmFunds);
         return this;
     }
 
