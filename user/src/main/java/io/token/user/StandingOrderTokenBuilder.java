@@ -29,14 +29,11 @@ import com.google.common.base.Preconditions;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
-import io.token.proto.common.token.TokenProtos.StandingOrderBody;
 import io.token.proto.common.token.TokenProtos.StandingOrderBody;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.PurposeOfPayment;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
@@ -249,21 +246,6 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
-     * Sets the purpose of payment.
-     *
-     * @param purposeOfPayment purpose of payment
-     * @return builder
-     */
-    public StandingOrderTokenBuilder setPurposeOfPayment(PurposeOfPayment purposeOfPayment) {
-        payload
-                .getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .getMetadataBuilder()
-                .setTransferPurpose(purposeOfPayment);
-        return this;
-    }
-
-    /**
      * Sets acting as on the token.
      *
      * @param actingAs entity the redeemer is acting on behalf of
@@ -300,7 +282,7 @@ public final class StandingOrderTokenBuilder {
      * Sets provider transfer metadata.
      *
      * @param metadata the metadata
-     * @return the provider transfer metadata
+     * @return builder
      */
     public StandingOrderTokenBuilder setProviderTransferMetadata(
             ProviderTransferMetadata metadata) {
@@ -308,6 +290,48 @@ public final class StandingOrderTokenBuilder {
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setProviderTransferMetadata(metadata);
+        return this;
+    }
+
+    /**
+     * Sets the ultimate party to which the money is due.
+     *
+     * @param ultimateCreditor the ultimate creditor
+     * @return builder
+     */
+    public StandingOrderTokenBuilder setUltimateCreditor(String ultimateCreditor) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .getMetadataBuilder()
+                .setUltimateCreditor(ultimateCreditor);
+        return this;
+    }
+
+    /**
+     * Sets ultimate party that owes the money to the (ultimate) creditor.
+     *
+     * @param ultimateDebtor the ultimate debtor
+     * @return builder
+     */
+    public StandingOrderTokenBuilder setUltimateDebtor(String ultimateDebtor) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .getMetadataBuilder()
+                .setUltimateDebtor(ultimateDebtor);
+        return this;
+    }
+
+    /**
+     * Sets the purpose code. Refer to ISO 20022 external code sets.
+     *
+     * @param purposeCode the purpose code
+     * @return builder
+     */
+    public StandingOrderTokenBuilder setPurposeCode(String purposeCode) {
+        payload.getTransferBuilder()
+                .getInstructionsBuilder()
+                .getMetadataBuilder()
+                .setPurposeCode(purposeCode);
         return this;
     }
 
