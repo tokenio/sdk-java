@@ -37,8 +37,8 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.Ac
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceTypeList;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.CustomerData;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.ChargeBearer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.CustomerData;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.util.Util;
@@ -92,6 +92,7 @@ public abstract class TokenRequest {
      *
      * @param bankId bank ID
      * @param account the user's account
+     * @param data customer data
      * @return Builder instance
      */
     public static AccessBuilder fundsConfirmationRequestBuilder(
