@@ -544,7 +544,7 @@ public final class Client extends io.token.rpc.Client {
      *
      * @param payload payload containing member id, eIDAS alias and the certificate
      * @param signature payload signed with the private key corresponding to the certificate
-     * @return a completable
+     * @return result of the verification operation, returned by the server
      */
     public Observable<VerifyEidasResponse> verifyEidas(
             VerifyEidasPayload payload,
