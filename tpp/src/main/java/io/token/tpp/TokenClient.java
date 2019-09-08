@@ -497,7 +497,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return TokenRequestSetTransferDestinationUrl object containing the token id and
      *         the original state
      */
-    public Observable<TokenRequestSetTransferDestinationUrl> parseSetTransferDestinationsUrl(
+    public TokenRequestSetTransferDestinationUrl parseSetTransferDestinationsUrl(
             final String url) {
         try {
             String queryString = new URL(url).getQuery();
@@ -531,20 +531,6 @@ public class TokenClient extends io.token.TokenClient {
             final String callbackUrl,
             final String csrfToken) {
         return parseTokenRequestCallbackUrl(callbackUrl, csrfToken).blockingSingle();
-    }
-
-    /**
-     * Parse the Set Transfer Destinations Url callback parameters to extract state,
-     * region and supported . Check the CSRF token against the initial request and verify
-     * the signature.
-     *
-     * @param url token request callback url
-     * @return TokenRequestSetTransferDestinationUrl object containing the token id and
-     *         the original state
-     */
-    public TokenRequestSetTransferDestinationUrl parseSetTransferDestinationsUrlBlocking(
-            final String url) {
-        return parseSetTransferDestinationsUrl(url).blockingSingle();
     }
 
     /**
@@ -601,32 +587,22 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Parse the Set Transfer Destinations Url callback parameters to extract state,
-     * region and supported . Check the CSRF token against the initial request and verify
-     * the signature.
+     * Parse the Set Transfer Destinations Url callback parameters to extract country,
+     * bank and supported payments.
      *
      * @param urlParams url parameters
      * @return TokenRequestSetTransferDestinationUrl object containing region
      */
-    public Observable<TokenRequestSetTransferDestinationUrl> parseSetTransferDestinationsUrlParams(
+    public TokenRequestSetTransferDestinationUrl parseSetTransferDestinationsUrlParams(
             final Map<String, String> urlParams) {
-        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenMember().map(
-                new Function<MemberProtos.Member, TokenRequestSetTransferDestinationUrl>() {
 
-                    @Override
-                    public TokenRequestSetTransferDestinationUrl apply(
-                            MemberProtos.Member tokenMember) throws Exception {
+        TokenRequestSetTransferDestinationUrlParameters params =
+                TokenRequestSetTransferDestinationUrlParameters
+                        .create(urlParams);
 
-                        TokenRequestSetTransferDestinationUrlParameters params =
-                                TokenRequestSetTransferDestinationUrlParameters
-                                        .create(urlParams);
-
-                        return TokenRequestSetTransferDestinationUrl.create(
-                                params.getCountry(),
-                                params.getBank());
-                    }
-                });
+        return TokenRequestSetTransferDestinationUrl.create(
+                params.getCountry(),
+                params.getBank());
     }
 
     /**
