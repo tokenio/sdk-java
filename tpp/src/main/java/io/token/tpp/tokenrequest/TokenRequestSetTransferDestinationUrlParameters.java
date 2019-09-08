@@ -33,8 +33,6 @@ import java.util.Map;
 public abstract class TokenRequestSetTransferDestinationUrlParameters {
     private static final String COUNTRY_FIELD = "country";
     private static final String BANK_FIELD = "bank";
-    private static final String STATE_FIELD = "state";
-    private static final String SIGNATURE_FIELD = "signature";
 
     /**
      *  Parses url parameters such as country, bank and state for the use case
@@ -46,20 +44,16 @@ public abstract class TokenRequestSetTransferDestinationUrlParameters {
     public static TokenRequestSetTransferDestinationUrlParameters create(
             Map<String, String> parameters) {
         if (!parameters.containsKey(COUNTRY_FIELD)
-                || !parameters.containsKey(BANK_FIELD)
-                || !parameters.containsKey(STATE_FIELD)) {
+                || !parameters.containsKey(BANK_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
 
         return new AutoValue_TokenRequestSetTransferDestinationUrlParameters(
                 urlDecode(parameters.get(COUNTRY_FIELD)),
-                urlDecode(parameters.get(BANK_FIELD)),
-                urlDecode(parameters.get(STATE_FIELD)));
+                urlDecode(parameters.get(BANK_FIELD)));
     }
 
     public abstract String getCountry();
 
     public abstract String getBank();
-
-    public abstract String getSerializedState();
 }

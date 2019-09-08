@@ -39,7 +39,6 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
-import io.token.proto.common.token.TokenProtos.SetTransferDestinationsStatePayload;
 import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
@@ -495,20 +494,16 @@ public class TokenClient extends io.token.TokenClient {
      * the signature.
      *
      * @param url token request callback url
-     * @param csrfToken csrfToken
      * @return TokenRequestSetTransferDestinationUrl object containing the token id and
      *         the original state
      */
     public Observable<TokenRequestSetTransferDestinationUrl> parseSetTransferDestinationsUrl(
-            final String url,
-            final String csrfToken) {
+            final String url) {
         try {
             String queryString = new URL(url).getQuery();
-            return parseSetTransferDestinationsUrlParams(
-                    Util.parseQueryString(queryString),
-                    csrfToken);
+            return parseSetTransferDestinationsUrlParams(Util.parseQueryString(queryString));
         } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Invalid callback URL: " + url);
+            throw new IllegalArgumentException("Malformed URL: " + url);
         }
     }
 
@@ -544,14 +539,12 @@ public class TokenClient extends io.token.TokenClient {
      * the signature.
      *
      * @param url token request callback url
-     * @param csrfToken csrfToken
      * @return TokenRequestSetTransferDestinationUrl object containing the token id and
      *         the original state
      */
     public TokenRequestSetTransferDestinationUrl parseSetTransferDestinationsUrlBlocking(
-            final String url,
-            final String csrfToken) {
-        return parseSetTransferDestinationsUrl(url, csrfToken).blockingSingle();
+            final String url) {
+        return parseSetTransferDestinationsUrl(url).blockingSingle();
     }
 
     /**
@@ -613,12 +606,10 @@ public class TokenClient extends io.token.TokenClient {
      * the signature.
      *
      * @param urlParams url parameters
-     * @param csrfToken CSRF token
      * @return TokenRequestSetTransferDestinationUrl object containing region
      */
     public Observable<TokenRequestSetTransferDestinationUrl> parseSetTransferDestinationsUrlParams(
-            final Map<String, String> urlParams,
-            final String csrfToken) {
+            final Map<String, String> urlParams) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getTokenMember().map(
                 new Function<MemberProtos.Member, TokenRequestSetTransferDestinationUrl>() {
@@ -630,14 +621,6 @@ public class TokenClient extends io.token.TokenClient {
                         TokenRequestSetTransferDestinationUrlParameters params =
                                 TokenRequestSetTransferDestinationUrlParameters
                                         .create(urlParams);
-
-                        // check that CSRF token hashes match
-                        TokenRequestState state = TokenRequestState
-                                .parse(params.getSerializedState());
-
-                        if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
-                            throw new InvalidStateException(csrfToken);
-                        }
 
                         return TokenRequestSetTransferDestinationUrl.create(
                                 params.getCountry(),
