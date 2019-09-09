@@ -24,6 +24,8 @@ package io.token.tpp.tokenrequest;
 
 import com.google.auto.value.AutoValue;
 
+import java.util.List;
+
 /**
  * Represents a url in Token Flow that makes TPPs aware if user selection of country and bank.
  */
@@ -35,14 +37,17 @@ public abstract class TokenRequestSetTransferDestinationUrl {
      *
      * @param country country selected
      * @param bank bank chosen
+     * @param supportedPaymentTypes supported payment types
      * @return TokenRequestSetTransferDestinationUrl instance
      */
     public static TokenRequestSetTransferDestinationUrl create(
             String country,
-            String bank) {
+            String bank,
+            List<String> supportedPaymentTypes) {
         return new AutoValue_TokenRequestSetTransferDestinationUrl(
                 country,
-                bank);
+                bank,
+                supportedPaymentTypes);
     }
 
     /**
@@ -58,4 +63,12 @@ public abstract class TokenRequestSetTransferDestinationUrl {
      * @return bank
      */
     public abstract String getBank();
+
+    /**
+     * Get a list of supported payment types for the selected bank.
+     *
+     * @return list of Payment types
+     */
+    public abstract List<String> getSupportedPaymentTypes();
+
 }

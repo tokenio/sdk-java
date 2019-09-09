@@ -27,12 +27,16 @@ import static io.token.tpp.util.Util.urlDecode;
 import com.google.auto.value.AutoValue;
 import io.token.tpp.exceptions.InvalidTokenRequestQuery;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @AutoValue
 public abstract class TokenRequestSetTransferDestinationUrlParameters {
     private static final String COUNTRY_FIELD = "country";
     private static final String BANK_FIELD = "bank";
+    private static final String SUPPORTED_PAYMENT_TYPES_FIELD = "supportedPaymentTypes";
 
     /**
      *  Parses url parameters such as country, bank and state for the use case
@@ -44,16 +48,24 @@ public abstract class TokenRequestSetTransferDestinationUrlParameters {
     public static TokenRequestSetTransferDestinationUrlParameters create(
             Map<String, String> parameters) {
         if (!parameters.containsKey(COUNTRY_FIELD)
-                || !parameters.containsKey(BANK_FIELD)) {
+                || !parameters.containsKey(BANK_FIELD)
+                || !parameters.containsKey(SUPPORTED_PAYMENT_TYPES_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
 
+        List<String> supportedPaymentTypes = Arrays.stream(urlDecode(parameters.get(
+                SUPPORTED_PAYMENT_TYPES_FIELD)).split(","))
+                .collect(Collectors.toList());
+
         return new AutoValue_TokenRequestSetTransferDestinationUrlParameters(
                 urlDecode(parameters.get(COUNTRY_FIELD)),
-                urlDecode(parameters.get(BANK_FIELD)));
+                urlDecode(parameters.get(BANK_FIELD)),
+                supportedPaymentTypes);
     }
 
     public abstract String getCountry();
 
     public abstract String getBank();
+
+    public abstract List<String> getSupportedPaymentTypes();
 }

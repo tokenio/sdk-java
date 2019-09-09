@@ -587,7 +587,7 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Parse the Set Transfer Destinations Url callback parameters to extract country,
+     * Parse the Set Transfer Destinations Url parameters to extract country,
      * bank and supported payments.
      *
      * @param urlParams url parameters
@@ -602,7 +602,8 @@ public class TokenClient extends io.token.TokenClient {
 
         return TokenRequestSetTransferDestinationUrl.create(
                 params.getCountry(),
-                params.getBank());
+                params.getBank(),
+                params.getSupportedPaymentTypes());
     }
 
     /**
