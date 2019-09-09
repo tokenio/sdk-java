@@ -24,9 +24,9 @@ package io.token.user;
 
 import static io.reactivex.Completable.fromObservable;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
+import static io.token.user.util.Util.findFirstCapturingGroup;
 import static io.token.user.util.Util.generateNonce;
 import static io.token.user.util.Util.getWebAppUrl;
-import static io.token.user.util.Util.parseOauthAccessToken;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
@@ -39,7 +39,6 @@ import io.reactivex.SingleOnSubscribe;
 import io.reactivex.functions.Action;
 import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
 import io.token.TokenClient.TokenCluster;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.proto.PagedList;
@@ -1454,27 +1453,24 @@ public class Member extends io.token.Member {
                 getWebAppUrl(getTokenCluster()));
         final Browser browser = browserFactory.create();
         final Observable<List<Account>> accountLinkingObservable = browser.url()
-                .filter(new Predicate<URL>() {
-                    @Override
-                    public boolean test(URL url) {
-                        if (url.toExternalForm().matches(
-                                callbackUrl + "([/?]?.*#).*access_token=.+")) {
-                            return true;
-                        }
-                        browser.goTo(url);
-                        return false;
+                .map(url -> {
+                    String accessToken = findFirstCapturingGroup(
+                            url.toExternalForm(),
+                            callbackUrl + "[/?]?.*#.*access_token=([^&]+).*");
+                    if (accessToken != null) {
+                        return accessToken;
                     }
+                    String error = findFirstCapturingGroup(
+                            url.toExternalForm(),
+                            callbackUrl + "[/?]?.*error=([^&]+).*");
+                    if (error != null) {
+                        throw new Exception("Bank linking error: " + error);
+                    }
+                    browser.goTo(url);
+                    return null;
                 })
-                .flatMap(new Function<URL, Observable<List<Account>>>() {
-                    @Override
-                    public Observable<List<Account>> apply(URL url) {
-                        String accessToken = parseOauthAccessToken(url.toExternalForm());
-                        if (accessToken == null) {
-                            throw new IllegalArgumentException("No access token found");
-                        }
-                        return linkAccounts(bankId, accessToken);
-                    }
-                });
+                .filter(accessToken -> accessToken != null)
+                .flatMap(accessToken -> linkAccounts(bankId, accessToken));
 
         return getBankInfo(bankId)
                 .flatMap(new Function<BankInfo, ObservableSource<List<Account>>>() {
