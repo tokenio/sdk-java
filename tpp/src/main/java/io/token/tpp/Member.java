@@ -46,6 +46,7 @@ import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.rpc.Client;
 
@@ -1148,15 +1149,17 @@ public class Member extends io.token.Member implements Representable {
 
     /**
      * Verifies eIDAS alias with an eIDAS certificate, containing auth number equal to the value
-     * of the alias.
-     * An eIDAS-type alias containing auth number of the TPP should be added to the
-     * member before making this call. The member must be under the realm of a bank.
-     *
+     * of the alias. Before making this call make sure that:<ul>
+     *     <li>The member is under the realm of a bank (the one tpp tries to gain access to)</li>
+     *     <li>An eIDAS-type alias with the value equal to auth number of the TPP is added
+     *     to the member</li>
+     *     <li>The realmId of the alias is equal to the member's realmId</li>
+     *</ul>
      * @param payload payload containing the member id and the certificate in PEM format
      * @param signature the payload signed with a private key corresponding to the certificate
-     * @return a completable
+     * @return a result of the verification process
      */
-    public Completable verifyEidas(
+    public Observable<VerifyEidasResponse> verifyEidas(
             VerifyEidasPayload payload,
             String signature) {
         return client.verifyEidas(payload, signature);
