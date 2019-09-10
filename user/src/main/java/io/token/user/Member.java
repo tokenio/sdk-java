@@ -1467,9 +1467,9 @@ public class Member extends io.token.Member {
                         throw new Exception("Bank linking error: " + error);
                     }
                     browser.goTo(url);
-                    return null;
+                    return "";
                 })
-                .filter(accessToken -> accessToken != null)
+                .filter(accessToken -> !accessToken.isEmpty())
                 .flatMap(accessToken -> linkAccounts(bankId, accessToken));
 
         return getBankInfo(bankId)
