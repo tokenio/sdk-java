@@ -32,6 +32,7 @@ import static io.token.util.Util.getWebAppUrl;
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -498,12 +499,8 @@ public class TokenClient extends io.token.TokenClient {
      */
     public TokenRequestTransferDestinationsCallbackParameters parseSetTransferDestinationsUrl(
             final String url) {
-        try {
-            String queryString = new URL(url).getQuery();
-            return parseSetTransferDestinationsUrlParams(Util.parseQueryString(queryString));
-        } catch (MalformedURLException e) {
-            throw new IllegalArgumentException("Malformed URL: " + url);
-        }
+        Map<String, List<String>> parameters = new QueryStringDecoder(url).parameters();
+        return parseSetTransferDestinationsUrlParams(parameters);
     }
 
     /**
@@ -593,7 +590,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return TokenRequestSetTransferDestinationUrl object containing region
      */
     public TokenRequestTransferDestinationsCallbackParameters parseSetTransferDestinationsUrlParams(
-            final Map<String, String> urlParams) {
+            final Map<String, List<String>> urlParams) {
         return TokenRequestTransferDestinationsCallbackParameters.create(urlParams);
     }
 

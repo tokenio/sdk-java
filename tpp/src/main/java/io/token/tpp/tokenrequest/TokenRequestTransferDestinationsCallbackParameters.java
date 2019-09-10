@@ -22,47 +22,55 @@
 
 package io.token.tpp.tokenrequest;
 
-import static io.token.tpp.util.Util.parseQueryListTypeParam;
 import static io.token.tpp.util.Util.urlDecode;
 
 import com.google.auto.value.AutoValue;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination.DestinationCase;
 import io.token.tpp.exceptions.InvalidTokenRequestQuery;
+import io.token.tpp.util.Util;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @AutoValue
 public abstract class TokenRequestTransferDestinationsCallbackParameters {
     private static final String COUNTRY_FIELD = "country";
     private static final String BANK_NAME_FIELD = "bankName";
-    private static final String SUPPORTED_PAYMENT_TYPES_FIELD = "supportedPaymentTypes";
+    private static final String SUPPORTED_TRANSFER_DESTINATION_TYPES_FIELD
+            = "supportedTransferDestinationTypes";
 
     /**
-     *  Parses url parameters such as country, bank and state for the use case
-     *  to allow TPP to set transfer destinations for cross border payment.
+     * Parses url parameters such as country, bank and state for the use case
+     * to allow TPP to set transfer destinations for cross border payment.
      *
      * @param parameters url callback parameters
      * @return TokenRequestTransferDestinationsCallbackParameters instance
      */
     public static TokenRequestTransferDestinationsCallbackParameters create(
-            Map<String, String> parameters) {
+            Map<String, List<String>> parameters) {
         if (!parameters.containsKey(COUNTRY_FIELD)
-                || !parameters.containsKey(BANK_NAME_FIELD)) {
+                || !parameters.containsKey(BANK_NAME_FIELD)
+                || !parameters.containsKey(SUPPORTED_TRANSFER_DESTINATION_TYPES_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
 
-        List<String> supportedPaymentTypes = parseQueryListTypeParam(
-                parameters.get(SUPPORTED_PAYMENT_TYPES_FIELD));
+        List<DestinationCase> destinationCases = parameters
+                .get(SUPPORTED_TRANSFER_DESTINATION_TYPES_FIELD)
+                .stream()
+                .map(Util::urlDecode)
+                .map(DestinationCase::valueOf)
+                .collect(Collectors.toList());
 
         return new AutoValue_TokenRequestTransferDestinationsCallbackParameters(
-                urlDecode(parameters.get(COUNTRY_FIELD)),
-                urlDecode(parameters.get(BANK_NAME_FIELD)),
-                supportedPaymentTypes);
+                urlDecode(parameters.get(COUNTRY_FIELD).get(0)),
+                urlDecode(parameters.get(BANK_NAME_FIELD).get(0)),
+                destinationCases);
     }
 
     public abstract String getCountry();
 
     public abstract String getBankName();
 
-    public abstract List<String> getSupportedPaymentTypes();
+    public abstract List<DestinationCase> getSupportedTransferDestinationTypes();
 }
