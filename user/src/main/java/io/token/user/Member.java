@@ -1111,6 +1111,8 @@ public class Member extends io.token.Member {
         }
         if (refId != null) {
             payload.setRefId(refId);
+        } else if (!token.getPayload().getRefId().isEmpty() && amount == null) {
+            payload.setRefId(token.getPayload().getRefId());
         } else {
             logger.warn("refId is not set. A random ID will be used.");
             payload.setRefId(generateNonce());
@@ -1170,7 +1172,7 @@ public class Member extends io.token.Member {
         }
         if (refId != null) {
             payload.setRefId(refId);
-        } else if (!token.getPayload().getRefId().isEmpty()) {
+        } else if (!token.getPayload().getRefId().isEmpty() && amount == null) {
             payload.setRefId(token.getPayload().getRefId());
         } else {
             logger.warn("refId is not set. A random ID will be used.");
