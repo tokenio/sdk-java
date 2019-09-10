@@ -38,8 +38,11 @@ import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 import java.net.URLEncoder;
 import java.security.PublicKey;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Utility methods.
@@ -144,5 +147,16 @@ public abstract class Util extends io.token.util.Util {
         }
 
         return key;
+    }
+
+    /**
+     * Returns a list of java string given a comma separated string.
+     *
+     * @param listParam a list type query param.
+     * @return parsed list of String
+     */
+    public static List<String> parseQueryListTypeParam(String listParam) {
+        return Arrays.stream(urlDecode(listParam).split(","))
+                .collect(Collectors.toList());
     }
 }

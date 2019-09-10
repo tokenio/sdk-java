@@ -22,38 +22,47 @@
 
 package io.token.tpp.tokenrequest;
 
+import static io.token.tpp.util.Util.parseQueryListTypeParam;
 import static io.token.tpp.util.Util.urlDecode;
 
 import com.google.auto.value.AutoValue;
 import io.token.tpp.exceptions.InvalidTokenRequestQuery;
 
+import java.util.List;
 import java.util.Map;
 
 @AutoValue
-public abstract class TokenRequestSetTransferDestinationUrlParameters {
+public abstract class TokenRequestTransferDestinationsCallbackParameters {
     private static final String COUNTRY_FIELD = "country";
-    private static final String BANK_FIELD = "bank";
+    private static final String BANK_NAME_FIELD = "bankName";
+    private static final String SUPPORTED_PAYMENT_TYPES_FIELD = "supportedPaymentTypes";
 
     /**
      *  Parses url parameters such as country, bank and state for the use case
      *  to allow TPP to set transfer destinations for cross border payment.
      *
      * @param parameters url callback parameters
-     * @return TokenRequestSetTransferDestinationUrlParameters instance
+     * @return TokenRequestTransferDestinationsCallbackParameters instance
      */
-    public static TokenRequestSetTransferDestinationUrlParameters create(
+    public static TokenRequestTransferDestinationsCallbackParameters create(
             Map<String, String> parameters) {
         if (!parameters.containsKey(COUNTRY_FIELD)
-                || !parameters.containsKey(BANK_FIELD)) {
+                || !parameters.containsKey(BANK_NAME_FIELD)) {
             throw new InvalidTokenRequestQuery();
         }
 
-        return new AutoValue_TokenRequestSetTransferDestinationUrlParameters(
+        List<String> supportedPaymentTypes = parseQueryListTypeParam(
+                parameters.get(SUPPORTED_PAYMENT_TYPES_FIELD));
+
+        return new AutoValue_TokenRequestTransferDestinationsCallbackParameters(
                 urlDecode(parameters.get(COUNTRY_FIELD)),
-                urlDecode(parameters.get(BANK_FIELD)));
+                urlDecode(parameters.get(BANK_NAME_FIELD)),
+                supportedPaymentTypes);
     }
 
     public abstract String getCountry();
 
-    public abstract String getBank();
+    public abstract String getBankName();
+
+    public abstract List<String> getSupportedPaymentTypes();
 }

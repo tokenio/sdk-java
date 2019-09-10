@@ -391,7 +391,7 @@ public abstract class TokenRequest {
          * @return builder
          */
         public TransferBuilder setSetTransferDestinationsUrl(String url) {
-            this.requestPayload.getTransferBody().toBuilder()
+            this.requestPayload.getTransferBodyBuilder()
                     .setSetTransferDestinationsUrl(url);
             return this;
         }

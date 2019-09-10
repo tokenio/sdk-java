@@ -53,8 +53,7 @@ import io.token.tpp.rpc.ClientFactory;
 import io.token.tpp.rpc.UnauthenticatedClient;
 import io.token.tpp.tokenrequest.TokenRequestCallback;
 import io.token.tpp.tokenrequest.TokenRequestCallbackParameters;
-import io.token.tpp.tokenrequest.TokenRequestSetTransferDestinationUrl;
-import io.token.tpp.tokenrequest.TokenRequestSetTransferDestinationUrlParameters;
+import io.token.tpp.tokenrequest.TokenRequestTransferDestinationsCallbackParameters;
 import io.token.tpp.util.Util;
 
 import java.net.MalformedURLException;
@@ -497,7 +496,7 @@ public class TokenClient extends io.token.TokenClient {
      * @return TokenRequestSetTransferDestinationUrl object containing the token id and
      *         the original state
      */
-    public TokenRequestSetTransferDestinationUrl parseSetTransferDestinationsUrl(
+    public TokenRequestTransferDestinationsCallbackParameters parseSetTransferDestinationsUrl(
             final String url) {
         try {
             String queryString = new URL(url).getQuery();
@@ -593,16 +592,9 @@ public class TokenClient extends io.token.TokenClient {
      * @param urlParams url parameters
      * @return TokenRequestSetTransferDestinationUrl object containing region
      */
-    public TokenRequestSetTransferDestinationUrl parseSetTransferDestinationsUrlParams(
+    public TokenRequestTransferDestinationsCallbackParameters parseSetTransferDestinationsUrlParams(
             final Map<String, String> urlParams) {
-
-        TokenRequestSetTransferDestinationUrlParameters params =
-                TokenRequestSetTransferDestinationUrlParameters
-                        .create(urlParams);
-
-        return TokenRequestSetTransferDestinationUrl.create(
-                params.getCountry(),
-                params.getBank());
+        return TokenRequestTransferDestinationsCallbackParameters.create(urlParams);
     }
 
     /**
