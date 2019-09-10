@@ -75,6 +75,7 @@ import io.token.proto.gateway.Gateway.StoreTokenRequestResponse;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
 import io.token.proto.gateway.Gateway.VerifyEidasRequest;
+import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
@@ -563,14 +564,14 @@ public final class Client extends io.token.rpc.Client {
     /**
      * Verifies eIDAS certificate.
      *
-     * @param payload payload containing member id and the certificate
+     * @param payload payload containing member id, eIDAS alias and the certificate
      * @param signature payload signed with the private key corresponding to the certificate
-     * @return a completable
+     * @return result of the verification operation, returned by the server
      */
-    public Completable verifyEidas(
+    public Observable<VerifyEidasResponse> verifyEidas(
             VerifyEidasPayload payload,
             String signature) {
-        return toCompletable(gateway
+        return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .verifyEidas(VerifyEidasRequest.newBuilder()
                         .setPayload(payload)

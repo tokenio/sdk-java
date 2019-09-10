@@ -22,16 +22,23 @@
 
 package io.token.tokenrequest;
 
+import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceType.ACCOUNT_FUNDS_CONFIRMATION;
+
 import com.google.auto.value.AutoValue;
+import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.StandingOrderBody;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceList;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceList.AccountResource;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
+import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceTypeList;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.ChargeBearer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.CustomerData;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.util.Util;
@@ -39,6 +46,7 @@ import io.token.util.Util;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.Optional;
 
 @AutoValue
 public abstract class TokenRequest {
@@ -54,6 +62,51 @@ public abstract class TokenRequest {
      */
     public static AccessBuilder accessTokenRequestBuilder(ResourceType... resources) {
         return new AccessBuilder(resources);
+    }
+
+    /**
+     * Create a new Builder instance for an access token request with account-specific resources.
+     *
+     * @param list list of account-specific access token resources
+     * @return Builder instance
+     */
+    public static AccessBuilder accessTokenRequestBuilder(AccountResourceList list) {
+        return new AccessBuilder(list);
+    }
+
+    /**
+     * Create a Builder instance for a funds confirmation request.
+     *
+     * @param bankId bank ID
+     * @param account the user's account
+     * @return Builder instance
+     */
+    public static AccessBuilder fundsConfirmationRequestBuilder(
+            String bankId,
+            BankAccount account) {
+        return fundsConfirmationRequestBuilder(bankId, account, Optional.empty());
+    }
+
+    /**
+     * Create a Builder instance for a funds confirmation request.
+     *
+     * @param bankId bank ID
+     * @param account the user's account
+     * @param data customer data
+     * @return Builder instance
+     */
+    public static AccessBuilder fundsConfirmationRequestBuilder(
+            String bankId,
+            BankAccount account,
+            Optional<CustomerData> data) {
+        AccountResource.Builder builder = AccountResource.newBuilder()
+                .setBankAccount(account)
+                .setType(ACCOUNT_FUNDS_CONFIRMATION);
+        data.ifPresent(builder::setCustomerData);
+        return new AccessBuilder(AccountResourceList.newBuilder()
+                .addResources(builder.build())
+                .build())
+                .setBankId(bankId);
     }
 
     /**
@@ -279,7 +332,16 @@ public abstract class TokenRequest {
         AccessBuilder(ResourceType... resources) {
             this.requestPayload.setAccessBody(
                     TokenRequestPayload.AccessBody.newBuilder()
-                            .addAllType(Arrays.asList(resources)));
+                            .setResourceTypeList(ResourceTypeList.newBuilder()
+                                    .addAllResources(Arrays.asList(resources))
+                                    .build()));
+        }
+
+        AccessBuilder(AccountResourceList list) {
+            this.requestPayload.setAccessBody(
+                    TokenRequestPayload.AccessBody.newBuilder()
+                            .setAccountResourceList(list)
+                            .build());
         }
     }
 
@@ -435,6 +497,19 @@ public abstract class TokenRequest {
                     .getInstructionsBuilder()
                     .getMetadataBuilder()
                     .setPurposeCode(purposeCode);
+            return this;
+        }
+
+        /**
+         * Optional. Sets whether CAF should be attempted before transfer.
+         *
+         * @param confirmFunds whether to attempt CAF before transfer
+         * @return builder
+         */
+        public TransferBuilder setConfirmFunds(boolean confirmFunds) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .setConfirmFunds(confirmFunds)
+                    .build();
             return this;
         }
     }
