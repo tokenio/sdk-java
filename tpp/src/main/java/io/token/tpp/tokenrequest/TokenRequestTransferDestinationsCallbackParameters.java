@@ -38,7 +38,7 @@ public abstract class TokenRequestTransferDestinationsCallbackParameters {
     private static final String COUNTRY_FIELD = "country";
     private static final String BANK_NAME_FIELD = "bankName";
     private static final String SUPPORTED_TRANSFER_DESTINATION_TYPES_FIELD
-            = "supportedTransferDestinationTypes";
+            = "supportedTransferDestinationType";
 
     /**
      * Parses url parameters such as country, bank and state for the use case
