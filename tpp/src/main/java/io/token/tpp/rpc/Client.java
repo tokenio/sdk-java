@@ -45,6 +45,7 @@ import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
 import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
@@ -68,6 +69,7 @@ import io.token.proto.gateway.Gateway.GetTransfersResponse;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetProfileResponse;
+import io.token.proto.gateway.Gateway.SetTokenRequestTransferDestinationsRequest;
 import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
 import io.token.proto.gateway.Gateway.StoreTokenRequestResponse;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
@@ -221,6 +223,26 @@ public final class Client extends io.token.rpc.Client {
                         return storeTokenRequestResponse.getTokenRequest().getId();
                     }
                 });
+    }
+
+    /**
+     * Sets destination accounts for once if it hasn't been set.
+     *
+     * @param tokenRequestId token request Id
+     * @param transferDestinations destination accounts
+     * @return observable that completes when request handled
+     */
+    public Completable setTokenRequestTransferDestinations(
+            String tokenRequestId,
+            List<TransferDestination> transferDestinations) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+        .setTokenRequestTransferDestinations(
+                SetTokenRequestTransferDestinationsRequest
+                        .newBuilder()
+                        .setTokenRequestId(tokenRequestId)
+                        .addAllTransferDestinations(transferDestinations)
+                        .build()));
     }
 
     /**

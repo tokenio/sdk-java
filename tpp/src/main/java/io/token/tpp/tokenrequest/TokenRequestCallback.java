@@ -30,7 +30,9 @@ import com.google.auto.value.AutoValue;
 
 @AutoValue
 public abstract class TokenRequestCallback {
-    public static TokenRequestCallback create(String tokenId, String state) {
+    public static TokenRequestCallback create(
+            String tokenId,
+            String state) {
         return new AutoValue_TokenRequestCallback(tokenId, state);
     }
 

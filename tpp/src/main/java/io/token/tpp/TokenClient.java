@@ -32,6 +32,7 @@ import static io.token.util.Util.getWebAppUrl;
 import com.google.common.annotations.VisibleForTesting;
 import io.grpc.ManagedChannel;
 import io.grpc.Metadata;
+import io.netty.handler.codec.http.QueryStringDecoder;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -53,6 +54,7 @@ import io.token.tpp.rpc.ClientFactory;
 import io.token.tpp.rpc.UnauthenticatedClient;
 import io.token.tpp.tokenrequest.TokenRequestCallback;
 import io.token.tpp.tokenrequest.TokenRequestCallbackParameters;
+import io.token.tpp.tokenrequest.TokenRequestTransferDestinationsCallbackParameters;
 import io.token.tpp.util.Util;
 
 import java.net.MalformedURLException;
@@ -487,6 +489,21 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
+     * Parse the Set Transfer Destinations Url callback parameters to extract state,
+     * region and supported . Check the CSRF token against the initial request and verify
+     * the signature.
+     *
+     * @param url token request callback url
+     * @return TokenRequestSetTransferDestinationUrl object containing the token id and
+     *         the original state
+     */
+    public TokenRequestTransferDestinationsCallbackParameters parseSetTransferDestinationsUrl(
+            final String url) {
+        Map<String, List<String>> parameters = new QueryStringDecoder(url).parameters();
+        return parseSetTransferDestinationsUrlParams(parameters);
+    }
+
+    /**
      * Parse the token request callback URL to extract the state and the token ID. This assumes
      * that no CSRF token was set.
      *
@@ -558,9 +575,23 @@ public class TokenClient extends io.token.TokenClient {
                                 .build(),
                         params.getSignature());
 
-                return TokenRequestCallback.create(params.getTokenId(), state.getInnerState());
+                return TokenRequestCallback.create(
+                        params.getTokenId(),
+                        state.getInnerState());
             }
         });
+    }
+
+    /**
+     * Parse the Set Transfer Destinations Url callback parameters to extract country,
+     * bank and supported payments.
+     *
+     * @param urlParams url parameters
+     * @return TokenRequestSetTransferDestinationUrl object containing region
+     */
+    public TokenRequestTransferDestinationsCallbackParameters parseSetTransferDestinationsUrlParams(
+            final Map<String, List<String>> urlParams) {
+        return TokenRequestTransferDestinationsCallbackParameters.create(urlParams);
     }
 
     /**

@@ -808,6 +808,31 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
+     * Sets destination account for once if it hasn't been set.
+     *
+     * @param tokenRequestId token request Id
+     * @param transferDestinations destination account
+     * @return observable that completes when request handled
+     */
+    public Completable setTokenRequestTransferDestinations(
+            String tokenRequestId,
+            List<TransferDestination> transferDestinations) {
+        return client.setTokenRequestTransferDestinations(tokenRequestId, transferDestinations);
+    }
+
+    /**
+     * Sets destination account for once if it hasn't been set.
+     *
+     * @param tokenRequestId token request Id
+     * @param transferDestinations destination account
+     */
+    public void setTokenRequestTransferDestinationsBlocking(
+            String tokenRequestId,
+            List<TransferDestination> transferDestinations) {
+        setTokenRequestTransferDestinations(tokenRequestId, transferDestinations).blockingAwait();
+    }
+
+    /**
      * Creates a customization.
      *
      * @param logo logo
