@@ -37,15 +37,18 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.Ac
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceTypeList;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.ChargeBearer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.CustomerData;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 import io.token.util.Util;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 @AutoValue
@@ -118,6 +121,34 @@ public abstract class TokenRequest {
      */
     public static TransferBuilder transferTokenRequestBuilder(double amount, String currency) {
         return new TransferBuilder(amount, currency);
+    }
+
+    /**
+     * Create a new Builder instance for a standing order token request.
+     *
+     * @param amount amount per charge
+     * @param currency currency per charge
+     * @param frequency frequency of the standing order. ISO 20022: DAIL, WEEK, TOWK,
+     *                  MNTH, TOMN, QUTR, SEMI, YEAR
+     * @param startDate start date of the standing order. ISO 8601: YYYY-MM-DD or YYYYMMDD.
+     * @param endDate end date of the standing order. ISO 8601: YYYY-MM-DD or YYYYMMDD.
+     * @param destinations destination account of the standing order
+     * @return Builder instance
+     */
+    public static StandingOrderBuilder standingOrderRequestBuilder(
+            double amount,
+            String currency,
+            String frequency,
+            String startDate,
+            String endDate,
+            List<TransferDestination> destinations) {
+        return new StandingOrderBuilder(
+                amount,
+                currency,
+                frequency,
+                startDate,
+                endDate,
+                destinations);
     }
 
     /**
@@ -519,6 +550,23 @@ public abstract class TokenRequest {
             this.requestPayload.setStandingOrderBody(StandingOrderBody.newBuilder());
         }
 
+        StandingOrderBuilder(
+                double amount,
+                String currency,
+                String frequency,
+                String startDate,
+                String endDate,
+                List<TransferDestination> destinations) {
+            this.requestPayload.setStandingOrderBody(StandingOrderBody.newBuilder()
+                    .setAmount(Double.toString(amount))
+                    .setCurrency(currency)
+                    .setFrequency(frequency)
+                    .setStartDate(startDate)
+                    .setEndDate(endDate)
+                    .setInstructions(TransferInstructions.newBuilder()
+                            .addAllTransferDestinations(destinations)));
+        }
+
         /**
          * Sets the amount per charge of the standing order.
          *
@@ -582,7 +630,7 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Adds a transfer destination to a transfer token request.
+         * Adds a destination account to a standing order token request.
          *
          * @param destination destination
          * @return builder
