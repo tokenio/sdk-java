@@ -40,7 +40,6 @@ public class VerifyEidasSample {
                 .build());
         // create a member under realm of the bank with eIDAS alias
         Member tpp = client.createMember(eidasAlias, null, bankMemberId).blockingSingle();
-        System.out.println("AN: aliases: " + tpp.aliasesBlocking());
         // construct a payload with all the required data
         VerifyEidasPayload payload = VerifyEidasPayload
                 .newBuilder()
@@ -53,7 +52,6 @@ public class VerifyEidasSample {
         VerifyEidasResponse response = tpp
                 .verifyEidas(payload, signer.sign(payload))
                 .blockingSingle();
-        System.out.println("AN: response: " + response);
         return tpp;
     }
 }
