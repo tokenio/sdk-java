@@ -1,6 +1,14 @@
 If you're upgrading to a new version of the SDK,
 see this list for Java APIs that have changed:
 
+## Release 2.5.0
+
+Introduces bulk transfers. This enables a list of transfers to be approved in a single consent.
+To initiate a bulk transfer request, the TPP will create a token request from the 
+`bulkTransferTokenRequestBuilder` method. The bulk transfer will be submitted to the bank
+when the token is redeemed. Calling `getBulkTransfer` on the bulk transfer ID will return
+ transaction IDs and statuses for the corresponding transactions from the bank.
+
 ## Release 2.3.6
 
 Added method to update Transfer Destinations, only once, for a given token request in TPP sdk.

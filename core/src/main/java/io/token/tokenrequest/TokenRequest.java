@@ -28,7 +28,9 @@ import com.google.auto.value.AutoValue;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
+import io.token.proto.common.token.TokenProtos.BulkTransferBody;
 import io.token.proto.common.token.TokenProtos.StandingOrderBody;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload;
@@ -149,6 +151,21 @@ public abstract class TokenRequest {
                 startDate,
                 endDate,
                 destinations);
+    }
+
+    /**
+     * Create a new Builder instance for a bulk transfer token request.
+     *
+     * @param transfers list of transfers
+     * @param totalAmount total amount irrespective of currency. Used for redundancy check.
+     * @param source source account for all transfer
+     * @return Builder instance
+     */
+    public static BulkTransferBuilder bulkTransferRequestBuilder(
+            List<BulkTransferBody.Transfer> transfers,
+            double totalAmount,
+            TransferEndpoint source) {
+        return new BulkTransferBuilder(transfers, totalAmount, source);
     }
 
     /**
@@ -545,6 +562,18 @@ public abstract class TokenRequest {
         }
     }
 
+    public static class BulkTransferBuilder extends Builder<BulkTransferBuilder> {
+        BulkTransferBuilder(
+                List<BulkTransferBody.Transfer> transfers,
+                double totalAmount,
+                TransferEndpoint source) {
+            this.requestPayload.setBulkTransferBody(BulkTransferBody.newBuilder()
+                    .addAllTransfers(transfers)
+                    .setTotalAmount(Double.toString(totalAmount))
+                    .setSource(source));
+        }
+    }
+
     public static class StandingOrderBuilder extends Builder<StandingOrderBuilder> {
         StandingOrderBuilder() {
             this.requestPayload.setStandingOrderBody(StandingOrderBody.newBuilder());
@@ -688,7 +717,7 @@ public abstract class TokenRequest {
          * @return builder
          */
         public StandingOrderBuilder setUltimateCreditor(String ultimateCreditor) {
-            this.requestPayload.getTransferBodyBuilder()
+            this.requestPayload.getStandingOrderBodyBuilder()
                     .getInstructionsBuilder()
                     .getMetadataBuilder()
                     .setUltimateCreditor(ultimateCreditor);
@@ -702,7 +731,7 @@ public abstract class TokenRequest {
          * @return builder
          */
         public StandingOrderBuilder setUltimateDebtor(String ultimateDebtor) {
-            this.requestPayload.getTransferBodyBuilder()
+            this.requestPayload.getStandingOrderBodyBuilder()
                     .getInstructionsBuilder()
                     .getMetadataBuilder()
                     .setUltimateCreditor(ultimateDebtor);
@@ -716,7 +745,7 @@ public abstract class TokenRequest {
          * @return builder
          */
         public StandingOrderBuilder setPurposeCode(String purposeCode) {
-            this.requestPayload.getTransferBodyBuilder()
+            this.requestPayload.getStandingOrderBodyBuilder()
                     .getInstructionsBuilder()
                     .getMetadataBuilder()
                     .setPurposeCode(purposeCode);

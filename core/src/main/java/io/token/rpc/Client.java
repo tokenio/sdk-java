@@ -127,7 +127,7 @@ public class Client {
     protected final CryptoEngine crypto;
     protected final GatewayProvider gateway;
     protected boolean customerInitiated = false;
-    protected SecurityMetadata trackingMetadata = SecurityMetadata.getDefaultInstance();
+    private SecurityMetadata trackingMetadata = SecurityMetadata.getDefaultInstance();
 
     /**
      * Creates a client instance.
@@ -155,11 +155,7 @@ public class Client {
                 .getMember(GetMemberRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
-                .map(new Function<GetMemberResponse, Member>() {
-                    public Member apply(GetMemberResponse response) {
-                        return response.getMember();
-                    }
-                });
+                .map(GetMemberResponse::getMember);
     }
 
     /**
@@ -197,11 +193,7 @@ public class Client {
                                 .setSignature(signer.sign(update)))
                         .addAllMetadata(metadata)
                         .build()))
-                .map(new Function<UpdateMemberResponse, Member>() {
-                    public Member apply(UpdateMemberResponse response) {
-                        return response.getMember();
-                    }
-                });
+                .map(UpdateMemberResponse::getMember);
     }
 
     /**
@@ -212,7 +204,7 @@ public class Client {
      * @return an observable of updated member
      */
     public Observable<Member> updateMember(Member member, List<MemberOperation> operations) {
-        return updateMember(member, operations, Collections.<MemberOperationMetadata>emptyList());
+        return updateMember(member, operations, Collections.emptyList());
     }
 
     /**
@@ -223,42 +215,32 @@ public class Client {
     public Completable useDefaultRecoveryRule() {
         final Signer signer = crypto.createSigner(PRIVILEGED);
         return getMember(memberId)
-                .flatMap(new Function<Member, Observable<MemberUpdate>>() {
-                    public Observable<MemberUpdate> apply(final Member member) {
-                        return toObservable(gateway
-                                .withAuthentication(authenticationContext())
-                                .getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
-                                .map(new Function<GetDefaultAgentResponse, MemberUpdate>() {
-                                    public MemberUpdate apply(GetDefaultAgentResponse response) {
-                                        RecoveryRule rule = RecoveryRule.newBuilder()
-                                                .setPrimaryAgent(response.getMemberId())
-                                                .build();
-                                        return MemberUpdate.newBuilder()
-                                                .setPrevHash(member.getLastHash())
-                                                .setMemberId(member.getId())
-                                                .addOperations(MemberOperation.newBuilder()
-                                                        .setRecoveryRules(
-                                                                MemberRecoveryRulesOperation
-                                                                        .newBuilder()
-                                                                        .setRecoveryRule(rule)))
-                                                .build();
-                                    }
-                                });
-                    }
-                })
-                .flatMapCompletable(new Function<MemberUpdate, Completable>() {
-                    public Completable apply(MemberUpdate update) {
-                        return toCompletable(gateway
-                                .withAuthentication(authenticationContext())
-                                .updateMember(UpdateMemberRequest.newBuilder()
-                                        .setUpdate(update)
-                                        .setUpdateSignature(Signature.newBuilder()
-                                                .setKeyId(signer.getKeyId())
-                                                .setMemberId(memberId)
-                                                .setSignature(signer.sign(update)))
-                                        .build()));
-                    }
-                });
+                .flatMap(member -> toObservable(gateway
+                        .withAuthentication(authenticationContext())
+                        .getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
+                        .map(response -> {
+                            RecoveryRule rule = RecoveryRule.newBuilder()
+                                    .setPrimaryAgent(response.getMemberId())
+                                    .build();
+                            return MemberUpdate.newBuilder()
+                                    .setPrevHash(member.getLastHash())
+                                    .setMemberId(member.getId())
+                                    .addOperations(MemberOperation.newBuilder()
+                                            .setRecoveryRules(
+                                                    MemberRecoveryRulesOperation
+                                                            .newBuilder()
+                                                            .setRecoveryRule(rule)))
+                                    .build();
+                        }))
+                .flatMapCompletable(update -> toCompletable(gateway
+                        .withAuthentication(authenticationContext())
+                        .updateMember(UpdateMemberRequest.newBuilder()
+                                .setUpdate(update)
+                                .setUpdateSignature(Signature.newBuilder()
+                                        .setKeyId(signer.getKeyId())
+                                        .setMemberId(memberId)
+                                        .setSignature(signer.sign(update)))
+                                .build())));
     }
 
     /**
@@ -273,11 +255,7 @@ public class Client {
                 .getProfile(GetProfileRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
-                .map(new Function<GetProfileResponse, Profile>() {
-                    public Profile apply(GetProfileResponse response) {
-                        return response.getProfile();
-                    }
-                });
+                .map(GetProfileResponse::getProfile);
     }
 
     /**
@@ -294,11 +272,7 @@ public class Client {
                         .setMemberId(memberId)
                         .setSize(size)
                         .build()))
-                .map(new Function<GetProfilePictureResponse, Blob>() {
-                    public Blob apply(GetProfilePictureResponse response) {
-                        return response.getBlob();
-                    }
-                });
+                .map(GetProfilePictureResponse::getBlob);
     }
 
     /**
@@ -330,11 +304,7 @@ public class Client {
                         .newBuilder()
                         .setAccountId(accountId)
                         .build()))
-                .map(new Function<GetAccountResponse, Account>() {
-                    public Account apply(GetAccountResponse response) {
-                        return response.getAccount();
-                    }
-                });
+                .map(GetAccountResponse::getAccount);
     }
 
 
@@ -558,12 +528,7 @@ public class Client {
                         .setAccountId(accountId)
                         .setAmount(amount)
                         .build()))
-                .map(new Function<ConfirmFundsResponse, Boolean>() {
-                    @Override
-                    public Boolean apply(ConfirmFundsResponse response) {
-                        return response.getFundsAvailable();
-                    }
-                });
+                .map(ConfirmFundsResponse::getFundsAvailable);
     }
 
     /**
@@ -579,11 +544,7 @@ public class Client {
                         .newBuilder()
                         .setBankId(bankId)
                         .build()))
-                .map(new Function<GetBankInfoResponse, BankInfo>() {
-                    public BankInfo apply(GetBankInfoResponse response) {
-                        return response.getInfo();
-                    }
-                });
+                .map(GetBankInfoResponse::getInfo);
     }
 
     /**
@@ -602,13 +563,11 @@ public class Client {
                         .newBuilder()
                         .setAuthorization(authorization)
                         .build()))
-                .map(new Function<Gateway.LinkAccountsOauthResponse, List<Account>>() {
-                    public List<Account> apply(Gateway.LinkAccountsOauthResponse response) {
-                        if (response.getStatus() == FAILURE_BANK_AUTHORIZATION_REQUIRED) {
-                            throw new BankAuthorizationRequiredException();
-                        }
-                        return response.getAccountsList();
+                .map(response -> {
+                    if (response.getStatus() == FAILURE_BANK_AUTHORIZATION_REQUIRED) {
+                        throw new BankAuthorizationRequiredException();
                     }
+                    return response.getAccountsList();
                 });
     }
 
@@ -620,23 +579,15 @@ public class Client {
      */
     public Observable<Account> createAndLinkTestBankAccount(Money balance) {
         return createTestBankAuth(balance)
-                .flatMap(new Function<OauthBankAuthorization, Observable<Account>>() {
-                    @Override
-                    public Observable<Account> apply(OauthBankAuthorization authorization) {
-                        return linkAccounts(authorization)
-                                .map(new Function<List<Account>, Account>() {
-                                    @Override
-                                    public Account apply(List<Account> accounts) {
-                                        if (accounts.size() != 1) {
-                                            throw new RuntimeException(
-                                                    "Expected 1 account; found "
-                                                            + accounts.size());
-                                        }
-                                        return accounts.get(0);
-                                    }
-                                });
-                    }
-                });
+                .flatMap(authorization -> linkAccounts(authorization)
+                        .map(accounts -> {
+                            if (accounts.size() != 1) {
+                                throw new RuntimeException(
+                                        "Expected 1 account; found "
+                                                + accounts.size());
+                            }
+                            return accounts.get(0);
+                        }));
     }
 
     /**
@@ -650,11 +601,7 @@ public class Client {
                 .getAliases(GetAliasesRequest
                         .newBuilder()
                         .build()))
-                .map(new Function<GetAliasesResponse, List<Alias>>() {
-                    public List<Alias> apply(GetAliasesResponse response) {
-                        return response.getAliasesList();
-                    }
-                });
+                .map(GetAliasesResponse::getAliasesList);
     }
 
     /**
@@ -670,11 +617,7 @@ public class Client {
                         .setAlias(alias)
                         .setMemberId(memberId)
                         .build()))
-                .map(new Function<RetryVerificationResponse, String>() {
-                    public String apply(RetryVerificationResponse response) {
-                        return response.getVerificationId();
-                    }
-                });
+                .map(RetryVerificationResponse::getVerificationId);
     }
 
     /**
@@ -701,11 +644,7 @@ public class Client {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getDefaultAgent(GetDefaultAgentRequest.getDefaultInstance()))
-                .map(new Function<GetDefaultAgentResponse, String>() {
-                    public String apply(GetDefaultAgentResponse response) {
-                        return response.getMemberId();
-                    }
-                });
+                .map(GetDefaultAgentResponse::getMemberId);
     }
 
     /**
@@ -747,13 +686,7 @@ public class Client {
                 .resolveTransferDestinations(ResolveTransferDestinationsRequest.newBuilder()
                         .setAccountId(accountId)
                         .build()))
-                .map(new Function<ResolveTransferDestinationsResponse,List<TransferDestination>>() {
-                    @Override
-                    public List<TransferDestination> apply(
-                            ResolveTransferDestinationsResponse response) {
-                        return response.getTransferDestinationsList();
-                    }
-                });
+                .map(ResolveTransferDestinationsResponse::getTransferDestinationsList);
     }
 
     public CryptoEngine getCryptoEngine() {
@@ -846,10 +779,6 @@ public class Client {
                 .createTestBankAccount(CreateTestBankAccountRequest.newBuilder()
                         .setBalance(balance)
                         .build()))
-                .map(new Function<CreateTestBankAccountResponse, OauthBankAuthorization>() {
-                    public OauthBankAuthorization apply(CreateTestBankAccountResponse response) {
-                        return response.getAuthorization();
-                    }
-                });
+                .map(CreateTestBankAccountResponse::getAuthorization);
     }
 }

@@ -48,6 +48,8 @@ import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestStatePayload;
 import io.token.proto.common.token.TokenProtos.TransferTokenStatus;
+import io.token.proto.common.transfer.TransferProtos;
+import io.token.proto.common.transfer.TransferProtos.BulkTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.gateway.Gateway;
@@ -56,7 +58,10 @@ import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateAccessTokenRequest;
 import io.token.proto.gateway.Gateway.CreateAccessTokenResponse;
+import io.token.proto.gateway.Gateway.CreateBulkTransferRequest;
+import io.token.proto.gateway.Gateway.CreateBulkTransferResponse;
 import io.token.proto.gateway.Gateway.CreateStandingOrderRequest;
+import io.token.proto.gateway.Gateway.CreateStandingOrderResponse;
 import io.token.proto.gateway.Gateway.CreateTokenRequest;
 import io.token.proto.gateway.Gateway.CreateTokenResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
@@ -67,6 +72,8 @@ import io.token.proto.gateway.Gateway.EndorseTokenRequest;
 import io.token.proto.gateway.Gateway.EndorseTokenResponse;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenRequest;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
+import io.token.proto.gateway.Gateway.GetBulkTransferRequest;
+import io.token.proto.gateway.Gateway.GetBulkTransferResponse;
 import io.token.proto.gateway.Gateway.GetDefaultAccountRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAccountResponse;
 import io.token.proto.gateway.Gateway.GetNotificationRequest;
@@ -75,6 +82,7 @@ import io.token.proto.gateway.Gateway.GetNotificationsRequest;
 import io.token.proto.gateway.Gateway.GetNotificationsResponse;
 import io.token.proto.gateway.Gateway.GetReceiptContactRequest;
 import io.token.proto.gateway.Gateway.GetReceiptContactResponse;
+import io.token.proto.gateway.Gateway.GetStandingOrderSubmissionResponse;
 import io.token.proto.gateway.Gateway.GetStandingOrderSubmissionsRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberRequest;
 import io.token.proto.gateway.Gateway.GetSubscriberResponse;
@@ -150,11 +158,7 @@ public final class Client extends io.token.rpc.Client {
                 .setProfile(SetProfileRequest.newBuilder()
                         .setProfile(profile)
                         .build()))
-                .map(new Function<SetProfileResponse, Profile>() {
-                    public Profile apply(SetProfileResponse response) {
-                        return response.getProfile();
-                    }
-                });
+                .map(SetProfileResponse::getProfile);
     }
 
     /**
@@ -182,11 +186,7 @@ public final class Client extends io.token.rpc.Client {
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
-                .map(new Function<GetDefaultAccountResponse, Account>() {
-                    public Account apply(GetDefaultAccountResponse response) {
-                        return response.getAccount();
-                    }
-                });
+                .map(GetDefaultAccountResponse::getAccount);
     }
 
     /**
@@ -217,11 +217,9 @@ public final class Client extends io.token.rpc.Client {
                 .getDefaultAccount(GetDefaultAccountRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
-                .map(new Function<GetDefaultAccountResponse, Boolean>() {
-                    public Boolean apply(GetDefaultAccountResponse response) {
-                        return response.getAccount().getId().contentEquals(accountId);
-                    }
-                });
+                .map(response -> response.getAccount()
+                        .getId()
+                        .contentEquals(accountId));
     }
 
     /**
@@ -237,11 +235,23 @@ public final class Client extends io.token.rpc.Client {
                         .newBuilder()
                         .setTransferId(transferId)
                         .build()))
-                .map(new Function<GetTransferResponse, Transfer>() {
-                    public Transfer apply(GetTransferResponse response) {
-                        return response.getTransfer();
-                    }
-                });
+                .map(GetTransferResponse::getTransfer);
+    }
+
+    /**
+     * Looks up an existing bulk transfer.
+     *
+     * @param bulkTransferId bulk transfer ID
+     * @return bulk transfer record
+     */
+    public Observable<BulkTransfer> getBulkTransfer(String bulkTransferId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getBulkTransfer(GetBulkTransferRequest
+                        .newBuilder()
+                        .setBulkTransferId(bulkTransferId)
+                        .build()))
+                .map(GetBulkTransferResponse::getBulkTransfer);
     }
 
     /**
@@ -257,7 +267,7 @@ public final class Client extends io.token.rpc.Client {
                         .newBuilder()
                         .setSubmissionId(submissionId)
                         .build()))
-                .map(response -> response.getSubmission());
+                .map(GetStandingOrderSubmissionResponse::getSubmission);
     }
 
     /**
@@ -287,11 +297,9 @@ public final class Client extends io.token.rpc.Client {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getTransfers(request.build()))
-                .map(new Function<GetTransfersResponse, PagedList<Transfer, String>>() {
-                    public PagedList<Transfer, String> apply(GetTransfersResponse response) {
-                        return PagedList.create(response.getTransfersList(), response.getOffset());
-                    }
-                });
+                .map(response -> PagedList.create(
+                        response.getTransfersList(),
+                        response.getOffset()));
     }
 
     /**
@@ -328,14 +336,9 @@ public final class Client extends io.token.rpc.Client {
                 .prepareToken(PrepareTokenRequest.newBuilder()
                         .setPayload(payload)
                         .build()))
-                .map(new Function<PrepareTokenResponse, PrepareTokenResult>() {
-                    @Override
-                    public PrepareTokenResult apply(PrepareTokenResponse response) {
-                        return PrepareTokenResult.create(
-                                response.getResolvedPayload(),
-                                response.getPolicy());
-                    }
-                });
+                .map(response -> PrepareTokenResult.create(
+                        response.getResolvedPayload(),
+                        response.getPolicy()));
     }
 
     /**
@@ -361,12 +364,7 @@ public final class Client extends io.token.rpc.Client {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .createToken(request.build()))
-                .map(new Function<CreateTokenResponse, Token>() {
-                    @Override
-                    public Token apply(CreateTokenResponse response) {
-                        return response.getToken();
-                    }
-                });
+                .map(CreateTokenResponse::getToken);
     }
 
     /**
@@ -375,6 +373,7 @@ public final class Client extends io.token.rpc.Client {
      * @param payload transfer token payload
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Observable<Token> createTransferToken(TokenPayload payload) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
@@ -382,13 +381,11 @@ public final class Client extends io.token.rpc.Client {
                         .newBuilder()
                         .setPayload(payload)
                         .build()))
-                .map(new Function<CreateTransferTokenResponse, Token>() {
-                    public Token apply(CreateTransferTokenResponse response) {
-                        if (response.getStatus() != TransferTokenStatus.SUCCESS) {
-                            throw new TransferTokenException(response.getStatus());
-                        }
-                        return response.getToken();
+                .map(response -> {
+                    if (response.getStatus() != TransferTokenStatus.SUCCESS) {
+                        throw new TransferTokenException(response.getStatus());
                     }
+                    return response.getToken();
                 });
     }
 
@@ -399,6 +396,7 @@ public final class Client extends io.token.rpc.Client {
      * @param tokenRequestId token request id
      * @return transfer token returned by the server
      */
+    @Deprecated
     public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
@@ -407,13 +405,11 @@ public final class Client extends io.token.rpc.Client {
                         .setPayload(payload)
                         .setTokenRequestId(tokenRequestId)
                         .build()))
-                .map(new Function<CreateTransferTokenResponse, Token>() {
-                    public Token apply(CreateTransferTokenResponse response) {
-                        if (response.getStatus() != TransferTokenStatus.SUCCESS) {
-                            throw new TransferTokenException(response.getStatus());
-                        }
-                        return response.getToken();
+                .map(response -> {
+                    if (response.getStatus() != TransferTokenStatus.SUCCESS) {
+                        throw new TransferTokenException(response.getStatus());
                     }
+                    return response.getToken();
                 });
     }
 
@@ -433,12 +429,7 @@ public final class Client extends io.token.rpc.Client {
                         .setPayload(tokenPayload)
                         .setTokenRequestId(tokenRequestId == null ? "" : tokenRequestId)
                         .build()))
-                .map(new Function<CreateAccessTokenResponse, Token>() {
-                    @Override
-                    public Token apply(CreateAccessTokenResponse response) {
-                        return response.getToken();
-                    }
-                });
+                .map(CreateAccessTokenResponse::getToken);
     }
 
     /**
@@ -461,12 +452,7 @@ public final class Client extends io.token.rpc.Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(tokenAction(token, ENDORSED))))
                         .build()))
-                .map(new Function<EndorseTokenResponse, TokenOperationResult>() {
-                    @Override
-                    public TokenOperationResult apply(EndorseTokenResponse response) {
-                        return response.getResult();
-                    }
-                });
+                .map(EndorseTokenResponse::getResult);
     }
 
     /**
@@ -488,11 +474,7 @@ public final class Client extends io.token.rpc.Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(tokenAction(token, CANCELLED))))
                         .build()))
-                .map(new Function<CancelTokenResponse, TokenOperationResult>() {
-                    public TokenOperationResult apply(CancelTokenResponse response) {
-                        return response.getResult();
-                    }
-                });
+                .map(CancelTokenResponse::getResult);
     }
 
 
@@ -534,13 +516,7 @@ public final class Client extends io.token.rpc.Client {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .getReceiptContact(GetReceiptContactRequest.getDefaultInstance()))
-                .map(new Function<GetReceiptContactResponse, ReceiptContact>() {
-                    @Override
-                    public ReceiptContact apply(
-                            GetReceiptContactResponse getReceiptContactResponse) {
-                        return getReceiptContactResponse.getContact();
-                    }
-                });
+                .map(GetReceiptContactResponse::getContact);
     }
 
     /**
@@ -557,11 +533,7 @@ public final class Client extends io.token.rpc.Client {
                         .newBuilder()
                         .setToMemberId(toMemberId)
                         .build()))
-                .map(new Function<GetActiveAccessTokenResponse, Token>() {
-                    public Token apply(GetActiveAccessTokenResponse response) {
-                        return response.getToken();
-                    }
-                });
+                .map(GetActiveAccessTokenResponse::getToken);
     }
 
     /**
@@ -583,11 +555,7 @@ public final class Client extends io.token.rpc.Client {
                         .setType(type)
                         .setPage(pageBuilder(offset, limit))
                         .build()))
-                .map(new Function<GetTokensResponse, PagedList<Token, String>>() {
-                    public PagedList<Token, String> apply(GetTokensResponse response) {
-                        return PagedList.create(response.getTokensList(), response.getOffset());
-                    }
-                });
+                .map(response -> PagedList.create(response.getTokensList(), response.getOffset()));
     }
 
     /**
@@ -603,11 +571,7 @@ public final class Client extends io.token.rpc.Client {
                         .newBuilder()
                         .setTokenId(tokenId)
                         .build()))
-                .map(new Function<GetTokenResponse, Token>() {
-                    public Token apply(GetTokenResponse response) {
-                        return response.getToken();
-                    }
-                });
+                .map(GetTokenResponse::getToken);
     }
 
     /**
@@ -629,11 +593,22 @@ public final class Client extends io.token.rpc.Client {
                                 .setKeyId(signer.getKeyId())
                                 .setSignature(signer.sign(transfer)))
                         .build()))
-                .map(new Function<CreateTransferResponse, Transfer>() {
-                    public Transfer apply(CreateTransferResponse response) {
-                        return response.getTransfer();
-                    }
-                });
+                .map(CreateTransferResponse::getTransfer);
+    }
+
+    /**
+     * Redeems a bulk transfer token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return bulk transfer record
+     */
+    public Observable<BulkTransfer> createBulkTransfer(String tokenId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .createBulkTransfer(CreateBulkTransferRequest.newBuilder()
+                        .setTokenId(tokenId)
+                        .build()))
+                .map(CreateBulkTransferResponse::getTransfer);
     }
 
     /**
@@ -648,7 +623,7 @@ public final class Client extends io.token.rpc.Client {
                 .createStandingOrder(CreateStandingOrderRequest.newBuilder()
                         .setTokenId(tokenId)
                         .build()))
-                .map(response -> response.getSubmission());
+                .map(CreateStandingOrderResponse::getSubmission);
     }
 
     /**
@@ -664,11 +639,7 @@ public final class Client extends io.token.rpc.Client {
                         .newBuilder()
                         .setBankAuthorization(authorization)
                         .build()))
-                .map(new Function<LinkAccountsResponse, List<Account>>() {
-                    public List<Account> apply(LinkAccountsResponse response) {
-                        return response.getAccountsList();
-                    }
-                });
+                .map(LinkAccountsResponse::getAccountsList);
     }
 
     /**
@@ -717,14 +688,9 @@ public final class Client extends io.token.rpc.Client {
                         .newBuilder()
                         .setPage(pageBuilder(offset, limit))
                         .build()))
-                .map(new Function<GetNotificationsResponse, PagedList<Notification, String>>() {
-                    public PagedList<Notification, String> apply(
-                            GetNotificationsResponse response) {
-                        return PagedList.create(
-                                response.getNotificationsList(),
-                                response.getOffset());
-                    }
-                });
+                .map(response -> PagedList.create(
+                        response.getNotificationsList(),
+                        response.getOffset()));
     }
 
     /**
@@ -757,11 +723,7 @@ public final class Client extends io.token.rpc.Client {
                         .newBuilder()
                         .setNotificationId(notificationId)
                         .build()))
-                .map(new Function<GetNotificationResponse, Notification>() {
-                    public Notification apply(GetNotificationResponse response) {
-                        return response.getNotification();
-                    }
-                });
+                .map(GetNotificationResponse::getNotification);
     }
 
     /**
@@ -782,11 +744,7 @@ public final class Client extends io.token.rpc.Client {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
                 .subscribeToNotifications(request))
-                .map(new Function<SubscribeToNotificationsResponse, Subscriber>() {
-                    public Subscriber apply(SubscribeToNotificationsResponse response) {
-                        return response.getSubscriber();
-                    }
-                });
+                .map(SubscribeToNotificationsResponse::getSubscriber);
     }
 
     /**
@@ -802,11 +760,7 @@ public final class Client extends io.token.rpc.Client {
                         .newBuilder()
                         .setSubscriberId(subscriberId)
                         .build()))
-                .map(new Function<GetSubscriberResponse, Subscriber>() {
-                    public Subscriber apply(GetSubscriberResponse response) {
-                        return response.getSubscriber();
-                    }
-                });
+                .map(GetSubscriberResponse::getSubscriber);
     }
 
     /**
@@ -820,12 +774,7 @@ public final class Client extends io.token.rpc.Client {
                 .getSubscribers(GetSubscribersRequest
                         .newBuilder()
                         .build()))
-                .map(new Function<GetSubscribersResponse, List<Subscriber>>() {
-                    @Override
-                    public List<Subscriber> apply(GetSubscribersResponse response) {
-                        return response.getSubscribersList();
-                    }
-                });
+                .map(GetSubscribersResponse::getSubscribersList);
     }
 
     /**
@@ -848,11 +797,7 @@ public final class Client extends io.token.rpc.Client {
                                 .setState(state))
                         .setTokenRequestId(tokenRequestId)
                         .build()))
-                .map(new Function<SignTokenRequestStateResponse, Signature>() {
-                    public Signature apply(SignTokenRequestStateResponse response) {
-                        return response.getSignature();
-                    }
-                });
+                .map(SignTokenRequestStateResponse::getSignature);
     }
 
     /**
@@ -902,10 +847,6 @@ public final class Client extends io.token.rpc.Client {
                                                 .sign(tokenAction(tokenToCancel, CANCELLED)))))
                         .setCreateToken(createToken)
                         .build()))
-                .map(new Function<ReplaceTokenResponse, TokenOperationResult>() {
-                    public TokenOperationResult apply(ReplaceTokenResponse response) {
-                        return response.getResult();
-                    }
-                });
+                .map(ReplaceTokenResponse::getResult);
     }
 }
