@@ -300,7 +300,7 @@ public final class StandingOrderTokenBuilder {
      * @return builder
      */
     public StandingOrderTokenBuilder setUltimateCreditor(String ultimateCreditor) {
-        payload.getTransferBuilder()
+        payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setUltimateCreditor(ultimateCreditor);
@@ -314,7 +314,7 @@ public final class StandingOrderTokenBuilder {
      * @return builder
      */
     public StandingOrderTokenBuilder setUltimateDebtor(String ultimateDebtor) {
-        payload.getTransferBuilder()
+        payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setUltimateDebtor(ultimateDebtor);
@@ -328,7 +328,7 @@ public final class StandingOrderTokenBuilder {
      * @return builder
      */
     public StandingOrderTokenBuilder setPurposeCode(String purposeCode) {
-        payload.getTransferBuilder()
+        payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
                 .setPurposeCode(purposeCode);
