@@ -496,7 +496,7 @@ public class Member extends io.token.Member {
 
     /**
      * Creates a new standing order token builder. Defines a standing order
-     * for a fixed time span.
+     * for a fixed time span. For Android 26+.
      *
      * @param amount individual transfer amount
      * @param currency currency code, e.g. "USD"
@@ -523,7 +523,7 @@ public class Member extends io.token.Member {
 
     /**
      * Creates a new standing order token builder. Defines a standing order
-     * for a fixed time span.
+     * for a fixed time span. For Android 26+.
      *
      * @param amount individual transfer amount
      * @param currency currency code, e.g. "USD"
@@ -548,7 +548,7 @@ public class Member extends io.token.Member {
 
     /**
      * Creates a new standing order token builder. Defines a standing order
-     * for a fixed time span.
+     * for a fixed time span. For Android < 26.
      *
      * @param amount individual transfer amount
      * @param currency currency code, e.g. "USD"
@@ -574,7 +574,7 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Creates a new indefinite standing order token builder.
+     * Creates a new indefinite standing order token builder. For Android < 26.
      *
      * @param amount individual transfer amount
      * @param currency currency code, e.g. "USD"

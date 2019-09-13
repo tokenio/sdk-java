@@ -69,7 +69,7 @@ public final class TransferTokenBuilder {
     private String tokenRequestId;
 
     /**
-     * Creates the builder object.
+     * Creates the builder object. For Android 26+.
      *
      * @param member payer of the token
      * @param amount lifetime amount of the token
@@ -96,7 +96,7 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Creates the builder object from a token request.
+     * Creates the builder object from a token request. For Android < 26.
      *
      * @param member payer of the token
      * @param tokenRequest token request
@@ -395,9 +395,7 @@ public final class TransferTokenBuilder {
      *
      * @param executionDate execution date
      * @return builder
-     * @deprecated for use on older android systems
      */
-    @Deprecated
     public TransferTokenBuilder setExecutionDate(String executionDate) {
         payload.getTransferBuilder()
                 .setExecutionDate(executionDate)
