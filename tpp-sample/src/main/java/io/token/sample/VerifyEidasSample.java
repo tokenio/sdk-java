@@ -20,6 +20,7 @@ public class VerifyEidasSample {
 
     /**
      * Creates a TPP member and verifies it using eIDAS certificate.
+     *
      * @param client token client
      * @param tppAuthNumber authNumber of the TPP
      * @param certificate base64 encoded eIDAS certificate
