@@ -18,6 +18,15 @@ import java.security.PrivateKey;
 
 public class VerifyEidasSample {
 
+    /**
+     * Creates a TPP member and verifies it using eIDAS certificate.
+     * @param client token client
+     * @param tppAuthNumber authNumber of the TPP
+     * @param certificate base64 encoded eIDAS certificate
+     * @param bankId id of the bank the TPP trying to get access to
+     * @param privateKey private key corresponding to the public key in the certificate
+     * @return verified business member
+     */
     public static Member verifyEidas(
             TokenClient client,
             String tppAuthNumber,
