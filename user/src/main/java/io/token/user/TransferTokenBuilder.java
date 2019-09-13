@@ -385,7 +385,7 @@ public final class TransferTokenBuilder {
      */
     public TransferTokenBuilder setExecutionDate(LocalDate executionDate) {
         payload.getTransferBuilder()
-                .setExecutionDate(executionDate.format(DateTimeFormatter.BASIC_ISO_DATE))
+                .setExecutionDate(executionDate.format(DateTimeFormatter.ISO_DATE))
                 .build();
         return this;
     }

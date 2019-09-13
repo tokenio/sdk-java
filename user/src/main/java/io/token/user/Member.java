@@ -73,6 +73,8 @@ import io.token.user.rpc.Client;
 
 import java.net.URL;
 import java.net.URLEncoder;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -490,6 +492,58 @@ public class Member extends io.token.Member {
      */
     public TransferTokenBuilder createTransferTokenBuilder(TokenPayload tokenPayload) {
         return new TransferTokenBuilder(this, tokenPayload);
+    }
+
+    /**
+     * Creates a new standing order token builder. Defines a standing order
+     * for a fixed time span.
+     *
+     * @param amount individual transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param frequency ISO 20022 code for the frequency of the standing order:
+     *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
+     * @param startDate start date of the standing order
+     * @param endDate end date of the standing order
+     * @return standing order token builder
+     */
+    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
+            double amount,
+            String currency,
+            String frequency,
+            LocalDate startDate,
+            LocalDate endDate) {
+        return new StandingOrderTokenBuilder(
+                this,
+                amount,
+                currency,
+                frequency,
+                startDate.format(DateTimeFormatter.ISO_DATE),
+                endDate.format(DateTimeFormatter.ISO_DATE));
+    }
+
+    /**
+     * Creates a new standing order token builder. Defines a standing order
+     * for a fixed time span.
+     *
+     * @param amount individual transfer amount
+     * @param currency currency code, e.g. "USD"
+     * @param frequency ISO 20022 code for the frequency of the standing order:
+     *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
+     * @param startDate start date of the standing order
+     * @return standing order token builder
+     */
+    public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
+            double amount,
+            String currency,
+            String frequency,
+            LocalDate startDate) {
+        return new StandingOrderTokenBuilder(
+                this,
+                amount,
+                currency,
+                frequency,
+                startDate.format(DateTimeFormatter.ISO_DATE),
+                null);
     }
 
     /**

@@ -442,7 +442,7 @@ public abstract class TokenRequest {
          */
         public TransferBuilder setExecutionDate(LocalDate executionDate) {
             this.requestPayload.getTransferBodyBuilder()
-                    .setExecutionDate(executionDate.format(DateTimeFormatter.BASIC_ISO_DATE))
+                    .setExecutionDate(executionDate.format(DateTimeFormatter.ISO_DATE))
                     .build();
             return this;
         }
