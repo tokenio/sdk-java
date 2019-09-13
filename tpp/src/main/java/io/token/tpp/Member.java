@@ -1157,7 +1157,7 @@ public class Member extends io.token.Member implements Representable {
      *     to the member</li>
      *     <li>The realmId of the alias is equal to the member's realmId</li>
      *</ul>
-     * @param payload payload containing the member id and the certificate in PEM format
+     * @param payload payload containing the member id and the base64 encoded eIDAS certificate
      * @param signature the payload signed with a private key corresponding to the certificate
      * @return a result of the verification process
      */
