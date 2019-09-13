@@ -44,8 +44,6 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -379,13 +377,14 @@ public final class TransferTokenBuilder {
 
     /**
      * Sets the execution date of the transfer. Used for future-dated payments.
+     * Date should follow ISO 8601: YYYY-MM-DD format.
      *
      * @param executionDate execution date
      * @return builder
      */
-    public TransferTokenBuilder setExecutionDate(LocalDate executionDate) {
+    public TransferTokenBuilder setExecutionDate(String executionDate) {
         payload.getTransferBuilder()
-                .setExecutionDate(executionDate.format(DateTimeFormatter.BASIC_ISO_DATE))
+                .setExecutionDate(executionDate)
                 .build();
         return this;
     }

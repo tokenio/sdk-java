@@ -78,7 +78,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -501,8 +500,8 @@ public class Member extends io.token.Member {
      * @param currency currency code, e.g. "USD"
      * @param frequency ISO 20022 code for the frequency of the standing order:
      *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
-     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
-     * @param endDate end date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD
+     * @param endDate end date of the standing order: ISO 8601 YYYY-MM-DD
      * @return standing order token builder
      */
     public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
@@ -517,7 +516,7 @@ public class Member extends io.token.Member {
                 currency,
                 frequency,
                 startDate,
-                Optional.of(endDate));
+                endDate);
     }
 
     /**
@@ -527,7 +526,7 @@ public class Member extends io.token.Member {
      * @param currency currency code, e.g. "USD"
      * @param frequency ISO 20022 code for the frequency of the standing order:
      *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
-     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD
      * @return standing order token builder
      */
     public StandingOrderTokenBuilder createStandingOrderTokenBuilder(
@@ -541,7 +540,7 @@ public class Member extends io.token.Member {
                 currency,
                 frequency,
                 startDate,
-                Optional.empty());
+                null);
     }
 
     /**
