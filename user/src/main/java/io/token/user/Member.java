@@ -78,7 +78,6 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -517,7 +516,7 @@ public class Member extends io.token.Member {
                 currency,
                 frequency,
                 startDate,
-                Optional.of(endDate));
+                endDate);
     }
 
     /**
@@ -541,7 +540,7 @@ public class Member extends io.token.Member {
                 currency,
                 frequency,
                 startDate,
-                Optional.empty());
+                null);
     }
 
     /**

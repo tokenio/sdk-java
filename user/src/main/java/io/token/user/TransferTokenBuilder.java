@@ -391,6 +391,21 @@ public final class TransferTokenBuilder {
     }
 
     /**
+     * Sets the execution date of the transfer. Used for future-dated payments.
+     *
+     * @param executionDate execution date
+     * @return builder
+     * @deprecated for use on older android systems
+     */
+    @Deprecated
+    public TransferTokenBuilder setExecutionDate(String executionDate) {
+        payload.getTransferBuilder()
+                .setExecutionDate(executionDate)
+                .build();
+        return this;
+    }
+
+    /**
      * Sets provider transfer metadata.
      *
      * @param metadata the metadata

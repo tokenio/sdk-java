@@ -38,7 +38,8 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.List;
-import java.util.Optional;
+
+import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,16 +74,20 @@ public final class StandingOrderTokenBuilder {
             String currency,
             String frequency,
             String startDate,
-            Optional<String> endDate) {
+            @Nullable String endDate) {
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
-                .setFrom(TokenMember.newBuilder().setId(member.memberId()))
-                .setStandingOrder(StandingOrderBody.newBuilder()
-                        .setCurrency(currency)
-                        .setAmount(Double.toString(amount))
-                        .setFrequency(frequency)
-                        .setStartDate(startDate)
-                        .setEndDate(endDate.orElse("")));
+                .setFrom(TokenMember.newBuilder().setId(member.memberId()));
+        StandingOrderBody.Builder body = StandingOrderBody.newBuilder()
+                .setCurrency(currency)
+                .setAmount(Double.toString(amount))
+                .setFrequency(frequency)
+                .setStartDate(startDate);
+        if (endDate != null) {
+            body.setEndDate(endDate);
+        }
+        this.payload.setStandingOrder(body);
+
         List<Alias> aliases = member.aliases().blockingSingle();
         if (!aliases.isEmpty()) {
             payload.getFromBuilder().setAlias(aliases.get(0));
