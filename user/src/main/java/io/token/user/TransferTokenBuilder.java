@@ -44,8 +44,6 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
-import java.time.LocalDate;
-import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.List;
 
@@ -69,7 +67,7 @@ public final class TransferTokenBuilder {
     private String tokenRequestId;
 
     /**
-     * Creates the builder object. For Android 26+.
+     * Creates the builder object.
      *
      * @param member payer of the token
      * @param amount lifetime amount of the token
@@ -96,7 +94,7 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Creates the builder object from a token request. For Android < 26.
+     * Creates the builder object from a token request.
      *
      * @param member payer of the token
      * @param tokenRequest token request
@@ -379,21 +377,7 @@ public final class TransferTokenBuilder {
 
     /**
      * Sets the execution date of the transfer. Used for future-dated payments.
-     * For Android 26+.
-     *
-     * @param executionDate execution date
-     * @return builder
-     */
-    public TransferTokenBuilder setExecutionDate(LocalDate executionDate) {
-        payload.getTransferBuilder()
-                .setExecutionDate(executionDate.format(DateTimeFormatter.ISO_DATE))
-                .build();
-        return this;
-    }
-
-    /**
-     * Sets the execution date of the transfer. Used for future-dated payments.
-     * For Android < 26.
+     * Date should follow ISO 8601: YYYY-MM-DD format.
      *
      * @param executionDate execution date
      * @return builder
