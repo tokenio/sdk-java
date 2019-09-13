@@ -11,7 +11,7 @@ import io.token.tpp.TokenClient;
 
 import org.junit.Test;
 
-public class SetTransferDestinationTest {
+public class SetTransferDestinationsTest {
 
     @Test
     public void setTransferDestinationsTest() {
