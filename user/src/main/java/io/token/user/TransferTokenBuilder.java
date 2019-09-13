@@ -379,6 +379,7 @@ public final class TransferTokenBuilder {
 
     /**
      * Sets the execution date of the transfer. Used for future-dated payments.
+     * For Android 26+.
      *
      * @param executionDate execution date
      * @return builder
@@ -392,6 +393,7 @@ public final class TransferTokenBuilder {
 
     /**
      * Sets the execution date of the transfer. Used for future-dated payments.
+     * For Android < 26.
      *
      * @param executionDate execution date
      * @return builder
