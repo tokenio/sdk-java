@@ -43,6 +43,7 @@ import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transfer.TransferProtos;
+import io.token.proto.common.transfer.TransferProtos.BulkTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
@@ -494,6 +495,7 @@ public class Member extends io.token.Member implements Representable {
     }
 
     // Remove when deprecated TransferEndpoint methods are removed.
+    @Deprecated
     private Observable<Transfer> redeemTokenInternal(
             Token token,
             @Nullable Double amount,
@@ -767,6 +769,27 @@ public class Member extends io.token.Member implements Representable {
                 .blockingSingle();
     }
 
+
+    /**
+     * Redeems a bulk transfer token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return bulk transfer record
+     */
+    public Observable<BulkTransfer> redeemBulkTransferToken(String tokenId) {
+        return client.createBulkTransfer(tokenId);
+    }
+
+    /**
+     * Redeems a bulk transfer token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return bulk transfer record
+     */
+    public BulkTransfer redeemBulkTransferTokenBlocking(String tokenId) {
+        return redeemBulkTransferToken(tokenId).blockingSingle();
+    }
+
     /**
      * Redeems a standing order token.
      *
@@ -890,6 +913,26 @@ public class Member extends io.token.Member implements Representable {
      */
     public Transfer getTransferBlocking(String transferId) {
         return getTransfer(transferId).blockingSingle();
+    }
+
+    /**
+     * Looks up an existing bulk transfer.
+     *
+     * @param bulkTransferId bulk transfer ID
+     * @return bulk transfer record
+     */
+    public Observable<BulkTransfer> getBulkTransfer(String bulkTransferId) {
+        return client.getBulkTransfer(bulkTransferId);
+    }
+
+    /**
+     * Looks up an existing bulk transfer.
+     *
+     * @param bulkTransferId bulk transfer ID
+     * @return bulk transfer record
+     */
+    public BulkTransfer getBulkTransferBlocking(String bulkTransferId) {
+        return getBulkTransfer(bulkTransferId).blockingSingle();
     }
 
     /**
@@ -1130,12 +1173,7 @@ public class Member extends io.token.Member implements Representable {
      */
     public Observable<Account> createTestBankAccount(double balance, String currency) {
         return createTestBankAccountImpl(balance, currency)
-                .map(new Function<io.token.Account, Account>() {
-                    @Override
-                    public Account apply(io.token.Account acc) {
-                        return new Account(acc, Member.this);
-                    }
-                });
+                .map(acc -> new Account(acc, Member.this));
     }
 
     /**

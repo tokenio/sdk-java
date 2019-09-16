@@ -57,11 +57,14 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
 import io.token.proto.common.subscriber.SubscriberProtos.Subscriber;
+import io.token.proto.common.token.TokenProtos;
+import io.token.proto.common.token.TokenProtos.BulkTransferBody;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
+import io.token.proto.common.transfer.TransferProtos.BulkTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transfer.TransferProtos.TransferPayload;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
@@ -121,15 +124,12 @@ public class Member extends io.token.Member {
      */
     public Observable<List<Account>> getAccounts() {
         return super.getAccountsImpl()
-                .map(new Function<List<io.token.Account>, List<Account>>() {
-                    @Override
-                    public List<Account> apply(List<io.token.Account> accs) {
-                        List<Account> accounts = Lists.newArrayList();
-                        for (io.token.Account acc : accs) {
-                            accounts.add(new Account(acc, client, Member.this));
-                        }
-                        return accounts;
+                .map(accs -> {
+                    List<Account> accounts = Lists.newArrayList();
+                    for (io.token.Account acc : accs) {
+                        accounts.add(new Account(acc, client, Member.this));
                     }
+                    return accounts;
                 });
     }
 
@@ -150,12 +150,7 @@ public class Member extends io.token.Member {
      */
     public Observable<Account> getAccount(String accountId) {
         return getAccountImpl(accountId)
-                .map(new Function<io.token.Account, Account>() {
-                    @Override
-                    public Account apply(io.token.Account acc) {
-                        return new Account(acc, client, Member.this);
-                    }
-                });
+                .map(acc -> new Account(acc, client, Member.this));
     }
 
     /**
@@ -229,6 +224,26 @@ public class Member extends io.token.Member {
      */
     public Transfer getTransferBlocking(String transferId) {
         return getTransfer(transferId).blockingSingle();
+    }
+
+    /**
+     * Looks up an existing bulk transfer.
+     *
+     * @param bulkTransferId bulk transfer ID
+     * @return bulk transfer record
+     */
+    public Observable<BulkTransfer> getBulkTransfer(String bulkTransferId) {
+        return client.getBulkTransfer(bulkTransferId);
+    }
+
+    /**
+     * Looks up an existing bulk transfer.
+     *
+     * @param bulkTransferId bulk transfer ID
+     * @return bulk transfer record
+     */
+    public BulkTransfer getBulkTransferBlocking(String bulkTransferId) {
+        return getBulkTransfer(bulkTransferId).blockingSingle();
     }
 
     /**
@@ -328,6 +343,30 @@ public class Member extends io.token.Member {
     public PrepareTokenResult prepareTransferTokenBlocking(
             TransferTokenBuilder transferTokenBuilder) {
         return prepareTransferToken(transferTokenBuilder).blockingSingle();
+    }
+
+    /**
+     * Prepares a bulk transfer token, returning the resolved token payload
+     * and policy.
+     *
+     * @param builder bulk transfer token builder
+     * @return resolved token payload and policy
+     */
+    public Observable<PrepareTokenResult> prepareBulkTransferToken(
+            BulkTransferTokenBuilder builder) {
+        return client.prepareToken(builder.buildPayload());
+    }
+
+    /**
+     * Prepares a bulk transfer token, returning the resolved token payload
+     * and policy.
+     *
+     * @param builder bulk transfer token builder
+     * @return resolved token payload and policy
+     */
+    public PrepareTokenResult prepareBulkTransferTokenBlocking(
+            BulkTransferTokenBuilder builder) {
+        return prepareBulkTransferToken(builder).blockingSingle();
     }
 
     /**
@@ -490,6 +529,31 @@ public class Member extends io.token.Member {
      */
     public TransferTokenBuilder createTransferTokenBuilder(TokenPayload tokenPayload) {
         return new TransferTokenBuilder(this, tokenPayload);
+    }
+
+    /**
+     * Creates a new bulk transfer token builder.
+     *
+     * @param transfers list of transfers
+     * @param totalAmount total amount irrespective of currency. Used for redundancy check.
+     * @param source source account for all transfer
+     * @return bulk transfer token builder
+     */
+    public BulkTransferTokenBuilder createBulkTransferTokenBuilder(
+            List<BulkTransferBody.Transfer> transfers,
+            double totalAmount,
+            TransferEndpoint source) {
+        return new BulkTransferTokenBuilder(this, transfers, totalAmount, source);
+    }
+
+    /**
+     * Creates a new bulk transfer token builder from a token request.
+     *
+     * @param tokenRequest token request
+     * @return bulk transfer token builder
+     */
+    public BulkTransferTokenBuilder createBulkTransferTokenBuilder(TokenRequest tokenRequest) {
+        return new BulkTransferTokenBuilder(tokenRequest);
     }
 
     /**
@@ -1419,6 +1483,26 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Redeems a bulk transfer token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return bulk transfer record
+     */
+    public Observable<BulkTransfer> redeemBulkTransferToken(String tokenId) {
+        return client.createBulkTransfer(tokenId);
+    }
+
+    /**
+     * Redeems a bulk transfer token.
+     *
+     * @param tokenId ID of token to redeem
+     * @return bulk transfer record
+     */
+    public BulkTransfer redeemBulkTransferTokenBlocking(String tokenId) {
+        return redeemBulkTransferToken(tokenId).blockingSingle();
+    }
+
+    /**
      * Redeems a standing order token.
      *
      * @param tokenId ID of token to redeem
@@ -1474,46 +1558,28 @@ public class Member extends io.token.Member {
                 .flatMap(accessToken -> linkAccounts(bankId, accessToken));
 
         return getBankInfo(bankId)
-                .flatMap(new Function<BankInfo, ObservableSource<List<Account>>>() {
-                    @Override
-                    public ObservableSource<List<Account>> apply(final BankInfo bankInfo) {
-                        return Single.create(new SingleOnSubscribe<List<Account>>() {
-                            @Override
-                            public void subscribe(final SingleEmitter<List<Account>> emitter)
-                                    throws Exception {
-                                accountLinkingObservable
-                                        .subscribe(
-                                                new Consumer<List<Account>>() {
-                                                    @Override
-                                                    public void accept(List<Account> accounts) {
-                                                        emitter.onSuccess(accounts);
-                                                        browser.close();
-                                                    }
-                                                },
-                                                new Consumer<Throwable>() {
-                                                    @Override
-                                                    public void accept(Throwable ex) {
-                                                        emitter.onError(ex);
-                                                        browser.close();
-                                                    }
-                                                },
-                                                new Action() {
-                                                    @Override
-                                                    public void run() {
-                                                        emitter.onSuccess(Collections.EMPTY_LIST);
-                                                    }
-                                                });
-                                String linkingUrl = bankInfo.getBankLinkingUri();
-                                String url = String.format("%s&redirect_uri=%s"
-                                                // request BALANCE and TRANSACTION access on linking
-                                                + "&resource=BALANCES&resource=TRANSACTIONS",
-                                        linkingUrl,
-                                        URLEncoder.encode(callbackUrl, "UTF-8"));
-                                browser.goTo(new URL(url));
-                            }
-                        }).toObservable();
-                    }
-                });
+                .flatMap(bankInfo ->
+                        Single.create((SingleOnSubscribe<List<Account>>) emitter -> {
+                            accountLinkingObservable
+                                    .subscribe(
+                                            accounts -> {
+                                                emitter.onSuccess(accounts);
+                                                browser.close();
+                                            },
+                                            ex -> {
+                                                emitter.onError(ex);
+                                                browser.close();
+                                            },
+                                            () -> emitter.onSuccess(Collections.emptyList()));
+                            String linkingUrl = bankInfo.getBankLinkingUri();
+                            String url = String.format(
+                                    "%s&redirect_uri=%s"
+                                            // request BALANCE and TRANSACTION access on linking
+                                            + "&resource=BALANCES&resource=TRANSACTIONS",
+                                    linkingUrl,
+                                    URLEncoder.encode(callbackUrl, "UTF-8"));
+                            browser.goTo(new URL(url));
+                        }).toObservable());
     }
 
     /**
@@ -1606,12 +1672,7 @@ public class Member extends io.token.Member {
      * @return current balance
      */
     public Observable<Money> getCurrentBalance(String accountId, Key.Level keyLevel) {
-        return client.getBalance(accountId, keyLevel).map(new Function<Balance, Money>() {
-            @Override
-            public Money apply(Balance balance) {
-                return balance.getCurrent();
-            }
-        });
+        return client.getBalance(accountId, keyLevel).map(Balance::getCurrent);
     }
 
     /**
@@ -1633,12 +1694,7 @@ public class Member extends io.token.Member {
      * @return available balance
      */
     public Observable<Money> getAvailableBalance(String accountId, Key.Level keyLevel) {
-        return client.getBalance(accountId, keyLevel).map(new Function<Balance, Money>() {
-            @Override
-            public Money apply(Balance balance) {
-                return balance.getAvailable();
-            }
-        });
+        return client.getBalance(accountId, keyLevel).map(Balance::getAvailable);
     }
 
     /**
@@ -1662,17 +1718,14 @@ public class Member extends io.token.Member {
     public Completable removeNonStoredKeys() {
         final List<Key> storedKeys = client.getCryptoEngine().getPublicKeys();
         return fromObservable(client.getMember(memberId())
-                .flatMap(new Function<MemberProtos.Member, ObservableSource<?>>() {
-                    @Override
-                    public ObservableSource<?> apply(MemberProtos.Member member) {
-                        List<String> toRemoveIds = new LinkedList<>();
-                        for (Key key : member.getKeysList()) {
-                            if (!storedKeys.contains(key)) {
-                                toRemoveIds.add(key.getId());
-                            }
+                .flatMap(member -> {
+                    List<String> toRemoveIds = new LinkedList<>();
+                    for (Key key : member.getKeysList()) {
+                        if (!storedKeys.contains(key)) {
+                            toRemoveIds.add(key.getId());
                         }
-                        return removeKeys(toRemoveIds).toObservable();
                     }
+                    return removeKeys(toRemoveIds).toObservable();
                 }));
     }
 
@@ -1960,12 +2013,7 @@ public class Member extends io.token.Member {
      */
     public Observable<Account> createTestBankAccount(double balance, String currency) {
         return createTestBankAccountImpl(balance, currency)
-                .map(new Function<io.token.Account, Account>() {
-                    @Override
-                    public Account apply(io.token.Account acc) {
-                        return new Account(acc, client, Member.this);
-                    }
-                });
+                .map(acc -> new Account(acc, client, Member.this));
     }
 
     /**
@@ -1981,26 +2029,18 @@ public class Member extends io.token.Member {
 
     private Observable<List<Account>> toAccountList(
             Observable<List<AccountProtos.Account>> accounts) {
-        return accounts.map(new Function<List<AccountProtos.Account>, List<Account>>() {
-            @Override
-            public List<Account> apply(List<AccountProtos.Account> accounts) {
-                List<Account> result = new LinkedList<>();
-                for (AccountProtos.Account account : accounts) {
-                    result.add(new Account(Member.this, account, client));
-                }
-                return result;
+        return accounts.map(acc -> {
+            List<Account> result = new LinkedList<>();
+            for (AccountProtos.Account account : acc) {
+                result.add(new Account(Member.this, account, client));
             }
+            return result;
         });
     }
 
     private Observable<Account> toAccount(Observable<AccountProtos.Account> account) {
         return account
-                .map(new Function<AccountProtos.Account, Account>() {
-                    @Override
-                    public Account apply(AccountProtos.Account account) {
-                        return new Account(Member.this, account, client);
-                    }
-                });
+                .map(acc -> new Account(Member.this, acc, client));
     }
 
     /**

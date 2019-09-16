@@ -22,31 +22,27 @@
 
 package io.token.user;
 
-import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.STANDING_ORDER_BODY;
+import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.BULK_TRANSFER_BODY;
 import static io.token.util.Util.generateNonce;
 
 import com.google.common.base.Preconditions;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
-import io.token.proto.common.token.TokenProtos.StandingOrderBody;
+import io.token.proto.common.token.TokenProtos.BulkTransferBody;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.List;
 
-import javax.annotation.Nullable;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class StandingOrderTokenBuilder {
+public final class BulkTransferTokenBuilder {
     private static final Logger logger = LoggerFactory
-            .getLogger(StandingOrderTokenBuilder.class);
+            .getLogger(BulkTransferTokenBuilder.class);
     private static final int REF_ID_MAX_LENGTH = 18;
 
     private final TokenPayload.Builder payload;
@@ -55,33 +51,22 @@ public final class StandingOrderTokenBuilder {
      * Creates the builder object.
      *
      * @param member payer of the token
-     * @param amount amount per charge of the standing order token
-     * @param currency currency of the token
-     * @param frequency ISO 20022 code for the frequency of the standing order:
-     *                  DAIL, WEEK, TOWK, MNTH, TOMN, QUTR, SEMI, YEAR
-     * @param startDate start date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
-     * @param endDate end date of the standing order: ISO 8601 YYYY-MM-DD or YYYYMMDD
+     * @param transfers list of transfers
+     * @param totalAmount total amount irrespective of currency. Used for redundancy check.
+     * @param source source account for all transfer
      */
-    public StandingOrderTokenBuilder(
+    public BulkTransferTokenBuilder(
             Member member,
-            double amount,
-            String currency,
-            String frequency,
-            String startDate,
-            @Nullable String endDate) {
+            List<BulkTransferBody.Transfer> transfers,
+            double totalAmount,
+            TransferEndpoint source) {
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
-                .setFrom(TokenMember.newBuilder().setId(member.memberId()));
-        StandingOrderBody.Builder body = StandingOrderBody.newBuilder()
-                .setCurrency(currency)
-                .setAmount(Double.toString(amount))
-                .setFrequency(frequency)
-                .setStartDate(startDate);
-        if (endDate != null) {
-            body.setEndDate(endDate);
-        }
-        this.payload.setStandingOrder(body);
-
+                .setFrom(TokenMember.newBuilder().setId(member.memberId()))
+                .setBulkTransfer(BulkTransferBody.newBuilder()
+                        .addAllTransfers(transfers)
+                        .setTotalAmount(Double.toString(totalAmount))
+                        .setSource(source));
         List<Alias> aliases = member.aliases().blockingSingle();
         if (!aliases.isEmpty()) {
             payload.getFromBuilder().setAlias(aliases.get(0));
@@ -93,16 +78,16 @@ public final class StandingOrderTokenBuilder {
      *
      * @param tokenRequest token request
      */
-    public StandingOrderTokenBuilder(TokenRequest tokenRequest) {
-        if (tokenRequest.getRequestPayload().getRequestBodyCase() != STANDING_ORDER_BODY) {
+    public BulkTransferTokenBuilder(TokenRequest tokenRequest) {
+        if (tokenRequest.getRequestPayload().getRequestBodyCase() != BULK_TRANSFER_BODY) {
             throw new IllegalArgumentException(
-                    "Require token request with standing order body.");
+                    "Require token request with bulk transfer body.");
         }
         if (!tokenRequest.getRequestPayload().hasTo()) {
             throw new IllegalArgumentException("No payee on token request");
         }
-        StandingOrderBody body = tokenRequest.getRequestPayload()
-                .getStandingOrderBody();
+        BulkTransferBody body = tokenRequest.getRequestPayload()
+                .getBulkTransferBody();
         this.payload = TokenPayload.newBuilder()
                 .setVersion("1.0")
                 .setRefId(tokenRequest.getRequestPayload().getRefId())
@@ -111,7 +96,7 @@ public final class StandingOrderTokenBuilder {
                 .setDescription(tokenRequest.getRequestPayload().getDescription())
                 .setReceiptRequested(tokenRequest.getRequestOptions().getReceiptRequested())
                 .setTokenRequestId(tokenRequest.getId())
-                .setStandingOrder(body);
+                .setBulkTransfer(body);
         if (tokenRequest.getRequestPayload().hasActingAs()) {
             this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
         }
@@ -123,7 +108,7 @@ public final class StandingOrderTokenBuilder {
      * @param expiresAtMs expiration date in ms.
      * @return builder
      */
-    public StandingOrderTokenBuilder setExpiresAtMs(long expiresAtMs) {
+    public BulkTransferTokenBuilder setExpiresAtMs(long expiresAtMs) {
         payload.setExpiresAtMs(expiresAtMs);
         return this;
     }
@@ -134,7 +119,7 @@ public final class StandingOrderTokenBuilder {
      * @param effectiveAtMs effective date in ms.
      * @return builder
      */
-    public StandingOrderTokenBuilder setEffectiveAtMs(long effectiveAtMs) {
+    public BulkTransferTokenBuilder setEffectiveAtMs(long effectiveAtMs) {
         payload.setEffectiveAtMs(effectiveAtMs);
         return this;
     }
@@ -145,7 +130,7 @@ public final class StandingOrderTokenBuilder {
      * @param endorseUntilMs endorse until, in milliseconds.
      * @return builder
      */
-    public StandingOrderTokenBuilder setEndorseUntilMs(long endorseUntilMs) {
+    public BulkTransferTokenBuilder setEndorseUntilMs(long endorseUntilMs) {
         payload.setEndorseUntilMs(endorseUntilMs);
         return this;
     }
@@ -156,7 +141,7 @@ public final class StandingOrderTokenBuilder {
      * @param description description
      * @return builder
      */
-    public StandingOrderTokenBuilder setDescription(String description) {
+    public BulkTransferTokenBuilder setDescription(String description) {
         payload.setDescription(description);
         return this;
     }
@@ -167,10 +152,8 @@ public final class StandingOrderTokenBuilder {
      * @param source the source
      * @return builder
      */
-    public StandingOrderTokenBuilder setSource(TransferEndpoint source) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .setSource(source);
+    public BulkTransferTokenBuilder setSource(TransferEndpoint source) {
+        payload.getBulkTransferBuilder().setSource(source);
         return this;
     }
 
@@ -180,7 +163,7 @@ public final class StandingOrderTokenBuilder {
      * @param accountId source accountId
      * @return builder
      */
-    public StandingOrderTokenBuilder setAccountId(String accountId) {
+    public BulkTransferTokenBuilder setAccountId(String accountId) {
         Preconditions.checkState(!payload.getFrom().getId().isEmpty());
         setSource(TransferEndpoint.newBuilder()
                 .setAccount(BankAccount.newBuilder()
@@ -192,25 +175,12 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
-     * Adds a transfer destination.
-     *
-     * @param destination destination
-     * @return builder
-     */
-    public StandingOrderTokenBuilder addDestination(TransferDestination destination) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .addTransferDestinations(destination);
-        return this;
-    }
-
-    /**
      * Sets the alias of the payee.
      *
      * @param toAlias alias
      * @return builder
      */
-    public StandingOrderTokenBuilder setToAlias(Alias toAlias) {
+    public BulkTransferTokenBuilder setToAlias(Alias toAlias) {
         payload.getToBuilder()
                 .setAlias(toAlias);
         return this;
@@ -222,7 +192,7 @@ public final class StandingOrderTokenBuilder {
      * @param toMemberId memberId
      * @return builder
      */
-    public StandingOrderTokenBuilder setToMemberId(String toMemberId) {
+    public BulkTransferTokenBuilder setToMemberId(String toMemberId) {
         payload.getToBuilder().setId(toMemberId);
         return this;
     }
@@ -233,7 +203,7 @@ public final class StandingOrderTokenBuilder {
      * @param refId the reference Id, at most 18 characters long
      * @return builder
      */
-    public StandingOrderTokenBuilder setRefId(String refId) {
+    public BulkTransferTokenBuilder setRefId(String refId) {
         if (refId.length() > REF_ID_MAX_LENGTH) {
             throw new IllegalArgumentException(String.format(
                     "The length of the refId is at most %s, got: %s",
@@ -250,7 +220,7 @@ public final class StandingOrderTokenBuilder {
      * @param actingAs entity the redeemer is acting on behalf of
      * @return builder
      */
-    public StandingOrderTokenBuilder setActingAs(ActingAs actingAs) {
+    public BulkTransferTokenBuilder setActingAs(ActingAs actingAs) {
         payload.setActingAs(actingAs);
         return this;
     }
@@ -261,7 +231,7 @@ public final class StandingOrderTokenBuilder {
      * @param tokenRequestId token request id
      * @return builder
      */
-    public StandingOrderTokenBuilder setTokenRequestId(String tokenRequestId) {
+    public BulkTransferTokenBuilder setTokenRequestId(String tokenRequestId) {
         payload.setTokenRequestId(tokenRequestId);
         return this;
     }
@@ -272,65 +242,8 @@ public final class StandingOrderTokenBuilder {
      * @param receiptRequested receipt requested flag
      * @return builder
      */
-    public StandingOrderTokenBuilder setReceiptRequested(boolean receiptRequested) {
+    public BulkTransferTokenBuilder setReceiptRequested(boolean receiptRequested) {
         payload.setReceiptRequested(receiptRequested);
-        return this;
-    }
-
-    /**
-     * Sets provider transfer metadata.
-     *
-     * @param metadata the metadata
-     * @return builder
-     */
-    public StandingOrderTokenBuilder setProviderTransferMetadata(
-            ProviderTransferMetadata metadata) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .getMetadataBuilder()
-                .setProviderTransferMetadata(metadata);
-        return this;
-    }
-
-    /**
-     * Sets the ultimate party to which the money is due.
-     *
-     * @param ultimateCreditor the ultimate creditor
-     * @return builder
-     */
-    public StandingOrderTokenBuilder setUltimateCreditor(String ultimateCreditor) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .getMetadataBuilder()
-                .setUltimateCreditor(ultimateCreditor);
-        return this;
-    }
-
-    /**
-     * Sets ultimate party that owes the money to the (ultimate) creditor.
-     *
-     * @param ultimateDebtor the ultimate debtor
-     * @return builder
-     */
-    public StandingOrderTokenBuilder setUltimateDebtor(String ultimateDebtor) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .getMetadataBuilder()
-                .setUltimateDebtor(ultimateDebtor);
-        return this;
-    }
-
-    /**
-     * Sets the purpose code. Refer to ISO 20022 external code sets.
-     *
-     * @param purposeCode the purpose code
-     * @return builder
-     */
-    public StandingOrderTokenBuilder setPurposeCode(String purposeCode) {
-        payload.getStandingOrderBuilder()
-                .getInstructionsBuilder()
-                .getMetadataBuilder()
-                .setPurposeCode(purposeCode);
         return this;
     }
 
