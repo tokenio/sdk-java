@@ -7,10 +7,13 @@ import static io.token.util.Util.generateNonce;
 import io.token.proto.common.alias.AliasProtos;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination.DestinationCase;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
+import io.token.tpp.tokenrequest.TokenRequestTransferDestinationsCallbackParameters;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,13 +45,14 @@ public final class StoreAndRetrieveTokenRequestSample {
     }
 
     /**
-     * Stores a transfer token without setting Transfer Destinations.
+     * Stores a transfer token without setting Transfer Destinations and instead providing
+     * a callback URL.
      *
      * @param payee Payee Token member (the member requesting the transfer token be created)
      * @param setTransferDestinationsCallback callback url.
      * @return token request id
      */
-    public static String storeTransferTokenRequest(
+    public static String storeTransferTokenRequestWithDestinationsCallback(
             Member payee,
             String setTransferDestinationsCallback) {
 
@@ -114,13 +118,40 @@ public final class StoreAndRetrieveTokenRequestSample {
      *
      * @param payee Payee Token member (the member requesting the transfer token be created)
      * @param requestId token request id
-     * @param transferDestinations list of transfer destination
+     * @param tokenClient Token SDK client
+     * @param setTransferDestinationsCallback callback url
      */
     public static void setTokenRequestTransferDestinations(
             Member payee,
             String requestId,
-            List<TransferDestination> transferDestinations) {
+            TokenClient tokenClient,
+            String setTransferDestinationsCallback) {
 
+        TokenRequestTransferDestinationsCallbackParameters params =
+                tokenClient.parseSetTransferDestinationsUrl(setTransferDestinationsCallback);
+
+        List<TransferDestination> transferDestinations = new ArrayList<>();
+        if (params.getSupportedTransferDestinationTypes()
+                .contains(DestinationCase.FASTER_PAYMENTS)) {
+            TransferDestination destination = TransferDestination
+                    .newBuilder()
+                    .setFasterPayments(TransferDestination.FasterPayments
+                            .newBuilder()
+                            .setSortCode(generateNonce())
+                            .setAccountNumber(generateNonce())
+                            .build())
+                    .build();
+            transferDestinations.add(destination);
+        } else {
+            transferDestinations.add(TransferDestination
+                    .newBuilder()
+                    .setSepa(TransferDestination.Sepa
+                            .newBuilder()
+                            .setBic(generateNonce())
+                            .setIban(generateNonce())
+                            .build())
+                    .build());
+        }
         payee.setTokenRequestTransferDestinationsBlocking(requestId, transferDestinations);
     }
 }
