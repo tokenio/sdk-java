@@ -71,6 +71,7 @@ import io.token.security.Signer;
 
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import javax.annotation.Nullable;
 
 /**
@@ -398,6 +399,7 @@ public class UnauthenticatedClient {
      *     Defaults to name if not specified.
      * @param provider If specified, return banks whose 'provider' matches the given provider
      *     (case insensitive).
+     * @param bankFeaturesMap If specified, return banks who meet the bank features requirement.
      * @return a list of banks
      */
     public Observable<List<Bank>> getBanks(
@@ -407,17 +409,18 @@ public class UnauthenticatedClient {
             @Nullable Integer page,
             @Nullable Integer perPage,
             @Nullable String sort,
-            @Nullable String provider) {
+            @Nullable String provider,
+            @Nullable Map<String, String> bankFeaturesMap) {
         GetBanksRequest.Builder request = GetBanksRequest.newBuilder();
 
         if (bankIds != null) {
-            request.addAllIds(bankIds);
+            request.getFilterBuilder().addAllIds(bankIds);
         }
         if (search != null) {
-            request.setSearch(search);
+            request.getFilterBuilder().setSearch(search);
         }
         if (country != null) {
-            request.setCountry(country);
+            request.getFilterBuilder().setCountry(country);
         }
         if (page != null) {
             request.setPage(page);
@@ -429,7 +432,10 @@ public class UnauthenticatedClient {
             request.setSort(sort);
         }
         if (provider != null) {
-            request.setProvider(provider);
+            request.getFilterBuilder().setProvider(provider);
+        }
+        if (bankFeaturesMap != null) {
+            request.getFilterBuilder().putAllRequiresBankFeatures(bankFeaturesMap);
         }
 
         return toObservable(gateway.getBanks(request.build()))
