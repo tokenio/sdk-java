@@ -69,8 +69,11 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import javax.annotation.Nullable;
 
 /**
@@ -398,6 +401,7 @@ public class UnauthenticatedClient {
      *     Defaults to name if not specified.
      * @param provider If specified, return banks whose 'provider' matches the given provider
      *     (case insensitive).
+     * @param bankFeaturesMap If specified, return banks who meet the bank features requirement.
      * @return a list of banks
      */
     public Observable<List<Bank>> getBanks(
@@ -407,17 +411,18 @@ public class UnauthenticatedClient {
             @Nullable Integer page,
             @Nullable Integer perPage,
             @Nullable String sort,
-            @Nullable String provider) {
+            @Nullable String provider,
+            @Nullable Map<String, Boolean> bankFeaturesMap) {
         GetBanksRequest.Builder request = GetBanksRequest.newBuilder();
 
         if (bankIds != null) {
-            request.addAllIds(bankIds);
+            request.getFilterBuilder().addAllIds(bankIds);
         }
         if (search != null) {
-            request.setSearch(search);
+            request.getFilterBuilder().setSearch(search);
         }
         if (country != null) {
-            request.setCountry(country);
+            request.getFilterBuilder().setCountry(country);
         }
         if (page != null) {
             request.setPage(page);
@@ -429,7 +434,14 @@ public class UnauthenticatedClient {
             request.setSort(sort);
         }
         if (provider != null) {
-            request.setProvider(provider);
+            request.getFilterBuilder().setProvider(provider);
+        }
+        if (bankFeaturesMap != null) {
+            Map<String, String> map = new HashMap();
+            for (Entry<String, Boolean> entry : bankFeaturesMap.entrySet()) {
+                map.put(entry.getKey(), entry.getValue().toString());
+            }
+            request.getFilterBuilder().putAllRequiresBankFeatures(map);
         }
 
         return toObservable(gateway.getBanks(request.build()))
