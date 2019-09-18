@@ -56,7 +56,7 @@ public final class StoreAndRetrieveTokenRequestSample {
             Member payee,
             String setTransferDestinationsCallback) {
 
-        TokenRequest request = TokenRequest.transferTokenRequestBuilder(100, "EUR")
+        TokenRequest tokenRequest = TokenRequest.transferTokenRequestBuilder(250, "EUR")
                 .setToMemberId(payee.memberId())
                 .setDescription("Book purchase")
                 // This TPP provided url gets called by Token after the user selects bank and
@@ -73,7 +73,7 @@ public final class StoreAndRetrieveTokenRequestSample {
                 .setCsrfToken(generateNonce()) // nonce for CSRF check
                 .build();
 
-        String requestId = payee.storeTokenRequestBlocking(request);
+        String requestId = payee.storeTokenRequestBlocking(tokenRequest);
 
         return requestId;
     }
