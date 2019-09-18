@@ -69,9 +69,11 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import javax.annotation.Nullable;
 
 /**
@@ -410,7 +412,7 @@ public class UnauthenticatedClient {
             @Nullable Integer perPage,
             @Nullable String sort,
             @Nullable String provider,
-            @Nullable Map<String, String> bankFeaturesMap) {
+            @Nullable Map<String, Boolean> bankFeaturesMap) {
         GetBanksRequest.Builder request = GetBanksRequest.newBuilder();
 
         if (bankIds != null) {
@@ -435,7 +437,11 @@ public class UnauthenticatedClient {
             request.getFilterBuilder().setProvider(provider);
         }
         if (bankFeaturesMap != null) {
-            request.getFilterBuilder().putAllRequiresBankFeatures(bankFeaturesMap);
+            Map<String, String> map = new HashMap();
+            for (Entry<String, Boolean> entry : bankFeaturesMap.entrySet()) {
+                map.put(entry.getKey(), entry.getValue().toString());
+            }
+            request.getFilterBuilder().putAllRequiresBankFeatures(map);
         }
 
         return toObservable(gateway.getBanks(request.build()))

@@ -535,7 +535,7 @@ public class TokenClient implements Closeable {
             @Nullable Integer perPage,
             @Nullable String sort,
             @Nullable String provider,
-            @Nullable Map<String, String> bankFeaturesMap) {
+            @Nullable Map<String, Boolean> bankFeaturesMap) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getBanks(
                 bankIds,
