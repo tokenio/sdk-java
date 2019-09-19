@@ -133,6 +133,12 @@ public final class TransferTokenBuilder {
         if (tokenRequest.getRequestPayload().hasActingAs()) {
             this.payload.setActingAs(tokenRequest.getRequestPayload().getActingAs());
         }
+        String executionDate = tokenRequest.getRequestPayload()
+                .getTransferBody()
+                .getExecutionDate();
+        if (executionDate != null && !executionDate.isEmpty()) {
+            setExecutionDate(executionDate);
+        }
         this.tokenRequestId = tokenRequest.getId();
     }
 
