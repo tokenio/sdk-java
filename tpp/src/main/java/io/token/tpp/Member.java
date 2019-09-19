@@ -133,7 +133,7 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
-     * Links a funding bank account to Token and returns it to the caller.
+     * Looks up funding bank accounts linked to Token.
      *
      * @return list of accounts
      */
