@@ -457,7 +457,12 @@ public final class AKSCryptoEngine implements CryptoEngine {
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                if (getMemberId(alias).equals(memberId)) {
+                String mId = getMemberId(alias);
+                if (mId == null) {
+                    // It is not an alias that token can recognize.
+                    continue;
+                }
+                if (mId.equals(memberId)) {
                     keyStore.deleteEntry(alias);
                 }
             }
