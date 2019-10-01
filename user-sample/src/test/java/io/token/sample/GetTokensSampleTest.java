@@ -1,7 +1,8 @@
 package io.token.sample;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
-import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
+import static io.token.sample.CreateTransferTokenSample.createTransferToken;
 import static io.token.sample.GetTokensSample.getToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
@@ -25,7 +26,7 @@ public class GetTokensSampleTest {
             Alias granteeAlias = randomAlias();
             Member payee = tokenClient.createMemberBlocking(granteeAlias);
 
-            Token token = createTransferToken(payer, granteeAlias);
+            Token token = createTransferToken(payer, granteeAlias, LOW);
 
             assertThat(getToken(payer, token.getId()).getId())
                     .isEqualTo(token.getId());

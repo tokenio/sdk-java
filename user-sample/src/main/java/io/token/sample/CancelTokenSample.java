@@ -7,7 +7,7 @@ import io.token.user.Member;
 /**
  * Cancels an access token.
  */
-public final class CancelAccessTokenSample {
+public final class CancelTokenSample {
     /**
      * Cancels an access token.
      *
@@ -21,5 +21,20 @@ public final class CancelAccessTokenSample {
 
         // Cancel access token.
         return grantor.cancelTokenBlocking(accessToken);
+    }
+
+    /**
+     * Cancels a transfer token.
+     *
+     * @param payer payer Token member
+     * @param tokenId token ID to cancel
+     * @return operation result
+     */
+    public static TokenOperationResult cancelTransferToken(Member payer, String tokenId) {
+        // Retrieve a transfer token to cancel.
+        Token transferToken = payer.getTokenBlocking(tokenId);
+
+        // Cancel transfer token.
+        return payer.cancelTokenBlocking(transferToken);
     }
 }

@@ -1,6 +1,6 @@
 package io.token.sample;
 
-import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
+import static io.token.sample.CreateAndEndorseAccessTokenSample.createBalanceAccessToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.randomAlias;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -21,7 +21,7 @@ public class CreateAndEndorseAccessTokenSampleTest {
             Alias granteeAlias = randomAlias();
             Member grantee = tokenClient.createMemberBlocking(granteeAlias);
 
-            Token token = createAccessToken(grantor, accountId, granteeAlias);
+            Token token = createBalanceAccessToken(grantor, accountId, granteeAlias);
             assertThat(token).isNotNull();
         }
     }

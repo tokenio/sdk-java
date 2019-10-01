@@ -28,12 +28,9 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.ENDORSED;
-import static io.token.proto.common.transaction.TransactionProtos.RequestStatus.SUCCESSFUL_REQUEST;
 import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
 
-import io.grpc.Status;
-import io.grpc.StatusRuntimeException;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
@@ -66,7 +63,6 @@ import io.token.proto.common.transaction.TransactionProtos.Balance;
 import io.token.proto.common.transaction.TransactionProtos.StandingOrder;
 import io.token.proto.common.transaction.TransactionProtos.Transaction;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
-import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.ConfirmFundsRequest;
 import io.token.proto.gateway.Gateway.ConfirmFundsResponse;
 import io.token.proto.gateway.Gateway.CreateTestBankAccountRequest;
@@ -81,7 +77,6 @@ import io.token.proto.gateway.Gateway.GetAliasesResponse;
 import io.token.proto.gateway.Gateway.GetBalanceRequest;
 import io.token.proto.gateway.Gateway.GetBalanceResponse;
 import io.token.proto.gateway.Gateway.GetBalancesRequest;
-import io.token.proto.gateway.Gateway.GetBalancesResponse;
 import io.token.proto.gateway.Gateway.GetBankInfoRequest;
 import io.token.proto.gateway.Gateway.GetBankInfoResponse;
 import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
@@ -95,9 +90,7 @@ import io.token.proto.gateway.Gateway.GetProfileResponse;
 import io.token.proto.gateway.Gateway.GetStandingOrderRequest;
 import io.token.proto.gateway.Gateway.GetStandingOrdersRequest;
 import io.token.proto.gateway.Gateway.GetTransactionRequest;
-import io.token.proto.gateway.Gateway.GetTransactionResponse;
 import io.token.proto.gateway.Gateway.GetTransactionsRequest;
-import io.token.proto.gateway.Gateway.GetTransactionsResponse;
 import io.token.proto.gateway.Gateway.LinkAccountsOauthRequest;
 import io.token.proto.gateway.Gateway.Page;
 import io.token.proto.gateway.Gateway.ResolveTransferDestinationsRequest;
@@ -114,8 +107,6 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import javax.annotation.Nullable;
-
-import org.omg.CORBA.INTERNAL;
 
 /**
  * An authenticated RPC client that is used to talk to Token gateway. The

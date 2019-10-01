@@ -1,6 +1,8 @@
 package io.token.security;
 
 import com.google.protobuf.Message;
+import io.token.proto.ProtoJson;
+import io.token.util.codec.ByteEncoding;
 
 import java.io.UnsupportedEncodingException;
 import java.security.InvalidKeyException;
@@ -8,9 +10,6 @@ import java.security.NoSuchAlgorithmException;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
-
-import io.token.proto.ProtoJson;
-import io.token.util.codec.ByteEncoding;
 
 /**
  * Verifies signatures from Android KeyStore;

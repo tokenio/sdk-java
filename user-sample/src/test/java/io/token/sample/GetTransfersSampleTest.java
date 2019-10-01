@@ -1,6 +1,7 @@
 package io.token.sample;
 
-import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.sample.CreateTransferTokenSample.createTransferToken;
 import static io.token.sample.GetTransfersSample.getTransferSample;
 import static io.token.sample.GetTransfersSample.getTransferTokensSample;
 import static io.token.sample.GetTransfersSample.getTransfersSample;
@@ -29,7 +30,7 @@ public class GetTransfersSampleTest {
 
             Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
-            Token token = createTransferToken(payer, payeeAlias);
+            Token token = createTransferToken(payer, payeeAlias, LOW);
 
             Transfer transfer = redeemTransferToken(
                     payee,
@@ -49,7 +50,7 @@ public class GetTransfersSampleTest {
 
             Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
-            Token token = createTransferToken(payer, payeeAlias);
+            Token token = createTransferToken(payer, payeeAlias, LOW);
 
             Transfer transfer = redeemTransferToken(
                     payee,
@@ -69,7 +70,7 @@ public class GetTransfersSampleTest {
 
             Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
-            Token token = createTransferToken(payer, payeeAlias);
+            Token token = createTransferToken(payer, payeeAlias, LOW);
 
             Transfer redeemedTransfer = redeemTransferToken(
                     payee,

@@ -1,6 +1,8 @@
 package io.token.sample;
 
-import static io.token.sample.CreateAndEndorseTransferTokenSample.createTransferToken;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.sample.CreateTransferTokenSample.createTransferToken;
+import static io.token.sample.CreateTransferTokenSample.createTransferTokenScheduled;
 import static io.token.sample.RedeemTransferTokenSample.redeemTransferToken;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.createMemberAndLinkAccounts;
@@ -26,13 +28,33 @@ public class RedeemTransferTokenSampleTest {
 
             Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
 
-            Token token = createTransferToken(payer, payeeAlias);
+            Token token = createTransferToken(payer, payeeAlias, LOW);
 
             Transfer transfer = redeemTransferToken(
                     payee,
                     payeeAccount.id(),
                     token.getId());
             assertThat(transfer).isNotNull();
+        }
+    }
+
+    @Test
+    public void redeemScheduledPaymentTokenTest() {
+        try (TokenClient tokenClient = createClient()) {
+            Member payer = createMemberAndLinkAccounts(tokenClient);
+            Alias payeeAlias = randomAlias();
+            Member payee = tokenClient.createMemberBlocking(payeeAlias);
+
+            Account payeeAccount = LinkMemberAndBankSample.linkBankAccounts(payee);
+
+            Token token = createTransferTokenScheduled(payer, payeeAlias);
+
+            Transfer transfer = redeemTransferToken(
+                    payee,
+                    payeeAccount.id(),
+                    token.getId());
+            assertThat(transfer).isNotNull();
+            assertThat(transfer.getExecutionDate()).isNotEmpty();
         }
     }
 }

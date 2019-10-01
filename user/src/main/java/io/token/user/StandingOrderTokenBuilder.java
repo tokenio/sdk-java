@@ -38,7 +38,6 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 
 import java.util.List;
-
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;

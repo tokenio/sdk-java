@@ -1,6 +1,6 @@
 package io.token.sample;
 
-import static io.token.sample.CreateAndEndorseAccessTokenSample.createAccessToken;
+import static io.token.sample.CreateAndEndorseAccessTokenSample.createBalanceAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.findAccessToken;
 import static io.token.sample.ReplaceAccessTokenSample.replaceAccessToken;
 import static io.token.sample.TestUtil.createClient;
@@ -22,7 +22,7 @@ public class ReplaceAccessTokenSampleTest {
             String accountId = grantor.createTestBankAccountBlocking(1000, "EUR").id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenClient.createMemberBlocking(granteeAlias);
-            Token createdToken = createAccessToken(grantor, accountId, granteeAlias);
+            Token createdToken = createBalanceAccessToken(grantor, accountId, granteeAlias);
             Token foundToken = findAccessToken(tokenClient, grantor, granteeAlias);
             assertThat(foundToken.getId()).isEqualTo(createdToken.getId());
         }
@@ -35,7 +35,7 @@ public class ReplaceAccessTokenSampleTest {
             String accountId = grantor.createTestBankAccountBlocking(1000, "EUR").id();
             Alias granteeAlias = randomAlias();
             Member grantee = tokenClient.createMemberBlocking(granteeAlias);
-            createAccessToken(grantor, accountId, granteeAlias);
+            createBalanceAccessToken(grantor, accountId, granteeAlias);
             Token activeToken = findAccessToken(tokenClient, grantor, granteeAlias);
 
             replaceAccessToken(grantor, granteeAlias, activeToken);

@@ -1,9 +1,8 @@
 package io.token.sample;
 
-import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.tpp.Member;
 import io.token.util.Util;
 
@@ -33,12 +32,11 @@ public final class RedeemTransferTokenSample {
         Token transferToken = payee.getTokenBlocking(tokenId);
 
         // Set token destination
-        TransferEndpoint tokenDestination = TransferEndpoint
+        TransferDestination tokenDestination = TransferDestination
                 .newBuilder()
-                .setAccount(BankAccount.newBuilder()
-                        .setToken(BankAccount.Token.newBuilder()
-                                .setMemberId(payee.memberId())
-                                .setAccountId(accountId)))
+                .setToken(TransferDestination.Token.newBuilder()
+                        .setMemberId(payee.memberId())
+                        .setAccountId(accountId))
                 .build();
 
         // Payee redeems a transfer token.
@@ -46,7 +44,7 @@ public final class RedeemTransferTokenSample {
         Transfer transfer = payee.redeemTokenBlocking(
                 transferToken,
                 tokenDestination,
-                // if refId not set, transfer will have random refID:
+                // if refId not set, transfer will use token ref ID:
                 cartId);
 
         return transfer;

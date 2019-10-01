@@ -28,7 +28,6 @@ import com.google.auto.value.AutoValue;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
-import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.BulkTransferBody;
 import io.token.proto.common.token.TokenProtos.StandingOrderBody;
@@ -39,7 +38,6 @@ import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.Ac
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceType;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.ResourceTypeList;
 import io.token.proto.common.token.TokenProtos.TokenRequestPayload.TransferBody;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.ChargeBearer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.CustomerData;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
