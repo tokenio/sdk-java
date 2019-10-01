@@ -156,14 +156,12 @@ public abstract class TokenRequest {
      *
      * @param transfers list of transfers
      * @param totalAmount total amount irrespective of currency. Used for redundancy check.
-     * @param source source account for all transfer
      * @return Builder instance
      */
     public static BulkTransferBuilder bulkTransferRequestBuilder(
             List<BulkTransferBody.Transfer> transfers,
-            double totalAmount,
-            TransferEndpoint source) {
-        return new BulkTransferBuilder(transfers, totalAmount, source);
+            double totalAmount) {
+        return new BulkTransferBuilder(transfers, totalAmount);
     }
 
     /**
@@ -561,14 +559,22 @@ public abstract class TokenRequest {
     }
 
     public static class BulkTransferBuilder extends Builder<BulkTransferBuilder> {
-        BulkTransferBuilder(
-                List<BulkTransferBody.Transfer> transfers,
-                double totalAmount,
-                TransferEndpoint source) {
+        BulkTransferBuilder(List<BulkTransferBody.Transfer> transfers, double totalAmount) {
             this.requestPayload.setBulkTransferBody(BulkTransferBody.newBuilder()
                     .addAllTransfers(transfers)
-                    .setTotalAmount(Double.toString(totalAmount))
-                    .setSource(source));
+                    .setTotalAmount(Double.toString(totalAmount)));
+        }
+
+        /**
+         * Optional. Sets the source account to bypass account selection.
+         *
+         * @param source source
+         * @return builder
+         */
+        public BulkTransferBuilder setSource(TransferEndpoint source) {
+            this.requestPayload.getBulkTransferBodyBuilder()
+                    .setSource(source);
+            return this;
         }
     }
 
