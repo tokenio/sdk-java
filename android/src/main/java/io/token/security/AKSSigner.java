@@ -3,8 +3,12 @@ package io.token.security;
 import android.os.Build;
 import android.security.keystore.KeyPermanentlyInvalidatedException;
 import android.security.keystore.UserNotAuthenticatedException;
-
 import com.google.protobuf.Message;
+import io.token.proto.ProtoJson;
+import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.security.exceptions.TokenAuthenticationException;
+import io.token.security.exceptions.TokenInvalidKeyException;
+import io.token.util.codec.ByteEncoding;
 
 import java.io.UnsupportedEncodingException;
 import java.security.GeneralSecurityException;
@@ -12,12 +16,6 @@ import java.security.PrivateKey;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.cert.Certificate;
-
-import io.token.proto.ProtoJson;
-import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.security.exceptions.TokenAuthenticationException;
-import io.token.security.exceptions.TokenInvalidKeyException;
-import io.token.util.codec.ByteEncoding;
 
 /**
  * Signs payloads using keys in the Android KeyStore.

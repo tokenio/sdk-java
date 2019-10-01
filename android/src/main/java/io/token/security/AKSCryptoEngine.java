@@ -29,8 +29,12 @@ import android.security.KeyPairGeneratorSpec;
 import android.security.keystore.KeyGenParameterSpec;
 import android.security.keystore.KeyInfo;
 import android.security.keystore.KeyProperties;
-
 import com.google.common.hash.Hashing;
+import io.token.exceptions.SecureHardwareKeystoreRequiredException;
+import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
+import io.token.proto.common.security.SecurityProtos.Key.Level;
+import io.token.util.codec.ByteEncoding;
 
 import java.io.IOException;
 import java.math.BigInteger;
@@ -51,15 +55,8 @@ import java.util.Enumeration;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.UUID;
-
 import javax.annotation.Nullable;
 import javax.security.auth.x500.X500Principal;
-
-import io.token.exceptions.SecureHardwareKeystoreRequiredException;
-import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
-import io.token.proto.common.security.SecurityProtos.Key.Level;
-import io.token.util.codec.ByteEncoding;
 
 /**
  * Android KeyStore implementation of the {@link CryptoEngine}. The keys are

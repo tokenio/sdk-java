@@ -5,10 +5,7 @@ import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.proto.common.alias.AliasProtos.Alias;
-import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.token.TokenProtos.Token;
 import io.token.tpp.TokenClient;
-import io.token.user.AccessTokenBuilder;
 import io.token.util.Util;
 
 import java.util.concurrent.TimeUnit;
@@ -56,74 +53,6 @@ public abstract class TestUtil {
         io.token.user.Member member = client.createMemberBlocking(alias);
         member.createTestBankAccountBlocking(1000.0, "EUR");
         return member;
-    }
-
-    /**
-     * Pulled from User SDK Sample. Creates a transfer token.
-     *
-     * @param payer payer user member
-     * @param payeeAlias payee alias
-     * @return token
-     */
-    public static Token createTransferToken(
-            io.token.user.Member payer,
-            Alias payeeAlias) {
-        // We'll use this as a reference ID. Normally, a payer who
-        // explicitly sets a reference ID would use an ID from a db.
-        // E.g., a bill-paying service might use ID of a "purchase".
-        // We don't have a db, so we fake it with a random string:
-        String purchaseId = io.token.user.util.Util.generateNonce();
-
-        // Create a transfer token.
-        Token transferToken = payer.createTransferToken(
-                100.0, // amount
-                "EUR")  // currency
-                // source account:
-                .setAccountId(payer.getAccountsBlocking().get(0).id())
-                // payee token alias:
-                .setToAlias(payeeAlias)
-                // optional description:
-                .setDescription("Book purchase")
-                // ref id (if not set, will get random ID)
-                .setRefId(purchaseId)
-                .executeBlocking();
-
-        // Payer endorses a token to a payee by signing it
-        // with her secure private key.
-        transferToken = payer.endorseTokenBlocking(
-                transferToken,
-                Key.Level.STANDARD).getToken();
-
-        return transferToken;
-    }
-
-    /**
-     * Pulled from User SDK sample. Creates an access token.
-     *
-     * @param grantor grantor user member
-     * @param accountId ID of account to grant access to
-     * @param granteeAlias grantee alias
-     * @return token
-     */
-    public static Token createAccessToken(
-            io.token.user.Member grantor,
-            String accountId,
-            Alias granteeAlias) {
-        // Create an access token for the grantee to access bank
-        // account names of the grantor.
-        Token accessToken = grantor.createAccessTokenBlocking(
-                AccessTokenBuilder
-                        .create(granteeAlias)
-                        .forAccount(accountId)
-                        .forAccountBalances(accountId));
-
-        // Grantor endorses a token to a grantee by signing it
-        // with her secure private key.
-        accessToken = grantor.endorseTokenBlocking(
-                accessToken,
-                Key.Level.STANDARD).getToken();
-
-        return accessToken;
     }
 
     /**
