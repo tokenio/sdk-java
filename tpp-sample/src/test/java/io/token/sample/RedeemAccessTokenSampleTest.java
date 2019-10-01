@@ -41,8 +41,8 @@ public class RedeemAccessTokenSampleTest {
             Member grantee = tokenClient.createMemberBlocking(granteeAlias);
 
             Token token = createBalanceAccessToken(grantor, accountId, granteeAlias);
-            Money balance0 = redeemBalanceAccessToken(grantee, token.getId());
-            assertThat(MoneyUtil.parseAmount(balance0.getValue())).isGreaterThan(BigDecimal.TEN);
+            Money balance = redeemBalanceAccessToken(grantee, token.getId());
+            assertThat(MoneyUtil.parseAmount(balance.getValue())).isGreaterThan(BigDecimal.TEN);
         }
     }
 

@@ -34,9 +34,9 @@ public final class RedeemAccessTokenSample {
         List<Account> accounts = grantor.getAccountsBlocking();
 
         // Get the data we want
-        Money balance0 = accounts.get(0).getBalanceBlocking(STANDARD).getCurrent();
+        Money balance = accounts.get(0).getBalanceBlocking(STANDARD).getCurrent();
         // forAccessToken snippet end
-        return balance0;
+        return balance;
     }
 
     /**
