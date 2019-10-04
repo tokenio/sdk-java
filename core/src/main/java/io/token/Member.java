@@ -726,7 +726,28 @@ public class Member {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        return client.getTransactions(accountId, offset, limit, keyLevel);
+        return getTransactions(accountId, offset, limit, keyLevel, null, null);
+    }
+
+    /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @param startDate inclusive lower bound of transaction booking date
+     * @param endDate inclusive upper bound of transaction booking date
+     * @return a paged list of transaction records
+     */
+    public Observable<PagedList<Transaction, String>> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel,
+            @Nullable String startDate,
+            @Nullable String endDate) {
+        return client.getTransactions(accountId, offset, limit, keyLevel, startDate, endDate);
     }
 
     /**
@@ -744,6 +765,28 @@ public class Member {
             int limit,
             Key.Level keyLevel) {
         return getTransactions(accountId, offset, limit, keyLevel).blockingSingle();
+    }
+
+    /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @param startDate inclusive lower bound of transaction booking date
+     * @param endDate inclusive upper bound of transaction booking date
+     * @return paged list of transactions
+     */
+    public PagedList<Transaction, String> getTransactionsBlocking(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel,
+            @Nullable String startDate,
+            @Nullable String endDate) {
+        return getTransactions(accountId, offset, limit, keyLevel, startDate, endDate)
+                .blockingSingle();
     }
 
     /**

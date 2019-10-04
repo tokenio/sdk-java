@@ -186,7 +186,26 @@ public class Account {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel) {
-        return client.getTransactions(account.getId(), offset, limit, keyLevel);
+        return getTransactions(offset, limit, keyLevel, null, null);
+    }
+
+    /**
+     * Looks up transactions with date filter.
+     *
+     * @param offset offset
+     * @param limit limit
+     * @param keyLevel key level
+     * @param startDate inclusive lower bound of transaction booking date
+     * @param endDate inclusive upper bound of transaction booking date
+     * @return paged list of transactions
+     */
+    public Observable<PagedList<Transaction, String>> getTransactions(
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel,
+            @Nullable String startDate,
+            @Nullable String endDate) {
+        return client.getTransactions(account.getId(), offset, limit, keyLevel, startDate, endDate);
     }
 
     /**
@@ -202,6 +221,25 @@ public class Account {
             int limit,
             Key.Level keyLevel) {
         return getTransactions(offset, limit, keyLevel).blockingSingle();
+    }
+
+    /**
+     * Looks up transactions.
+     *
+     * @param offset offset
+     * @param limit limit
+     * @param keyLevel key level
+     * @param startDate inclusive lower bound of transaction booking date
+     * @param endDate inclusive upper bound of transaction booking date
+     * @return paged list of transactions
+     */
+    public PagedList<Transaction, String> getTransactionsBlocking(
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel,
+            @Nullable String startDate,
+            @Nullable String endDate) {
+        return getTransactions(offset, limit, keyLevel, startDate, endDate).blockingSingle();
     }
 
     /**
