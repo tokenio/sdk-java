@@ -60,6 +60,10 @@ public final class RedeemAccessTokenSample {
         PagedList<Transaction, String> transactions = accounts.get(0)
                 .getTransactionsBlocking(null, 10, STANDARD);
 
+        // Get the first 10 transactions by date
+        PagedList<Transaction, String> transactionsByDate = accounts.get(0)
+                .getTransactionsBlocking(null, 10, STANDARD, "2019-01-15", "2022-01-15");
+
         // Pass this offset to the next getTransactions
         // call to fetch the next page of transactions.
         String nextOffset = transactions.getOffset();
