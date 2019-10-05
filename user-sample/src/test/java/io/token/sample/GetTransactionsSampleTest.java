@@ -5,6 +5,7 @@ import static io.token.sample.CreateTransferTokenSample.createTransferToken;
 import static io.token.sample.GetTransactionsSample.accountGetTransactionSample;
 import static io.token.sample.GetTransactionsSample.accountGetTransactionsSample;
 import static io.token.sample.GetTransactionsSample.getTransactionSample;
+import static io.token.sample.GetTransactionsSample.getTransactionsByDateSample;
 import static io.token.sample.GetTransactionsSample.getTransactionsSample;
 import static io.token.sample.RedeemTransferTokenSample.redeemTransferToken;
 import static io.token.sample.TestUtil.createClient;
@@ -40,6 +41,7 @@ public class GetTransactionsSampleTest {
                     token.getId());
 
             getTransactionsSample(payer);
+            getTransactionsByDateSample(payer);
 
             Transaction transaction = getTransactionSample(payer, transfer);
             assertThat(transaction.getTokenId()).isEqualTo(token.getId());
