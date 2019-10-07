@@ -56,11 +56,11 @@ public final class RedeemAccessTokenSample {
         Representable grantor = grantee.forAccessToken(tokenId, customerInitiated);
         List<Account> accounts = grantor.getAccountsBlocking();
 
-        // Get the first 10 transactions
+        // Get the 10 most recent transactions
         PagedList<Transaction, String> transactions = accounts.get(0)
                 .getTransactionsBlocking(null, 10, STANDARD);
 
-        // Get the first 10 transactions by date
+        // Get the 10 most recent transactions in the specified range
         PagedList<Transaction, String> transactionsByDate = accounts.get(0)
                 .getTransactionsBlocking(null, 10, STANDARD, "2019-01-15", "2022-01-15");
 
