@@ -106,6 +106,7 @@ import io.token.security.Signer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -411,20 +412,30 @@ public class Client {
      * @param offset offset
      * @param limit limit
      * @param keyLevel key level
+     * @param startDate inclusive lower bound of transaction booking date
+     * @param endDate inclusive upper bound of transaction booking date
      * @return paged list of transactions
      */
     public Observable<PagedList<Transaction, String>> getTransactions(
             String accountId,
             @Nullable String offset,
             int limit,
-            Key.Level keyLevel) {
+            Key.Level keyLevel,
+            @Nullable String startDate,
+            @Nullable String endDate) {
+        GetTransactionsRequest.Builder builder = GetTransactionsRequest
+                .newBuilder()
+                .setAccountId(accountId)
+                .setPage(pageBuilder(offset, limit));
+        if (startDate != null) {
+            builder.setStartDate(startDate);
+        }
+        if (endDate != null) {
+            builder.setEndDate(endDate);
+        }
         return toObservable(gateway
                 .withAuthentication(onBehalfOf(keyLevel))
-                .getTransactions(GetTransactionsRequest
-                        .newBuilder()
-                        .setAccountId(accountId)
-                        .setPage(pageBuilder(offset, limit))
-                        .build()))
+                .getTransactions(builder.build()))
                 .map(response -> {
                     switch (response.getStatus()) {
                         case SUCCESSFUL_REQUEST:

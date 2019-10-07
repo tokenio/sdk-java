@@ -31,6 +31,31 @@ public final class GetTransactionsSample {
     }
 
     /**
+     * Illustrate Member.getTransactions
+     *
+     * @param payer payer Token member
+     */
+    public static void getTransactionsByDateSample(Member payer) {
+        List<Account> accounts = payer.getAccountsBlocking();
+        String accountId = accounts.get(0).id();
+        for (Transaction transaction :
+                payer.getTransactionsBlocking(
+                        accountId,
+                        null,
+                        10,
+                        STANDARD,
+                        "2019-01-15",
+                        "2022-02-15")
+                        .getList()) {
+            displayTransaction(
+                    transaction.getAmount().getCurrency(),
+                    transaction.getAmount().getValue(),
+                    transaction.getType(), // debit or credit
+                    transaction.getStatus());
+        }
+    }
+
+    /**
      * Illustrate Member.getTransaction
      *
      * @param payer payer Token member
