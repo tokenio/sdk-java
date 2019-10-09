@@ -37,6 +37,7 @@ import io.reactivex.SingleOnSubscribe;
 import io.reactivex.functions.Function;
 import io.token.TokenClient.TokenCluster;
 import io.token.exceptions.BankAuthorizationRequiredException;
+import io.token.proto.MoneyUtil;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
@@ -67,6 +68,7 @@ import io.token.user.browser.Browser;
 import io.token.user.browser.BrowserFactory;
 import io.token.user.rpc.Client;
 
+import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collections;
@@ -1167,7 +1169,10 @@ public class Member extends io.token.Member {
         }
         if (refId != null) {
             payload.setRefId(refId);
-        } else if (!token.getPayload().getRefId().isEmpty() && amount == null) {
+        } else if (amount == null || BigDecimal.valueOf(amount)
+                .equals(MoneyUtil.parseAmount(token.getPayload()
+                        .getTransfer()
+                        .getLifetimeAmount()))) {
             payload.setRefId(token.getPayload().getRefId());
         } else {
             logger.warn("refId is not set. A random ID will be used.");
@@ -1228,7 +1233,10 @@ public class Member extends io.token.Member {
         }
         if (refId != null) {
             payload.setRefId(refId);
-        } else if (!token.getPayload().getRefId().isEmpty() && amount == null) {
+        } else if (amount == null || BigDecimal.valueOf(amount)
+                .equals(MoneyUtil.parseAmount(token.getPayload()
+                        .getTransfer()
+                        .getLifetimeAmount()))) {
             payload.setRefId(token.getPayload().getRefId());
         } else {
             logger.warn("refId is not set. A random ID will be used.");
