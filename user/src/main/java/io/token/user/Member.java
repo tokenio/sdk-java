@@ -1159,15 +1159,7 @@ public class Member extends io.token.Member {
             payload.addTransferDestinations(destination);
         }
         if (amount != null) {
-            // if amount == lifetimeAmount, ignore
-            if (BigDecimal.valueOf(amount)
-                    .equals(MoneyUtil.parseAmount(token.getPayload()
-                            .getTransfer()
-                            .getLifetimeAmount()))) {
-                amount = null;
-            } else {
-                payload.getAmountBuilder().setValue(Double.toString(amount));
-            }
+            payload.getAmountBuilder().setValue(Double.toString(amount));
         }
         if (currency != null) {
             payload.getAmountBuilder().setCurrency(currency);
@@ -1177,7 +1169,10 @@ public class Member extends io.token.Member {
         }
         if (refId != null) {
             payload.setRefId(refId);
-        } else if (!token.getPayload().getRefId().isEmpty() && amount == null) {
+        } else if (amount == null || BigDecimal.valueOf(amount)
+                .equals(MoneyUtil.parseAmount(token.getPayload()
+                        .getTransfer()
+                        .getLifetimeAmount()))) {
             payload.setRefId(token.getPayload().getRefId());
         } else {
             logger.warn("refId is not set. A random ID will be used.");
@@ -1228,15 +1223,7 @@ public class Member extends io.token.Member {
             payload.addDestinations(destination);
         }
         if (amount != null) {
-            // if amount == lifetimeAmount, ignore
-            if (BigDecimal.valueOf(amount)
-                    .equals(MoneyUtil.parseAmount(token.getPayload()
-                            .getTransfer()
-                            .getLifetimeAmount()))) {
-                amount = null;
-            } else {
-                payload.getAmountBuilder().setValue(Double.toString(amount));
-            }
+            payload.getAmountBuilder().setValue(Double.toString(amount));
         }
         if (currency != null) {
             payload.getAmountBuilder().setCurrency(currency);
@@ -1246,7 +1233,10 @@ public class Member extends io.token.Member {
         }
         if (refId != null) {
             payload.setRefId(refId);
-        } else if (!token.getPayload().getRefId().isEmpty() && amount == null) {
+        } else if (amount == null || BigDecimal.valueOf(amount)
+                .equals(MoneyUtil.parseAmount(token.getPayload()
+                        .getTransfer()
+                        .getLifetimeAmount()))) {
             payload.setRefId(token.getPayload().getRefId());
         } else {
             logger.warn("refId is not set. A random ID will be used.");
