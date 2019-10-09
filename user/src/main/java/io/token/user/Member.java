@@ -37,6 +37,7 @@ import io.reactivex.SingleOnSubscribe;
 import io.reactivex.functions.Function;
 import io.token.TokenClient.TokenCluster;
 import io.token.exceptions.BankAuthorizationRequiredException;
+import io.token.proto.MoneyUtil;
 import io.token.proto.PagedList;
 import io.token.proto.banklink.Banklink.BankAuthorization;
 import io.token.proto.banklink.Banklink.OauthBankAuthorization;
@@ -67,6 +68,7 @@ import io.token.user.browser.Browser;
 import io.token.user.browser.BrowserFactory;
 import io.token.user.rpc.Client;
 
+import java.math.BigDecimal;
 import java.net.URL;
 import java.net.URLEncoder;
 import java.util.Collections;
@@ -1157,7 +1159,15 @@ public class Member extends io.token.Member {
             payload.addTransferDestinations(destination);
         }
         if (amount != null) {
-            payload.getAmountBuilder().setValue(Double.toString(amount));
+            // if amount == lifetimeAmount, ignore
+            if (BigDecimal.valueOf(amount)
+                    .equals(MoneyUtil.parseAmount(token.getPayload()
+                            .getTransfer()
+                            .getLifetimeAmount()))) {
+                amount = null;
+            } else {
+                payload.getAmountBuilder().setValue(Double.toString(amount));
+            }
         }
         if (currency != null) {
             payload.getAmountBuilder().setCurrency(currency);
@@ -1218,7 +1228,15 @@ public class Member extends io.token.Member {
             payload.addDestinations(destination);
         }
         if (amount != null) {
-            payload.getAmountBuilder().setValue(Double.toString(amount));
+            // if amount == lifetimeAmount, ignore
+            if (BigDecimal.valueOf(amount)
+                    .equals(MoneyUtil.parseAmount(token.getPayload()
+                            .getTransfer()
+                            .getLifetimeAmount()))) {
+                amount = null;
+            } else {
+                payload.getAmountBuilder().setValue(Double.toString(amount));
+            }
         }
         if (currency != null) {
             payload.getAmountBuilder().setCurrency(currency);
