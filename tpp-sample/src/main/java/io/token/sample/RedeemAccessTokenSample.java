@@ -95,7 +95,7 @@ public final class RedeemAccessTokenSample {
                 .getStandingOrdersBlocking(null, 5, STANDARD);
 
         // Pass this offset to the next getStandingOrders
-        // call to fetch the next page of transactions.
+        // call to fetch the next page of standing orders.
         String nextOffset = standingOrders.getOffset();
 
         return standingOrders.getList();
