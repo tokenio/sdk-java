@@ -38,6 +38,7 @@ import io.token.proto.AliasHasher;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
 import io.token.proto.common.bank.BankProtos.BankFilter;
+import io.token.proto.common.bank.BankProtos.BankFilter.BankFeatures;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -69,11 +70,8 @@ import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
 
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Map.Entry;
 import javax.annotation.Nullable;
 
 /**
@@ -401,7 +399,7 @@ public class UnauthenticatedClient {
      *     Defaults to name if not specified.
      * @param provider If specified, return banks whose 'provider' matches the given provider
      *     (case insensitive).
-     * @param bankFeaturesMap If specified, return banks who meet the bank features requirement.
+     * @param bankFeatures If specified, return banks who meet the bank features requirement.
      * @return a list of banks
      */
     public Observable<List<Bank>> getBanks(
@@ -412,7 +410,7 @@ public class UnauthenticatedClient {
             @Nullable Integer perPage,
             @Nullable String sort,
             @Nullable String provider,
-            @Nullable Map<String, Boolean> bankFeaturesMap) {
+            @Nullable BankFeatures bankFeatures) {
         GetBanksRequest.Builder request = GetBanksRequest.newBuilder();
 
         if (bankIds != null) {
@@ -436,12 +434,8 @@ public class UnauthenticatedClient {
         if (provider != null) {
             request.getFilterBuilder().setProvider(provider);
         }
-        if (bankFeaturesMap != null) {
-            Map<String, String> map = new HashMap();
-            for (Entry<String, Boolean> entry : bankFeaturesMap.entrySet()) {
-                map.put(entry.getKey(), entry.getValue().toString());
-            }
-            request.getFilterBuilder().putAllRequiresBankFeatures(map);
+        if (bankFeatures != null) {
+            request.getFilterBuilder().setBankFeatures(bankFeatures);
         }
 
         return toObservable(gateway.getBanks(request.build()))
