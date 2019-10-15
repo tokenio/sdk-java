@@ -43,6 +43,7 @@ import io.reactivex.functions.Function;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
+import io.token.proto.common.bank.BankProtos.BankFilter.BankFeatures;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
@@ -69,7 +70,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -524,7 +524,7 @@ public class TokenClient implements Closeable {
      *     Defaults to name if not specified.
      * @param provider If specified, return banks whose 'provider' matches the given provider
      *     (case insensitive).
-     * @param bankFeaturesMap If specified, return banks who meet the bank features requirement.
+     * @param bankFeatures If specified, return banks who meet the bank features requirement.
      * @return a list of banks
      */
     public Observable<List<Bank>> getBanks(
@@ -535,7 +535,7 @@ public class TokenClient implements Closeable {
             @Nullable Integer perPage,
             @Nullable String sort,
             @Nullable String provider,
-            @Nullable Map<String, Boolean> bankFeaturesMap) {
+            @Nullable BankFeatures bankFeatures) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.getBanks(
                 bankIds,
@@ -545,7 +545,7 @@ public class TokenClient implements Closeable {
                 perPage,
                 sort,
                 provider,
-                bankFeaturesMap);
+                bankFeatures);
     }
 
     /**
