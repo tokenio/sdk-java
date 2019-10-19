@@ -182,7 +182,12 @@ public final class AKSCryptoEngine implements CryptoEngine {
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                byte[] publicKey = keyStore.getCertificate(alias).getPublicKey().getEncoded();
+                Certificate certificate = keyStore.getCertificate(alias);
+                if (certificate == null) {
+                    // There isn't any public key associated with this alias.
+                    continue;
+                }
+                byte[] publicKey = certificate.getPublicKey().getEncoded();
                 String serializedPk = ByteEncoding.serialize(publicKey);
                 Level keyLevel = getKeyLevel(alias);
                 String memberId = getMemberId(alias);
