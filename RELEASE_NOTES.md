@@ -1,10 +1,10 @@
-# Java SDK Release Notes
+# *Java SDK Release Notes*
 
-If you're upgrading to a new version of the SDK,
-see this list for Java APIs that have changed.
+If you're upgrading to the latest version of the SDK, here's what's new.
 
-## Release 2.x.x
+# Release 2.6.0
 
+## *New Features and Enhancements*
 This release introduces the following new features and enhancements:
 
 - **Support for Future-dated Payments and Standing Orders (recurring payments)**
@@ -49,14 +49,38 @@ This release introduces the following new features and enhancements:
   >  - `provider` – underlying connectivity type (e.g., Yodlee FinAPI Token)
   >  - `country` – ISO 3166-1 alpha-2 two-letter country code in uppercase
   
-## Deprecations
-The complete list of deprecations needs to be included here.
+## *Deprecations*
+Within a major version of the Token SDK, deprecated APIs/methods fall into two types:
+  1. functions removed/replaced by another function 
+  2. function that, though not removed, cannot be used in precisely the same way as previously (i.e., in a prior version of the SDK).
+> **NOTE**: Version numbers consist of three numbers separated by dots. The leftmost number designates a **major** release. The middle number designates a **minor** (yet significant) update to a major release. The rightmost number identifies a notable revision to a minor release of the SDK and is often referred to as a **point release**.
 
-## Other Changes
+The deprecations listed here encompass the respective changes dating back to the original major version of the SDK and is intended for developers using the most current major version of the SDK. Unless stated otherwise deprecations apply to both asynchronous and synchronous variations of an API call. Developers using a version of the SDK predating the most current major release are encouraged to upgrade to take advantage of the latest capabilities and improvements.
+
+- **`Member`**
+  - `createAttachment` is deprecated; Token attachments are no longer supported
+  - `redeemToken(... TransferEndpoint destination ...)`; use `redeemToken(... TransferDesitnation destination ...)` instead
+  - `getTokenAttachment` is deprecated; Token attachments are no longer supported
+  - `createCustomization(Payload logo, Map<String, Sting> colors, String consentText)` now accepts `String name` and `String appName` as well
+  
+- **`TokenClient`**
+  - `getBanks(... Map,<String, Boolean> bank FeaturesMap ...)` is deprecated;
+    use `getBanks(... BankFeatures bankFeatures ...)` instead
+  - `completeRecoveryWithDefaultRule(String memberId, String verificationId, String code)` now accepts `CryptoEngine cryptoEngine` as well
+  - `generateTokenRequestUrl(String requestId, String state)` should now set state on `TokenRequest` builder instead of passing it here
+  - `generateTokenRequestUrl(String requestId, String state, String csrfToken)` should now set state and SDRF token on `TokenRequest` builder instead of passing them here
+  - `parseTokenRequestCallbackIrl(String callbackUrl)` should now use the method that also takes in `String csrfToken'
+  - `parseTokenRequestCallbackParams(Map<String, String. callbackParams)` should now use the method that also takes in `String csrfToken`
+
+- **`TokenRequest (`/`TokenRequestBuilder`/[`Access`/`Transfer`]`TokenRequestBuilder)`**
+  - `setProviderMetadata` is renamed to `setProviderTransferMetadata`
+  - `addDestination(TransferEndpoint destination)` is deprecated; use `addDestination(TransferDestination destination)` instead
+
+## *Other Changes*
 The following other changes have been incorporated into this release:
   - Visual design fixes to Nav header and footer – corrected font sizes/styles, logo size/color, etc.
 
-## Release 2.5.0
+# Release 2.5.0
 
 Introduces bulk transfers. This enables a list of transfers to be approved in a single consent.
 To initiate a bulk transfer request, the TPP will create a token request from the 
@@ -64,38 +88,38 @@ To initiate a bulk transfer request, the TPP will create a token request from th
 when the token is redeemed. Calling `getBulkTransfer` on the bulk transfer ID will return
  transaction IDs and statuses for the corresponding transactions from the bank.
 
-## Release 2.3.6
+# Release 2.3.6
 
 Added method to update Transfer Destinations, only once, for a given token request in TPP sdk.
 Added builder method `setSetTransferDestinationUrl` in TransferTokenBuilder
 Added `parseSetTransferDestinationsUrl` method to parse `country` and `bank` selected by the users
 from the callback url set in `setSetTransferDestinationUrl` builder method.
 
-## Release 2.3.3
+# Release 2.3.3
 
 Provision to set `ChargeBearer` for a `TransferToken` is made available in `TokenRequest`.
 
-## Release 1.1.23
+# Release 1.1.23
 
 The `login` methods in TokenIO and TokenIOAsync were removed.
 
-## Release 1.0.84
+# Release 1.0.84
 
 The `login` methods in TokenIO and TokenIOAsync were renamed to `getMember`.
 
-## Release 1.0.79
+# Release 1.0.79
 
 MemberAsync.aliases() and MemberAsync.firstAlias() now return
 Observables instead of values. Member and MemberAsync used to
 cache their aliases; now they fetch them from the cloud as needed.
 
-## Release 1.0.64
+# Release 1.0.64
 
 getBalance methods for Member and Account have been
 replaced by separate methods for getAvailableBalance
 and getCurrentBalance.
 
-## Release 1.0.60
+# Release 1.0.60
 
 The TokenIO.notifyPaymentRequest method parameters changed.
 The method now takes one parameter, the TokenPayload.
