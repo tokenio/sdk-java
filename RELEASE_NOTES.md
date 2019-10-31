@@ -2,10 +2,16 @@
 
 If you're upgrading to the latest version of the SDK, here's what's new.
 
-# Release 2.6.0
+# Release 2.7.0
+> These release notes include all updates/changes introduced since version 2.5.0.
 
 ## *New Features and Enhancements*
 This release introduces the following new features and enhancements:
+
+- **Support for Transaction Filtering by Date-Range**
+  > The `getTransactions()` method now filters transactions by date using `startDate` and `endDate` parameters to define the date range for the transactions sought. These date range parameters are optional. When specified, `startDate` is the inclusive lower bound of the transaction booking date and `endDate` is the inclusive upper bound. Each succeeding page of transactions will use the date range specified in the original request. 
+  >
+  > **NOTE**: Currently, this feature is supported in Java only, but will be available in other languages soon.
 
 - **Support for Future-dated Payments and Standing Orders (recurring payments)**
   > Via the SDK, Token's Connect service now provides the mechanism for PSU's to initiate instructions for a series of payments of a specified amount to a designated payee on a number of future dates or at regularly scheduled intervals (daily, weekly, twice-weekly, monthly, twice-monthly, quarterly, semiannually, or yearly). Standing orders and future-dated payments implement the same workflow with the following highlights:
@@ -51,11 +57,11 @@ This release introduces the following new features and enhancements:
   
 ## *Deprecations*
 Within a major version of the Token SDK, deprecated APIs/methods fall into two types:
-  1. functions removed/replaced by another function 
-  2. function that, though not removed, cannot be used in precisely the same way as previously (i.e., in a prior version of the SDK).
+  1. Functions removed/replaced by another function 
+  2. Function that, though not removed, cannot be used in precisely the same way as previously (i.e., in a prior version of the SDK).
 > **NOTE**: Version numbers consist of three numbers separated by dots. The leftmost number designates a **major** release. The middle number designates a **minor** (yet significant) update to a major release. The rightmost number identifies a notable revision to a minor release of the SDK and is often referred to as a **point release**.
 
-The deprecations listed here encompass the respective changes dating back to the original major version of the SDK and is intended for developers using the most current major version of the SDK. Unless stated otherwise deprecations apply to both asynchronous and synchronous variations of an API call. Developers using a version of the SDK predating the most current major release are encouraged to upgrade to take advantage of the latest capabilities and improvements.
+The deprecations listed here encompass the respective changes dating back to the original major version of the SDK and is intended for developers using the most current major version of the SDK. Unless stated otherwise, deprecations apply to both asynchronous and synchronous variations of an API call. Developers using a version of the SDK predating the most current major release are encouraged to upgrade to take advantage of the latest capabilities and improvements.
 
 - **`Member`**
   - `createAttachment` is deprecated; Token attachments are no longer supported
@@ -87,6 +93,7 @@ To initiate a bulk transfer request, the TPP will create a token request from th
 `bulkTransferTokenRequestBuilder` method. The bulk transfer will be submitted to the bank
 when the token is redeemed. Calling `getBulkTransfer` on the bulk transfer ID will return
  transaction IDs and statuses for the corresponding transactions from the bank.
+ > **NOTE**: This feature is not yet fully supported by all banks pending agreed limits on file size and number of transfer items allowed.
 
 # Release 2.3.6
 
