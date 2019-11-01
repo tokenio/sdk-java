@@ -398,6 +398,20 @@ public abstract class TokenRequest {
         }
 
         /**
+         * Optional. Sets the source account to bypass account selection. May be required for
+         * some banks.
+         *
+         * @param source source
+         * @return builder
+         */
+        public TransferBuilder setSource(TransferEndpoint source) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .getInstructionsBuilder()
+                    .setSource(source);
+            return this;
+        }
+
+        /**
          * Optional. Sets the destination country in order to narrow down
          * the country selection in the web-app UI.
          *
