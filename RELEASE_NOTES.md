@@ -28,7 +28,7 @@ This release introduces the following new features and enhancements:
     
 - **Support for Confirming Available Funds (CAF)**
   > CAF checks that an account (debit/credit) has sufficient funds available to make a payment. The method for invoking Token's CAF feature differs somewhat between CBPIIs and PISPs.
-  > - **Card-based Payment Instrument Issuer (CBPII)** — call the `confirmFunds()` function of the `AccessTokenRequest`, specifying the relevant account, amount and currency to receive a boolean indication that sufficient funds are in fact available.
+  > - **Card-based Payment Instrument Issuer (CBPII)** — call the `confirmFunds()` function with the corresponding access token approved by the PSU, specifying the relevant account, amount and currency to receive a boolean indication that sufficient funds are in fact available.
   > - **Payment Information Service Provider (PISP)** — create a standard `TokenRequest` using the `setConfirmFunds()`  before executing the transfer request. Banks that do not support CAF will ignore `setConfirmFunds()`.
   
 - **Augmented permissions (consent) list with support for new endpoints**
@@ -47,14 +47,6 @@ This release introduces the following new features and enhancements:
 
 - **TRUSTED_PARTY signature type removed from the directory service**
   > Replaced by a new `User_And_Realm` signature type for electronic signature by a trusted party
-  
-- **Bank list filtering added to UI customization**
-  > When retrieving the list of banks to dislay using the `getBanks` method, each bank also specifies additional properties that can be used to filter the list of banks displayed to the PSU. These include:
-  >  - `supports_information` – allows retrieval of account information
-  >  - `supports_send_payment` – allows payment initiation
-  >  - `supports_receive_payment` – allows payments to be received
-  >  - `provider` – underlying connectivity type (e.g., Yodlee FinAPI Token)
-  >  - `country` – ISO 3166-1 alpha-2 two-letter country code in uppercase
   
 ## *Deprecations*
 Within a major version of the Token SDK, deprecated APIs/methods fall into two types:
