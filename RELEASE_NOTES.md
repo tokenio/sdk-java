@@ -34,7 +34,7 @@ This release introduces the following new features and enhancements:
 - **Augmented permissions (consent) list with support for new endpoints**
   > Additional PSU consent granularity is now implemented via the SDK:
   > - **Account Info**: `ReadAccountsBasic`, `ReadAccountsDetail`
-  > - **Balances**: `ReadBalances'
+  > - **Balances**: `ReadBalances`
   > - **Beneficiaries**: `ReadBeneficiariesBasic`, `ReadBeneficiariesDetail`
   > - **Direct Debits**: `ReadDirectDebits`
   > - **Offers**: `ReadOffers`
