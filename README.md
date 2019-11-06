@@ -20,6 +20,6 @@ Building
 To build the SDK execute:
 
 ```
-./gradlew :sdk:build
+./gradlew build
 ```
 
