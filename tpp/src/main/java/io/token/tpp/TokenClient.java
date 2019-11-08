@@ -36,6 +36,7 @@ import io.netty.handler.codec.http.QueryStringDecoder;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.eidas.EidasProtos.EidasRecoveryPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
@@ -370,6 +371,36 @@ public class TokenClient extends io.token.TokenClient {
             final CryptoEngine cryptoEngine) {
         return completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
                 .blockingSingle();
+    }
+
+    /**
+     * Recovers an eIDAS-verified member with eIDAS payload.
+     *
+     * @param payload a payload containing member id, the certificate and a new key to add to the
+     *     member
+     * @param signature a payload signature with the private key corresponding to the certificate
+     * @param cryptoEngine a crypto engine that must contain the privileged key that is included in
+     *     the payload (if it does not contain keys for other levels they will be generated)
+     * @return an observable of a new member
+     */
+    public Observable<Member> recoverEidasMember(
+            EidasRecoveryPayload payload,
+            String signature,
+            final CryptoEngine cryptoEngine) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.recoverEidasMember(payload, signature, cryptoEngine)
+                .map(member -> {
+                    final Client client = ClientFactory.authenticated(
+                            channel,
+                            member.getId(),
+                            cryptoEngine);
+                    return new Member(
+                            member.getId(),
+                            member.getPartnerId(),
+                            member.getRealmId(),
+                            client,
+                            tokenCluster);
+                });
     }
 
     /**
