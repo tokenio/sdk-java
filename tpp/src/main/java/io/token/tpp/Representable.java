@@ -152,6 +152,25 @@ public interface Representable {
      * @param offset optional offset to start at
      * @param limit max number of records to return
      * @param keyLevel key level
+     * @param startDate inclusive lower bound of transaction booking date
+     * @param endDate inclusive upper bound of transaction booking date
+     * @return a paged list of transaction records
+     */
+    Observable<PagedList<Transaction, String>> getTransactions(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel,
+            @Nullable String startDate,
+            @Nullable String endDate);
+
+    /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
      * @return paged list of transactions
      */
     PagedList<Transaction, String> getTransactionsBlocking(
@@ -159,6 +178,25 @@ public interface Representable {
             @Nullable String offset,
             int limit,
             Key.Level keyLevel);
+
+    /**
+     * Looks up transactions for a given account.
+     *
+     * @param accountId the account id
+     * @param offset optional offset to start at
+     * @param limit max number of records to return
+     * @param keyLevel key level
+     * @param startDate inclusive lower bound of transaction booking date
+     * @param endDate inclusive upper bound of transaction booking date
+     * @return paged list of transactions
+     */
+    PagedList<Transaction, String> getTransactionsBlocking(
+            String accountId,
+            @Nullable String offset,
+            int limit,
+            Key.Level keyLevel,
+            @Nullable String startDate,
+            @Nullable String endDate);
 
     /**
      * Looks up an existing standing order for a given account.
