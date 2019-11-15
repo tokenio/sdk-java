@@ -1987,6 +1987,32 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Stores a linking request.
+     *
+     * @param callbackUrl callback URL
+     * @param tokenRequestId token request ID
+     * @return linking request ID
+     */
+    public Observable<String> storeLinkingRequest(
+            String callbackUrl,
+            String tokenRequestId) {
+        return client.storeLinkingRequest(callbackUrl, tokenRequestId);
+    }
+
+    /**
+     * Stores a linking request.
+     *
+     * @param callbackUrl callback URL
+     * @param tokenRequestId token request ID
+     * @return linking request ID
+     */
+    public String storeLinkingRequestBlocking(
+            String callbackUrl,
+            String tokenRequestId) {
+        return storeLinkingRequest(callbackUrl, tokenRequestId).blockingSingle();
+    }
+
+    /**
      * Apply SCA for the given list of account IDs.
      *
      * @param accountIds list of account ids

@@ -104,6 +104,8 @@ import io.token.proto.gateway.Gateway.SetProfileResponse;
 import io.token.proto.gateway.Gateway.SetReceiptContactRequest;
 import io.token.proto.gateway.Gateway.SignTokenRequestStateRequest;
 import io.token.proto.gateway.Gateway.SignTokenRequestStateResponse;
+import io.token.proto.gateway.Gateway.StoreLinkingRequestRequest;
+import io.token.proto.gateway.Gateway.StoreLinkingRequestResponse;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsRequest;
 import io.token.proto.gateway.Gateway.SubscribeToNotificationsResponse;
 import io.token.proto.gateway.Gateway.UnlinkAccountsRequest;
@@ -791,6 +793,25 @@ public final class Client extends io.token.rpc.Client {
                         .setTokenRequestId(tokenRequestId)
                         .build()))
                 .map(SignTokenRequestStateResponse::getSignature);
+    }
+
+    /**
+     * Stores a linking request.
+     *
+     * @param callbackUrl callback URL
+     * @param tokenRequestId token request ID
+     * @return linking request ID
+     */
+    public Observable<String> storeLinkingRequest(
+            String callbackUrl,
+            String tokenRequestId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .storeLinkingRequest(StoreLinkingRequestRequest.newBuilder()
+                        .setCallbackUrl(callbackUrl)
+                        .setTokenRequestId(tokenRequestId)
+                        .build()))
+                .map(StoreLinkingRequestResponse::getLinkingRequestId);
     }
 
     /**
