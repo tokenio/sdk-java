@@ -88,7 +88,6 @@ public final class CreateTransferTokenSample {
                 // expires in 300 seconds:
                 .setExpiresAtMs(now + (300 * 1000))
                 .setRefId("a713c8a61994a749")
-                .setChargeAmount(10.0)
                 .setDescription("Book purchase");
 
         // Get the token redemption policy and resolve the token payload.

@@ -245,18 +245,6 @@ public final class TransferTokenBuilder {
     }
 
     /**
-     * Sets the maximum amount per charge.
-     *
-     * @param chargeAmount amount
-     * @return builder
-     */
-    public TransferTokenBuilder setChargeAmount(double chargeAmount) {
-        payload.getTransferBuilder()
-                .setAmount(Double.toString(chargeAmount));
-        return this;
-    }
-
-    /**
      * Sets the description.
      *
      * @param description description

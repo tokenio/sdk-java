@@ -449,19 +449,6 @@ public abstract class TokenRequest {
         }
 
         /**
-         * Optional. Sets the maximum amount per charge on a transfer token request.
-         *
-         * @param chargeAmount amount
-         * @return builder
-         */
-        public TransferBuilder setChargeAmount(double chargeAmount) {
-            this.requestPayload.getTransferBodyBuilder()
-                    .setAmount(Double.toString(chargeAmount))
-                    .build();
-            return this;
-        }
-
-        /**
          * Sets the execution date of the transfer. Used for future-dated payments.
          *
          * @param executionDate execution date
