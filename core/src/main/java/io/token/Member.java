@@ -484,7 +484,8 @@ public class Member {
                     .newBuilder()
                     .setRemoveAlias(MemberAliasOperation
                             .newBuilder()
-                            .setAliasHash(normalizeAndHash(alias)))
+                            .setAliasHash(normalizeAndHash(alias))
+                            .setRealmId(alias.getRealmId()))
                     .build());
         }
         return client
