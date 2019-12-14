@@ -22,7 +22,6 @@
 
 package io.token.util;
 
-import static io.token.proto.AliasHasher.hash;
 import static io.token.proto.AliasHasher.normalize;
 import static io.token.proto.AliasHasher.normalizeAndHash;
 
@@ -133,7 +132,7 @@ public class Util {
         return MemberOperationMetadata.newBuilder()
                 .setAddAliasMetadata(AddAliasMetadata.newBuilder()
                         .setAlias(normalized)
-                        .setAliasHash(hash(normalized)))
+                        .setAliasHash(normalizeAndHash(normalized)))
                 .build();
     }
 

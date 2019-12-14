@@ -23,8 +23,8 @@
 package io.token.rpc;
 
 import com.google.auto.value.AutoValue;
+import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 
 import javax.annotation.Nullable;
 
@@ -38,12 +38,12 @@ public abstract class AuthenticationContext {
             @Nullable String onBehalfOf,
             boolean customerInitiated,
             Key.Level keyLevel,
-            SecurityMetadata securityMetadata) {
+            CustomerTrackingMetadata customerTrackingMetadata) {
         return new AutoValue_AuthenticationContext(
                 onBehalfOf,
                 customerInitiated,
                 keyLevel,
-                securityMetadata);
+                customerTrackingMetadata);
     }
 
     abstract @Nullable String getOnBehalfOf();
@@ -52,5 +52,5 @@ public abstract class AuthenticationContext {
 
     abstract Key.Level getKeyLevel();
 
-    abstract SecurityMetadata getSecurityMetadata();
+    abstract CustomerTrackingMetadata getCustomerTrackingMetadata();
 }

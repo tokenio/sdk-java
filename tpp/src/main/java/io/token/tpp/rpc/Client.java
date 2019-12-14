@@ -22,6 +22,7 @@
 
 package io.token.tpp.rpc;
 
+import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
@@ -34,6 +35,7 @@ import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -87,6 +89,7 @@ import javax.annotation.Nullable;
  * easier to use.
  */
 public final class Client extends io.token.rpc.Client {
+    @Deprecated
     private SecurityMetadata securityMetadata = SecurityMetadata.getDefaultInstance();
     private String onBehalfOf;
 
@@ -164,6 +167,28 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
+     * Creates a new instance with On-Behalf-Of authentication set.
+     *
+     * @param tokenId access token ID to be used
+     * @param customerTrackingMetadata whether the customer initiated the calls
+     * @return new client instance
+     */
+    public Client forAccessToken(
+            String tokenId,
+            CustomerTrackingMetadata customerTrackingMetadata) {
+        if (customerTrackingMetadata.equals(CustomerTrackingMetadata.getDefaultInstance())) {
+            throw INVALID_ARGUMENT
+                    .withDescription(
+                            "User tracking metadata is empty. "
+                                    + "Use the forAccessToken(String, boolean) instead.")
+                    .asRuntimeException();
+        }
+        Client updated = new Client(memberId, crypto, gateway);
+        updated.useAccessToken(tokenId, customerTrackingMetadata);
+        return updated;
+    }
+
+    /**
      * Sets the On-Behalf-Of authentication value to be used
      * with this client.  The value must correspond to an existing
      * Access Token ID issued for the client member. Uses the given customer
@@ -175,6 +200,23 @@ public final class Client extends io.token.rpc.Client {
     private void useAccessToken(String accessTokenId, boolean customerInitiated) {
         this.onBehalfOf = accessTokenId;
         this.customerInitiated = customerInitiated;
+    }
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member. Uses the given customer
+     * initiated flag.
+     *
+     * @param accessTokenId the access token id to be used
+     * @param customerTrackingMetadata the tracking metadata of the customer
+     */
+    private void useAccessToken(
+            String accessTokenId,
+            CustomerTrackingMetadata customerTrackingMetadata) {
+        this.onBehalfOf = accessTokenId;
+        this.customerInitiated = true;
+        this.customerTrackingMetadata = customerTrackingMetadata;
     }
 
     /**
@@ -208,12 +250,12 @@ public final class Client extends io.token.rpc.Client {
             List<TransferDestination> transferDestinations) {
         return toCompletable(gateway
                 .withAuthentication(authenticationContext())
-        .setTokenRequestTransferDestinations(
-                SetTokenRequestTransferDestinationsRequest
-                        .newBuilder()
-                        .setTokenRequestId(tokenRequestId)
-                        .addAllTransferDestinations(transferDestinations)
-                        .build()));
+                .setTokenRequestTransferDestinations(
+                        SetTokenRequestTransferDestinationsRequest
+                                .newBuilder()
+                                .setTokenRequestId(tokenRequestId)
+                                .addAllTransferDestinations(transferDestinations)
+                                .build()));
     }
 
     /**
