@@ -37,7 +37,6 @@ import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -89,8 +88,6 @@ import javax.annotation.Nullable;
  * easier to use.
  */
 public final class Client extends io.token.rpc.Client {
-    @Deprecated
-    private SecurityMetadata securityMetadata = SecurityMetadata.getDefaultInstance();
     private String onBehalfOf;
 
     /**
@@ -162,7 +159,6 @@ public final class Client extends io.token.rpc.Client {
     public Client forAccessToken(String tokenId, boolean customerInitiated) {
         Client updated = new Client(memberId, crypto, gateway);
         updated.useAccessToken(tokenId, customerInitiated);
-        updated.setSecurityMetadata(securityMetadata);
         return updated;
     }
 
@@ -441,15 +437,6 @@ public final class Client extends io.token.rpc.Client {
                 .map(response -> PagedList.create(
                         response.getSubmissionsList(),
                         response.getOffset()));
-    }
-
-    /**
-     * Sets security metadata included in all requests.
-     *
-     * @param securityMetadata security metadata
-     */
-    private void setSecurityMetadata(SecurityMetadata securityMetadata) {
-        this.securityMetadata = securityMetadata;
     }
 
     /**
