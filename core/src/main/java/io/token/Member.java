@@ -1047,6 +1047,12 @@ public class Member {
     }
 
     private Observable<Account> toAccount(Observable<AccountProtos.Account> account) {
-        return account.map(acct -> new Account(Member.this, acct, client));
+        return account
+                .map(new Function<AccountProtos.Account, Account>() {
+                    @Override
+                    public Account apply(AccountProtos.Account account) {
+                        return new Account(Member.this, account, client);
+                    }
+                });
     }
 }
