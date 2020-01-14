@@ -26,6 +26,7 @@ import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.toObservable;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
@@ -1208,5 +1209,69 @@ public class Member extends io.token.Member implements Representable {
             VerifyEidasPayload payload,
             String signature) {
         return client.verifyEidas(payload, signature);
+    }
+
+    /**
+     * Get url to bank authorization page for a token request.
+     *
+     * @param bankId bank ID
+     * @param tokenRequestId token request ID
+     * @return url
+     */
+    public Observable<String> getBankAuthUrl(String bankId, String tokenRequestId) {
+        return client.getBankAuthUrl(bankId, tokenRequestId);
+    }
+
+    /**
+     * Get url to bank authorization page for a token request.
+     *
+     * @param bankId bank ID
+     * @param tokenRequestId token request ID
+     * @return url
+     */
+    public String getBankAuthUrlBlocking(String bankId, String tokenRequestId) {
+        return getBankAuthUrl(bankId, tokenRequestId).blockingSingle();
+    }
+
+    /**
+     * Forward the callback from the bank (after user authentication) to Token.
+     *
+     * @param bankId bank ID
+     * @param query query string (e.g. "key1=value1&key2=value2")
+     * @return token request ID
+     */
+    public Observable<String> onBankAuthCallback(String bankId, String query) {
+        return client.onBankAuthCallback(bankId, query);
+    }
+
+    /**
+     * Forward the callback from the bank (after user authentication) to Token.
+     *
+     * @param bankId bank ID
+     * @param query query string (e.g. "key1=value1&key2=value2")
+     * @return token request ID
+     */
+    public String onBankAuthCallbackBlocking(String bankId, String query) {
+        return onBankAuthCallback(bankId, query).blockingSingle();
+    }
+
+    /**
+     * Get the raw consent from the bank associated with a token.
+     *
+     * @param tokenId token ID
+     * @return raw consent
+     */
+    public Observable<String> getRawConsent(String tokenId) {
+        return client.getRawConsent(tokenId);
+    }
+
+    /**
+     * Get the raw consent from the bank associated with a token.
+     *
+     * @param tokenId token ID
+     * @return raw consent
+     */
+    public String getRawConsentBlocking(String tokenId) {
+        return getRawConsent(tokenId).blockingSingle();
     }
 }
