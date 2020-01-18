@@ -374,11 +374,13 @@ public abstract class TokenRequest {
 
     public static class AccessBuilder extends Builder<AccessBuilder> {
         AccessBuilder(ResourceType... resources) {
+            List<ResourceType> resourceTypes = Arrays.asList(resources);
             this.requestPayload.setAccessBody(
                     TokenRequestPayload.AccessBody.newBuilder()
                             .setResourceTypeList(ResourceTypeList.newBuilder()
-                                    .addAllResources(Arrays.asList(resources))
-                                    .build()));
+                                    .addAllResources(resourceTypes))
+                            .addAllType(resourceTypes)
+                            .build());
         }
 
         AccessBuilder(AccountResourceList list) {
