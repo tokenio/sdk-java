@@ -166,7 +166,7 @@ public final class Client extends io.token.rpc.Client {
      * Creates a new instance with On-Behalf-Of authentication set.
      *
      * @param tokenId access token ID to be used
-     * @param customerTrackingMetadata whether the customer initiated the calls
+     * @param customerTrackingMetadata customer tracking metadata
      * @return new client instance
      */
     public Client forAccessToken(
@@ -176,7 +176,7 @@ public final class Client extends io.token.rpc.Client {
             throw INVALID_ARGUMENT
                     .withDescription(
                             "User tracking metadata is empty. "
-                                    + "Use the forAccessToken(String, boolean) instead.")
+                                    + "Use forAccessToken(String, boolean) instead.")
                     .asRuntimeException();
         }
         Client updated = new Client(memberId, crypto, gateway);
