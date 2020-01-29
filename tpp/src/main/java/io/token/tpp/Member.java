@@ -39,6 +39,7 @@ import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
@@ -226,11 +227,14 @@ public class Member extends io.token.Member implements Representable {
      * @return the {@link Representable}
      */
     public Representable forAccessToken(String tokenId, boolean customerInitiated) {
-        return forAccessTokenInternal(tokenId, customerInitiated);
+        Client cloned = client.forAccessToken(tokenId, customerInitiated);
+        return new Member(memberId, partnerId, realmId, cloned, cluster);
     }
 
-    Member forAccessTokenInternal(String tokenId, boolean customerInitiated) {
-        Client cloned = client.forAccessToken(tokenId, customerInitiated);
+    public Representable forAccessToken(
+            String tokenId,
+            CustomerTrackingMetadata customerTrackingMetadata) {
+        Client cloned = client.forAccessToken(tokenId, customerTrackingMetadata);
         return new Member(memberId, partnerId, realmId, cloned, cluster);
     }
 
@@ -1190,11 +1194,12 @@ public class Member extends io.token.Member implements Representable {
     /**
      * Verifies eIDAS alias with an eIDAS certificate, containing auth number equal to the value
      * of the alias. Before making this call make sure that:<ul>
-     *     <li>The member is under the realm of a bank (the one tpp tries to gain access to)</li>
-     *     <li>An eIDAS-type alias with the value equal to auth number of the TPP is added
-     *     to the member</li>
-     *     <li>The realmId of the alias is equal to the member's realmId</li>
-     *</ul>
+     * <li>The member is under the realm of a bank (the one tpp tries to gain access to)</li>
+     * <li>An eIDAS-type alias with the value equal to auth number of the TPP is added
+     * to the member</li>
+     * <li>The realmId of the alias is equal to the member's realmId</li>
+     * </ul>
+     *
      * @param payload payload containing the member id and the base64 encoded eIDAS certificate
      * @param signature the payload signed with a private key corresponding to the certificate
      * @return a result of the verification process

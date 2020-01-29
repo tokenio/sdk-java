@@ -51,7 +51,6 @@ import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.transaction.TransactionProtos.Balance;
@@ -992,22 +991,6 @@ public class Member {
      */
     public TokenCluster getTokenCluster() {
         return cluster;
-    }
-
-    /**
-     * Sets security metadata included in all requests.
-     *
-     * @param securityMetadata security metadata
-     */
-    public void setTrackingMetadata(SecurityMetadata securityMetadata) {
-        client.setTrackingMetadata(securityMetadata);
-    }
-
-    /**
-     * Clears security metadata.
-     */
-    public void clearTrackingMetadata() {
-        client.clearTrackingMetadata();
     }
 
     /**

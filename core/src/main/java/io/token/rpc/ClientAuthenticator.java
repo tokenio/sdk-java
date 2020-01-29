@@ -23,14 +23,15 @@
 package io.token.rpc;
 
 import static io.grpc.Metadata.ASCII_STRING_MARSHALLER;
-import static io.token.proto.ProtoJson.toJson;
-import static io.token.rpc.ContextKeys.SECURITY_METADATA_KEY;
+import static io.token.rpc.ContextKeys.CUSTOMER_DEVICE_ID_KEY;
+import static io.token.rpc.ContextKeys.CUSTOMER_GEO_LOCATION_KEY;
+import static io.token.rpc.ContextKeys.CUSTOMER_IP_ADDRESS_KEY;
 
 import com.google.common.base.Strings;
-import com.google.common.io.BaseEncoding;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import io.grpc.Metadata;
+import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.gateway.Auth.GrpcAuthPayload;
 import io.token.rpc.interceptor.SimpleInterceptor;
@@ -76,10 +77,17 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 Metadata.Key.of("token-created-at-ms", ASCII_STRING_MARSHALLER),
                 Long.toString(now));
         metadata.put(Metadata.Key.of("token-member-id", ASCII_STRING_MARSHALLER), memberId);
-        metadata.put(
-                SECURITY_METADATA_KEY.getMetadataKey(),
-                BaseEncoding.base64().encode(
-                        toJson(authenticationContext.getSecurityMetadata()).getBytes()));
+
+        CustomerTrackingMetadata customer = authenticationContext.getCustomerTrackingMetadata();
+        if (!customer.getIpAddress().isEmpty()) {
+            metadata.put(CUSTOMER_IP_ADDRESS_KEY.getMetadataKey(), customer.getIpAddress());
+        }
+        if (!customer.getGeoLocation().isEmpty()) {
+            metadata.put(CUSTOMER_GEO_LOCATION_KEY.getMetadataKey(), customer.getGeoLocation());
+        }
+        if (!customer.getDeviceId().isEmpty()) {
+            metadata.put(CUSTOMER_DEVICE_ID_KEY.getMetadataKey(), customer.getDeviceId());
+        }
 
         String onBehalfOf = authenticationContext.getOnBehalfOf();
         if (!Strings.isNullOrEmpty(onBehalfOf)) {
