@@ -225,6 +225,7 @@ public class TokenClient implements Closeable {
                                                  final String memberId,
                                                  final String agent) {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        // TODO(RD-3727): we probably should not set recovery agent for realmed members at all
         return (agent == null ? unauthenticated.getDefaultAgent() : Observable.just(agent))
                 .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
                     public Observable<MemberProtos.Member> apply(String agentId) {

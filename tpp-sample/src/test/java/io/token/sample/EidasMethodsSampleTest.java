@@ -32,7 +32,7 @@ import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.Test;
 
-public class VerifyEidasSampleTest {
+public class EidasMethodsSampleTest {
     private static BouncyCastleProvider bcProvider = new BouncyCastleProvider();
 
     @Test
@@ -41,13 +41,42 @@ public class VerifyEidasSampleTest {
             String tppAuthNumber = RandomStringUtils.randomAlphanumeric(15);
             KeyPair keyPair = generateKeyPair();
             String certificate = generateCert(keyPair, tppAuthNumber);
-            Member verifiedTppMember = VerifyEidasSample.verifyEidas(
+            Member verifiedTppMember = EidasMethodsSample.verifyEidas(
                     tokenClient,
                     tppAuthNumber,
                     certificate,
                     "wood",
                     keyPair.getPrivate());
             List<Alias> verifiedAliases = verifiedTppMember.aliasesBlocking();
+            assertThat(verifiedAliases.size()).isEqualTo(1);
+            assertThat(verifiedAliases.get(0).getValue()).isEqualTo(tppAuthNumber);
+            assertThat(verifiedAliases.get(0).getType()).isEqualTo(EIDAS);
+        }
+    }
+
+    @Test
+    public void recoverEidasTest() throws Exception {
+        try (TokenClient tokenClient = createClient();
+             TokenClient anotherTokenClient = createClient();) {
+            String tppAuthNumber = RandomStringUtils.randomAlphanumeric(15);
+            KeyPair keyPair = generateKeyPair();
+            String certificate = generateCert(keyPair, tppAuthNumber);
+            String bankId = "wood";
+            // create and verify member first
+            Member verifiedTppMember = EidasMethodsSample.verifyEidas(
+                    tokenClient,
+                    tppAuthNumber,
+                    certificate, bankId,
+                    keyPair.getPrivate());
+
+            // now pretend we lost the keys and need to recover the member
+            Member recoveredMember = EidasMethodsSample.recoverEidas(
+                    anotherTokenClient,
+                    verifiedTppMember.memberId(),
+                    tppAuthNumber,
+                    certificate,
+                    keyPair.getPrivate());
+            List<Alias> verifiedAliases = recoveredMember.aliasesBlocking();
             assertThat(verifiedAliases.size()).isEqualTo(1);
             assertThat(verifiedAliases.get(0).getValue()).isEqualTo(tppAuthNumber);
             assertThat(verifiedAliases.get(0).getType()).isEqualTo(EIDAS);

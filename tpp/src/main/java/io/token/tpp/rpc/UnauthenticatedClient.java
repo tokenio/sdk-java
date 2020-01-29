@@ -22,12 +22,21 @@
 
 package io.token.tpp.rpc;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.tpp.util.Util.TOKEN;
 import static io.token.util.Util.toObservable;
+import static java.util.stream.Collectors.toList;
 
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
+import io.token.proto.common.eidas.EidasProtos.EidasRecoveryPayload;
+import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Member;
+import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
+import io.token.proto.common.member.MemberProtos.MemberOperation;
+import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
@@ -35,8 +44,12 @@ import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
 import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
+import io.token.security.CryptoEngine;
+import io.token.security.Signer;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
+
+import java.util.stream.Stream;
 
 
 /**
@@ -130,5 +143,68 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                                         response.getTokenRequest().getRequestOptions());
                     }
                 });
+    }
+
+    /**
+     * Recovers an eIDAS-verified member with eidas payload.
+     *
+     * @param payload a payload containing member id, the certificate and a new key to add to the
+     *      member
+     * @param signature a payload signature with the private key corresponding to the certificate
+     * @param cryptoEngine a crypto engine that must contain the privileged key that is included in
+     *      the payload (if it does not contain keys for other levels they will be generated)
+     * @return an observable of a new member
+     */
+    public Observable<Member> recoverEidasMember(
+            EidasRecoveryPayload payload,
+            String signature,
+            CryptoEngine cryptoEngine) {
+        SecurityProtos.Key privilegedKey = payload.getKey();
+        SecurityProtos.Key standardKey = getOrGenerateKeyForLevel(cryptoEngine, STANDARD);
+        SecurityProtos.Key lowKey = getOrGenerateKeyForLevel(cryptoEngine, LOW);
+        // TODO(RD-3764): createSigner by keyId (to make sure it's for the key in the payload)
+        Signer signer = cryptoEngine.createSigner(PRIVILEGED);
+        String memberId = payload.getMemberId();
+        return toObservable(gateway.recoverEidasMember(Gateway.RecoverEidasRequest.newBuilder()
+                .setPayload(payload)
+                .setSignature(signature)
+                .build()))
+                .flatMap(response -> toObservable(gateway
+                            .getMember(GetMemberRequest.newBuilder()
+                                    .setMemberId(memberId)
+                                    .build()))
+                            .map(memberRes -> MemberProtos.MemberUpdate.newBuilder()
+                                    .setPrevHash(memberRes.getMember().getLastHash())
+                                    .setMemberId(memberId)
+                                    .addOperations(MemberProtos.MemberOperation.newBuilder()
+                                            .setRecover(response.getRecoveryEntry()))
+                                    .addAllOperations(Stream.of(privilegedKey, standardKey, lowKey)
+                                            .map(key -> MemberOperation.newBuilder()
+                                                    .setAddKey(MemberAddKeyOperation.newBuilder()
+                                                            .setKey(key))
+                                                    .build())
+                                            .collect(toList()))
+                                    .build()))
+                .flatMap(memberUpdate -> toObservable(
+                        gateway.updateMember(Gateway.UpdateMemberRequest
+                                .newBuilder()
+                                .setUpdate(memberUpdate)
+                                .setUpdateSignature(SecurityProtos.Signature.newBuilder()
+                                        .setKeyId(signer.getKeyId())
+                                        .setMemberId(memberId)
+                                        .setSignature(signer.sign(memberUpdate)))
+                                .build()))
+                        .map(Gateway.UpdateMemberResponse::getMember));
+    }
+
+    private static SecurityProtos.Key getOrGenerateKeyForLevel(
+            CryptoEngine cryptoEngine,
+            SecurityProtos.Key.Level level) {
+        return cryptoEngine
+                .getPublicKeys()
+                .stream()
+                .filter(key -> key.getLevel().equals(level))
+                .findFirst()
+                .orElse(cryptoEngine.generateKey(level));
     }
 }
