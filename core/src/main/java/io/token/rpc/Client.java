@@ -53,8 +53,8 @@ import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.member.MemberProtos.ProfilePictureSize;
 import io.token.proto.common.member.MemberProtos.RecoveryRule;
 import io.token.proto.common.money.MoneyProtos.Money;
+import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
@@ -106,7 +106,6 @@ import io.token.security.Signer;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -119,7 +118,8 @@ public class Client {
     protected final CryptoEngine crypto;
     protected final GatewayProvider gateway;
     protected boolean customerInitiated = false;
-    private SecurityMetadata trackingMetadata = SecurityMetadata.getDefaultInstance();
+    protected CustomerTrackingMetadata customerTrackingMetadata = CustomerTrackingMetadata
+            .getDefaultInstance();
 
     /**
      * Creates a client instance.
@@ -695,22 +695,6 @@ public class Client {
         return crypto;
     }
 
-    /**
-     * Sets tracking metadata included in all requests.
-     *
-     * @param trackingMetadata tracking metadata
-     */
-    public void setTrackingMetadata(SecurityMetadata trackingMetadata) {
-        this.trackingMetadata = trackingMetadata;
-    }
-
-    /**
-     * Clears tracking metadata.
-     */
-    public void clearTrackingMetadata() {
-        this.trackingMetadata = SecurityMetadata.getDefaultInstance();
-    }
-
     @Override
     public boolean equals(Object obj) {
         if (!(obj instanceof Client)) {
@@ -727,11 +711,19 @@ public class Client {
     }
 
     protected AuthenticationContext authenticationContext() {
-        return AuthenticationContext.create(null, false, LOW, trackingMetadata);
+        return AuthenticationContext.create(
+                null,
+                false,
+                LOW,
+                customerTrackingMetadata);
     }
 
     protected AuthenticationContext authenticationContext(Key.Level level) {
-        return AuthenticationContext.create(null, false, level, trackingMetadata);
+        return AuthenticationContext.create(
+                null,
+                false,
+                level,
+                customerTrackingMetadata);
     }
 
     protected String getOnBehalfOf() {
@@ -743,7 +735,7 @@ public class Client {
                 getOnBehalfOf(),
                 customerInitiated,
                 LOW,
-                trackingMetadata);
+                customerTrackingMetadata);
     }
 
     private AuthenticationContext onBehalfOf(Key.Level level) {
@@ -751,7 +743,7 @@ public class Client {
                 getOnBehalfOf(),
                 customerInitiated,
                 level,
-                trackingMetadata);
+                customerTrackingMetadata);
     }
 
     protected Page.Builder pageBuilder(@Nullable String offset, int limit) {

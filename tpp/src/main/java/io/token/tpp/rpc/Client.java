@@ -22,6 +22,7 @@
 
 package io.token.tpp.rpc;
 
+import static io.grpc.Status.INVALID_ARGUMENT;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
@@ -34,8 +35,8 @@ import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
+import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.SecurityMetadata;
 import io.token.proto.common.security.SecurityProtos.Signature;
 import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
 import io.token.proto.common.token.TokenProtos.Token;
@@ -87,7 +88,6 @@ import javax.annotation.Nullable;
  * easier to use.
  */
 public final class Client extends io.token.rpc.Client {
-    private SecurityMetadata securityMetadata = SecurityMetadata.getDefaultInstance();
     private String onBehalfOf;
 
     /**
@@ -159,7 +159,28 @@ public final class Client extends io.token.rpc.Client {
     public Client forAccessToken(String tokenId, boolean customerInitiated) {
         Client updated = new Client(memberId, crypto, gateway);
         updated.useAccessToken(tokenId, customerInitiated);
-        updated.setSecurityMetadata(securityMetadata);
+        return updated;
+    }
+
+    /**
+     * Creates a new instance with On-Behalf-Of authentication set.
+     *
+     * @param tokenId access token ID to be used
+     * @param customerTrackingMetadata customer tracking metadata
+     * @return new client instance
+     */
+    public Client forAccessToken(
+            String tokenId,
+            CustomerTrackingMetadata customerTrackingMetadata) {
+        if (customerTrackingMetadata.equals(CustomerTrackingMetadata.getDefaultInstance())) {
+            throw INVALID_ARGUMENT
+                    .withDescription(
+                            "User tracking metadata is empty. "
+                                    + "Use forAccessToken(String, boolean) instead.")
+                    .asRuntimeException();
+        }
+        Client updated = new Client(memberId, crypto, gateway);
+        updated.useAccessToken(tokenId, customerTrackingMetadata);
         return updated;
     }
 
@@ -175,6 +196,23 @@ public final class Client extends io.token.rpc.Client {
     private void useAccessToken(String accessTokenId, boolean customerInitiated) {
         this.onBehalfOf = accessTokenId;
         this.customerInitiated = customerInitiated;
+    }
+
+    /**
+     * Sets the On-Behalf-Of authentication value to be used
+     * with this client.  The value must correspond to an existing
+     * Access Token ID issued for the client member. Uses the given customer
+     * initiated flag.
+     *
+     * @param accessTokenId the access token id to be used
+     * @param customerTrackingMetadata the tracking metadata of the customer
+     */
+    private void useAccessToken(
+            String accessTokenId,
+            CustomerTrackingMetadata customerTrackingMetadata) {
+        this.onBehalfOf = accessTokenId;
+        this.customerInitiated = true;
+        this.customerTrackingMetadata = customerTrackingMetadata;
     }
 
     /**
@@ -208,12 +246,12 @@ public final class Client extends io.token.rpc.Client {
             List<TransferDestination> transferDestinations) {
         return toCompletable(gateway
                 .withAuthentication(authenticationContext())
-        .setTokenRequestTransferDestinations(
-                SetTokenRequestTransferDestinationsRequest
-                        .newBuilder()
-                        .setTokenRequestId(tokenRequestId)
-                        .addAllTransferDestinations(transferDestinations)
-                        .build()));
+                .setTokenRequestTransferDestinations(
+                        SetTokenRequestTransferDestinationsRequest
+                                .newBuilder()
+                                .setTokenRequestId(tokenRequestId)
+                                .addAllTransferDestinations(transferDestinations)
+                                .build()));
     }
 
     /**
@@ -399,15 +437,6 @@ public final class Client extends io.token.rpc.Client {
                 .map(response -> PagedList.create(
                         response.getSubmissionsList(),
                         response.getOffset()));
-    }
-
-    /**
-     * Sets security metadata included in all requests.
-     *
-     * @param securityMetadata security metadata
-     */
-    private void setSecurityMetadata(SecurityMetadata securityMetadata) {
-        this.securityMetadata = securityMetadata;
     }
 
     /**
