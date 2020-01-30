@@ -57,7 +57,11 @@ import io.token.proto.gateway.Gateway.CreateTransferRequest;
 import io.token.proto.gateway.Gateway.CreateTransferResponse;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenRequest;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
+import io.token.proto.gateway.Gateway.GetBankAuthUrlRequest;
+import io.token.proto.gateway.Gateway.GetBankAuthUrlResponse;
 import io.token.proto.gateway.Gateway.GetBlobRequest;
+import io.token.proto.gateway.Gateway.GetRawConsentRequest;
+import io.token.proto.gateway.Gateway.GetRawConsentResponse;
 import io.token.proto.gateway.Gateway.GetStandingOrderSubmissionsRequest;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
@@ -65,6 +69,8 @@ import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.proto.gateway.Gateway.GetTransferRequest;
 import io.token.proto.gateway.Gateway.GetTransferResponse;
 import io.token.proto.gateway.Gateway.GetTransfersRequest;
+import io.token.proto.gateway.Gateway.OnBankAuthCallbackRequest;
+import io.token.proto.gateway.Gateway.OnBankAuthCallbackResponse;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetTokenRequestTransferDestinationsRequest;
@@ -562,6 +568,55 @@ public final class Client extends io.token.rpc.Client {
                         .setPayload(payload)
                         .setSignature(signature)
                         .build()));
+    }
+
+    /**
+     * Get url to bank authorization page for a token request.
+     *
+     * @param bankId bank ID
+     * @param tokenRequestId token request ID
+     * @return url
+     */
+    public Observable<String> getBankAuthUrl(String bankId, String tokenRequestId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getBankAuthUrl(GetBankAuthUrlRequest.newBuilder()
+                        .setBankId(bankId)
+                        .setTokenRequestId(tokenRequestId)
+                        .build()))
+                .map(GetBankAuthUrlResponse::getUrl);
+    }
+
+    /**
+     * Forward the callback from the bank (after user authentication) to Token.
+     *
+     * @param bankId bank ID
+     * @param query query string (e.g. "key1=value1&key2=value2")
+     * @return token request ID
+     */
+    public Observable<String> onBankAuthCallback(String bankId, String query) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .onBankAuthCallback(OnBankAuthCallbackRequest.newBuilder()
+                        .setBankId(bankId)
+                        .setQuery(query)
+                        .build()))
+                .map(OnBankAuthCallbackResponse::getTokenRequestId);
+    }
+
+    /**
+     * Get the raw consent from the bank associated with a token.
+     *
+     * @param tokenId token ID
+     * @return raw consent
+     */
+    public Observable<String> getRawConsent(String tokenId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getRawConsent(GetRawConsentRequest.newBuilder()
+                        .setTokenId(tokenId)
+                        .build()))
+                .map(GetRawConsentResponse::getConsent);
     }
 
     @Override
