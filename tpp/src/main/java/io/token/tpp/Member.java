@@ -1237,7 +1237,7 @@ public class Member extends io.token.Member implements Representable {
      * Forward the callback from the bank (after user authentication) to Token.
      *
      * @param bankId bank ID
-     * @param query query string (e.g. "key1=value1&key2=value2")
+     * @param query HTTP query string
      * @return token request ID
      */
     public Observable<String> onBankAuthCallback(String bankId, String query) {
@@ -1248,7 +1248,7 @@ public class Member extends io.token.Member implements Representable {
      * Forward the callback from the bank (after user authentication) to Token.
      *
      * @param bankId bank ID
-     * @param query query string (e.g. "key1=value1&key2=value2")
+     * @param query HTTP query string
      * @return token request ID
      */
     public String onBankAuthCallbackBlocking(String bankId, String query) {
