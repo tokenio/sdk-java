@@ -278,6 +278,14 @@ public abstract class TokenRequest {
         }
 
         /**
+         * For TSP use case. Sets the URL that the bank will redirect to after user authentication.
+         */
+        public T setBankAuthCallbackUrl(String url) {
+            this.requestPayload.setBankAuthCallbackUrl(url);
+            return (T) this;
+        }
+
+        /**
          * Sets the reference ID of the token.
          *
          * @param refId token ref ID
