@@ -49,6 +49,7 @@ import io.token.proto.common.transfer.TransferProtos.BulkTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.rpc.Client;
@@ -1209,6 +1210,17 @@ public class Member extends io.token.Member implements Representable {
             VerifyEidasPayload payload,
             String signature) {
         return client.verifyEidas(payload, signature);
+    }
+
+    /**
+     * Retrieves an eIDAS verification status by verificationId.
+     *
+     * @param verificationId verification id
+     * @return a status of the verification operation together with the certificate and alias value
+     */
+    public Observable<Gateway.GetEidasVerificationStatusResponse> getEidasVerificationStatus(
+            String verificationId) {
+        return client.getEidasVerificationStatus(verificationId);
     }
 
     /**

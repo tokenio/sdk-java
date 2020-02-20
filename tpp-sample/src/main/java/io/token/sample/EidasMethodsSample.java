@@ -10,6 +10,7 @@ import io.token.proto.common.eidas.EidasProtos.EidasRecoveryPayload;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
+import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
 import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.security.CryptoEngine;
 import io.token.security.InMemoryKeyStore;
@@ -68,6 +69,11 @@ public class EidasMethodsSample {
         VerifyEidasResponse response = tpp
                 .verifyEidas(payload, signer.sign(payload))
                 .blockingSingle();
+        // get the verification status (useful if verifyEidas response has IN_PROGRESS status)
+        GetEidasVerificationStatusResponse statusResponse = tpp
+                .getEidasVerificationStatus(response.getVerificationId())
+                .blockingSingle();
+
         return tpp;
     }
 
