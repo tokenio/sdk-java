@@ -60,6 +60,8 @@ import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
 import io.token.proto.gateway.Gateway.GetBankAuthUrlRequest;
 import io.token.proto.gateway.Gateway.GetBankAuthUrlResponse;
 import io.token.proto.gateway.Gateway.GetBlobRequest;
+import io.token.proto.gateway.Gateway.GetEidasVerificationStatusRequest;
+import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
 import io.token.proto.gateway.Gateway.GetRawConsentRequest;
 import io.token.proto.gateway.Gateway.GetRawConsentResponse;
 import io.token.proto.gateway.Gateway.GetStandingOrderSubmissionsRequest;
@@ -567,6 +569,21 @@ public final class Client extends io.token.rpc.Client {
                 .verifyEidas(VerifyEidasRequest.newBuilder()
                         .setPayload(payload)
                         .setSignature(signature)
+                        .build()));
+    }
+
+    /**
+     * Retrieves an eIDAS verification status by verificationId.
+     *
+     * @param verificationId verification id
+     * @return a status of the verification operation together with the certificate and alias value
+     */
+    public Observable<GetEidasVerificationStatusResponse> getEidasVerificationStatus(
+            String verificationId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getEidasVerificationStatus(GetEidasVerificationStatusRequest.newBuilder()
+                        .setVerificationId(verificationId)
                         .build()));
     }
 
