@@ -1267,22 +1267,26 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
-     * Get the raw consent from the bank associated with a token.
+     * Get the external metadata from the bank associated with a token request.
      *
-     * @param tokenId token ID
-     * @return raw consent
+     * @param tokenRequestId token request ID
+     * @return external metadata
      */
-    public Observable<String> getRawConsent(String tokenId) {
-        return client.getRawConsent(tokenId);
+    public Observable<ExternalMetadata> getExternalMetadata(String tokenRequestId) {
+        return client.getExternalMetadata(tokenRequestId)
+                .map(res -> new ExternalMetadata(
+                        res.getStandard(),
+                        res.getConsentId(),
+                        res.getConsent()));
     }
 
     /**
-     * Get the raw consent from the bank associated with a token.
+     * Get the external metadata from the bank associated with a token request.
      *
-     * @param tokenId token ID
-     * @return raw consent
+     * @param tokenRequestId token request ID
+     * @return external metadata
      */
-    public String getRawConsentBlocking(String tokenId) {
-        return getRawConsent(tokenId).blockingSingle();
+    public ExternalMetadata getExternalMetadataBlocking(String tokenRequestId) {
+        return getExternalMetadata(tokenRequestId).blockingSingle();
     }
 }
