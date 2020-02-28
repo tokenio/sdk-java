@@ -24,10 +24,13 @@ package io.token.tpp;
 
 import io.token.proto.common.bank.BankProtos.OpenBankingStandard;
 
+import java.util.Optional;
+import javax.annotation.Nullable;
+
 public class ExternalMetadata {
     private final OpenBankingStandard openBankingStandard;
-    private final String consentId;
-    private final String consent;
+    private final Optional<String> consentId;
+    private final Optional<String> consent;
 
     /**
      * Instantiates a new external metadata instance.
@@ -36,24 +39,24 @@ public class ExternalMetadata {
      * @param consentId the consent id
      * @param consent the consent
      */
-    public ExternalMetadata(
+    ExternalMetadata(
             OpenBankingStandard openBankingStandard,
-            String consentId,
-            String consent) {
+            @Nullable String consentId,
+            @Nullable String consent) {
         this.openBankingStandard = openBankingStandard;
-        this.consentId = consentId;
-        this.consent = consent;
+        this.consentId = Optional.ofNullable(consentId);
+        this.consent = Optional.ofNullable(consent);
     }
 
     public OpenBankingStandard getOpenBankingStandard() {
         return openBankingStandard;
     }
 
-    public String getConsentId() {
+    public Optional<String> getConsentId() {
         return consentId;
     }
 
-    public String getConsent() {
+    public Optional<String> getConsent() {
         return consent;
     }
 }

@@ -22,6 +22,7 @@
 
 package io.token.tpp;
 
+import static com.google.common.base.Strings.emptyToNull;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
@@ -1276,8 +1277,8 @@ public class Member extends io.token.Member implements Representable {
         return client.getExternalMetadata(tokenRequestId)
                 .map(res -> new ExternalMetadata(
                         res.getStandard(),
-                        res.getConsentId(),
-                        res.getConsent()));
+                        emptyToNull(res.getConsentId()),
+                        emptyToNull(res.getConsent())));
     }
 
     /**
