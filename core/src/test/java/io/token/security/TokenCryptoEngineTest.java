@@ -37,6 +37,18 @@ public class TokenCryptoEngineTest {
     }
 
     @Test
+    public void createSigner_byKeyId() {
+        KeyStore keyStore = new InMemoryKeyStore();
+        CryptoEngine cryptoEngine = new TokenCryptoEngine("member-id", keyStore);
+
+        SecurityProtos.Key k1 = cryptoEngine.generateKey(STANDARD);
+        SecurityProtos.Key k2 = cryptoEngine.generateKey(STANDARD);
+
+        assertThat(cryptoEngine.createSigner(k1.getId()).getKeyId()).isEqualTo(k1.getId());
+        assertThat(cryptoEngine.createSigner(k2.getId()).getKeyId()).isEqualTo(k2.getId());
+    }
+
+    @Test
     public void createVerifier_enforcesNonExpired() {
         TestClock clock = new TestClock();
         KeyStore keyStore = new InMemoryKeyStore(clock);

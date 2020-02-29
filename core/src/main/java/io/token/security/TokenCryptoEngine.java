@@ -88,6 +88,12 @@ public final class TokenCryptoEngine implements CryptoEngine {
     }
 
     @Override
+    public Signer createSigner(String keyId) {
+        SecretKey key = keyStore.getById(memberId, keyId);
+        return crypto.signer(key.getId(), key.getPrivateKey());
+    }
+
+    @Override
     public Verifier createVerifier(String keyId) {
         SecretKey key = keyStore.getById(memberId, keyId);
         return crypto.verifier(key.getPublicKey());
