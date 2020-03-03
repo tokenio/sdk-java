@@ -22,8 +22,6 @@
 
 package io.token.tpp;
 
-import static io.token.proto.MoneyUtil.newMoney;
-import static io.token.proto.MoneyUtil.parseAmount;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
@@ -31,12 +29,10 @@ import static io.token.util.Util.generateNonce;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
-import com.google.type.Money;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenClient.TokenCluster;
-import io.token.proto.MoneyUtil;
 import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
