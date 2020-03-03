@@ -252,7 +252,7 @@ public class UnauthenticatedClient {
             final CryptoEngine cryptoEngine) {
         final Key standardKey = cryptoEngine.generateKey(STANDARD);
         final Key lowKey = cryptoEngine.generateKey(LOW);
-        final Signer signer = cryptoEngine.createSigner(PRIVILEGED);
+        final Signer signer = cryptoEngine.createSigner(privilegedKey.getId());
         final List<MemberOperation> operations = new LinkedList<>();
         for (MemberRecoveryOperation op : recoveryOperations) {
             operations.add(MemberOperation.newBuilder().setRecover(op).build());
