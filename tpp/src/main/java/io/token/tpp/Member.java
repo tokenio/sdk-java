@@ -22,6 +22,8 @@
 
 package io.token.tpp;
 
+import static io.token.proto.MoneyUtil.newMoney;
+import static io.token.proto.MoneyUtil.parseAmount;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
@@ -29,10 +31,12 @@ import static io.token.util.Util.generateNonce;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
+import com.google.type.Money;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.TokenClient.TokenCluster;
+import io.token.proto.MoneyUtil;
 import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
@@ -41,6 +45,7 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transfer.TransferProtos;
@@ -508,24 +513,36 @@ public class Member extends io.token.Member implements Representable {
             @Nullable String description,
             @Nullable TransferEndpoint destination,
             @Nullable String refId) {
+        TokenProtos.TransferBody tokenBody = token.getPayload().getTransfer();
         TransferProtos.TransferPayload.Builder payload = TransferProtos.TransferPayload.newBuilder()
-                .setTokenId(token.getId())
-                .setDescription(token
-                        .getPayload()
-                        .getDescription());
+                .setTokenId(token.getId());
 
         if (destination != null) {
             payload.addDestinations(destination);
+        } else {
+            payload.addAllTransferDestinations(tokenBody
+                    .getInstructions()
+                    .getTransferDestinationsList());
         }
+
         if (amount != null) {
             payload.getAmountBuilder().setValue(Double.toString(amount));
+        } else {
+            payload.getAmountBuilder().setValue(tokenBody.getLifetimeAmount());
         }
+
         if (currency != null) {
             payload.getAmountBuilder().setCurrency(currency);
+        } else {
+            payload.getAmountBuilder().setCurrency(tokenBody.getCurrency());
         }
+
         if (description != null) {
             payload.setDescription(description);
+        } else {
+            payload.setDescription(token.getPayload().getDescription());
         }
+
         if (refId != null) {
             payload.setRefId(refId);
         } else if (!token.getPayload().getRefId().isEmpty() && amount == null) {
