@@ -41,6 +41,7 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
+import io.token.proto.common.token.TokenProtos;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.proto.common.transfer.TransferProtos;
@@ -508,24 +509,36 @@ public class Member extends io.token.Member implements Representable {
             @Nullable String description,
             @Nullable TransferEndpoint destination,
             @Nullable String refId) {
+        TokenProtos.TransferBody tokenBody = token.getPayload().getTransfer();
         TransferProtos.TransferPayload.Builder payload = TransferProtos.TransferPayload.newBuilder()
-                .setTokenId(token.getId())
-                .setDescription(token
-                        .getPayload()
-                        .getDescription());
+                .setTokenId(token.getId());
 
         if (destination != null) {
             payload.addDestinations(destination);
+        } else {
+            payload.addAllTransferDestinations(tokenBody
+                    .getInstructions()
+                    .getTransferDestinationsList());
         }
+
         if (amount != null) {
             payload.getAmountBuilder().setValue(Double.toString(amount));
+        } else {
+            payload.getAmountBuilder().setValue(tokenBody.getLifetimeAmount());
         }
+
         if (currency != null) {
             payload.getAmountBuilder().setCurrency(currency);
+        } else {
+            payload.getAmountBuilder().setCurrency(tokenBody.getCurrency());
         }
+
         if (description != null) {
             payload.setDescription(description);
+        } else {
+            payload.setDescription(token.getPayload().getDescription());
         }
+
         if (refId != null) {
             payload.setRefId(refId);
         } else if (!token.getPayload().getRefId().isEmpty() && amount == null) {
