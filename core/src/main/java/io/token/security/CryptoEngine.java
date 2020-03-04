@@ -42,9 +42,8 @@ public interface CryptoEngine {
 
     /**
      * Generates a key of the specified level with the provided expiration date.
-     * If the key with the specified level already exists, it is replaced.
-     * The old key is still kept around because it could be used for signature
-     * verification later.
+     * If the key with the specified level already exists, they both are maintained in the crypto
+     * engine.
      *
      * @param keyLevel key privilege level
      * @param expiresAtMs expiration date in milliseconds
@@ -53,12 +52,22 @@ public interface CryptoEngine {
     Key generateKey(Key.Level keyLevel, long expiresAtMs);
 
     /**
-     * Signs the data with the identified by the supplied key id.
+     * Creates a new signer that uses a key of specified level.<br>
+     * Note, that if there are several same-level keys, a random one is used to create a signer.
+     * If you need to create a signer for a specific key, create a signer using the key id.
      *
      * @param keyLevel level of the key to use
      * @return signer that is used to generate digital signatures
      */
     Signer createSigner(Key.Level keyLevel);
+
+    /**
+     * Creates a new signer using a key with a specified id.
+     *
+     * @param keyId key id
+     * @return signer that is used to generate digital signatures
+     */
+    Signer createSigner(String keyId);
 
     /**
      * Verifies the payload signature.
