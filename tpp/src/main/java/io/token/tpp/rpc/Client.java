@@ -62,8 +62,8 @@ import io.token.proto.gateway.Gateway.GetBankAuthUrlResponse;
 import io.token.proto.gateway.Gateway.GetBlobRequest;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusRequest;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
-import io.token.proto.gateway.Gateway.GetRawConsentRequest;
-import io.token.proto.gateway.Gateway.GetRawConsentResponse;
+import io.token.proto.gateway.Gateway.GetExternalMetadataRequest;
+import io.token.proto.gateway.Gateway.GetExternalMetadataResponse;
 import io.token.proto.gateway.Gateway.GetStandingOrderSubmissionsRequest;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
@@ -622,18 +622,17 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
-     * Get the raw consent from the bank associated with a token.
+     * Get the external metadata from the bank associated with a token request.
      *
-     * @param tokenId token ID
-     * @return raw consent
+     * @param tokenRequestId token request ID
+     * @return external metadata
      */
-    public Observable<String> getRawConsent(String tokenId) {
+    public Observable<GetExternalMetadataResponse> getExternalMetadata(String tokenRequestId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
-                .getRawConsent(GetRawConsentRequest.newBuilder()
-                        .setTokenId(tokenId)
-                        .build()))
-                .map(GetRawConsentResponse::getConsent);
+                .getExternalMetadata(GetExternalMetadataRequest.newBuilder()
+                        .setTokenRequestId(tokenRequestId)
+                        .build()));
     }
 
     @Override
