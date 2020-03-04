@@ -62,6 +62,7 @@ import io.token.proto.gateway.Gateway.GetBankAuthUrlResponse;
 import io.token.proto.gateway.Gateway.GetBlobRequest;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusRequest;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
+import io.token.proto.gateway.Gateway.GetExternalMetadataRequest;
 import io.token.proto.gateway.Gateway.GetExternalMetadataResponse;
 import io.token.proto.gateway.Gateway.GetStandingOrderSubmissionsRequest;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
@@ -629,7 +630,7 @@ public final class Client extends io.token.rpc.Client {
     public Observable<GetExternalMetadataResponse> getExternalMetadata(String tokenRequestId) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
-                .getExternalMetadata(Gateway.GetExternalMetadataRequest.newBuilder()
+                .getExternalMetadata(GetExternalMetadataRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()));
     }
