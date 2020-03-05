@@ -152,21 +152,19 @@ public final class AKSCryptoEngine implements CryptoEngine {
         if (alias == null) {
             throw new IllegalArgumentException("No key found at level: " + keyLevel);
         }
+        return createSignerForAlias(alias);
+    }
 
-        try {
-            java.security.Key key = keyStore.getKey(alias, null);
-            if (!(key instanceof PrivateKey)) {
-                throw new RuntimeException("Invalid private key");
-            }
-
-            return new AKSSigner(
-                (PrivateKey) key,
-                keyStore.getCertificate(alias),
-                keyLevel,
-                userAuthenticationStore);
-        } catch (GeneralSecurityException exception) {
-            throw new RuntimeException(exception);
-        }
+    /**
+     * Creates a new signer using a key with a specified id.
+     *
+     * @param keyId key id
+     * @return signer that is used to generate digital signatures
+     */
+    @Override
+    public Signer createSigner(String keyId) {
+        String alias = lookUpUnexpiredAliasInKeyStore(keyId);
+        return createSignerForAlias(alias);
     }
 
     /**
@@ -220,6 +218,23 @@ public final class AKSCryptoEngine implements CryptoEngine {
         return new AKSVerifier(lookUpUnexpiredCertificateInKeyStore(keyId));
     }
 
+    private Signer createSignerForAlias(String alias) {
+        try {
+            java.security.Key key = keyStore.getKey(alias, null);
+            if (!(key instanceof PrivateKey)) {
+                throw new RuntimeException("Invalid private key");
+            }
+
+            return new AKSSigner(
+                    (PrivateKey) key,
+                    keyStore.getCertificate(alias),
+                    getKeyLevel(alias),
+                    userAuthenticationStore);
+        } catch (GeneralSecurityException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
     /**
      * Looks up an unexpired alias in the keystore, by the keyLevel.
      *
@@ -232,6 +247,32 @@ public final class AKSCryptoEngine implements CryptoEngine {
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
                 if (alias.startsWith(getAliasPrefix(keyLevel)) && !isExpired(alias)) {
+                    return alias;
+                }
+            }
+            return null;
+        } catch (GeneralSecurityException exception) {
+            throw new RuntimeException(exception);
+        }
+    }
+
+    /**
+     * Looks up an unexpired alias in the keystore, by the keyId.
+     *
+     * @param keyId keyId
+     * @return alias
+     */
+    private String lookUpUnexpiredAliasInKeyStore(String keyId) {
+        try {
+            Enumeration<String> aliases = keyStore.aliases();
+            while (aliases.hasMoreElements()) {
+                String alias = aliases.nextElement();
+                Certificate certificate = keyStore.getCertificate(alias);
+                if (keyIdFor(certificate).equals(keyId)) {
+                    if (isExpired(alias)) {
+                        throw new IllegalArgumentException(
+                                "Key with id: " + keyId + " has expired");
+                    }
                     return alias;
                 }
             }
