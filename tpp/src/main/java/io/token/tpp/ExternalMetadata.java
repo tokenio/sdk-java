@@ -29,31 +29,23 @@ import javax.annotation.Nullable;
 
 public class ExternalMetadata {
     private final OpenBankingStandard openBankingStandard;
-    private final Optional<String> consentId;
     private final Optional<String> consent;
 
     /**
      * Instantiates a new external metadata instance.
      *
      * @param openBankingStandard the open banking standard
-     * @param consentId the consent id
      * @param consent the consent
      */
     ExternalMetadata(
             OpenBankingStandard openBankingStandard,
-            @Nullable String consentId,
             @Nullable String consent) {
         this.openBankingStandard = openBankingStandard;
-        this.consentId = Optional.ofNullable(consentId);
         this.consent = Optional.ofNullable(consent);
     }
 
     public OpenBankingStandard getOpenBankingStandard() {
         return openBankingStandard;
-    }
-
-    public Optional<String> getConsentId() {
-        return consentId;
     }
 
     public Optional<String> getConsent() {
