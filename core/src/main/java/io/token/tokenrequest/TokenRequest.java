@@ -358,6 +358,17 @@ public abstract class TokenRequest {
         }
 
         /**
+         * Optional. Sets the token expiration in UTC timestamp in ms.
+         *
+         * @param tokenExpiration token expiration timestamp
+         * @return builder
+         */
+        public T setTokenExpiration(long tokenExpiration) {
+            this.requestPayload.setTokenExpiration(tokenExpiration);
+            return (T) this;
+        }
+
+        /**
          * Builds the token payload.
          *
          * @return TokenRequest instance
