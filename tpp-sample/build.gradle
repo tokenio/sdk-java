@@ -5,7 +5,7 @@ apply plugin: 'io.token.gradle.project'
 dependencies {
     compile project(':tpp')
     compile 'junit:junit:4.12'
-    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-netty', version: ver.tokenRpc
+    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-lite-netty', version: ver.tokenRpc
     testCompile project(':user')
     testCompile project(':user-sample')
 }

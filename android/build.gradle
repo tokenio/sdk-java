@@ -82,9 +82,9 @@ dependencies {
 
     api(project(':user')){
         exclude group: "com.google.api.grpc", module:"proto-google-common-protos"
-        exclude group: "io.token.rpc", module:"tokenio-rpc-client-netty"
+        exclude group: "io.token.rpc", module:"tokenio-rpc-client-lite-netty"
     }
-    api(group: 'io.token.rpc', name: 'tokenio-rpc-client-okhttp', version: ver.tokenRpc){
+    api(group: 'io.token.rpc', name: 'tokenio-rpc-client-lite-okhttp', version: ver.tokenRpc){
         exclude group: "com.google.api.grpc", module:"proto-google-common-protos"
     }
 

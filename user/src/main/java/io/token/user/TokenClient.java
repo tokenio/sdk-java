@@ -27,6 +27,7 @@ import static io.token.proto.common.member.MemberProtos.CreateMemberType.PERSONA
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.rpc.client.impl.lite.RpcChannelFactoryLite.FACTORY_LITE;
 import static io.token.util.Util.generateNonce;
 import static java.util.Arrays.asList;
 
@@ -47,7 +48,6 @@ import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequestOptions;
-import io.token.rpc.client.RpcChannelFactory;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
@@ -660,7 +660,7 @@ public class TokenClient extends io.token.TokenClient {
         public TokenClient build() {
             Metadata headers = getHeaders();
             return new TokenClient(
-                    RpcChannelFactory
+                    FACTORY_LITE
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
                             .withMetadata(headers)
