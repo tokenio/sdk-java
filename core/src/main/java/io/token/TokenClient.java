@@ -29,7 +29,6 @@ import static io.token.TokenClient.TokenCluster.SANDBOX;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
-import static io.token.rpc.client.impl.lite.RpcChannelFactoryLite.FACTORY_LITE;
 import static io.token.util.Util.toAddAliasOperation;
 import static io.token.util.Util.toAddAliasOperationMetadata;
 import static io.token.util.Util.toAddKeyOperation;
@@ -58,6 +57,7 @@ import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.SslConfig;
 import io.token.rpc.UnauthenticatedClient;
+import io.token.rpc.client.lite.RpcChannelFactoryLite;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
@@ -807,7 +807,7 @@ public class TokenClient implements Closeable {
         public TokenClient build() {
             Metadata headers = getHeaders();
             return new TokenClient(
-                    FACTORY_LITE
+                    RpcChannelFactoryLite.getInstance()
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
                             .withMetadata(headers)
