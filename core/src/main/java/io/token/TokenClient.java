@@ -57,7 +57,7 @@ import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.SslConfig;
 import io.token.rpc.UnauthenticatedClient;
-import io.token.rpc.client.RpcChannelFactory;
+import io.token.rpc.client.lite.RpcChannelFactoryLite;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
@@ -807,7 +807,7 @@ public class TokenClient implements Closeable {
         public TokenClient build() {
             Metadata headers = getHeaders();
             return new TokenClient(
-                    RpcChannelFactory
+                    RpcChannelFactoryLite.getInstance()
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
                             .withMetadata(headers)

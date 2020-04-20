@@ -41,7 +41,7 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
-import io.token.rpc.client.RpcChannelFactory;
+import io.token.rpc.client.lite.RpcChannelFactoryLite;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
@@ -706,7 +706,7 @@ public class TokenClient extends io.token.TokenClient {
         public TokenClient build() {
             Metadata headers = getHeaders();
             return new TokenClient(
-                    RpcChannelFactory
+                    RpcChannelFactoryLite.getInstance()
                             .builder(hostName, port, useSsl)
                             .withTimeout(timeoutMs)
                             .withMetadata(headers)

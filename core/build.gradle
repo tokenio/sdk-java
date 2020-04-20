@@ -11,8 +11,9 @@ publish {
 
 dependencies {
     compile group: 'io.token.proto', name: 'tokenio-proto-external', version: ver.tokenProto
-    compile group: 'io.token.rpc', name: 'tokenio-rpc-client', version: ver.tokenRpc
-    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-netty', version: ver.tokenRpc
+    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-api', version: ver.tokenRpc
+    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-lite', version: ver.tokenRpc
+    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-lite-netty', version: ver.tokenRpc
     compile group: 'io.token.security', name: 'tokenio-security-lib', version: ver.tokenSecurity
     compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: ver.rxjava
 }
