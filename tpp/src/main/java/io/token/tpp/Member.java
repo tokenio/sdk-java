@@ -1300,7 +1300,7 @@ public class Member extends io.token.Member implements Representable {
         return client.getExternalMetadata(tokenRequestId)
                 .map(res -> new ExternalMetadata(
                         res.getStandard(),
-                        emptyToNull(res.getConsent())));
+                        res.getConsent()));
     }
 
     /**
