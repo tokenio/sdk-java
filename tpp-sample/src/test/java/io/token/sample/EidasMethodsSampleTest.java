@@ -1,11 +1,14 @@
 package io.token.sample;
 
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EIDAS;
+import static io.token.proto.common.eidas.EidasProtos.EidasCertificateStatus.CERTIFICATE_VALID;
 import static io.token.sample.TestUtil.createClient;
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.google.common.io.BaseEncoding;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.gateway.Gateway.GetEidasCertificateStatusResponse;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
 
@@ -51,6 +54,11 @@ public class EidasMethodsSampleTest {
             assertThat(verifiedAliases.size()).isEqualTo(1);
             assertThat(verifiedAliases.get(0).getValue()).isEqualTo(tppAuthNumber);
             assertThat(verifiedAliases.get(0).getType()).isEqualTo(EIDAS);
+            GetEidasCertificateStatusResponse eidasInfo = verifiedTppMember
+                    .getEidasCertificateStatus()
+                    .blockingSingle();
+            assertThat(eidasInfo.getCertificate()).isEqualTo(certificate);
+            assertThat(eidasInfo.getStatus()).isEqualTo(CERTIFICATE_VALID);
         }
     }
 

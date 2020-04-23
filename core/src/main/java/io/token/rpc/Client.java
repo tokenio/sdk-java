@@ -102,6 +102,8 @@ import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.security.crypto.CryptoRegistry;
+import io.token.security.crypto.CryptoType;
 
 import java.util.ArrayList;
 import java.util.Collections;
