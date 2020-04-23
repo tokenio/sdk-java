@@ -50,7 +50,7 @@ import io.token.proto.common.transfer.TransferProtos.BulkTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
-import io.token.proto.gateway.Gateway.GetEidasStatusResponse;
+import io.token.proto.gateway.Gateway.GetEidasCertificateStatusResponse;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
 import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.tokenrequest.TokenRequest;
@@ -1231,8 +1231,8 @@ public class Member extends io.token.Member implements Representable {
      *
      * @return eidas status and the eidas certificate, if any
      */
-    public Observable<GetEidasStatusResponse> getEidasStatus() {
-        return client.getEidasStatus();
+    public Observable<GetEidasCertificateStatusResponse> getEidasCertificateStatus() {
+        return client.getEidasCertificateStatus();
     }
 
     /**

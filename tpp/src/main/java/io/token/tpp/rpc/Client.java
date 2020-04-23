@@ -60,8 +60,8 @@ import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
 import io.token.proto.gateway.Gateway.GetBankAuthUrlRequest;
 import io.token.proto.gateway.Gateway.GetBankAuthUrlResponse;
 import io.token.proto.gateway.Gateway.GetBlobRequest;
-import io.token.proto.gateway.Gateway.GetEidasStatusRequest;
-import io.token.proto.gateway.Gateway.GetEidasStatusResponse;
+import io.token.proto.gateway.Gateway.GetEidasCertificateStatusRequest;
+import io.token.proto.gateway.Gateway.GetEidasCertificateStatusResponse;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusRequest;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
 import io.token.proto.gateway.Gateway.GetExternalMetadataRequest;
@@ -579,10 +579,10 @@ public final class Client extends io.token.rpc.Client {
      *
      * @return eidas status and the eidas certificate, if any
      */
-    public Observable<GetEidasStatusResponse> getEidasStatus() {
+    public Observable<GetEidasCertificateStatusResponse> getEidasCertificateStatus() {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
-                .getEidasStatus(GetEidasStatusRequest.getDefaultInstance()));
+                .getEidasCertificateStatus(GetEidasCertificateStatusRequest.getDefaultInstance()));
     }
 
     /**
