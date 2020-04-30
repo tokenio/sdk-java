@@ -48,7 +48,7 @@ public class EidasMethodsSampleTest {
                     tokenClient,
                     tppAuthNumber,
                     certificate,
-                    "wood",
+                    "gold",
                     keyPair.getPrivate());
             List<Alias> verifiedAliases = verifiedTppMember.aliasesBlocking();
             assertThat(verifiedAliases.size()).isEqualTo(1);
@@ -69,7 +69,7 @@ public class EidasMethodsSampleTest {
             String tppAuthNumber = RandomStringUtils.randomAlphanumeric(15);
             KeyPair keyPair = generateKeyPair();
             String certificate = generateCert(keyPair, tppAuthNumber);
-            String bankId = "wood";
+            String bankId = "gold";
             // create and verify member first
             Member verifiedTppMember = EidasMethodsSample.verifyEidas(
                     tokenClient,
