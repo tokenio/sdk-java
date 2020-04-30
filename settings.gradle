@@ -1,8 +1,8 @@
 rootProject.name='sdk'
 
 include 'core'
-include 'user'
-include 'tpp'
-include 'android'
-include 'user-sample'
-include 'tpp-sample'
+//include 'user'
+//include 'tpp'
+//include 'android'
+//include 'user-sample'
+//include 'tpp-sample'
