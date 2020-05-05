@@ -22,7 +22,13 @@
 
 package io.token.security;
 
+import static io.token.proto.common.security.SecurityProtos.Key.Algorithm.ECDSA_SHA256;
+import static io.token.proto.common.security.SecurityProtos.Key.Algorithm.ED25519;
+import static io.token.proto.common.security.SecurityProtos.Key.Algorithm.RS256;
+
 import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
+import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.security.crypto.Crypto;
 import io.token.security.crypto.CryptoRegistry;
 import io.token.security.crypto.CryptoType;
@@ -37,30 +43,40 @@ import java.util.List;
  * in the provided storage.
  */
 public final class TokenCryptoEngine implements CryptoEngine {
-    private static final CryptoType CRYPTO_TYPE = CryptoType.EDDSA;
-    private static final Key.Algorithm KEY_ALGORITHM = Key.Algorithm.ED25519;
+    public static final CryptoType DEFAULT_CRYPTO_TYPE = CryptoType.EDDSA;
 
     private final String memberId;
     private final KeyStore keyStore;
     private final Crypto crypto;
+    private final CryptoType cryptoType;
+
+    /**
+     * Creates an instance of a crypto engine for the default crypto type (EDDSA).
+     *
+     * @param memberId member ID
+     * @param keyStore key store
+     */
+    public TokenCryptoEngine(String memberId, KeyStore keyStore) {
+        this(memberId, keyStore, DEFAULT_CRYPTO_TYPE);
+    }
 
     /**
      * Creates an instance.
      *
      * @param memberId member ID
      * @param keyStore key store
+     * @param cryptoType crypto type
      */
-    public TokenCryptoEngine(String memberId, KeyStore keyStore) {
+    public TokenCryptoEngine(String memberId, KeyStore keyStore, CryptoType cryptoType) {
         this.memberId = memberId;
         this.keyStore = keyStore;
-        this.crypto = CryptoRegistry
-                .getInstance()
-                .cryptoFor(CRYPTO_TYPE);
+        this.cryptoType = cryptoType;
+        this.crypto = CryptoRegistry.getInstance().cryptoFor(cryptoType);
     }
 
     @Override
-    public Key generateKey(Key.Level keyLevel) {
-        SecretKeyPair keyPair = SecretKeyPair.create(CRYPTO_TYPE);
+    public Key generateKey(Level keyLevel) {
+        SecretKeyPair keyPair = SecretKeyPair.create(cryptoType);
         SecretKey key = SecretKey.create(
                 keyPair.id(),
                 keyLevel,
@@ -70,8 +86,8 @@ public final class TokenCryptoEngine implements CryptoEngine {
     }
 
     @Override
-    public Key generateKey(Key.Level keyLevel, long expiresAtMs) {
-        SecretKeyPair keyPair = SecretKeyPair.create(CRYPTO_TYPE);
+    public Key generateKey(Level keyLevel, long expiresAtMs) {
+        SecretKeyPair keyPair = SecretKeyPair.create(cryptoType);
         SecretKey key = SecretKey.create(
                 keyPair.id(),
                 keyLevel,
@@ -82,7 +98,7 @@ public final class TokenCryptoEngine implements CryptoEngine {
     }
 
     @Override
-    public Signer createSigner(Key.Level keyLevel) {
+    public Signer createSigner(Level keyLevel) {
         SecretKey key = keyStore.getByLevel(memberId, keyLevel);
         return crypto.signer(key.getId(), key.getPrivateKey());
     }
@@ -115,7 +131,7 @@ public final class TokenCryptoEngine implements CryptoEngine {
                 : secretKey.getExpiresAtMs();
         return Key.newBuilder()
                 .setId(secretKey.getId())
-                .setAlgorithm(KEY_ALGORITHM)
+                .setAlgorithm(toKeyAlgorithm(cryptoType))
                 .setLevel(secretKey.getLevel())
                 .setPublicKey(crypto.serialize(secretKey.getPublicKey()))
                 .setExpiresAtMs(expiresAtMs)
@@ -125,5 +141,18 @@ public final class TokenCryptoEngine implements CryptoEngine {
     @Override
     public void deleteKeys() {
         keyStore.deleteKeys(memberId);
+    }
+
+    private static Algorithm toKeyAlgorithm(CryptoType cryptoType) {
+        switch (cryptoType) {
+            case EDDSA:
+                return ED25519;
+            case ECDSA_SHA256:
+                return ECDSA_SHA256;
+            case RS256:
+                return RS256;
+            default:
+                return null;
+        }
     }
 }

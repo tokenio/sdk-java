@@ -23,6 +23,7 @@
 package io.token.security;
 
 import io.token.exceptions.KeyIOException;
+import io.token.exceptions.KeyNotFoundException;
 import io.token.proto.common.security.SecurityProtos;
 
 import java.util.List;
@@ -47,6 +48,7 @@ public interface KeyStore {
      * @param keyLevel {@link SecurityProtos.Key.Level} of the key to get
      * @return secret key
      * @throws KeyIOException if an error is encountered while fetching the key
+     * @throws KeyNotFoundException if the key cannot be found
      */
     SecretKey getByLevel(String memberId, SecurityProtos.Key.Level keyLevel);
 
@@ -57,6 +59,7 @@ public interface KeyStore {
      * @param keyId key ID to get
      * @return secret key
      * @throws KeyIOException if an error is encountered while fetching the key
+     * @throws KeyNotFoundException if the key cannot be found or expired
      */
     SecretKey getById(String memberId, String keyId);
 

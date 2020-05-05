@@ -5,6 +5,8 @@ import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
 
 import com.google.common.util.concurrent.Uninterruptibles;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.security.CryptoEngineFactory;
+import io.token.security.KeyStore;
 import io.token.tpp.TokenClient;
 import io.token.util.Util;
 
@@ -27,6 +29,10 @@ public abstract class TestUtil {
      */
     public static TokenClient createClient() {
         return TokenClient.create(DEVELOPMENT, DEV_KEY);
+    }
+
+    public static TokenClient createClient(CryptoEngineFactory cryptoEngineFactory) {
+        return TokenClient.create(DEVELOPMENT, DEV_KEY, cryptoEngineFactory);
     }
 
     /**

@@ -20,45 +20,24 @@
  * THE SOFTWARE.
  */
 
-package io.token.security;
+package io.token.exceptions;
 
-import static io.token.security.TokenCryptoEngine.DEFAULT_CRYPTO_TYPE;
+import io.token.proto.common.security.SecurityProtos;
 
-import io.token.security.crypto.CryptoType;
-
-/**
- * Creates {@link CryptoEngine} instances bound to a given member id.
- * Uses a provided key store to persist keys.
- */
-public class TokenCryptoEngineFactory implements CryptoEngineFactory {
-    private final KeyStore keyStore;
-    private final CryptoType cryptoType;
-
-
-    /**
-     * Creates a new instance of the factory that uses supplied store
-     * to persist the keys.
-     *
-     * @param keyStore key store
-     */
-    public TokenCryptoEngineFactory(KeyStore keyStore) {
-        this.keyStore = keyStore;
-        this.cryptoType = DEFAULT_CRYPTO_TYPE;
+public class KeyNotFoundException extends IllegalArgumentException {
+    public KeyNotFoundException(String msg) {
+        super(msg);
     }
 
-    public TokenCryptoEngineFactory(KeyStore keyStore, CryptoType cryptoType) {
-        this.keyStore = keyStore;
-        this.cryptoType = cryptoType;
+    public static KeyNotFoundException keyNotFoundForLevel(SecurityProtos.Key.Level keyLevel) {
+        return new KeyNotFoundException("Key not found for level: " + keyLevel);
     }
 
-    /**
-     * Creates a new {@link CryptoEngine} for the given member.
-     *
-     * @param memberId member id
-     * @return crypto engine instance
-     */
-    @Override
-    public CryptoEngine create(String memberId) {
-        return new TokenCryptoEngine(memberId, keyStore, cryptoType);
+    public static KeyNotFoundException keyNotFoundForId(String keyId) {
+        return new KeyNotFoundException("Key not found for id: " + keyId);
+    }
+
+    public static KeyNotFoundException keyExpired(String keyId) {
+        return new KeyNotFoundException("Key with id: " + keyId + "has expired");
     }
 }

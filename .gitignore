@@ -2,6 +2,11 @@
 .idea
 build/
 log/
+core/out/
+tpp-sample/out/
+tpp/out/
+user-sample/out/
+user/out/
 keys/
 /lib/out
 **/*.iml
@@ -21,3 +26,8 @@ gradle-app.setting
 # # Work around https://youtrack.jetbrains.com/issue/IDEA-116898
 # gradle/wrapper/gradle-wrapper.properties
 /classes/
+
+build/
+log/
+out/
+classes/

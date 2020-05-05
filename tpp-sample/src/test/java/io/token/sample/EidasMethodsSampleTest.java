@@ -1,14 +1,37 @@
 package io.token.sample;
 
+import static com.google.common.io.BaseEncoding.base64;
+import static com.google.common.io.BaseEncoding.base64Url;
+import static io.token.TokenClient.TokenCluster.DEVELOPMENT;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EIDAS;
 import static io.token.proto.common.eidas.EidasProtos.EidasCertificateStatus.CERTIFICATE_VALID;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
+import static io.token.sample.EidasMethodsSample.registerWithEidas;
 import static io.token.sample.TestUtil.createClient;
+import static io.token.security.crypto.CryptoType.RS256;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
 import com.google.common.io.BaseEncoding;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.eidas.EidasProtos;
+import io.token.proto.common.security.SecurityProtos.Key;
+import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
+import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetEidasCertificateStatusResponse;
+import io.token.security.CryptoEngine;
+import io.token.security.CryptoEngineFactory;
+import io.token.security.InMemoryKeyStore;
+import io.token.security.KeyStore;
+import io.token.security.SecretKey;
+import io.token.security.Signer;
+import io.token.security.TokenCryptoEngine;
+import io.token.security.TokenCryptoEngineFactory;
+import io.token.security.crypto.Crypto;
+import io.token.security.crypto.CryptoRegistry;
+import io.token.security.crypto.CryptoType;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
 
@@ -91,6 +114,21 @@ public class EidasMethodsSampleTest {
         }
     }
 
+    @Test
+    public void registerWithEidasTest() throws Exception {
+        KeyStore keyStore = new InMemoryKeyStore();
+        CryptoEngineFactory cryptoEngineFactory = new TokenCryptoEngineFactory(keyStore, RS256);
+        try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
+            String authNumber = RandomStringUtils.randomAlphanumeric(15);
+            KeyPair keyPair = generateKeyPair();
+            String certificate = generateCert(keyPair, authNumber);
+            Member member = registerWithEidas(tokenClient, keyStore, "gold", keyPair, certificate);
+            assertThat(member.aliases().blockingSingle().get(0).getValue()).isEqualTo(authNumber);
+            assertThat(member.getKeys().blockingSingle().get(0).getPublicKey())
+                    .isEqualTo(base64Url().encode(keyPair.getPublic().getEncoded()));
+        }
+    }
+
     private static KeyPair generateKeyPair() throws Exception {
         Security.addProvider(bcProvider);
         KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance("RSA", "BC");
@@ -135,6 +173,6 @@ public class EidasMethodsSampleTest {
         X509Certificate certificate = new JcaX509CertificateConverter()
                 .setProvider(bcProvider)
                 .getCertificate(certBuilder.build(contentSigner));
-        return BaseEncoding.base64().encode(certificate.getEncoded());
+        return base64().encode(certificate.getEncoded());
     }
 }
