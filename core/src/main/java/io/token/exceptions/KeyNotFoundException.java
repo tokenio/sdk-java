@@ -25,7 +25,7 @@ package io.token.exceptions;
 import io.token.proto.common.security.SecurityProtos;
 
 public class KeyNotFoundException extends IllegalArgumentException {
-    public KeyNotFoundException(String msg) {
+    KeyNotFoundException(String msg) {
         super(msg);
     }
 
@@ -39,5 +39,9 @@ public class KeyNotFoundException extends IllegalArgumentException {
 
     public static KeyNotFoundException keyExpired(String keyId) {
         return new KeyNotFoundException("Key with id: " + keyId + "has expired");
+    }
+
+    public static KeyNotFoundException keyNotFound(String message) {
+        return new KeyNotFoundException("Key not found: " + message);
     }
 }

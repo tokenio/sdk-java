@@ -8,6 +8,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED
 import static io.token.sample.EidasMethodsSample.registerWithEidas;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.security.crypto.CryptoType.RS256;
+import static io.token.util.Util.generateNonce;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -44,7 +45,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.Test;
 
 public class EidasMethodsSampleTest {
-    private static BouncyCastleProvider bcProvider = new BouncyCastleProvider();
+    private static final BouncyCastleProvider bcProvider = new BouncyCastleProvider();
+    private static final String directBankId = "gold";
 
     @Test
     public void verifyEidasTest() throws Exception {
@@ -56,7 +58,7 @@ public class EidasMethodsSampleTest {
                     tokenClient,
                     tppAuthNumber,
                     certificate,
-                    "gold",
+                    directBankId,
                     keyPair.getPrivate());
             List<Alias> verifiedAliases = verifiedTppMember.aliasesBlocking();
             assertThat(verifiedAliases.size()).isEqualTo(1);
@@ -77,12 +79,12 @@ public class EidasMethodsSampleTest {
             String tppAuthNumber = RandomStringUtils.randomAlphanumeric(15);
             KeyPair keyPair = generateKeyPair();
             String certificate = generateCert(keyPair, tppAuthNumber);
-            String bankId = "gold";
             // create and verify member first
             Member verifiedTppMember = EidasMethodsSample.verifyEidas(
                     tokenClient,
                     tppAuthNumber,
-                    certificate, bankId,
+                    certificate,
+                    directBankId,
                     keyPair.getPrivate());
 
             // now pretend we lost the keys and need to recover the member
@@ -104,10 +106,15 @@ public class EidasMethodsSampleTest {
         KeyStore keyStore = new InMemoryKeyStore();
         CryptoEngineFactory cryptoEngineFactory = new TokenCryptoEngineFactory(keyStore, RS256);
         try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
-            String authNumber = RandomStringUtils.randomAlphanumeric(15);
+            String authNumber = generateNonce();
             KeyPair keyPair = generateKeyPair();
             String certificate = generateCert(keyPair, authNumber);
-            Member member = registerWithEidas(tokenClient, keyStore, "gold", keyPair, certificate);
+            Member member = registerWithEidas(
+                    tokenClient,
+                    keyStore,
+                    directBankId,
+                    keyPair,
+                    certificate);
             List<SecurityProtos.Key> keys = member.getKeys().blockingSingle();
             assertThat(keys.get(0).getLevel()).isEqualTo(PRIVILEGED);
             assertThat(keys.get(0).getPublicKey()).isEqualTo(

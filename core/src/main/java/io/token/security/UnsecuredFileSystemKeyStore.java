@@ -23,6 +23,7 @@
 package io.token.security;
 
 import static io.token.exceptions.KeyNotFoundException.keyExpired;
+import static io.token.exceptions.KeyNotFoundException.keyNotFound;
 import static io.token.exceptions.KeyNotFoundException.keyNotFoundForLevel;
 
 import com.google.bitcoin.core.AddressFormatException;
@@ -35,7 +36,6 @@ import com.google.common.io.Files;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import io.token.exceptions.KeyIOException;
-import io.token.exceptions.KeyNotFoundException;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.util.Clock;
@@ -160,7 +160,7 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
         try {
             return codec.decode(keyFile.getName(), Files.toString(keyFile, Charsets.UTF_8));
         } catch (FileNotFoundException e) {
-            throw new KeyNotFoundException("Key not found: " + keyFile);
+            throw keyNotFound(keyFile.getPath());
         } catch (IOException e) {
             throw new KeyIOException("Failed to read key: " + keyFile, e);
         }

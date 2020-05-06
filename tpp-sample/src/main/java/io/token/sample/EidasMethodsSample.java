@@ -4,6 +4,7 @@ import static io.token.proto.AliasHasher.normalize;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.BANK;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EIDAS;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.util.Util.generateNonce;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.eidas.EidasProtos;
@@ -155,6 +156,7 @@ public class EidasMethodsSample {
      *         .withCryptoEngine(cryptoEngineFactory)
      *         .build();
      * </pre>
+     *
      * @param tokenClient token client
      * @param keyStore a key store that is used by token client (can be empty)
      * @param bankId id of the bank the TPP trying to get access to
@@ -172,12 +174,13 @@ public class EidasMethodsSample {
         Algorithm signingAlgorithm = Algorithm.RS256;
         Crypto crypto = CryptoRegistry.getInstance().cryptoFor(signingAlgorithm);
         // key id is not important here
-        Signer payloadSigner = crypto.signer("eidas", eidasKeyPair.getPrivate());
+        Signer payloadSigner = crypto.signer(generateNonce(), eidasKeyPair.getPrivate());
 
         EidasProtos.RegisterWithEidasPayload payload = EidasProtos.RegisterWithEidasPayload
                 .newBuilder()
                 .setCertificate(certificate)
-                .setBankId(bankId).build();
+                .setBankId(bankId)
+                .build();
 
         RegisterWithEidasResponse resp = tokenClient
                 .registerWithEidas(payload, payloadSigner.sign(payload))

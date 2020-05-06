@@ -31,10 +31,8 @@ import com.google.common.base.Strings;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.Message;
 import io.grpc.Metadata;
-import io.token.exceptions.KeyNotFoundException;
 import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
-import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.proto.gateway.Auth.GrpcAuthPayload;
 import io.token.rpc.interceptor.SimpleInterceptor;
 import io.token.security.CryptoEngine;
@@ -66,7 +64,7 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 .setCreatedAtMs(now)
                 .build();
         Key.Level keyLevel = authenticationContext.getKeyLevel();
-        Signer signer = createSigner(keyLevel);
+        Signer signer = crypto.createSignerForLevelAtLeast(keyLevel);
         String signature = signer.sign(payload);
 
         metadata.put(Metadata.Key.of("token-realm", ASCII_STRING_MARSHALLER), "Token");
@@ -105,18 +103,5 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
     @Override
     public void onHalfClose(ReqT req, Metadata headers) {
         // Ignore
-    }
-
-    private Signer createSigner(Level minKeyLevel) {
-        Level keyLevel = minKeyLevel;
-        while (keyLevel.getNumber() > 0) {
-            try {
-                return crypto.createSigner(keyLevel);
-            } catch (KeyNotFoundException e) {
-                // try a key for the next level
-                keyLevel = Level.forNumber(keyLevel.getNumber() - 1);
-            }
-        }
-        throw new KeyNotFoundException("Key not found for level " + minKeyLevel + " or higher.");
     }
 }
