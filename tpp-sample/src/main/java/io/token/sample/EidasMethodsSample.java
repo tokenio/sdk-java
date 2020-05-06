@@ -3,9 +3,7 @@ package io.token.sample;
 import static io.token.proto.AliasHasher.normalize;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.BANK;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EIDAS;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.eidas.EidasProtos;
@@ -144,9 +142,9 @@ public class EidasMethodsSample {
 
     /**
      * Creates a TPP member under realm of a bank and registers it with the provided eIDAS
-     * certificate. The created has a registered PRIVILEGED-level RSA key taken from the provided
+     * certificate. The created member has a registered PRIVILEGED-level RSA key from the provided
      * certificate and an EIDAS alias with value equal to authNumber from the certificate.<br><br>
-     * Note, that tokenClient needs to be create with a CryptoEngine that handles RSA keys, for
+     * Note, that tokenClient needs to be created with a CryptoEngine that handles RSA keys, for
      * example:<br><br>
      * <pre>
      * CryptoEngineFactory cryptoEngineFactory = new TokenCryptoEngineFactory(
@@ -160,7 +158,7 @@ public class EidasMethodsSample {
      * @param tokenClient token client
      * @param keyStore a key store that is used by token client (can be empty)
      * @param bankId id of the bank the TPP trying to get access to
-     * @param eidasKeyPair eIDAS key pair for the providede certificate
+     * @param eidasKeyPair eIDAS key pair for the provided certificate
      * @param certificate base64 encoded eIDAS certificate (a single line, no header and footer)
      * @return a newly created member
      */

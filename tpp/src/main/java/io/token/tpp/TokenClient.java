@@ -47,7 +47,6 @@ import io.token.rpc.client.lite.RpcChannelFactoryLite;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
-import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
@@ -432,10 +431,8 @@ public class TokenClient extends io.token.TokenClient {
      * certificate. Then onboards the member with the provided certificate.
      * A successful onboarding includes verifying the member and the alias and adding permissions
      * based on the certificate.<br>
-     * The call is idempotent, so if a member under this realm and with the same verified alias
-     * already exists, it returns an ID of the existing member, an ID of the registered eidas key
-     * and an ID of the verification for this certificate.<br>
-     * If you wish to submit another certificate for an existing member, please use VerifyEidas call
+     * The call is idempotent.<br>
+     * If you need to submit another certificate for an existing member, please use VerifyEidas call
      * instead.<br><br>
      * Note, that the call is asynchronous and the newly created member might not be onboarded at
      * the time the call returns. You can check the verification status using
