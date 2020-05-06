@@ -22,6 +22,10 @@
 
 package io.token.security;
 
+import static io.token.exceptions.KeyNotFoundException.keyExpired;
+import static io.token.exceptions.KeyNotFoundException.keyNotFound;
+import static io.token.exceptions.KeyNotFoundException.keyNotFoundForLevel;
+
 import com.google.bitcoin.core.AddressFormatException;
 import com.google.bitcoin.core.Base58;
 import com.google.common.annotations.VisibleForTesting;
@@ -88,7 +92,7 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
     @Override
     public void put(String memberId, SecretKey key) {
         if (key.isExpired(clock)) {
-            throw new IllegalArgumentException("Key " + key.getId() + "has expired");
+            throw keyExpired(key.getId());
         }
         File keyFile = getKeyFile(memberId, key.getId());
         File keyDir = keyFile.getParentFile();
@@ -109,14 +113,14 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
                 return key;
             }
         }
-        throw new IllegalArgumentException("Key not found for level: " + keyLevel);
+        throw keyNotFoundForLevel(keyLevel);
     }
 
     @Override
     public SecretKey getById(String memberId, String keyId) {
         SecretKey key = keyFromFile(getKeyFile(memberId, keyId));
         if (key.isExpired(clock)) {
-            throw new IllegalArgumentException("Key with id: " + keyId + "has expired");
+            throw keyExpired(keyId);
         }
         return key;
     }
@@ -156,7 +160,7 @@ public final class UnsecuredFileSystemKeyStore implements KeyStore {
         try {
             return codec.decode(keyFile.getName(), Files.toString(keyFile, Charsets.UTF_8));
         } catch (FileNotFoundException e) {
-            throw new IllegalArgumentException("Key not found: " + keyFile);
+            throw keyNotFound(keyFile.getPath());
         } catch (IOException e) {
             throw new KeyIOException("Failed to read key: " + keyFile, e);
         }

@@ -32,6 +32,7 @@ import static java.util.stream.Collectors.toList;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.eidas.EidasProtos.EidasRecoveryPayload;
+import io.token.proto.common.eidas.EidasProtos.RegisterWithEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.Member;
 import io.token.proto.common.member.MemberProtos.MemberAddKeyOperation;
@@ -41,6 +42,8 @@ import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
 import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
+import io.token.proto.gateway.Gateway.RegisterWithEidasRequest;
+import io.token.proto.gateway.Gateway.RegisterWithEidasResponse;
 import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
@@ -146,6 +149,23 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
     }
 
     /**
+     * Create and onboard a business member under realm of a bank using eIDAS certificate.
+     *
+     * @param payload payload with eIDAS certificate and bank id
+     * @param signature payload signed with the private key corresponding to the certificate
+     *     public key
+     * @return member id, registered key id and id of the certificate verification request
+     */
+    public Observable<RegisterWithEidasResponse> registerWithEidas(
+            RegisterWithEidasPayload payload,
+            String signature) {
+        return toObservable(gateway.registerWithEidas(RegisterWithEidasRequest.newBuilder()
+                .setPayload(payload)
+                .setSignature(signature)
+                .build()));
+    }
+
+    /**
      * Recovers an eIDAS-verified member with eidas payload.
      *
      * @param payload a payload containing member id, the certificate and a new key to add to the
@@ -162,8 +182,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
         SecurityProtos.Key privilegedKey = payload.getKey();
         SecurityProtos.Key standardKey = getOrGenerateKeyForLevel(cryptoEngine, STANDARD);
         SecurityProtos.Key lowKey = getOrGenerateKeyForLevel(cryptoEngine, LOW);
-        // TODO(RD-3764): createSigner by keyId (to make sure it's for the key in the payload)
-        Signer signer = cryptoEngine.createSigner(PRIVILEGED);
+        Signer signer = cryptoEngine.createSigner(privilegedKey.getId());
         String memberId = payload.getMemberId();
         return toObservable(gateway.recoverEidasMember(Gateway.RecoverEidasRequest.newBuilder()
                 .setPayload(payload)

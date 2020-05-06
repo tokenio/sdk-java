@@ -1,14 +1,23 @@
 package io.token.sample;
 
+import static com.google.common.io.BaseEncoding.base64;
+import static com.google.common.io.BaseEncoding.base64Url;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EIDAS;
 import static io.token.proto.common.eidas.EidasProtos.EidasCertificateStatus.CERTIFICATE_VALID;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.sample.EidasMethodsSample.registerWithEidas;
 import static io.token.sample.TestUtil.createClient;
+import static io.token.security.crypto.CryptoType.RS256;
+import static io.token.util.Util.generateNonce;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatExceptionOfType;
 
-import com.google.common.io.BaseEncoding;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.gateway.Gateway.GetEidasCertificateStatusResponse;
+import io.token.security.CryptoEngineFactory;
+import io.token.security.InMemoryKeyStore;
+import io.token.security.KeyStore;
+import io.token.security.TokenCryptoEngineFactory;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
 
@@ -36,7 +45,8 @@ import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
 import org.junit.Test;
 
 public class EidasMethodsSampleTest {
-    private static BouncyCastleProvider bcProvider = new BouncyCastleProvider();
+    private static final BouncyCastleProvider bcProvider = new BouncyCastleProvider();
+    private static final String directBankId = "gold";
 
     @Test
     public void verifyEidasTest() throws Exception {
@@ -48,7 +58,7 @@ public class EidasMethodsSampleTest {
                     tokenClient,
                     tppAuthNumber,
                     certificate,
-                    "gold",
+                    directBankId,
                     keyPair.getPrivate());
             List<Alias> verifiedAliases = verifiedTppMember.aliasesBlocking();
             assertThat(verifiedAliases.size()).isEqualTo(1);
@@ -69,12 +79,12 @@ public class EidasMethodsSampleTest {
             String tppAuthNumber = RandomStringUtils.randomAlphanumeric(15);
             KeyPair keyPair = generateKeyPair();
             String certificate = generateCert(keyPair, tppAuthNumber);
-            String bankId = "gold";
             // create and verify member first
             Member verifiedTppMember = EidasMethodsSample.verifyEidas(
                     tokenClient,
                     tppAuthNumber,
-                    certificate, bankId,
+                    certificate,
+                    directBankId,
                     keyPair.getPrivate());
 
             // now pretend we lost the keys and need to recover the member
@@ -88,6 +98,28 @@ public class EidasMethodsSampleTest {
             assertThat(verifiedAliases.size()).isEqualTo(1);
             assertThat(verifiedAliases.get(0).getValue()).isEqualTo(tppAuthNumber);
             assertThat(verifiedAliases.get(0).getType()).isEqualTo(EIDAS);
+        }
+    }
+
+    @Test
+    public void registerWithEidasTest() throws Exception {
+        KeyStore keyStore = new InMemoryKeyStore();
+        CryptoEngineFactory cryptoEngineFactory = new TokenCryptoEngineFactory(keyStore, RS256);
+        try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
+            String authNumber = generateNonce();
+            KeyPair keyPair = generateKeyPair();
+            String certificate = generateCert(keyPair, authNumber);
+            Member member = registerWithEidas(
+                    tokenClient,
+                    keyStore,
+                    directBankId,
+                    keyPair,
+                    certificate);
+            List<SecurityProtos.Key> keys = member.getKeys().blockingSingle();
+            assertThat(keys.get(0).getLevel()).isEqualTo(PRIVILEGED);
+            assertThat(keys.get(0).getPublicKey()).isEqualTo(
+                    base64Url().encode(keyPair.getPublic().getEncoded()));
+            assertThat(member.aliases().blockingSingle().get(0).getValue()).isEqualTo(authNumber);
         }
     }
 
@@ -135,6 +167,6 @@ public class EidasMethodsSampleTest {
         X509Certificate certificate = new JcaX509CertificateConverter()
                 .setProvider(bcProvider)
                 .getCertificate(certBuilder.build(contentSigner));
-        return BaseEncoding.base64().encode(certificate.getEncoded());
+        return base64().encode(certificate.getEncoded());
     }
 }

@@ -37,10 +37,12 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.eidas.EidasProtos.EidasRecoveryPayload;
+import io.token.proto.common.eidas.EidasProtos.RegisterWithEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
+import io.token.proto.gateway.Gateway.RegisterWithEidasResponse;
 import io.token.rpc.client.lite.RpcChannelFactoryLite;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
@@ -104,6 +106,26 @@ public class TokenClient extends io.token.TokenClient {
         return TokenClient.builder()
                 .connectTo(cluster)
                 .devKey(developerKey)
+                .build();
+    }
+
+    /**
+     * Creates a new instance of {@link TokenClient} that's configured to use
+     * the specified environment and crypto engine factory.
+     *
+     * @param cluster token cluster to connect to
+     * @param developerKey developer key
+     * @param cryptoEngineFactory crypto engine factory to use
+     * @return {@link TokenClient} instance
+     */
+    public static TokenClient create(
+            TokenCluster cluster,
+            String developerKey,
+            CryptoEngineFactory cryptoEngineFactory) {
+        return TokenClient.builder()
+                .connectTo(cluster)
+                .devKey(developerKey)
+                .withCryptoEngine(cryptoEngineFactory)
                 .build();
     }
 
@@ -401,6 +423,31 @@ public class TokenClient extends io.token.TokenClient {
                             client,
                             tokenCluster);
                 });
+    }
+
+    /**
+     * Creates a business member under realm of a bank with an EIDAS alias (with value equal to the
+     * authNumber from the certificate) and a PRIVILEGED-level public key taken from the
+     * certificate. Then onboards the member with the provided certificate.
+     * A successful onboarding includes verifying the member and the alias and adding permissions
+     * based on the certificate.<br>
+     * The call is idempotent.<br>
+     * If you need to submit another certificate for an existing member, please use VerifyEidas call
+     * instead.<br><br>
+     * Note, that the call is asynchronous and the newly created member might not be onboarded at
+     * the time the call returns. You can check the verification status using
+     * member.getEidasVerificationStatus call with the verification id returned by this call.
+     *
+     * @param payload payload with eIDAS certificate and bank id
+     * @param signature payload signed with the private key corresponding to the certificate
+     *      public key
+     * @return member id, registered key id and id of the certificate verification request
+     */
+    public Observable<RegisterWithEidasResponse> registerWithEidas(
+            RegisterWithEidasPayload payload,
+            String signature) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        return unauthenticated.registerWithEidas(payload, signature);
     }
 
     /**

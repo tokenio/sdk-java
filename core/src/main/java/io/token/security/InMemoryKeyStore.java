@@ -22,6 +22,10 @@
 
 package io.token.security;
 
+import static io.token.exceptions.KeyNotFoundException.keyExpired;
+import static io.token.exceptions.KeyNotFoundException.keyNotFoundForId;
+import static io.token.exceptions.KeyNotFoundException.keyNotFoundForLevel;
+
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.Table;
@@ -57,7 +61,7 @@ public final class InMemoryKeyStore implements KeyStore {
     @Override
     public void put(String memberId, SecretKey key) {
         if (key.isExpired(clock)) {
-            throw new IllegalArgumentException("Key " + key.getId() + " has expired");
+            throw keyExpired(key.getId());
         }
         keys.put(memberId, key.getId(), key);
     }
@@ -70,7 +74,7 @@ public final class InMemoryKeyStore implements KeyStore {
                 return key;
             }
         }
-        throw new IllegalArgumentException("Key not found for level: " + keyLevel);
+        throw keyNotFoundForLevel(keyLevel);
     }
 
     @Override
@@ -78,10 +82,10 @@ public final class InMemoryKeyStore implements KeyStore {
         SecretKey key = keys.get(memberId, keyId);
 
         if (key == null) {
-            throw new IllegalArgumentException("Key not found for id: " + keyId);
+            throw keyNotFoundForId(keyId);
         }
         if (key.isExpired(clock)) {
-            throw new IllegalArgumentException("Key with id: " + keyId + "has expired");
+            throw keyExpired(keyId);
         }
 
         return key;

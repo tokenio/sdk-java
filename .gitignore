@@ -2,6 +2,11 @@
 .idea
 build/
 log/
+core/out/
+tpp-sample/out/
+tpp/out/
+user-sample/out/
+user/out/
 keys/
 /lib/out
 **/*.iml
