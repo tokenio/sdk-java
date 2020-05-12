@@ -55,7 +55,7 @@ public class TokenCryptoEngineTest {
     }
 
     @Test
-    public void createSigner_forMinLeve() {
+    public void createSigner_forMinLevel() {
         KeyStore keyStore = new InMemoryKeyStore();
         CryptoEngine cryptoEngine = new TokenCryptoEngine("member-id", keyStore);
 
