@@ -28,6 +28,7 @@ import io.token.tpp.TokenClient;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.security.cert.X509Certificate;
 
 public class EidasMethodsSample {
 
@@ -196,5 +197,14 @@ public class EidasMethodsSample {
                 .blockingSingle();
 
         return member;
+    }
+
+    public static Member registerWithEidasBlocking(
+            TokenClient tokenClient,
+            KeyStore keyStore,
+            String bankId,
+            X509Certificate certificate,
+            PrivateKey privateKey) {
+        return tokenClient.registerWithEidasBlocking(bankId, certificate, privateKey, keyStore);
     }
 }

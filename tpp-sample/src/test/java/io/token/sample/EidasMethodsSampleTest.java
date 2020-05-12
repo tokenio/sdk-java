@@ -6,6 +6,7 @@ import static io.token.proto.common.alias.AliasProtos.Alias.Type.EIDAS;
 import static io.token.proto.common.eidas.EidasProtos.EidasCertificateStatus.CERTIFICATE_VALID;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.sample.EidasMethodsSample.registerWithEidas;
+import static io.token.sample.EidasMethodsSample.registerWithEidasBlocking;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.security.crypto.CryptoType.RS256;
 import static io.token.util.Util.generateNonce;
@@ -53,7 +54,7 @@ public class EidasMethodsSampleTest {
         try (TokenClient tokenClient = createClient()) {
             String tppAuthNumber = RandomStringUtils.randomAlphanumeric(15);
             KeyPair keyPair = generateKeyPair();
-            String certificate = generateCert(keyPair, tppAuthNumber);
+            String certificate = encode(generateCert(keyPair, tppAuthNumber));
             Member verifiedTppMember = EidasMethodsSample.verifyEidas(
                     tokenClient,
                     tppAuthNumber,
@@ -78,7 +79,7 @@ public class EidasMethodsSampleTest {
              TokenClient anotherTokenClient = createClient();) {
             String tppAuthNumber = RandomStringUtils.randomAlphanumeric(15);
             KeyPair keyPair = generateKeyPair();
-            String certificate = generateCert(keyPair, tppAuthNumber);
+            String certificate = encode(generateCert(keyPair, tppAuthNumber));
             // create and verify member first
             Member verifiedTppMember = EidasMethodsSample.verifyEidas(
                     tokenClient,
@@ -108,13 +109,35 @@ public class EidasMethodsSampleTest {
         try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
             String authNumber = generateNonce();
             KeyPair keyPair = generateKeyPair();
-            String certificate = generateCert(keyPair, authNumber);
+            String certificate = encode(generateCert(keyPair, authNumber));
             Member member = registerWithEidas(
                     tokenClient,
                     keyStore,
                     directBankId,
                     keyPair,
                     certificate);
+            List<SecurityProtos.Key> keys = member.getKeys().blockingSingle();
+            assertThat(keys.get(0).getLevel()).isEqualTo(PRIVILEGED);
+            assertThat(keys.get(0).getPublicKey()).isEqualTo(
+                    base64Url().encode(keyPair.getPublic().getEncoded()));
+            assertThat(member.aliases().blockingSingle().get(0).getValue()).isEqualTo(authNumber);
+        }
+    }
+
+    @Test
+    public void registerWithEidasBlockingTest() throws Exception {
+        KeyStore keyStore = new InMemoryKeyStore();
+        CryptoEngineFactory cryptoEngineFactory = new TokenCryptoEngineFactory(keyStore, RS256);
+        try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
+            String authNumber = generateNonce();
+            KeyPair keyPair = generateKeyPair();
+            X509Certificate certificate = generateCert(keyPair, authNumber);
+            Member member = registerWithEidasBlocking(
+                    tokenClient,
+                    keyStore,
+                    "gold",
+                    certificate,
+                    keyPair.getPrivate());
             List<SecurityProtos.Key> keys = member.getKeys().blockingSingle();
             assertThat(keys.get(0).getLevel()).isEqualTo(PRIVILEGED);
             assertThat(keys.get(0).getPublicKey()).isEqualTo(
@@ -130,7 +153,11 @@ public class EidasMethodsSampleTest {
         return keyPairGenerator.generateKeyPair();
     }
 
-    private static String generateCert(KeyPair keyPair, String tppAuthNumber) throws Exception {
+    private static String encode(X509Certificate certificate) throws Exception {
+        return base64().encode(certificate.getEncoded());
+    }
+
+    private static X509Certificate generateCert(KeyPair keyPair, String tppAuthNumber) throws Exception {
         long now = System.currentTimeMillis();
         Date startDate = new Date(now);
 
@@ -164,9 +191,8 @@ public class EidasMethodsSampleTest {
                 true,
                 basicConstraints);
         // -------------------------------------
-        X509Certificate certificate = new JcaX509CertificateConverter()
+        return new JcaX509CertificateConverter()
                 .setProvider(bcProvider)
                 .getCertificate(certBuilder.build(contentSigner));
-        return base64().encode(certificate.getEncoded());
     }
 }

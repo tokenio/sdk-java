@@ -22,8 +22,16 @@
 
 package io.token.tpp;
 
+import static com.google.common.io.BaseEncoding.base64;
 import static io.token.TokenClient.TokenCluster.SANDBOX;
+import static io.token.tpp.exceptions.EidasRegistrationException.registrationException;
+import static io.token.tpp.exceptions.EidasRegistrationException.tookTooLong;
+import static io.token.proto.common.eidas.EidasProtos.EidasVerificationStatus.EIDAS_STATUS_ERROR;
+import static io.token.proto.common.eidas.EidasProtos.EidasVerificationStatus.EIDAS_STATUS_PENDING;
+import static io.token.proto.common.eidas.EidasProtos.EidasVerificationStatus.EIDAS_STATUS_SUCCESS;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
+import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.security.crypto.CryptoType.RS256;
 import static io.token.tpp.util.Util.hashString;
 import static io.token.tpp.util.Util.urlEncode;
 import static io.token.tpp.util.Util.verifySignature;
@@ -37,20 +45,27 @@ import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.eidas.EidasProtos.EidasRecoveryPayload;
+import io.token.proto.common.eidas.EidasProtos.EidasVerificationStatus;
 import io.token.proto.common.eidas.EidasProtos.RegisterWithEidasPayload;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
+import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
 import io.token.proto.gateway.Gateway.RegisterWithEidasResponse;
 import io.token.rpc.client.lite.RpcChannelFactoryLite;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
+import io.token.security.KeyStore;
+import io.token.security.SecretKey;
+import io.token.security.Signer;
 import io.token.security.TokenCryptoEngineFactory;
+import io.token.security.crypto.CryptoRegistry;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
 import io.token.tokenrequest.TokenRequestState;
+import io.token.tpp.exceptions.EidasRegistrationException;
 import io.token.tpp.exceptions.InvalidStateException;
 import io.token.tpp.rpc.Client;
 import io.token.tpp.rpc.ClientFactory;
@@ -62,6 +77,10 @@ import io.token.tpp.util.Util;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.KeyPair;
+import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
+import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
@@ -448,6 +467,85 @@ public class TokenClient extends io.token.TokenClient {
             String signature) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.registerWithEidas(payload, signature);
+    }
+
+
+    /**
+     * TODO
+     *
+     * @param bankId
+     * @param certificate
+     * @param privateKey
+     * @param keyStore
+     * @return a registered member
+     * @throws EidasRegistrationException
+     */
+    public Member registerWithEidasBlocking(
+            String bankId,
+            X509Certificate certificate,
+            PrivateKey privateKey,
+            KeyStore keyStore) {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        Signer payloadSigner = CryptoRegistry.getInstance().cryptoFor(RS256).signer("", privateKey);
+        String cert;
+        try {
+            cert = base64().encode(certificate.getEncoded());
+        } catch (CertificateEncodingException ex) {
+            throw registrationException(EIDAS_STATUS_ERROR, ex.getMessage());
+        }
+
+        RegisterWithEidasPayload payload = RegisterWithEidasPayload
+                .newBuilder()
+                .setCertificate(cert)
+                .setBankId(bankId)
+                .build();
+
+        RegisterWithEidasResponse resp = unauthenticated
+                .registerWithEidas(payload, payloadSigner.sign(payload))
+                .blockingSingle();
+
+        String memberId = resp.getMemberId();
+
+        // add the key to use for authenticated calls
+        keyStore.put(
+                memberId,
+                SecretKey.create(
+                        resp.getKeyId(),
+                        PRIVILEGED,
+                        new KeyPair(certificate.getPublicKey(), privateKey)));
+
+        // get the member
+        Member member = getMemberBlocking(memberId);
+        // wait until it is onboarded
+        String statusDetails = "";
+        EidasVerificationStatus verificationStatus = EIDAS_STATUS_PENDING;
+        long t = 1000;
+        long sumT = 0;
+        long maxT = 360_000;
+        try {
+            while (EIDAS_STATUS_PENDING.equals(verificationStatus)) {
+                if (sumT > maxT) {
+                    throw tookTooLong();
+                }
+                GetEidasVerificationStatusResponse verificationResponse = member
+                        .getEidasVerificationStatus(resp.getVerificationId())
+                        .blockingSingle();
+                verificationStatus = verificationResponse.getEidasStatus();
+                statusDetails = verificationResponse.getStatusDetails();
+                System.out.println("t = " + t + " sumT = " + sumT + " status="+verificationStatus);
+                Thread.sleep(t);
+                sumT += t;
+                t = Math.min(t * 2, 5000);
+            }
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            throw new RuntimeException(e);
+        }
+        if (!EIDAS_STATUS_SUCCESS.equals(verificationStatus)) {
+            throw registrationException(verificationStatus, statusDetails);
+        }
+
+        return member;
     }
 
     /**
