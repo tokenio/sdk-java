@@ -64,7 +64,7 @@ final class ClientAuthenticator<ReqT, ResT> extends SimpleInterceptor<ReqT, ResT
                 .setCreatedAtMs(now)
                 .build();
         Key.Level keyLevel = authenticationContext.getKeyLevel();
-        Signer signer = crypto.createSignerForLevelAtLeast(keyLevel);
+        Signer signer = crypto.createSigner(keyLevel);
         String signature = signer.sign(payload);
 
         metadata.put(Metadata.Key.of("token-realm", ASCII_STRING_MARSHALLER), "Token");

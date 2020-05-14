@@ -21,6 +21,9 @@ import io.token.security.KeyStore;
 import io.token.security.TokenCryptoEngineFactory;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
+import io.token.tpp.security.EidasCryptoEngineFactory;
+import io.token.tpp.security.EidasKeyStore;
+import io.token.tpp.security.InMemoryEidasKeyStore;
 
 import java.math.BigInteger;
 import java.security.KeyPair;
@@ -104,17 +107,16 @@ public class EidasMethodsSampleTest {
 
     @Test
     public void registerWithEidasTest() throws Exception {
-        KeyStore keyStore = new InMemoryKeyStore();
+        String authNumber = generateNonce();
+        KeyPair keyPair = generateKeyPair();
+        String certificate = encode(generateCert(keyPair, authNumber));
+        EidasKeyStore keyStore = new InMemoryEidasKeyStore(certificate, keyPair.getPrivate());
         CryptoEngineFactory cryptoEngineFactory = new TokenCryptoEngineFactory(keyStore, RS256);
         try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
-            String authNumber = generateNonce();
-            KeyPair keyPair = generateKeyPair();
-            String certificate = encode(generateCert(keyPair, authNumber));
             Member member = registerWithEidas(
                     tokenClient,
                     keyStore,
                     directBankId,
-                    keyPair,
                     certificate);
             List<SecurityProtos.Key> keys = member.getKeys().blockingSingle();
             assertThat(keys.get(0).getLevel()).isEqualTo(PRIVILEGED);
@@ -126,18 +128,13 @@ public class EidasMethodsSampleTest {
 
     @Test
     public void registerWithEidasBlockingTest() throws Exception {
-        KeyStore keyStore = new InMemoryKeyStore();
-        CryptoEngineFactory cryptoEngineFactory = new TokenCryptoEngineFactory(keyStore, RS256);
+        String authNumber = generateNonce();
+        KeyPair keyPair = generateKeyPair();
+        X509Certificate certificate = generateCert(keyPair, authNumber);
+        EidasKeyStore keyStore = new InMemoryEidasKeyStore(certificate, keyPair.getPrivate());
+        CryptoEngineFactory cryptoEngineFactory = new EidasCryptoEngineFactory(keyStore);
         try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
-            String authNumber = generateNonce();
-            KeyPair keyPair = generateKeyPair();
-            X509Certificate certificate = generateCert(keyPair, authNumber);
-            Member member = registerWithEidasBlocking(
-                    tokenClient,
-                    keyStore,
-                    "gold",
-                    certificate,
-                    keyPair.getPrivate());
+            Member member = registerWithEidasBlocking(tokenClient, keyStore, "gold");
             List<SecurityProtos.Key> keys = member.getKeys().blockingSingle();
             assertThat(keys.get(0).getLevel()).isEqualTo(PRIVILEGED);
             assertThat(keys.get(0).getPublicKey()).isEqualTo(

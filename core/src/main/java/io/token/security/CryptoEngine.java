@@ -22,9 +22,6 @@
 
 package io.token.security;
 
-import static io.token.exceptions.KeyNotFoundException.keyNotFoundForLevel;
-
-import io.token.exceptions.KeyNotFoundException;
 import io.token.proto.common.security.SecurityProtos.Key;
 
 import java.util.List;
@@ -53,28 +50,6 @@ public interface CryptoEngine {
      * @return newly generated key information
      */
     Key generateKey(Key.Level keyLevel, long expiresAtMs);
-
-    /**
-     * Creates a new signer that uses a key of specified level or higher (if no key of the
-     * specified level can be found).<br>
-     * Note, that if there are several same-level keys, a random one is used to create a signer.
-     * If you need to create a signer for a specific key, create a signer using the key id.
-     *
-     * @param minKeyLevel minimum level of the key to use
-     * @return signer that is used to generate digital signatures
-     */
-    default Signer createSignerForLevelAtLeast(Key.Level minKeyLevel) {
-        Key.Level keyLevel = minKeyLevel;
-        while (keyLevel.getNumber() > 0) {
-            try {
-                return createSigner(keyLevel);
-            } catch (KeyNotFoundException e) {
-                // try a key for the next level
-                keyLevel = Key.Level.forNumber(keyLevel.getNumber() - 1);
-            }
-        }
-        throw keyNotFoundForLevel(minKeyLevel);
-    }
 
     /**
      * Creates a new signer that uses a key of specified level.<br>

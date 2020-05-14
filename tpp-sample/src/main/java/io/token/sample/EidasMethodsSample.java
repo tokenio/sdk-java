@@ -4,7 +4,9 @@ import static io.token.proto.AliasHasher.normalize;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.BANK;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EIDAS;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
+import static io.token.security.crypto.CryptoType.RS256;
 import static io.token.util.Util.generateNonce;
+import static java.lang.String.format;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.eidas.EidasProtos;
@@ -25,10 +27,14 @@ import io.token.security.crypto.Crypto;
 import io.token.security.crypto.CryptoRegistry;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
+import io.token.tpp.exceptions.EidasTimeoutException;
+import io.token.tpp.security.EidasKeyStore;
 
 import java.security.KeyPair;
 import java.security.PrivateKey;
+import java.security.cert.CertificateEncodingException;
 import java.security.cert.X509Certificate;
+import java.util.concurrent.TimeUnit;
 
 public class EidasMethodsSample {
 
@@ -159,23 +165,22 @@ public class EidasMethodsSample {
      * </pre>
      *
      * @param tokenClient token client
-     * @param keyStore a key store that is used by token client (can be empty)
+     * @param keyStore a key store that is used by token client and contains eIDAS key pair for the
+     *      provided certificate
      * @param bankId id of the bank the TPP trying to get access to
-     * @param eidasKeyPair eIDAS key pair for the provided certificate
      * @param certificate base64 encoded eIDAS certificate (a single line, no header and footer)
      * @return a newly created member
      */
     public static Member registerWithEidas(
             TokenClient tokenClient,
-            KeyStore keyStore,
+            EidasKeyStore keyStore,
             String bankId,
-            KeyPair eidasKeyPair,
             String certificate) {
         // create a signer using the certificate private key
         Algorithm signingAlgorithm = Algorithm.RS256;
         Crypto crypto = CryptoRegistry.getInstance().cryptoFor(signingAlgorithm);
         // key id is not important here
-        Signer payloadSigner = crypto.signer(generateNonce(), eidasKeyPair.getPrivate());
+        Signer payloadSigner = crypto.signer(generateNonce(), keyStore.getKey().getPrivateKey());
 
         EidasProtos.RegisterWithEidasPayload payload = EidasProtos.RegisterWithEidasPayload
                 .newBuilder()
@@ -187,8 +192,8 @@ public class EidasMethodsSample {
                 .registerWithEidas(payload, payloadSigner.sign(payload))
                 .blockingSingle();
         String memberId = resp.getMemberId();
-        // don't forget to add the registered key to the key store used by the tokenClient
-        keyStore.put(memberId, SecretKey.create(resp.getKeyId(), PRIVILEGED, eidasKeyPair));
+//        // don't forget to add the registered key to the key store used by the tokenClient
+//        keyStore.put(memberId, SecretKey.create(resp.getKeyId(), PRIVILEGED, eidasKeyPair));
 
         // now we can load a member and also check a status of the certificate verification
         Member member = tokenClient.getMemberBlocking(memberId);
@@ -201,10 +206,16 @@ public class EidasMethodsSample {
 
     public static Member registerWithEidasBlocking(
             TokenClient tokenClient,
-            KeyStore keyStore,
-            String bankId,
-            X509Certificate certificate,
-            PrivateKey privateKey) {
-        return tokenClient.registerWithEidasBlocking(bankId, certificate, privateKey, keyStore);
+            EidasKeyStore keyStore,
+            String bankId) throws CertificateEncodingException, InterruptedException {
+        try {
+            return tokenClient.registerWithEidasBlocking(bankId, keyStore, 30, TimeUnit.SECONDS);
+        } catch (EidasTimeoutException ex) {
+            System.out.println(format(
+                    "Unable to complete eIDAS verification: memberId=%s | verivicationId=%s",
+                    ex.getMemberId(),
+                    ex.getVerificationId()));
+        }
+        return null;
     }
 }
