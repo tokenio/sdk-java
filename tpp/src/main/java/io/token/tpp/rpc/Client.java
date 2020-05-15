@@ -47,6 +47,7 @@ import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.BulkTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
+import io.token.proto.common.webhook.WebhookProtos.Webhook.Config;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
@@ -55,6 +56,7 @@ import io.token.proto.gateway.Gateway.CreateCustomizationResponse;
 import io.token.proto.gateway.Gateway.CreateStandingOrderResponse;
 import io.token.proto.gateway.Gateway.CreateTransferRequest;
 import io.token.proto.gateway.Gateway.CreateTransferResponse;
+import io.token.proto.gateway.Gateway.DeleteWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenRequest;
 import io.token.proto.gateway.Gateway.GetActiveAccessTokenResponse;
 import io.token.proto.gateway.Gateway.GetBankAuthUrlRequest;
@@ -73,11 +75,14 @@ import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.proto.gateway.Gateway.GetTransferRequest;
 import io.token.proto.gateway.Gateway.GetTransferResponse;
 import io.token.proto.gateway.Gateway.GetTransfersRequest;
+import io.token.proto.gateway.Gateway.GetWebhookConfigRequest;
+import io.token.proto.gateway.Gateway.GetWebhookConfigResponse;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackRequest;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackResponse;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetTokenRequestTransferDestinationsRequest;
+import io.token.proto.gateway.Gateway.SetWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationRequest;
 import io.token.proto.gateway.Gateway.TriggerStepUpNotificationResponse;
@@ -86,7 +91,6 @@ import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
-
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -646,6 +650,43 @@ public final class Client extends io.token.rpc.Client {
                 .getExternalMetadata(GetExternalMetadataRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()));
+    }
+
+    /**
+     * Set a webhook config.
+     *
+     * @param config the webhook config
+     * @return completable
+     */
+    public Completable setWebhookConfig(Config config) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .setWebhookConfig(SetWebhookConfigRequest.newBuilder()
+                        .setConfig(config)
+                        .build()));
+    }
+
+    /**
+     * Get the webhook config.
+     *
+     * @return config
+     */
+    public Observable<Config> getWebhookConfig() {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getWebhookConfig(GetWebhookConfigRequest.getDefaultInstance()))
+                .map(GetWebhookConfigResponse::getConfig);
+    }
+
+    /**
+     * delete the webhook config.
+     *
+     * @return completable
+     */
+    public Completable deleteWebhookConfig() {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .deleteWebhookConfig(DeleteWebhookConfigRequest.getDefaultInstance()));
     }
 
     @Override
