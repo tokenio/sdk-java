@@ -22,11 +22,23 @@
 
 package io.token.tpp.exceptions;
 
+import static java.lang.String.format;
+
 public class EidasTimeoutException extends Exception {
     private final String memberId;
     private final String verificationId;
 
+    /**
+     * Create a timeout exception.
+     *
+     * @param memberId member id
+     * @param verificationId verification id
+     */
     public EidasTimeoutException(String memberId, String verificationId) {
+        super(format(
+                "Eidas verification for member %s has timed out. Verification ID: %s",
+                memberId,
+                verificationId));
         this.memberId = memberId;
         this.verificationId = verificationId;
     }

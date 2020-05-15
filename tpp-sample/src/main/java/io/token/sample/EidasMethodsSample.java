@@ -164,7 +164,7 @@ public class EidasMethodsSample {
      *      provided certificate
      * @param bankId id of the bank the TPP trying to get access to
      * @return a newly created member, which might not be onboarded yet
-     * @throws Exception is an exception occurs
+     * @throws Exception if an exception occurs
      */
     public static Member registerWithEidas(
             TokenClient tokenClient,
@@ -215,7 +215,7 @@ public class EidasMethodsSample {
      *      a private key
      * @param bankId id of the bank the TPP trying to get access to
      * @return a newly created and oboarded member
-     * @throws Exception is an exception occurs
+     * @throws Exception if an exception occurs
      */
     public static Optional<Member> createMemberWithEidas(
             TokenClient tokenClient,

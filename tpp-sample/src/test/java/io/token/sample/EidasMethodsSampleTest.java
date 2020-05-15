@@ -106,7 +106,7 @@ public class EidasMethodsSampleTest {
     public void registerWithEidasTest() throws Exception {
         String authNumber = generateNonce();
         KeyPair keyPair = generateKeyPair();
-        String certificate = encode(generateCert(keyPair, authNumber));
+        X509Certificate certificate = generateCert(keyPair, authNumber);
         EidasKeyStore keyStore = new InMemoryEidasKeyStore(certificate, keyPair.getPrivate());
         CryptoEngineFactory cryptoEngineFactory = new EidasCryptoEngineFactory(keyStore);
         try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
