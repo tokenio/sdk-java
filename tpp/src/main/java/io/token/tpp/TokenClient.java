@@ -24,14 +24,11 @@ package io.token.tpp;
 
 import static com.google.common.io.BaseEncoding.base64;
 import static io.token.TokenClient.TokenCluster.SANDBOX;
-import static io.token.tpp.exceptions.EidasRegistrationException.registrationException;
-import static io.token.tpp.exceptions.EidasRegistrationException.tookTooLong;
-import static io.token.proto.common.eidas.EidasProtos.EidasVerificationStatus.EIDAS_STATUS_ERROR;
 import static io.token.proto.common.eidas.EidasProtos.EidasVerificationStatus.EIDAS_STATUS_PENDING;
 import static io.token.proto.common.eidas.EidasProtos.EidasVerificationStatus.EIDAS_STATUS_SUCCESS;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.security.crypto.CryptoType.RS256;
+import static io.token.tpp.exceptions.EidasRegistrationException.registrationException;
 import static io.token.tpp.util.Util.hashString;
 import static io.token.tpp.util.Util.urlEncode;
 import static io.token.tpp.util.Util.verifySignature;
@@ -57,10 +54,8 @@ import io.token.rpc.client.lite.RpcChannelFactoryLite;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
-import io.token.security.KeyStore;
 import io.token.security.SecretKey;
 import io.token.security.Signer;
-import io.token.security.TokenCryptoEngine;
 import io.token.security.TokenCryptoEngineFactory;
 import io.token.security.crypto.CryptoRegistry;
 import io.token.tokenrequest.TokenRequest;
@@ -72,9 +67,7 @@ import io.token.tpp.exceptions.InvalidStateException;
 import io.token.tpp.rpc.Client;
 import io.token.tpp.rpc.ClientFactory;
 import io.token.tpp.rpc.UnauthenticatedClient;
-import io.token.tpp.security.EidasCryptoEngineFactory;
 import io.token.tpp.security.EidasKeyStore;
-import io.token.tpp.security.InMemoryEidasKeyStore;
 import io.token.tpp.tokenrequest.TokenRequestCallback;
 import io.token.tpp.tokenrequest.TokenRequestCallbackParameters;
 import io.token.tpp.tokenrequest.TokenRequestTransferDestinationsCallbackParameters;
@@ -82,10 +75,7 @@ import io.token.tpp.util.Util;
 
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.security.KeyPair;
-import java.security.PrivateKey;
 import java.security.cert.CertificateEncodingException;
-import java.security.cert.X509Certificate;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
@@ -477,19 +467,40 @@ public class TokenClient extends io.token.TokenClient {
 
 
     /**
-     * TODO
+     * Creates a TPP member under realm of a bank and registers it with the provided eIDAS
+     * certificate. The created member has a registered PRIVILEGED-level RSA key from the provided
+     * certificate (key ID is set to the decimal String representation of the certificate's serial
+     * number) and an EIDAS alias with value equal to authNumber from the certificate.<br><br>
+     * Note, that the TokenClient used to make this call needs to be backed by the EidasKeyStore
+     * passed to this method, which contains a certificate and a key:
+     * <br><br>
+     * <pre>
+     * EidasKeyStore keyStore = new InMemoryEidasKeyStore(certificate, privateKey);
+     * TokenClient tokenClient = TokenClient.builder()
+     *         .connectTo(SANDBOX)
+     *         .withCryptoEngine(new EidasCryptoEngineFactory(keyStore))
+     *         .build();
+     * </pre>
+     * IMPORTANT: this method is blocking, and a member will be returned only if it is successfully
+     * onboarded. Otherwise a EidasRegistrationException or EidasTimeoutException will be thrown.
+     * For asynchronous call see {@link TokenClient#registerWithEidas}.
      *
-     * @param bankId
+     * @param bankId id of the bank the TPP trying to get access to
      * @param keyStore a key store containing an eIDAS certificate and a private key for it
+     * @param timeout a time period within which a certificate verification is expected to finish
+     * @param timeUnit the time unit for the timeout
      * @return a registered member
-     * @throws EidasRegistrationException
-     * @throws EidasTimeoutException
+     * @throws EidasRegistrationException if certificate verification failed
+     * @throws EidasTimeoutException if a verification has not finished within expected time period
+     * @throws CertificateEncodingException if an encoding error occurs
+     * @throws InterruptedException if any thread has interrupted the current thread
      */
-    public Member registerWithEidasBlocking(
+    public Member createMemberWithEidas(
             String bankId,
             EidasKeyStore keyStore,
             long timeout,
-            TimeUnit timeUnit) throws CertificateEncodingException, InterruptedException {
+            TimeUnit timeUnit)
+            throws CertificateEncodingException, InterruptedException, EidasTimeoutException {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         SecretKey keyPair = keyStore.getKey();
         Signer payloadSigner = CryptoRegistry
@@ -499,7 +510,7 @@ public class TokenClient extends io.token.TokenClient {
 
         RegisterWithEidasPayload payload = RegisterWithEidasPayload
                 .newBuilder()
-                .setCertificate(base64().encode(keyStore.getEidasCertificate().getEncoded()))
+                .setCertificate(base64().encode(keyStore.getCertificate().getEncoded()))
                 .setBankId(bankId)
                 .build();
 
@@ -509,14 +520,14 @@ public class TokenClient extends io.token.TokenClient {
 
         // get the member
         Member member = getMemberBlocking(resp.getMemberId());
-        // wait until it is onboarded
+        // periodically check the verificstion status
         String statusDetails = "";
         EidasVerificationStatus verificationStatus = EIDAS_STATUS_PENDING;
-        long t = 1000;
-        long sumT = 0;
-        long maxT = timeUnit.toMillis(timeout);
+        long sleepTime = 1000;
+        long totalTime = 0;
+        long maxTime = timeUnit.toMillis(timeout);
         while (EIDAS_STATUS_PENDING.equals(verificationStatus)) {
-            if (sumT > maxT) {
+            if (totalTime > maxTime) {
                 throw new EidasTimeoutException(resp.getMemberId(), resp.getVerificationId());
             }
             GetEidasVerificationStatusResponse verificationResponse = member
@@ -524,9 +535,9 @@ public class TokenClient extends io.token.TokenClient {
                     .blockingSingle();
             verificationStatus = verificationResponse.getEidasStatus();
             statusDetails = verificationResponse.getStatusDetails();
-            Thread.sleep(t);
-            sumT += t;
-            t = Math.min(t * 2, 5000);
+            Thread.sleep(sleepTime);
+            totalTime += sleepTime;
+            sleepTime = Math.min(sleepTime * 2, 5000);
         }
         if (!EIDAS_STATUS_SUCCESS.equals(verificationStatus)) {
             throw registrationException(verificationStatus, statusDetails);

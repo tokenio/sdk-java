@@ -1,21 +1,40 @@
+/**
+ * Copyright (c) 2019 Token, Inc.
+ * <p>
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * <p>
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ * <p>
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+ * THE SOFTWARE.
+ */
+
 package io.token.tpp.security;
 
-import static io.token.exceptions.KeyNotFoundException.keyNotFoundForId;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static java.lang.String.format;
 
-import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.security.SecretKey;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.math.BigInteger;
 import java.nio.file.Files;
-import java.nio.file.Paths;
+import java.security.GeneralSecurityException;
 import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.NoSuchAlgorithmException;
@@ -25,8 +44,6 @@ import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * In memory implementation of the {@link EidasKeyStore}. Used for testing.
@@ -35,6 +52,12 @@ public final class InMemoryEidasKeyStore implements EidasKeyStore {
     private final SecretKey key;
     private final X509Certificate eidasCertificate;
 
+    /**
+     * Creates a key store with a single private key and a corresponding certificate.
+     *
+     * @param eidasCertificate an eIDAS certificate
+     * @param privateKey a private key
+     */
     public InMemoryEidasKeyStore(X509Certificate eidasCertificate, PrivateKey privateKey) {
         this.eidasCertificate = eidasCertificate;
         this.key = SecretKey.create(
@@ -43,12 +66,28 @@ public final class InMemoryEidasKeyStore implements EidasKeyStore {
                 new KeyPair(eidasCertificate.getPublicKey(), privateKey));
     }
 
-    public InMemoryEidasKeyStore(String eidasCertificateDer, PrivateKey privateKey) throws CertificateException {
-        this(extractCertificate(eidasCertificateDer), privateKey);
+    /**
+     * Creates a key store with a single private key and a corresponding certificate.
+     *
+     * @param eidasCertificate a base64-encoded eIDAS certificate without a footer and a header
+     * @param privateKey a private key
+     * @throws CertificateException if an exception occurred while parsing the certificate
+     */
+    public InMemoryEidasKeyStore(String eidasCertificate, PrivateKey privateKey)
+            throws CertificateException {
+        this(extractCertificate(eidasCertificate), privateKey);
     }
 
-    public InMemoryEidasKeyStore(File certificatePemFile, File privateKeyPemFile) throws
-            CertificateException, InvalidKeySpecException, IOException {
+    /**
+     * Creates a key store with a single private key and a corresponding certificate.
+     *
+     * @param certificatePemFile a file with a certificate in PEM format
+     * @param privateKeyPemFile a file with a key in PEM format
+     * @throws GeneralSecurityException if an exception occurred while reading the certificate/key
+     * @throws IOException if an I/O error occurs while reading from the files
+     */
+    public InMemoryEidasKeyStore(File certificatePemFile, File privateKeyPemFile)
+            throws GeneralSecurityException, IOException {
         this(
                 readCertificateFromFile(certificatePemFile),
                 readPrivateKeyFromFile(privateKeyPemFile));
@@ -71,7 +110,7 @@ public final class InMemoryEidasKeyStore implements EidasKeyStore {
     }
 
     @Override
-    public X509Certificate getEidasCertificate() {
+    public X509Certificate getCertificate() {
         return eidasCertificate;
     }
 
@@ -99,16 +138,11 @@ public final class InMemoryEidasKeyStore implements EidasKeyStore {
         }
     }
 
-    /**
-     * Create X509Certificate from the DER encoded certificate.
-     *
-     * @param derBase64Cert DER encoded certificate
-     * @return a certificate
-     */
-    public static X509Certificate extractCertificate(String derBase64Cert)
+    private static X509Certificate extractCertificate(String certString)
             throws CertificateException {
-        String cert = format("-----BEGIN CERTIFICATE-----\n%s-----END CERTIFICATE-----",
-                derBase64Cert);
+        String cert = format(
+                "-----BEGIN CERTIFICATE-----\n%s-----END CERTIFICATE-----",
+                certString);
         InputStream is = new ByteArrayInputStream(cert.getBytes());
         return (X509Certificate) CertificateFactory
                 .getInstance("X.509")
