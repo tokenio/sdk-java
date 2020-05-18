@@ -26,7 +26,9 @@ import static com.google.common.base.Strings.emptyToNull;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
+import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.generateNonce;
+import static io.token.util.Util.toObservable;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
@@ -50,8 +52,13 @@ import io.token.proto.common.transfer.TransferProtos.BulkTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
+import io.token.proto.common.webhook.WebhookProtos.Webhook.Config;
+import io.token.proto.gateway.Gateway.DeleteWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.GetEidasCertificateStatusResponse;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
+import io.token.proto.gateway.Gateway.GetWebhookConfigRequest;
+import io.token.proto.gateway.Gateway.GetWebhookConfigResponse;
+import io.token.proto.gateway.Gateway.SetWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.rpc.Client;
@@ -1311,5 +1318,58 @@ public class Member extends io.token.Member implements Representable {
      */
     public ExternalMetadata getExternalMetadataBlocking(String tokenRequestId) {
         return getExternalMetadata(tokenRequestId).blockingSingle();
+    }
+
+    /**
+     * Set a webhook config.
+     *
+     * @param config the webhook config
+     * @return completable
+     */
+    public Completable setWebhookConfig(Config config) {
+        return client.setWebhookConfig(config);
+    }
+
+    /**
+     * Set a webhook config.
+     *
+     * @param config the webhook config
+     */
+    public void setWebhookConfigBlocking(Config config) {
+        setWebhookConfig(config).blockingAwait();
+    }
+
+    /**
+     * Get the webhook config.
+     *
+     * @return config
+     */
+    public Observable<Config> getWebhookConfig() {
+        return client.getWebhookConfig();
+    }
+
+    /**
+     * Get the webhook config.
+     *
+     * @return config
+     */
+    public Config getWebhookConfigBlocking() {
+        return getWebhookConfig().blockingSingle();
+    }
+
+    /**
+     * delete the webhook config.
+     *
+     * @return completable
+     */
+    public Completable deleteWebhookConfig() {
+        return client.deleteWebhookConfig();
+    }
+
+    /**
+     * delete the webhook config.
+     */
+    public void deleteWebhookConfigBlocking() {
+        deleteWebhookConfig().blockingAwait();
     }
 }
