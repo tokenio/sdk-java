@@ -374,6 +374,12 @@ public abstract class TokenRequest {
          * @return TokenRequest instance
          */
         public TokenRequest build() {
+            if (this.requestPayload.getRedirectUrl().isEmpty()) {
+                throw new IllegalArgumentException("Redirect URL required");
+            }
+            if (this.requestPayload.getRefId().isEmpty()) {
+                this.requestPayload.setRefId(Util.generateNonce());
+            }
             String serializedState = TokenRequestState.create(
                     this.csrfToken == null ? "" : Util.hashString(this.csrfToken),
                     this.oauthState == null ? "" : this.oauthState)
