@@ -24,6 +24,8 @@ package io.token.tpp.util;
 
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.protobuf.Message;
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -40,6 +42,9 @@ import java.net.URLEncoder;
 import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.function.Predicate;
 
 /**
  * Utility methods.
@@ -53,6 +58,8 @@ public abstract class Util extends io.token.util.Util {
             .setValue("token.io")
             .setRealm(TOKEN_REALM)
             .build();
+
+    private static final ScheduledExecutorService scheduler = newSingleThreadScheduledExecutor();
 
     private Util() {
     }
@@ -144,5 +151,91 @@ public abstract class Util extends io.token.util.Util {
         }
 
         return key;
+    }
+
+    /**
+     * Repetitively run a function until the result of the function is acceptable (defined
+     * by <code>retryIf</code> predicate) or the total wait time exceeds the requested amount
+     * (<code>timeoutMs</code>). Returns the last result of the function, acceptable or not
+     * (in the case of timeout).
+     *
+     * @param timeoutMs a maximum total waiting time between retries
+     * @param waitTimeMs initial wait time before retry
+     * @param backOffFactor a factor by which the wait time is multiplied after each retry
+     * @param maxWaitTimeMs max wait time between retries
+     * @param function function that should be called
+     * @param retryIf a boolean function that checks the result of the <code>function</code> and
+     *     returns true if need to retry
+     * @param <T> the type of the esult of the <code>function</code>
+     * @return last result of the <code>function</code>
+     * @throws Exception whatever checked exceptions <code>function</code> throws
+     * @throws InterruptedException if any thread has interrupted the current thread
+     * @throws IllegalArgumentException if any of the time arguments or the
+     *     <code>backOffFactor</code> is negative
+     */
+    public static <T> T retryWithExponentialBackoff(
+            long timeoutMs,
+            long waitTimeMs,
+            double backOffFactor,
+            long maxWaitTimeMs,
+            Callable<T> function,
+            Predicate<T> retryIf) throws Exception {
+        if (timeoutMs < 0 || waitTimeMs < 0 || backOffFactor < 0 || maxWaitTimeMs < 0) {
+            throw new IllegalArgumentException(
+                    "All time arguments and the backOffFactor should be non-negative.");
+        }
+        long totalTime = 0;
+        T result = function.call();
+        while (retryIf.test(result)) {
+            if (totalTime >= timeoutMs) {
+                return result;
+            }
+            result = scheduler.schedule(function, waitTimeMs, MILLISECONDS).get();
+            totalTime += waitTimeMs;
+            waitTimeMs = Math.min((long) (waitTimeMs * backOffFactor), maxWaitTimeMs);
+        }
+        return result;
+    }
+
+    /**
+     * Repetitively run a function until the result of the function is acceptable (defined
+     * by <code>retryIf</code> predicate) or the total wait time exceeds the requested amount
+     * (<code>timeoutMs</code>). Returns the last result of the function, acceptable or not
+     * (in the case of timeout).<br><br>
+     * To be used for functions that do not throw checked exceptions.
+     *
+     * @param timeoutMs a maximum total waiting time between retries
+     * @param waitTimeMs initial wait time before retry
+     * @param backOffFactor a factor by which the wait time is multiplied after each retry
+     * @param maxWaitTimeMs max wait time between retries
+     * @param function function that should be called
+     * @param retryIf a boolean function that checks the result of the <code>function</code> and
+     *     returns true if need to retry
+     * @param <T> the type of the esult of the <code>function</code>
+     * @return last result of the <code>function</code>
+     * @throws InterruptedException if any thread has interrupted the current thread
+     * @throws IllegalArgumentException if any of the time arguments or the
+     *     <code>backOffFactor</code> is negative
+     */
+    public static <T> T retryWithExponentialBackoffNoThrow(
+            long timeoutMs,
+            long waitTimeMs,
+            double backOffFactor,
+            long maxWaitTimeMs,
+            Callable<T> function,
+            Predicate<T> retryIf) throws InterruptedException {
+        try {
+            return retryWithExponentialBackoff(
+                    timeoutMs,
+                    waitTimeMs,
+                    backOffFactor,
+                    maxWaitTimeMs,
+                    function,
+                    retryIf);
+        } catch (InterruptedException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
     }
 }

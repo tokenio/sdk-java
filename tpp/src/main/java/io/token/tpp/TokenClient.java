@@ -22,9 +22,15 @@
 
 package io.token.tpp;
 
+import static com.google.common.io.BaseEncoding.base64;
 import static io.token.TokenClient.TokenCluster.SANDBOX;
+import static io.token.proto.common.eidas.EidasProtos.EidasVerificationStatus.EIDAS_STATUS_PENDING;
+import static io.token.proto.common.eidas.EidasProtos.EidasVerificationStatus.EIDAS_STATUS_SUCCESS;
 import static io.token.proto.common.member.MemberProtos.CreateMemberType.BUSINESS;
+import static io.token.security.crypto.CryptoType.RS256;
+import static io.token.tpp.exceptions.EidasRegistrationException.registrationException;
 import static io.token.tpp.util.Util.hashString;
+import static io.token.tpp.util.Util.retryWithExponentialBackoffNoThrow;
 import static io.token.tpp.util.Util.urlEncode;
 import static io.token.tpp.util.Util.verifySignature;
 import static io.token.util.Util.getWebAppUrl;
@@ -42,19 +48,26 @@ import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.MemberRecoveryOperation;
 import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.common.token.TokenProtos;
+import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
 import io.token.proto.gateway.Gateway.RegisterWithEidasResponse;
 import io.token.rpc.client.lite.RpcChannelFactoryLite;
 import io.token.security.CryptoEngine;
 import io.token.security.CryptoEngineFactory;
 import io.token.security.InMemoryKeyStore;
+import io.token.security.SecretKey;
+import io.token.security.Signer;
 import io.token.security.TokenCryptoEngineFactory;
+import io.token.security.crypto.CryptoRegistry;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
 import io.token.tokenrequest.TokenRequestState;
+import io.token.tpp.exceptions.EidasRegistrationException;
+import io.token.tpp.exceptions.EidasTimeoutException;
 import io.token.tpp.exceptions.InvalidStateException;
 import io.token.tpp.rpc.Client;
 import io.token.tpp.rpc.ClientFactory;
 import io.token.tpp.rpc.UnauthenticatedClient;
+import io.token.tpp.security.EidasKeyStore;
 import io.token.tpp.tokenrequest.TokenRequestCallback;
 import io.token.tpp.tokenrequest.TokenRequestCallbackParameters;
 import io.token.tpp.tokenrequest.TokenRequestTransferDestinationsCallbackParameters;
@@ -62,8 +75,10 @@ import io.token.tpp.util.Util;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.security.cert.CertificateEncodingException;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 public class TokenClient extends io.token.TokenClient {
@@ -448,6 +463,83 @@ public class TokenClient extends io.token.TokenClient {
             String signature) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated.registerWithEidas(payload, signature);
+    }
+
+
+    /**
+     * Creates a TPP member under realm of a bank and registers it with the provided eIDAS
+     * certificate. The created member has a registered PRIVILEGED-level RSA key from the provided
+     * certificate (key ID is set to the decimal String representation of the certificate's serial
+     * number) and an EIDAS alias with value equal to authNumber from the certificate.<br><br>
+     * Note, that the TokenClient used to make this call needs to be backed by the EidasKeyStore
+     * passed to this method, which contains a certificate and a key:
+     * <br><br>
+     * <pre>
+     * EidasKeyStore keyStore = new InMemoryEidasKeyStore(certificate, privateKey);
+     * TokenClient tokenClient = TokenClient.builder()
+     *         .connectTo(SANDBOX)
+     *         .withCryptoEngine(new EidasCryptoEngineFactory(keyStore))
+     *         .build();
+     * </pre>
+     * IMPORTANT: this method is blocking, and a member will be returned only if it is successfully
+     * onboarded. Otherwise a EidasRegistrationException or EidasTimeoutException will be thrown.
+     * For asynchronous call see {@link TokenClient#registerWithEidas}.
+     *
+     * @param bankId id of the bank the TPP trying to get access to
+     * @param keyStore a key store containing an eIDAS certificate and a private key for it
+     * @param timeout a time period within which a certificate verification is expected to finish
+     * @param timeUnit the time unit for the timeout
+     * @return a registered member
+     * @throws EidasRegistrationException if certificate verification failed
+     * @throws EidasTimeoutException if a verification has not finished within expected time period
+     * @throws CertificateEncodingException if an encoding error occurs
+     * @throws InterruptedException if any thread has interrupted the current thread
+     */
+    public Member createMemberWithEidas(
+            String bankId,
+            EidasKeyStore keyStore,
+            long timeout,
+            TimeUnit timeUnit)
+            throws CertificateEncodingException, InterruptedException, EidasTimeoutException {
+        UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
+        SecretKey keyPair = keyStore.getKey();
+        Signer payloadSigner = CryptoRegistry
+                .getInstance()
+                .cryptoFor(RS256)
+                .signer(keyPair.getId(), keyPair.getPrivateKey());
+
+        RegisterWithEidasPayload payload = RegisterWithEidasPayload
+                .newBuilder()
+                .setCertificate(base64().encode(keyStore.getCertificate().getEncoded()))
+                .setBankId(bankId)
+                .build();
+
+        RegisterWithEidasResponse resp = unauthenticated
+                .registerWithEidas(payload, payloadSigner.sign(payload))
+                .blockingSingle();
+
+        // get the member
+        Member member = getMemberBlocking(resp.getMemberId());
+        // periodically check the verification status
+        GetEidasVerificationStatusResponse verificationResp;
+        verificationResp = retryWithExponentialBackoffNoThrow(
+                timeUnit.toMillis(timeout),
+                1000,
+                2,
+                5000,
+                () -> member
+                        .getEidasVerificationStatus(resp.getVerificationId())
+                        .blockingSingle(),
+                r -> EIDAS_STATUS_PENDING.equals(r.getEidasStatus()));
+        if (EIDAS_STATUS_PENDING.equals(verificationResp.getEidasStatus())) {
+            throw new EidasTimeoutException(resp.getMemberId(), resp.getVerificationId());
+        }
+        if (!EIDAS_STATUS_SUCCESS.equals(verificationResp.getEidasStatus())) {
+            throw registrationException(
+                    verificationResp.getEidasStatus(),
+                    verificationResp.getStatusDetails());
+        }
+        return member;
     }
 
     /**
