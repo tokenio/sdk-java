@@ -24,6 +24,7 @@ package io.token.tpp.util;
 
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static java.nio.charset.StandardCharsets.UTF_8;
+import static java.util.concurrent.Executors.newSingleThreadScheduledExecutor;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 
 import com.google.protobuf.Message;
@@ -42,7 +43,6 @@ import java.security.PublicKey;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.function.Predicate;
 
@@ -58,6 +58,8 @@ public abstract class Util extends io.token.util.Util {
             .setValue("token.io")
             .setRealm(TOKEN_REALM)
             .build();
+
+    private static final ScheduledExecutorService scheduler = newSingleThreadScheduledExecutor();
 
     private Util() {
     }
@@ -184,7 +186,6 @@ public abstract class Util extends io.token.util.Util {
         }
         long totalTime = 0;
         T result = function.call();
-        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
         while (retryIf.test(result)) {
             if (totalTime >= timeoutMs) {
                 return result;
