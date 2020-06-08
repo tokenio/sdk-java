@@ -56,6 +56,7 @@ import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.rpc.Client;
 import io.token.rpc.ClientFactory;
 import io.token.rpc.SslConfig;
+import io.token.rpc.TracingInterceptor;
 import io.token.rpc.UnauthenticatedClient;
 import io.token.rpc.client.lite.RpcChannelFactoryLite;
 import io.token.security.CryptoEngine;
@@ -647,6 +648,40 @@ public class TokenClient implements Closeable {
     }
 
     /**
+     * Wraps provided response message with associated trace id.
+     * @param observable the observable
+     * @param <T> response message type
+     * @return Observable of {@link WithTraceId}
+     */
+    public <T> Observable<WithTraceId<T>> wrapWithTraceId(Observable<T> observable) {
+        return observable.map(message -> {
+            String traceId = getTraceId();
+            return new WithTraceId<>(message, traceId);
+        });
+    }
+
+    /**
+     * Wraps provided response message with associated trace id.
+     * @param message response message
+     * @param <T> response message type
+     * @return instance of {@link WithTraceId}
+     */
+    public <T> WithTraceId<T> wrapWithTraceId(T message) {
+        String traceId = getTraceId();
+        return new WithTraceId<>(message, traceId);
+    }
+
+    /**
+     * Fetches trace id from ThreadLocal and removes it.
+     * @return trace id
+     */
+    private String getTraceId() {
+        String traceId = TracingInterceptor.getTraceId();
+        TracingInterceptor.resetTraceId();
+        return traceId;
+    }
+
+    /**
      * Defines Token cluster to connect to.
      */
     public enum TokenCluster {
@@ -857,4 +892,5 @@ public class TokenClient implements Closeable {
             throw UNIMPLEMENTED.asRuntimeException();
         }
     }
+
 }

@@ -47,7 +47,8 @@ public abstract class ClientFactory {
         return new UnauthenticatedClient(GatewayServiceGrpc.newFutureStub(
                 RpcChannelFactory.intercept(
                         channel,
-                        new ErrorHandlerFactory())));
+                        new ErrorHandlerFactory(),
+                        new TracingInterceptorFactory())));
     }
 
     /**
@@ -74,7 +75,8 @@ public abstract class ClientFactory {
                 return stub.withInterceptors(new Interceptor(new ClientAuthenticatorFactory(
                         memberId,
                         crypto,
-                        context)));
+                        context)),
+                        new Interceptor(new TracingInterceptorFactory()));
             }
         };
 
