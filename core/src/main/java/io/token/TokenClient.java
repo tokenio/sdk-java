@@ -661,17 +661,6 @@ public class TokenClient implements Closeable {
     }
 
     /**
-     * Wraps provided response message with associated trace id.
-     * @param message response message
-     * @param <T> response message type
-     * @return instance of {@link WithTraceId}
-     */
-    public <T> WithTraceId<T> wrapWithTraceId(T message) {
-        String traceId = getTraceId();
-        return new WithTraceId<>(message, traceId);
-    }
-
-    /**
      * Fetches trace id from ThreadLocal and removes it.
      * @return trace id
      */
