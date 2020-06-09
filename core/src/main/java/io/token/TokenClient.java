@@ -653,7 +653,7 @@ public class TokenClient implements Closeable {
      * @param <T> response message type
      * @return Observable of {@link WithTraceId}
      */
-    public <T> Observable<WithTraceId<T>> wrapWithTraceId(Observable<T> observable) {
+    public static <T> Observable<WithTraceId<T>> wrapWithTraceId(Observable<T> observable) {
         return observable.map(message -> {
             String traceId = getTraceId();
             return new WithTraceId<>(message, traceId);
@@ -664,7 +664,7 @@ public class TokenClient implements Closeable {
      * Fetches trace id from ThreadLocal and removes it.
      * @return trace id
      */
-    private String getTraceId() {
+    private static String getTraceId() {
         String traceId = TracingInterceptor.getTraceId();
         TracingInterceptor.resetTraceId();
         return traceId;
