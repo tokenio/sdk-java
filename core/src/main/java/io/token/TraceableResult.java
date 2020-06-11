@@ -22,8 +22,6 @@
 
 package io.token;
 
-import jdk.internal.jline.internal.Nullable;
-
 /**
  * Wrapper class around {@link com.google.protobuf.Message} that includes trace id.
  *
@@ -33,7 +31,7 @@ public class TraceableResult<T> {
     private final T message;
     private final String traceId;
 
-    public TraceableResult(T message, @Nullable String traceId) {
+    public TraceableResult(T message, String traceId) {
         this.message = message;
         this.traceId = traceId;
     }
