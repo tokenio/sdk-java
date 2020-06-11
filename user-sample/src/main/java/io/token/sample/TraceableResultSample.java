@@ -1,12 +1,12 @@
 package io.token.sample;
 
 import io.token.TokenClient;
-import io.token.WithTraceId;
+import io.token.TraceableResult;
 import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenOperationResult;
 import io.token.user.Member;
 
-public class ResponseWithTraceIdSample {
+public class TraceableResultSample {
     /**
      * Cancels an access token and wraps it with associated trace id .
      *
@@ -14,7 +14,7 @@ public class ResponseWithTraceIdSample {
      * @param tokenId token ID to cancel
      * @return operation result
      */
-    public static WithTraceId<TokenOperationResult> cancelAccessTokenAndReturnTraceId(
+    public static TraceableResult<TokenOperationResult> cancelAccessTokenAndReturnTraceId(
             Member grantee,
             String tokenId) {
         // Any call can be instead of cancelAccessToken call.
@@ -23,6 +23,6 @@ public class ResponseWithTraceIdSample {
         Token accessToken = grantee.getTokenBlocking(tokenId);
 
         // Cancel access token.
-        return TokenClient.wrapWithTraceId(grantee.cancelToken(accessToken)).blockingSingle();
+        return TokenClient.trace(grantee.cancelToken(accessToken)).blockingSingle();
     }
 }

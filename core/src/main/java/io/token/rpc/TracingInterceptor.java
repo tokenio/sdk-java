@@ -33,6 +33,7 @@ import javax.annotation.Nullable;
 
 /**
  * Interceptor to fetch token-trace-id from grpc call metadata.
+ *
  * @param <ReqT> Request message type
  * @param <ResT> Response message type
  */

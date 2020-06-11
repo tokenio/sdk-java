@@ -26,13 +26,14 @@ import jdk.internal.jline.internal.Nullable;
 
 /**
  * Wrapper class around {@link com.google.protobuf.Message} that includes trace id.
+ *
  * @param <T> type of {@link com.google.protobuf.Message}
  */
-public class WithTraceId<T> {
+public class TraceableResult<T> {
     private final T message;
     private final String traceId;
 
-    public WithTraceId(T message,@Nullable String traceId) {
+    public TraceableResult(T message, @Nullable String traceId) {
         this.message = message;
         this.traceId = traceId;
     }
