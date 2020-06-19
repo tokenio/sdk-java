@@ -49,6 +49,7 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.webhook.WebhookProtos.Webhook.Config;
 import io.token.proto.gateway.Gateway;
+import io.token.proto.gateway.Gateway.AddRedirectUrlsRequest;
 import io.token.proto.gateway.Gateway.CancelTokenRequest;
 import io.token.proto.gateway.Gateway.CancelTokenResponse;
 import io.token.proto.gateway.Gateway.CreateCustomizationRequest;
@@ -68,6 +69,8 @@ import io.token.proto.gateway.Gateway.GetEidasVerificationStatusRequest;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
 import io.token.proto.gateway.Gateway.GetExternalMetadataRequest;
 import io.token.proto.gateway.Gateway.GetExternalMetadataResponse;
+import io.token.proto.gateway.Gateway.GetRedirectUrlsRequest;
+import io.token.proto.gateway.Gateway.GetRedirectUrlsResponse;
 import io.token.proto.gateway.Gateway.GetStandingOrderSubmissionsRequest;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
@@ -79,6 +82,7 @@ import io.token.proto.gateway.Gateway.GetWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.GetWebhookConfigResponse;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackRequest;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackResponse;
+import io.token.proto.gateway.Gateway.RemoveRedirectUrlsRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetTokenRequestTransferDestinationsRequest;
@@ -91,6 +95,7 @@ import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -687,6 +692,46 @@ public final class Client extends io.token.rpc.Client {
         return toCompletable(gateway
                 .withAuthentication(authenticationContext())
                 .deleteWebhookConfig(DeleteWebhookConfigRequest.getDefaultInstance()));
+    }
+
+    /**
+     * Get redirect URLs.
+     *
+     * @return redirect URLs
+     */
+    public Observable<List<String>> getRedirectUrls() {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getRedirectUrls(GetRedirectUrlsRequest.getDefaultInstance()))
+                .map(GetRedirectUrlsResponse::getRedirectUrlsList);
+    }
+
+    /**
+     * Add redirect URLs.
+     *
+     * @param redirectUrls redirect URLs to add
+     * @return completable
+     */
+    public Completable addRedirectUrls(List<String> redirectUrls) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .addRedirectUrls(AddRedirectUrlsRequest.newBuilder()
+                        .addAllRedirectUrls(redirectUrls)
+                        .build()));
+    }
+
+    /**
+     * Remove redirect URLs.
+     *
+     * @param redirectUrls redirect URLs to remove
+     * @return completable
+     */
+    public Completable removeRedirectUrls(List<String> redirectUrls) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .removeRedirectUrls(RemoveRedirectUrlsRequest.newBuilder()
+                        .addAllRedirectUrls(redirectUrls)
+                        .build()));
     }
 
     @Override
