@@ -22,13 +22,10 @@
 
 package io.token.tpp;
 
-import static com.google.common.base.Strings.emptyToNull;
 import static io.token.proto.common.blob.BlobProtos.Blob.AccessMode.PUBLIC;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.ACCESS;
 import static io.token.proto.gateway.Gateway.GetTokensRequest.Type.TRANSFER;
-import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.generateNonce;
-import static io.token.util.Util.toObservable;
 
 import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
@@ -53,12 +50,8 @@ import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.webhook.WebhookProtos.Webhook.Config;
-import io.token.proto.gateway.Gateway.DeleteWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.GetEidasCertificateStatusResponse;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
-import io.token.proto.gateway.Gateway.GetWebhookConfigRequest;
-import io.token.proto.gateway.Gateway.GetWebhookConfigResponse;
-import io.token.proto.gateway.Gateway.SetWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.rpc.Client;
@@ -1371,5 +1364,61 @@ public class Member extends io.token.Member implements Representable {
      */
     public void deleteWebhookConfigBlocking() {
         deleteWebhookConfig().blockingAwait();
+    }
+
+    /**
+     * Get all redirect URLs.
+     *
+     * @return redirect URLs
+     */
+    public Observable<List<String>> getRedirectUrls() {
+        return client.getRedirectUrls();
+    }
+
+    /**
+     * Get all redirect URLs.
+     *
+     * @return redirect URLs
+     */
+    public List<String> getRedirectUrlsBlocking() {
+        return getRedirectUrls().blockingSingle();
+    }
+
+    /**
+     * Add redirect URLs.
+     *
+     * @param redirectUrls redirect URLs to add
+     * @return completable
+     */
+    public Completable addRedirectUrls(List<String> redirectUrls) {
+        return client.addRedirectUrls(redirectUrls);
+    }
+
+    /**
+     * Add redirect URLs.
+     *
+     * @param redirectUrls redirect URLs to add
+     */
+    public void addRedirectUrlsBlocking(List<String> redirectUrls) {
+        addRedirectUrls(redirectUrls).blockingAwait();
+    }
+
+    /**
+     * Remove redirect URLs.
+     *
+     * @param redirectUrls redirect URLs to remove
+     * @return completable
+     */
+    public Completable removeRedirectUrls(List<String> redirectUrls) {
+        return client.removeRedirectUrls(redirectUrls);
+    }
+
+    /**
+     * Remove redirect URLs.
+     *
+     * @param redirectUrls redirect URLs to remove
+     */
+    public void removeRedirectUrlsBlocking(List<String> redirectUrls) {
+        removeRedirectUrls(redirectUrls).blockingAwait();
     }
 }

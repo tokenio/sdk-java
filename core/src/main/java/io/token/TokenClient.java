@@ -43,7 +43,7 @@ import io.reactivex.functions.Function;
 import io.token.exceptions.VerificationException;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.bank.BankProtos.Bank;
-import io.token.proto.common.bank.BankProtos.BankFilter.BankFeatures;
+import io.token.proto.common.bank.BankProtos.BankFeatures;
 import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.member.MemberProtos.CreateMemberType;
 import io.token.proto.common.member.MemberProtos.MemberOperation;
