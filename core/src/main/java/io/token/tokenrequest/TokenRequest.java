@@ -25,6 +25,7 @@ package io.token.tokenrequest;
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.AccessBody.AccountResourceType.ACCOUNT_FUNDS_CONFIRMATION;
 
 import com.google.auto.value.AutoValue;
+import com.google.common.base.Strings;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
@@ -374,6 +375,9 @@ public abstract class TokenRequest {
          * @return TokenRequest instance
          */
         public TokenRequest build() {
+            if (Strings.isNullOrEmpty(requestPayload.getRefId())) {
+                throw new IllegalArgumentException("Ref ID must be set.");
+            }
             String serializedState = TokenRequestState.create(
                     this.csrfToken == null ? "" : Util.hashString(this.csrfToken),
                     this.oauthState == null ? "" : this.oauthState)
