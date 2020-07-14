@@ -28,6 +28,8 @@ import static io.token.util.Util.generateNonce;
 import com.google.common.base.Preconditions;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.providerspecific.ProviderSpecific;
+import io.token.proto.common.providerspecific.ProviderSpecific.ProviderStandingOrderMetadata;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.StandingOrderBody;
@@ -277,17 +279,17 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
-     * Sets provider transfer metadata.
+     * Sets provider standing order metadata.
      *
      * @param metadata the metadata
      * @return builder
      */
-    public StandingOrderTokenBuilder setProviderTransferMetadata(
-            ProviderTransferMetadata metadata) {
+    public StandingOrderTokenBuilder setProviderMetadata(
+            ProviderStandingOrderMetadata metadata) {
         payload.getStandingOrderBuilder()
                 .getInstructionsBuilder()
                 .getMetadataBuilder()
-                .setProviderTransferMetadata(metadata);
+                .setProviderStandingOrderMetadata(metadata);
         return this;
     }
 
