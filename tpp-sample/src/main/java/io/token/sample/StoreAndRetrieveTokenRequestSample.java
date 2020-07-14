@@ -15,6 +15,7 @@ import io.token.tpp.tokenrequest.TokenRequestTransferDestinationsCallbackParamet
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * Stores and retrieves a token request.
@@ -29,6 +30,7 @@ public final class StoreAndRetrieveTokenRequestSample {
     public static String storeTransferTokenRequest(Member payee) {
         // Create token request to be stored
         TokenRequest request = TokenRequest.transferTokenRequestBuilder(100., "EUR")
+                .setRefId(UUID.randomUUID().toString().replace("-", ""))
                 .setToMemberId(payee.memberId())
                 .setDescription("Book purchase") // optional description
                 .setRedirectUrl("https://token.io/callback") // callback URL
@@ -57,6 +59,7 @@ public final class StoreAndRetrieveTokenRequestSample {
             String setTransferDestinationsCallback) {
 
         TokenRequest tokenRequest = TokenRequest.transferTokenRequestBuilder(250, "EUR")
+                .setRefId(UUID.randomUUID().toString().replace("-", ""))
                 .setToMemberId(payee.memberId())
                 .setDescription("Book purchase")
                 // This TPP provided url gets called by Token after the user selects bank and
@@ -87,6 +90,7 @@ public final class StoreAndRetrieveTokenRequestSample {
     public static String storeAccessTokenRequest(Member grantee) {
         // Create token request to be stored
         TokenRequest request = TokenRequest.accessTokenRequestBuilder(ACCOUNTS, BALANCES)
+                .setRefId(UUID.randomUUID().toString().replace("-", ""))
                 .setToMemberId(grantee.memberId())
                 .setRedirectUrl("https://token.io/callback") // callback URL
                 .setFromAlias(Alias.newBuilder()
