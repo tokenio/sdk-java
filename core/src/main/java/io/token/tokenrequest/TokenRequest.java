@@ -28,6 +28,8 @@ import com.google.auto.value.AutoValue;
 import com.google.common.base.Strings;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
+import io.token.proto.common.providerspecific.ProviderSpecific;
+import io.token.proto.common.providerspecific.ProviderSpecific.ProviderStandingOrderMetadata;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
 import io.token.proto.common.token.TokenProtos.BulkTransferBody;
@@ -736,11 +738,11 @@ public abstract class TokenRequest {
          * @param metadata provider-specific metadata
          * @return builder
          */
-        public StandingOrderBuilder setProviderTransferMetadata(ProviderTransferMetadata metadata) {
+        public StandingOrderBuilder setProviderMetadata(ProviderStandingOrderMetadata metadata) {
             this.requestPayload.getStandingOrderBodyBuilder()
                     .getInstructionsBuilder()
                     .getMetadataBuilder()
-                    .setProviderTransferMetadata(metadata)
+                    .setProviderStandingOrderMetadata(metadata)
                     .build();
             return this;
         }
