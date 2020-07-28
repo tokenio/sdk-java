@@ -155,6 +155,19 @@ public abstract class TokenRequest {
     }
 
     /**
+     * Create a new standing order token request builder from provider-specific metadata.
+     *
+     * @param metadata provider-specific metadata
+     * @param destinations transfer destinations
+     * @return standing order request builder
+     */
+    public static StandingOrderBuilder standingOrderRequestBuilder(
+            ProviderStandingOrderMetadata metadata,
+            List<TransferDestination> destinations) {
+        return new StandingOrderBuilder(metadata, destinations);
+    }
+
+    /**
      * Create a new Builder instance for a bulk transfer token request.
      *
      * @param transfers list of transfers
@@ -631,6 +644,15 @@ public abstract class TokenRequest {
                     .setEndDate(endDate)
                     .setInstructions(TransferInstructions.newBuilder()
                             .addAllTransferDestinations(destinations)));
+        }
+
+        StandingOrderBuilder(
+                ProviderStandingOrderMetadata metadata,
+                List<TransferDestination> destinations) {
+            this.requestPayload.setStandingOrderBody(StandingOrderBody.newBuilder()
+                    .setInstructions(TransferInstructions.newBuilder()
+                            .addAllTransferDestinations(destinations)));
+            setProviderMetadata(metadata);
         }
 
         /**
