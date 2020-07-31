@@ -83,7 +83,7 @@ import javax.annotation.Nullable;
 
 public class TokenClient extends io.token.TokenClient {
     private static final String TOKEN_REQUEST_TEMPLATE =
-            "https://%s/request-token/%s?state=%s";
+            "https://%s/app/request-token/%s?state=%s";
 
     /**
      * Creates an instance of a Token SDK.
