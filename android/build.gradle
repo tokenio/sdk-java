@@ -80,12 +80,15 @@ repositories {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
 
-    api(project(':user')){
-        exclude group: "com.google.api.grpc", module:"proto-google-common-protos"
-        exclude group: "io.token.rpc", module:"tokenio-rpc-client-lite-netty"
+    compile(project(':user')){
+        exclude group: 'com.google.api.grpc', module: 'proto-google-common-protos'
+        exclude group: 'io.token.rpc', module: 'tokenio-rpc-client-lite-netty'
+        exclude group: 'org.checkerframework' //, module: 'checker'
     }
-    api(group: 'io.token.rpc', name: 'tokenio-rpc-client-lite-okhttp', version: ver.tokenRpc){
-        exclude group: "com.google.api.grpc", module:"proto-google-common-protos"
+    compile(group: 'io.token.rpc', name: 'tokenio-rpc-client-lite-okhttp', version: ver.tokenRpc){
+        exclude group: 'com.google.api.grpc', module:'proto-google-common-protos'
+        exclude group: 'com.google.guava', module: 'guava'
+        exclude group: 'org.checkerframework' //, module: 'checker'
     }
 
     implementation 'com.android.support:appcompat-v7:26.1.0'
@@ -143,3 +146,16 @@ signing {
 }
 
 apply from: 'https://raw.githubusercontent.com/sky-uk/gradle-maven-plugin/master/gradle-mavenizer.gradle'
+
+tasks.withType(Javadoc) {
+    failOnError false
+}
+
+configurations.all { configuration ->
+    // Ignore ':lintClassPath' configuration as it has version conflicts.
+    if (!"$configuration".contains(':lintClassPath')) {
+        resolutionStrategy {
+            failOnVersionConflict()
+        }
+    }
+}

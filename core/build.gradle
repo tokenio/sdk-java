@@ -10,11 +10,17 @@ publish {
 }
 
 dependencies {
-    compile group: 'io.token.proto', name: 'tokenio-proto-external', version: ver.tokenProto
-    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-api', version: ver.tokenRpc
-    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-lite', version: ver.tokenRpc
-    compile group: 'io.token.rpc', name: 'tokenio-rpc-client-lite-netty', version: ver.tokenRpc
-    compile group: 'io.token.security', name: 'tokenio-security-lib', version: ver.tokenSecurity
+    ext.compileExcludeGuava = { dependency ->
+        compile (dependency) {
+            exclude group: 'com.google.guava', module: 'guava'
+        }
+    }
+
+    compileExcludeGuava("io.token.proto:tokenio-proto-external:${ver.tokenProto}")
+    compileExcludeGuava("io.token.rpc:tokenio-rpc-client-api:${ver.tokenRpc}")
+    compileExcludeGuava("io.token.rpc:tokenio-rpc-client-lite:${ver.tokenRpc}")
+    compileExcludeGuava("io.token.rpc:tokenio-rpc-client-lite-netty:${ver.tokenRpc}")
+    compileExcludeGuava("io.token.security:tokenio-security-lib:${ver.tokenSecurity}")
     compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: ver.rxjava
 }
 
@@ -36,4 +42,10 @@ license {
 downloadLicenses {
     includeProjectDependencies = true
     dependencyConfiguration = 'compile'
+}
+
+configurations.compileClasspath {
+    resolutionStrategy {
+        failOnVersionConflict()
+    }
 }
