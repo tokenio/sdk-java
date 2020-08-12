@@ -32,5 +32,5 @@ allprojects {
     }
 
     group = 'io.token.sdk'
-    version = '2.12.7-beta-1'
+    version = '2.12.6'
 }
