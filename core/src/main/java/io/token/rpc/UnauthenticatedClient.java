@@ -30,6 +30,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.util.Util.generateNonce;
 import static io.token.util.Util.toObservable;
 
+import com.google.common.collect.ImmutableList;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
 import io.token.exceptions.MemberNotFoundException;
@@ -401,7 +402,10 @@ public class UnauthenticatedClient {
      *     (case insensitive).
      * @param bankFeatures If specified, return banks who meet the bank features requirement.
      * @return a list of banks
+     * @deprecated Use {@link UnauthenticatedClient#getBanks(List, String, List, Integer, Integer,
+     * String, List, BankFeatures)} instead
      */
+    @Deprecated
     public Observable<List<Bank>> getBanks(
             @Nullable List<String> bankIds,
             @Nullable String search,
@@ -411,16 +415,55 @@ public class UnauthenticatedClient {
             @Nullable String sort,
             @Nullable String provider,
             @Nullable BankFeatures bankFeatures) {
+        return getBanks(
+                bankIds,
+                search,
+                country == null ? null : ImmutableList.of(country),
+                page,
+                perPage,
+                sort,
+                provider == null ? null : ImmutableList.of(provider),
+                bankFeatures);
+    }
+
+    /**
+     * Returns a list of token enabled banks.
+     *
+     * @param bankIds If specified, return banks whose 'id' matches any one of the given ids
+     *     (case-insensitive). Can be at most 1000.
+     * @param search If specified, return banks whose 'name' or 'identifier' contains the given
+     *     search string (case-insensitive)
+     * @param countries If specified, return banks whose 'country' matches any of the given
+     *     ISO 3166-1 alpha-2 country codes (case-insensitive)
+     * @param page Result page to retrieve. Default to 1 if not specified.
+     * @param perPage Maximum number of records per page. Can be at most 200. Default to 200
+     *     if not specified.
+     * @param sort The key to sort the results. Could be one of: name, provider and country.
+     *     Defaults to name if not specified.
+     * @param providers If specified, return banks whose 'provider' matches any of the given
+     *     providers (case insensitive).
+     * @param bankFeatures If specified, return banks who meet the bank features requirement.
+     * @return a list of banks
+     */
+    public Observable<List<Bank>> getBanks(
+            @Nullable List<String> bankIds,
+            @Nullable String search,
+            @Nullable List<String> countries,
+            @Nullable Integer page,
+            @Nullable Integer perPage,
+            @Nullable String sort,
+            @Nullable List<String> providers,
+            @Nullable BankFeatures bankFeatures) {
         GetBanksRequest.Builder request = GetBanksRequest.newBuilder();
 
         if (bankIds != null) {
-            request.getFilterBuilder().addAllIds(bankIds);
+            request.addAllIds(bankIds);
         }
         if (search != null) {
-            request.getFilterBuilder().setSearch(search);
+            request.setSearch(search);
         }
-        if (country != null) {
-            request.getFilterBuilder().setCountry(country);
+        if (countries != null) {
+            request.addAllCountries(countries);
         }
         if (page != null) {
             request.setPage(page);
@@ -431,19 +474,15 @@ public class UnauthenticatedClient {
         if (sort != null) {
             request.setSort(sort);
         }
-        if (provider != null) {
-            request.getFilterBuilder().setProvider(provider);
+        if (providers != null) {
+            request.addAllProviders(providers);
         }
         if (bankFeatures != null) {
-            request.getFilterBuilder().setBankFeatures(bankFeatures);
+            request.setBankFeatures(bankFeatures);
         }
 
         return toObservable(gateway.getBanks(request.build()))
-                .map(new Function<GetBanksResponse, List<Bank>>() {
-                    public List<Bank> apply(GetBanksResponse response) {
-                        return response.getBanksList();
-                    }
-                });
+                .map(GetBanksResponse::getBanksList);
     }
 
     /**
