@@ -10,6 +10,13 @@ publish {
 }
 
 dependencies {
+    ext.compileExcludeProtoAndGuava = { dependency ->
+        compile (dependency) {
+            exclude group: 'io.token.proto'
+            exclude group: 'com.google.guava', module: 'guava'
+        }
+    }
+
     ext.compileExcludeGuava = { dependency ->
         compile (dependency) {
             exclude group: 'com.google.guava', module: 'guava'
@@ -17,10 +24,10 @@ dependencies {
     }
 
     compileExcludeGuava("io.token.proto:tokenio-proto-external:${ver.tokenProto}")
-    compileExcludeGuava("io.token.rpc:tokenio-rpc-client-api:${ver.tokenRpc}")
-    compileExcludeGuava("io.token.rpc:tokenio-rpc-client-lite:${ver.tokenRpc}")
-    compileExcludeGuava("io.token.rpc:tokenio-rpc-client-lite-netty:${ver.tokenRpc}")
-    compileExcludeGuava("io.token.security:tokenio-security-lib:${ver.tokenSecurity}")
+    compileExcludeProtoAndGuava("io.token.rpc:tokenio-rpc-client-api:${ver.tokenRpc}")
+    compileExcludeProtoAndGuava("io.token.rpc:tokenio-rpc-client-lite:${ver.tokenRpc}")
+    compileExcludeProtoAndGuava("io.token.rpc:tokenio-rpc-client-lite-netty:${ver.tokenRpc}")
+    compileExcludeProtoAndGuava("io.token.security:tokenio-security-lib:${ver.tokenSecurity}")
     compile group: 'io.reactivex.rxjava2', name: 'rxjava', version: ver.rxjava
 }
 
