@@ -1,6 +1,7 @@
 package io.token.sample;
 
 import static io.token.TokenClient.TokenCluster.DEVELOPMENT;
+import static io.token.proto.common.alias.AliasProtos.Alias.Type.DOMAIN;
 import static io.token.proto.common.alias.AliasProtos.Alias.Type.EMAIL;
 
 import com.google.common.util.concurrent.Uninterruptibles;
@@ -36,15 +37,15 @@ public abstract class TestUtil {
     }
 
     /**
-     * Generates random user name to be used for testing.
+     * Generates random DOMAIN alias to be used for testing.
      *
      * @return random user name
      */
     public static Alias randomAlias() {
         return Alias.newBuilder()
-                .setType(EMAIL)
+                .setType(DOMAIN)
                 .setRealm(TOKEN_REALM)
-                .setValue("alias-" + Util.generateNonce().toLowerCase() + "+noverify@example.com")
+                .setValue("alias-" + Util.generateNonce().toLowerCase() + "+noverify.com")
                 .build();
     }
 
@@ -55,7 +56,11 @@ public abstract class TestUtil {
      */
     public static io.token.user.Member createUserMember() {
         io.token.user.TokenClient client = io.token.user.TokenClient.create(DEVELOPMENT, DEV_KEY);
-        Alias alias = randomAlias();
+        Alias alias = Alias.newBuilder()
+                .setType(EMAIL)
+                .setRealm(TOKEN_REALM)
+                .setValue("alias-" + Util.generateNonce().toLowerCase() + "+noverify@example.com")
+                .build();
         io.token.user.Member member = client.createMemberBlocking(alias);
         member.createTestBankAccountBlocking(1000.0, "EUR");
         return member;
