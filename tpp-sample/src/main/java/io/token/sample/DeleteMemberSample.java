@@ -12,6 +12,6 @@ public class DeleteMemberSample {
      * @param member member
      */
     public static void deleteMember(Member member) {
-        member.deleteMember();
+        member.deleteMemberBlocking();
     }
 }
