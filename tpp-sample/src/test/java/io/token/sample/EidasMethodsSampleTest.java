@@ -8,7 +8,7 @@ import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED
 import static io.token.sample.EidasMethodsSample.createMemberWithEidas;
 import static io.token.sample.EidasMethodsSample.registerWithEidas;
 import static io.token.sample.TestUtil.createClient;
-import static io.token.util.Util.generateNonce;
+import static org.apache.commons.lang3.RandomStringUtils.randomAlphanumeric;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import io.token.proto.common.alias.AliasProtos.Alias;
@@ -32,7 +32,6 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import org.apache.commons.lang3.RandomStringUtils;
 import org.bouncycastle.asn1.ASN1ObjectIdentifier;
 import org.bouncycastle.asn1.x500.X500Name;
 import org.bouncycastle.asn1.x500.X500NameBuilder;
@@ -52,9 +51,10 @@ public class EidasMethodsSampleTest {
     @Test
     public void verifyEidasTest() throws Exception {
         try (TokenClient tokenClient = createClient()) {
-            String tppAuthNumber = RandomStringUtils.randomAlphanumeric(15);
+            String tppAuthNumber = randomAlphanumeric(15);
+            String pspSubjectName = randomAlphanumeric(15);
             KeyPair keyPair = generateKeyPair();
-            String certificate = encode(generateCert(keyPair, tppAuthNumber));
+            String certificate = encode(generateCert(keyPair, tppAuthNumber, pspSubjectName));
             Member verifiedTppMember = EidasMethodsSample.verifyEidas(
                     tokenClient,
                     tppAuthNumber,
@@ -70,6 +70,9 @@ public class EidasMethodsSampleTest {
                     .blockingSingle();
             assertThat(eidasInfo.getCertificate()).isEqualTo(certificate);
             assertThat(eidasInfo.getStatus()).isEqualTo(CERTIFICATE_VALID);
+            assertThat(verifiedTppMember
+                    .getProfileBlocking(verifiedTppMember.memberId())
+                    .getDisplayNameFirst()).isEqualTo(pspSubjectName);
         }
     }
 
@@ -77,9 +80,10 @@ public class EidasMethodsSampleTest {
     public void recoverEidasTest() throws Exception {
         try (TokenClient tokenClient = createClient();
              TokenClient anotherTokenClient = createClient();) {
-            String tppAuthNumber = RandomStringUtils.randomAlphanumeric(15);
+            String tppAuthNumber = randomAlphanumeric(15);
+            String pspSubjectName = randomAlphanumeric(15);
             KeyPair keyPair = generateKeyPair();
-            String certificate = encode(generateCert(keyPair, tppAuthNumber));
+            String certificate = encode(generateCert(keyPair, tppAuthNumber, pspSubjectName));
             // create and verify member first
             Member verifiedTppMember = EidasMethodsSample.verifyEidas(
                     tokenClient,
@@ -99,14 +103,18 @@ public class EidasMethodsSampleTest {
             assertThat(verifiedAliases.size()).isEqualTo(1);
             assertThat(verifiedAliases.get(0).getValue()).isEqualTo(tppAuthNumber);
             assertThat(verifiedAliases.get(0).getType()).isEqualTo(EIDAS);
+            assertThat(recoveredMember
+                    .getProfileBlocking(recoveredMember.memberId())
+                    .getDisplayNameFirst()).isEqualTo(pspSubjectName);
         }
     }
 
     @Test
     public void registerWithEidasTest() throws Exception {
-        String authNumber = generateNonce();
+        String authNumber = randomAlphanumeric(15);
+        String pspSubjectName = randomAlphanumeric(15);
         KeyPair keyPair = generateKeyPair();
-        X509Certificate certificate = generateCert(keyPair, authNumber);
+        X509Certificate certificate = generateCert(keyPair, authNumber, pspSubjectName);
         EidasKeyStore keyStore = new InMemoryEidasKeyStore(certificate, keyPair.getPrivate());
         CryptoEngineFactory cryptoEngineFactory = new EidasCryptoEngineFactory(keyStore);
         try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
@@ -119,14 +127,18 @@ public class EidasMethodsSampleTest {
                     .getCertificateSerialNumber()
                     .toString());
             assertThat(member.aliases().blockingSingle().get(0).getValue()).isEqualTo(authNumber);
+            assertThat(member
+                    .getProfileBlocking(member.memberId())
+                    .getDisplayNameFirst()).isEqualTo(pspSubjectName);
         }
     }
 
     @Test
     public void createMemberWithEidasTest() throws Exception {
-        String authNumber = generateNonce();
+        String authNumber = randomAlphanumeric(15);
+        String pspSubjectName = randomAlphanumeric(15);
         KeyPair keyPair = generateKeyPair();
-        X509Certificate certificate = generateCert(keyPair, authNumber);
+        X509Certificate certificate = generateCert(keyPair, authNumber, pspSubjectName);
         EidasKeyStore keyStore = new InMemoryEidasKeyStore(certificate, keyPair.getPrivate());
         CryptoEngineFactory cryptoEngineFactory = new EidasCryptoEngineFactory(keyStore);
         try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
@@ -141,6 +153,9 @@ public class EidasMethodsSampleTest {
                     .getCertificateSerialNumber()
                     .toString());
             assertThat(member.aliases().blockingSingle().get(0).getValue()).isEqualTo(authNumber);
+            assertThat(member
+                    .getProfileBlocking(member.memberId())
+                    .getDisplayNameFirst()).isEqualTo(pspSubjectName);
         }
     }
 
@@ -155,7 +170,10 @@ public class EidasMethodsSampleTest {
         return base64().encode(certificate.getEncoded());
     }
 
-    private static X509Certificate generateCert(KeyPair keyPair, String tppAuthNumber)
+    private static X509Certificate generateCert(
+            KeyPair keyPair,
+            String tppAuthNumber,
+            String pspSubjectName)
             throws Exception {
         long now = System.currentTimeMillis();
         Date startDate = new Date(now);
@@ -164,6 +182,7 @@ public class EidasMethodsSampleTest {
         X500Name dnName = new X500NameBuilder(BCStyle.INSTANCE)
                 .addRDN(BCStyle.CN, "Token.io")
                 .addRDN(asn1oid, tppAuthNumber)
+                .addRDN(BCStyle.O, pspSubjectName)
                 .build();
         BigInteger certSerialNumber = new BigInteger(Long.toString(now));
         Calendar calendar = Calendar.getInstance();
