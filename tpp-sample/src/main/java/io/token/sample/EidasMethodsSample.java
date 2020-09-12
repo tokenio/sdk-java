@@ -36,55 +36,52 @@ import java.util.concurrent.TimeUnit;
 public class EidasMethodsSample {
 
     /**
-     * Creates a TPP member and verifies it using eIDAS certificate.
+     * Submits an eIDAS certificate for a TPP member registered under the bank's realm.
      *
-     * @param client token client
+     * @param member member registered under the realm of a bank
+     *      (see {@link EidasMethodsSample#registerWithEidas})
      * @param tppAuthNumber authNumber of the TPP
      * @param certificate base64 encoded eIDAS certificate (a single line, no header and footer)
-     * @param bankId id of the bank the TPP trying to get access to
      * @param privateKey private key corresponding to the public key in the certificate
-     * @return verified business member
+     * @return a business member with a new eIDAS certificate on file
      */
     public static Member verifyEidas(
-            TokenClient client,
+            Member member,
             String tppAuthNumber,
             String certificate,
-            String bankId,
             PrivateKey privateKey) {
+        // Suppose we already have a member registered under the realm of a bank with a
+        // verified or not verified EIDAS alias.
+        // Now we want to submit a new certificate (e.g. instead of an expired or invalid one)
         Algorithm signingAlgorithm = Algorithm.RS256;
         Crypto crypto = CryptoRegistry.getInstance().cryptoFor(signingAlgorithm);
         Signer signer = crypto.signer("eidas", privateKey);
 
-        // resolve memberId of the bank TPP is trying to get access to
-        String bankMemberId = client
-                .resolveAliasBlocking(Alias.newBuilder().setValue(bankId).setType(BANK).build())
-                .getId();
-        // create an eIDAS alias under realm of the target bank
+        // create an eIDAS alias
+        // (if the alias is verified you can just fetch it with member.aliasesBlocking())
         Alias eidasAlias = normalize(Alias.newBuilder()
                 .setValue(tppAuthNumber)
-                .setRealmId(bankMemberId)
+                .setRealmId(member.realmId())
                 .setType(EIDAS)
                 .build());
-        // create a member under realm of the bank with eIDAS alias
-        Member tpp = client.createMember(eidasAlias, null, bankMemberId).blockingSingle();
         // construct a payload with all the required data
         VerifyEidasPayload payload = VerifyEidasPayload
                 .newBuilder()
                 .setAlgorithm(signingAlgorithm)
                 .setAlias(eidasAlias)
                 .setCertificate(certificate)
-                .setMemberId(tpp.memberId())
+                .setMemberId(member.memberId())
                 .build();
         // verify eIDAS
-        VerifyEidasResponse response = tpp
+        VerifyEidasResponse response = member
                 .verifyEidas(payload, signer.sign(payload))
                 .blockingSingle();
         // get the verification status (useful if verifyEidas response has IN_PROGRESS status)
-        GetEidasVerificationStatusResponse statusResponse = tpp
+        GetEidasVerificationStatusResponse statusResponse = member
                 .getEidasVerificationStatus(response.getVerificationId())
                 .blockingSingle();
 
-        return tpp;
+        return member;
     }
 
     /**
