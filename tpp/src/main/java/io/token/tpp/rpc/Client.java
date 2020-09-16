@@ -99,6 +99,7 @@ import io.token.security.Signer;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -614,11 +615,17 @@ public final class Client extends io.token.rpc.Client {
      *
      * @param bankId bank ID
      * @param tokenRequestId token request ID
+     * @param customerTrackingMetadata customer tracking metadata
      * @return url
      */
-    public Observable<String> getBankAuthUrl(String bankId, String tokenRequestId) {
+    public Observable<String> getBankAuthUrl(
+            String bankId,
+            String tokenRequestId,
+            Optional<CustomerTrackingMetadata> customerTrackingMetadata) {
         return toObservable(gateway
-                .withAuthentication(authenticationContext())
+                .withAuthentication(customerTrackingMetadata
+                        .map(this::authenticationContext)
+                        .orElseGet(this::authenticationContext))
                 .getBankAuthUrl(GetBankAuthUrlRequest.newBuilder()
                         .setBankId(bankId)
                         .setTokenRequestId(tokenRequestId)

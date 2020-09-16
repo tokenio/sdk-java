@@ -58,6 +58,7 @@ import io.token.tpp.rpc.Client;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 import org.slf4j.Logger;
@@ -1254,7 +1255,22 @@ public class Member extends io.token.Member implements Representable {
      * @return url
      */
     public Observable<String> getBankAuthUrl(String bankId, String tokenRequestId) {
-        return client.getBankAuthUrl(bankId, tokenRequestId);
+        return client.getBankAuthUrl(bankId, tokenRequestId, Optional.empty());
+    }
+
+    /**
+     * Get url to bank authorization page for a token request.
+     *
+     * @param bankId bank ID
+     * @param tokenRequestId token request ID
+     * @param customerTrackingMetadata tracking metadata of the end user
+     * @return url
+     */
+    public Observable<String> getBankAuthUrl(
+            String bankId,
+            String tokenRequestId,
+            CustomerTrackingMetadata customerTrackingMetadata) {
+        return client.getBankAuthUrl(bankId, tokenRequestId, Optional.of(customerTrackingMetadata));
     }
 
     /**
@@ -1266,6 +1282,21 @@ public class Member extends io.token.Member implements Representable {
      */
     public String getBankAuthUrlBlocking(String bankId, String tokenRequestId) {
         return getBankAuthUrl(bankId, tokenRequestId).blockingSingle();
+    }
+
+    /**
+     * Get url to bank authorization page for a token request.
+     *
+     * @param bankId bank ID
+     * @param tokenRequestId token request ID
+     * @param customerTrackingMetadata tracking metadata of the end user
+     * @return url
+     */
+    public String getBankAuthUrlBlocking(
+            String bankId,
+            String tokenRequestId,
+            CustomerTrackingMetadata customerTrackingMetadata) {
+        return getBankAuthUrl(bankId, tokenRequestId, customerTrackingMetadata).blockingSingle();
     }
 
     /**
