@@ -42,66 +42,72 @@ import org.bouncycastle.cert.jcajce.JcaX509v3CertificateBuilder;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.junit.Before;
 import org.junit.Test;
 
 public class EidasMethodsSampleTest {
     private static final BouncyCastleProvider bcProvider = new BouncyCastleProvider();
     private static final String directBankId = "gold";
 
+    private String authNumber;
+    private String pspSubjectName;
+    private KeyPair keyPair;
+    private X509Certificate certificate;
+    private EidasKeyStore keyStore;
+    private CryptoEngineFactory cryptoEngineFactory;
+
+    @Before
+    public void before()  throws Exception {
+        authNumber = randomAlphanumeric(15);
+        pspSubjectName = randomAlphanumeric(15);
+        keyPair = generateKeyPair();
+        certificate = generateCert(keyPair, authNumber, pspSubjectName);
+        keyStore = new InMemoryEidasKeyStore(certificate, keyPair.getPrivate());
+        cryptoEngineFactory = new EidasCryptoEngineFactory(keyStore);
+    }
+
     @Test
     public void verifyEidasTest() throws Exception {
-        try (TokenClient tokenClient = createClient()) {
-            String tppAuthNumber = randomAlphanumeric(15);
-            String pspSubjectName = randomAlphanumeric(15);
-            KeyPair keyPair = generateKeyPair();
-            String certificate = encode(generateCert(keyPair, tppAuthNumber, pspSubjectName));
-            Member verifiedTppMember = EidasMethodsSample.verifyEidas(
-                    tokenClient,
-                    tppAuthNumber,
-                    certificate,
-                    directBankId,
+        try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
+            Member member = registerWithEidas(tokenClient, keyStore, directBankId);
+            String newCertificate = encode(generateCert(keyPair, authNumber, pspSubjectName));
+            Member memberWithNewCertificate = EidasMethodsSample.verifyEidas(
+                    member,
+                    authNumber,
+                    newCertificate,
                     keyPair.getPrivate());
-            List<Alias> verifiedAliases = verifiedTppMember.aliasesBlocking();
+            List<Alias> verifiedAliases = memberWithNewCertificate.aliasesBlocking();
             assertThat(verifiedAliases.size()).isEqualTo(1);
-            assertThat(verifiedAliases.get(0).getValue()).isEqualTo(tppAuthNumber);
+            assertThat(verifiedAliases.get(0).getValue()).isEqualTo(authNumber);
             assertThat(verifiedAliases.get(0).getType()).isEqualTo(EIDAS);
-            GetEidasCertificateStatusResponse eidasInfo = verifiedTppMember
+            GetEidasCertificateStatusResponse eidasInfo = memberWithNewCertificate
                     .getEidasCertificateStatus()
                     .blockingSingle();
-            assertThat(eidasInfo.getCertificate()).isEqualTo(certificate);
+            assertThat(eidasInfo.getCertificate()).isEqualTo(newCertificate);
             assertThat(eidasInfo.getStatus()).isEqualTo(CERTIFICATE_VALID);
-            assertThat(verifiedTppMember
-                    .getProfileBlocking(verifiedTppMember.memberId())
+            assertThat(memberWithNewCertificate
+                    .getProfileBlocking(memberWithNewCertificate.memberId())
                     .getDisplayNameFirst()).isEqualTo(pspSubjectName);
         }
     }
 
     @Test
     public void recoverEidasTest() throws Exception {
-        try (TokenClient tokenClient = createClient();
+        try (TokenClient tokenClient = createClient(cryptoEngineFactory);
              TokenClient anotherTokenClient = createClient();) {
-            String tppAuthNumber = randomAlphanumeric(15);
-            String pspSubjectName = randomAlphanumeric(15);
-            KeyPair keyPair = generateKeyPair();
-            String certificate = encode(generateCert(keyPair, tppAuthNumber, pspSubjectName));
-            // create and verify member first
-            Member verifiedTppMember = EidasMethodsSample.verifyEidas(
-                    tokenClient,
-                    tppAuthNumber,
-                    certificate,
-                    directBankId,
-                    keyPair.getPrivate());
+            // create and onboard a member with an eIDAS certificate
+            Member member = registerWithEidas(tokenClient, keyStore, directBankId);
 
             // now pretend we lost the keys and need to recover the member
             Member recoveredMember = EidasMethodsSample.recoverEidas(
                     anotherTokenClient,
-                    verifiedTppMember.memberId(),
-                    tppAuthNumber,
-                    certificate,
+                    member.memberId(),
+                    authNumber,
+                    encode(certificate),
                     keyPair.getPrivate());
             List<Alias> verifiedAliases = recoveredMember.aliasesBlocking();
             assertThat(verifiedAliases.size()).isEqualTo(1);
-            assertThat(verifiedAliases.get(0).getValue()).isEqualTo(tppAuthNumber);
+            assertThat(verifiedAliases.get(0).getValue()).isEqualTo(authNumber);
             assertThat(verifiedAliases.get(0).getType()).isEqualTo(EIDAS);
             assertThat(recoveredMember
                     .getProfileBlocking(recoveredMember.memberId())
@@ -111,12 +117,6 @@ public class EidasMethodsSampleTest {
 
     @Test
     public void registerWithEidasTest() throws Exception {
-        String authNumber = randomAlphanumeric(15);
-        String pspSubjectName = randomAlphanumeric(15);
-        KeyPair keyPair = generateKeyPair();
-        X509Certificate certificate = generateCert(keyPair, authNumber, pspSubjectName);
-        EidasKeyStore keyStore = new InMemoryEidasKeyStore(certificate, keyPair.getPrivate());
-        CryptoEngineFactory cryptoEngineFactory = new EidasCryptoEngineFactory(keyStore);
         try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
             Member member = registerWithEidas(tokenClient, keyStore, directBankId);
             List<SecurityProtos.Key> keys = member.getKeys().blockingSingle();
@@ -135,12 +135,6 @@ public class EidasMethodsSampleTest {
 
     @Test
     public void createMemberWithEidasTest() throws Exception {
-        String authNumber = randomAlphanumeric(15);
-        String pspSubjectName = randomAlphanumeric(15);
-        KeyPair keyPair = generateKeyPair();
-        X509Certificate certificate = generateCert(keyPair, authNumber, pspSubjectName);
-        EidasKeyStore keyStore = new InMemoryEidasKeyStore(certificate, keyPair.getPrivate());
-        CryptoEngineFactory cryptoEngineFactory = new EidasCryptoEngineFactory(keyStore);
         try (TokenClient tokenClient = createClient(cryptoEngineFactory)) {
             Optional<Member> memberOpt = createMemberWithEidas(tokenClient, keyStore, directBankId);
             assertThat(memberOpt).isPresent();
