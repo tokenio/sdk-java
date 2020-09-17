@@ -720,6 +720,14 @@ public class Client {
                 customerTrackingMetadata);
     }
 
+    protected AuthenticationContext authenticationContext(CustomerTrackingMetadata metadata) {
+        return AuthenticationContext.create(
+                null,
+                false,
+                LOW,
+                metadata);
+    }
+
     protected AuthenticationContext authenticationContext(Key.Level level) {
         return AuthenticationContext.create(
                 null,
