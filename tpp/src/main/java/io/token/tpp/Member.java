@@ -1341,6 +1341,7 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param bankId bank ID
      * @param query HTTP query string
+     * @param customerTrackingMetadata tracking metadata of the end user
      * @return token request ID
      */
     public String onBankAuthCallbackBlocking(
