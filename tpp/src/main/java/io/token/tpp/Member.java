@@ -1306,9 +1306,7 @@ public class Member extends io.token.Member implements Representable {
      * @param query HTTP query string
      * @return token request ID
      */
-    public Observable<String> onBankAuthCallback(
-            String bankId,
-            String query) {
+    public Observable<String> onBankAuthCallback(String bankId, String query) {
         return client.onBankAuthCallback(bankId, query, Optional.empty());
     }
 
@@ -1334,9 +1332,7 @@ public class Member extends io.token.Member implements Representable {
      * @param query HTTP query string
      * @return token request ID
      */
-    public String onBankAuthCallbackBlocking(
-            String bankId,
-            String query) {
+    public String onBankAuthCallbackBlocking(String bankId, String query) {
         return onBankAuthCallback(bankId, query).blockingSingle();
     }
 
