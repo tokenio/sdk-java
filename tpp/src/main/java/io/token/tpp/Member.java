@@ -1306,8 +1306,25 @@ public class Member extends io.token.Member implements Representable {
      * @param query HTTP query string
      * @return token request ID
      */
-    public Observable<String> onBankAuthCallback(String bankId, String query) {
-        return client.onBankAuthCallback(bankId, query);
+    public Observable<String> onBankAuthCallback(
+            String bankId,
+            String query) {
+        return client.onBankAuthCallback(bankId, query, Optional.empty());
+    }
+
+    /**
+     * Forward the callback from the bank (after user authentication) to Token.
+     *
+     * @param bankId bank ID
+     * @param query HTTP query string
+     * @param customerTrackingMetadata tracking metadata of the end user
+     * @return token request ID
+     */
+    public Observable<String> onBankAuthCallback(
+            String bankId,
+            String query,
+            CustomerTrackingMetadata customerTrackingMetadata) {
+        return client.onBankAuthCallback(bankId, query, Optional.of(customerTrackingMetadata));
     }
 
     /**
@@ -1317,8 +1334,24 @@ public class Member extends io.token.Member implements Representable {
      * @param query HTTP query string
      * @return token request ID
      */
-    public String onBankAuthCallbackBlocking(String bankId, String query) {
+    public String onBankAuthCallbackBlocking(
+            String bankId,
+            String query) {
         return onBankAuthCallback(bankId, query).blockingSingle();
+    }
+
+    /**
+     * Forward the callback from the bank (after user authentication) to Token.
+     *
+     * @param bankId bank ID
+     * @param query HTTP query string
+     * @return token request ID
+     */
+    public String onBankAuthCallbackBlocking(
+            String bankId,
+            String query,
+            CustomerTrackingMetadata customerTrackingMetadata) {
+        return onBankAuthCallback(bankId, query, customerTrackingMetadata).blockingSingle();
     }
 
     /**

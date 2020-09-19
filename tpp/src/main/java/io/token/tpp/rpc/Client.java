@@ -638,11 +638,17 @@ public final class Client extends io.token.rpc.Client {
      *
      * @param bankId bank ID
      * @param query HTTP query string
+     * @param customerTrackingMetadata customer tracking metadata
      * @return token request ID
      */
-    public Observable<String> onBankAuthCallback(String bankId, String query) {
+    public Observable<String> onBankAuthCallback(
+            String bankId,
+            String query,
+            Optional<CustomerTrackingMetadata> customerTrackingMetadata) {
         return toObservable(gateway
-                .withAuthentication(authenticationContext())
+                .withAuthentication(customerTrackingMetadata
+                        .map(this::authenticationContext)
+                        .orElseGet(this::authenticationContext))
                 .onBankAuthCallback(OnBankAuthCallbackRequest.newBuilder()
                         .setBankId(bankId)
                         .setQuery(query)
