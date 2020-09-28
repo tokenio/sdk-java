@@ -124,6 +124,7 @@ public final class TransferTokenBuilder {
                         .setCurrency(transferBody.getCurrency())
                         .setAmount(transferBody.getAmount())
                         .setConfirmFunds(transferBody.getConfirmFunds())
+                        .setRemittanceReference(transferBody.getRemittanceReference())
                         .setInstructions(transferBody.hasInstructions()
                                 ? transferBody.getInstructions()
                                 // for backwards compatibility
@@ -188,6 +189,17 @@ public final class TransferTokenBuilder {
                                 .setAccountId(accountId)
                                 .setMemberId(member.memberId()))
                         .build());
+        return this;
+    }
+
+    /**
+     * Sets the remittance reference of the transfer.
+     *
+     * @param remittanceReference remittance reference
+     * @return builder
+     */
+    public TransferTokenBuilder setRemittanceReference(String remittanceReference) {
+        payload.getTransferBuilder().setRemittanceReference(remittanceReference);
         return this;
     }
 

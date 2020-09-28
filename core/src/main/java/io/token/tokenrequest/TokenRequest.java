@@ -444,6 +444,18 @@ public abstract class TokenRequest {
         }
 
         /**
+         * Optional. Sets the remittance reference of the transfer.
+         *
+         * @param remittanceReference remittance reference
+         * @return builder
+         */
+        public TransferBuilder setRemittanceReference(String remittanceReference) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .setRemittanceReference(remittanceReference);
+            return this;
+        }
+
+        /**
          * Optional. Sets the destination country in order to narrow down
          * the country selection in the web-app UI.
          *
@@ -714,6 +726,18 @@ public abstract class TokenRequest {
         public StandingOrderBuilder setEndDate(String endDate) {
             this.requestPayload.getStandingOrderBodyBuilder()
                     .setEndDate(endDate);
+            return this;
+        }
+
+        /**
+         * Sets the remittance reference of the standing order.
+         *
+         * @param remittanceReference remittance reference
+         * @return builder
+         */
+        public StandingOrderBuilder setRemittanceReference(String remittanceReference) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .setRemittanceReference(remittanceReference);
             return this;
         }
 
