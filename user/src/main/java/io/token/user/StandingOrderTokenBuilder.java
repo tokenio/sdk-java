@@ -130,6 +130,17 @@ public final class StandingOrderTokenBuilder {
     }
 
     /**
+     * Sets the remittance reference.
+     *
+     * @param remittanceReference remittance reference
+     * @return builder
+     */
+    public StandingOrderTokenBuilder setRemittanceReference(String remittanceReference) {
+        payload.getStandingOrderBuilder().setRemittanceReference(remittanceReference);
+        return this;
+    }
+
+    /**
      * Sets the effective date.
      *
      * @param effectiveAtMs effective date in ms.
