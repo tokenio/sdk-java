@@ -26,6 +26,7 @@ import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.Access
 
 import com.google.auto.value.AutoValue;
 import com.google.common.base.Strings;
+import io.token.proto.common.account.AccountProtos.AccountIdentifier;
 import io.token.proto.common.account.AccountProtos.BankAccount;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific;
@@ -86,6 +87,7 @@ public abstract class TokenRequest {
      * @param bankId bank ID
      * @param account the user's account
      * @return Builder instance
+     * @deprecated use the builder with AccountIdentifier instead
      */
     public static AccessBuilder fundsConfirmationRequestBuilder(
             String bankId,
@@ -98,8 +100,22 @@ public abstract class TokenRequest {
      *
      * @param bankId bank ID
      * @param account the user's account
+     * @return Builder instance
+     */
+    public static AccessBuilder fundsConfirmationRequestBuilder(
+            String bankId,
+            AccountIdentifier account) {
+        return fundsConfirmationRequestBuilder(bankId, account, Optional.empty());
+    }
+
+    /**
+     * Create a Builder instance for a funds confirmation request.
+     *
+     * @param bankId bank ID
+     * @param account the user's account
      * @param data customer data
      * @return Builder instance
+     * @deprecated use the builder with AccountIdentifier instead
      */
     public static AccessBuilder fundsConfirmationRequestBuilder(
             String bankId,
@@ -107,6 +123,28 @@ public abstract class TokenRequest {
             Optional<CustomerData> data) {
         AccountResource.Builder builder = AccountResource.newBuilder()
                 .setBankAccount(account)
+                .setType(ACCOUNT_FUNDS_CONFIRMATION);
+        data.ifPresent(builder::setCustomerData);
+        return new AccessBuilder(AccountResourceList.newBuilder()
+                .addResources(builder.build())
+                .build())
+                .setBankId(bankId);
+    }
+
+    /**
+     * Create a Builder instance for a funds confirmation request.
+     *
+     * @param bankId bank ID
+     * @param account the user's account
+     * @param data customer data
+     * @return Builder instance
+     */
+    public static AccessBuilder fundsConfirmationRequestBuilder(
+            String bankId,
+            AccountIdentifier account,
+            Optional<CustomerData> data) {
+        AccountResource.Builder builder = AccountResource.newBuilder()
+                .setAccountIdentifier(account)
                 .setType(ACCOUNT_FUNDS_CONFIRMATION);
         data.ifPresent(builder::setCustomerData);
         return new AccessBuilder(AccountResourceList.newBuilder()
@@ -559,7 +597,7 @@ public abstract class TokenRequest {
                     .setSetTransferDestinationsUrl(url);
             return this;
         }
-          
+
         /**
          * Optional. Sets the ultimate party to which the money is due.
          *
