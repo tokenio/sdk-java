@@ -1,13 +1,20 @@
 package io.token.sample;
 
+import static io.token.proto.common.account.AccountProtos.AccountIdentifier.Iban;
 import static io.token.sample.StoreAndRetrieveTokenRequestSample.setTokenRequestTransferDestinations;
 import static io.token.sample.StoreAndRetrieveTokenRequestSample.storeAccessTokenRequest;
+import static io.token.sample.StoreAndRetrieveTokenRequestSample.storeAccessTokenRequestWithSource;
 import static io.token.sample.StoreAndRetrieveTokenRequestSample.storeTransferTokenRequest;
 import static io.token.sample.StoreAndRetrieveTokenRequestSample.storeTransferTokenRequestWithDestinationsCallback;
+import static io.token.sample.StoreAndRetrieveTokenRequestSample.storeTransferTokenRequestWithSource;
 import static io.token.sample.TestUtil.createClient;
 import static io.token.sample.TestUtil.randomAlias;
+import static io.token.util.Util.generateNonce;
 import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThatExceptionOfType;
 
+import io.token.proto.common.account.AccountProtos.AccountIdentifier;
+import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
@@ -35,12 +42,53 @@ public class StoreAndRetrieveTokenRequestSampleTest {
     }
 
     @Test
+    public void storeAndRetrieveTransferTokenWithSourceTest() {
+        try (TokenClient tokenClient = createClient()) {
+            Member payee = tokenClient.createMemberBlocking(randomAlias());
+            TransferEndpoint transferEndpoint = TransferEndpoint.newBuilder()
+                    .setAccountIdentifier(AccountIdentifier.newBuilder()
+                            .setIban(Iban.newBuilder().setIban(generateNonce())))
+                    .setBankId("iron")
+                    .build();
+            String requestId = storeTransferTokenRequestWithSource(payee, transferEndpoint);
+            TokenRequest request = tokenClient.retrieveTokenRequestBlocking(requestId);
+            assertThat(request).isNotNull();
+            assertThat(request
+                    .getTokenRequestPayload()
+                    .getTransferBody()
+                    .getInstructions()
+                    .getSource()
+                    .hasAccountIdentifier()).isTrue();
+        }
+    }
+
+    @Test
     public void storeAndRetrieveAccessTokenTest() {
         try (TokenClient tokenClient = createClient()) {
             Member grantee = tokenClient.createMemberBlocking(randomAlias());
             String requestId = storeAccessTokenRequest(grantee);
             TokenRequest request = tokenClient.retrieveTokenRequestBlocking(requestId);
             assertThat(request).isNotNull();
+        }
+    }
+
+    @Test
+    public void storeAndRetrieveAccessTokenWithSourceTest() {
+        try (TokenClient tokenClient = createClient()) {
+            Member grantee = tokenClient.createMemberBlocking(randomAlias());
+            AccountIdentifier source = AccountIdentifier.newBuilder()
+                    .setIban(Iban.newBuilder().setIban(generateNonce()))
+                    .build();
+            String requestId = storeAccessTokenRequestWithSource(grantee, source, "iron");
+            TokenRequest request = tokenClient.retrieveTokenRequestBlocking(requestId);
+            assertThat(request).isNotNull();
+            assertThat(request
+                    .getTokenRequestPayload()
+                    .getAccessBody()
+                    .getAccountResourceList()
+                    .getResources(0)
+                    .hasAccountIdentifier())
+                    .isTrue();
         }
     }
 
