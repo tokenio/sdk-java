@@ -35,7 +35,6 @@ import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Key.Algorithm;
 import io.token.proto.common.security.SecurityProtos.Key.Level;
 import io.token.util.codec.ByteEncoding;
-
 import java.io.IOException;
 import java.math.BigInteger;
 import java.security.GeneralSecurityException;
@@ -44,6 +43,7 @@ import java.security.KeyFactory;
 import java.security.KeyPair;
 import java.security.KeyPairGenerator;
 import java.security.KeyStore;
+import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.NoSuchProviderException;
 import java.security.PrivateKey;
@@ -180,7 +180,7 @@ public final class AKSCryptoEngine implements CryptoEngine {
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                Certificate certificate = keyStore.getCertificate(alias);
+                Certificate certificate = getCertificate(alias);
                 if (certificate == null) {
                     // There isn't any public key associated with this alias.
                     continue;
@@ -225,9 +225,13 @@ public final class AKSCryptoEngine implements CryptoEngine {
                 throw new RuntimeException("Invalid private key");
             }
 
+            Certificate certificate = getCertificate(alias);
+            if (certificate == null) {
+                throw new RuntimeException("No certificate is found.");
+            }
             return new AKSSigner(
                     (PrivateKey) key,
-                    keyStore.getCertificate(alias),
+                    certificate,
                     getKeyLevel(alias),
                     userAuthenticationStore);
         } catch (GeneralSecurityException exception) {
@@ -267,7 +271,11 @@ public final class AKSCryptoEngine implements CryptoEngine {
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                Certificate certificate = keyStore.getCertificate(alias);
+                Certificate certificate = getCertificate(alias);
+                if (certificate == null) {
+                    // There isn't any public key associated with this alias.
+                    continue;
+                }
                 if (keyIdFor(certificate).equals(keyId)) {
                     if (isExpired(alias)) {
                         throw new IllegalArgumentException(
@@ -293,7 +301,11 @@ public final class AKSCryptoEngine implements CryptoEngine {
             Enumeration<String> aliases = keyStore.aliases();
             while (aliases.hasMoreElements()) {
                 String alias = aliases.nextElement();
-                Certificate certificate = keyStore.getCertificate(alias);
+                Certificate certificate = getCertificate(alias);
+                if (certificate == null) {
+                    // There isn't any public key associated with this alias.
+                    continue;
+                }
                 if (keyIdFor(certificate).equals(keyId)) {
                     if (isExpired(alias)) {
                         throw new IllegalArgumentException(
@@ -511,6 +523,14 @@ public final class AKSCryptoEngine implements CryptoEngine {
             }
         } catch (GeneralSecurityException exception) {
             throw new RuntimeException(exception);
+        }
+    }
+
+    private @Nullable Certificate getCertificate(String alias) {
+        try {
+            return keyStore.getCertificate(alias);
+        } catch (KeyStoreException ex) {
+            return null;
         }
     }
 }
