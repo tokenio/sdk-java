@@ -23,12 +23,10 @@
 package io.token.tpp.rpc;
 
 import static io.grpc.Status.INVALID_ARGUMENT;
-import static io.token.proto.common.providerspecific.ProviderSpecific.ScaStatus.INVALID;
 import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANCELLED;
 import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
 
-import com.google.common.base.Strings;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.token.proto.PagedList;
@@ -37,7 +35,6 @@ import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
 import io.token.proto.common.member.MemberProtos.Profile;
 import io.token.proto.common.notification.NotificationProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
-import io.token.proto.common.providerspecific.ProviderSpecific;
 import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.security.SecurityProtos.Key;
 import io.token.proto.common.security.SecurityProtos.Signature;
@@ -84,6 +81,7 @@ import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.GetWebhookConfigResponse;
 import io.token.proto.gateway.Gateway.InitiateBankAuthorizationRequest;
+import io.token.proto.gateway.Gateway.InitiateBankAuthorizationResponse;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackRequest;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackResponse;
 import io.token.proto.gateway.Gateway.RemoveRedirectUrlsRequest;
@@ -99,7 +97,6 @@ import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
-import io.token.tpp.InitiateBankAuthorizationResult;
 
 import java.util.List;
 import java.util.Map;
@@ -643,9 +640,9 @@ public final class Client extends io.token.rpc.Client {
      *
      * @param tokenRequestId token request ID
      * @param customerTrackingMetadata customer tracking metadata
-     * @return initiation result
+     * @return initiation response
      */
-    public Observable<InitiateBankAuthorizationResult> initiateBankAuthorization(
+    public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
             String tokenRequestId,
             Optional<CustomerTrackingMetadata> customerTrackingMetadata) {
         return toObservable(gateway
@@ -654,12 +651,7 @@ public final class Client extends io.token.rpc.Client {
                         .orElseGet(this::authenticationContext))
                 .initiateBankAuthorization(InitiateBankAuthorizationRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
-                        .build()))
-                .map(response -> InitiateBankAuthorizationResult.create(
-                        Optional.ofNullable(Strings.emptyToNull(response.getRedirectUrl())),
-                        Optional.of(response.getStatus())
-                                .filter(status -> status != INVALID),
-                        response.getFields().getFieldsList()));
+                        .build()));
     }
 
     /**
