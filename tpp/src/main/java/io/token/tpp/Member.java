@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 Token, Inc.
+ * Copyright (c) 2020 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -1245,6 +1245,54 @@ public class Member extends io.token.Member implements Representable {
     public Observable<GetEidasVerificationStatusResponse> getEidasVerificationStatus(
             String verificationId) {
         return client.getEidasVerificationStatus(verificationId);
+    }
+
+    /**
+     * Initiate authorization process with the source bank, for an existing token request.
+     *
+     * @param tokenRequestId token request ID
+     * @param trackingMetadata customer tracking metadata
+     * @return initiation result
+     */
+    public Observable<InitiateBankAuthorizationResult> initiateBankAuthorization(
+            String tokenRequestId,
+            CustomerTrackingMetadata trackingMetadata) {
+        return client.initiateBankAuthorization(tokenRequestId, Optional.of(trackingMetadata));
+    }
+
+    /**
+     * Initiate authorization process with the source bank, for an existing token request.
+     *
+     * @param tokenRequestId token request ID
+     * @return initiation result
+     */
+    public Observable<InitiateBankAuthorizationResult> initiateBankAuthorization(
+            String tokenRequestId) {
+        return client.initiateBankAuthorization(tokenRequestId, Optional.empty());
+    }
+
+    /**
+     * Initiate authorization process with the source bank, for an existing token request.
+     *
+     * @param tokenRequestId token request ID
+     * @param trackingMetadata customer tracking metadata
+     * @return initiation result
+     */
+    public InitiateBankAuthorizationResult initiateBankAuthorizationBlocking(
+            String tokenRequestId,
+            CustomerTrackingMetadata trackingMetadata) {
+        return initiateBankAuthorization(tokenRequestId, trackingMetadata).blockingSingle();
+    }
+
+    /**
+     * Initiate authorization process with the source bank, for an existing token request.
+     *
+     * @param tokenRequestId token request ID
+     * @return initiation result
+     */
+    public InitiateBankAuthorizationResult initiateBankAuthorizationBlocking(
+            String tokenRequestId) {
+        return initiateBankAuthorization(tokenRequestId).blockingSingle();
     }
 
     /**
