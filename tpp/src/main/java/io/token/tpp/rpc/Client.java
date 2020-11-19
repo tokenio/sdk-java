@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2019 Token, Inc.
+ * Copyright (c) 2020 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -80,6 +80,8 @@ import io.token.proto.gateway.Gateway.GetTransferResponse;
 import io.token.proto.gateway.Gateway.GetTransfersRequest;
 import io.token.proto.gateway.Gateway.GetWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.GetWebhookConfigResponse;
+import io.token.proto.gateway.Gateway.InitiateBankAuthorizationRequest;
+import io.token.proto.gateway.Gateway.InitiateBankAuthorizationResponse;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackRequest;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackResponse;
 import io.token.proto.gateway.Gateway.RemoveRedirectUrlsRequest;
@@ -631,6 +633,25 @@ public final class Client extends io.token.rpc.Client {
                         .setTokenRequestId(tokenRequestId)
                         .build()))
                 .map(GetBankAuthUrlResponse::getUrl);
+    }
+
+    /**
+     * Initiate authorization process with the source bank, for an existing token request.
+     *
+     * @param tokenRequestId token request ID
+     * @param customerTrackingMetadata customer tracking metadata
+     * @return initiation response
+     */
+    public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
+            String tokenRequestId,
+            Optional<CustomerTrackingMetadata> customerTrackingMetadata) {
+        return toObservable(gateway
+                .withAuthentication(customerTrackingMetadata
+                        .map(this::authenticationContext)
+                        .orElseGet(this::authenticationContext))
+                .initiateBankAuthorization(InitiateBankAuthorizationRequest.newBuilder()
+                        .setTokenRequestId(tokenRequestId)
+                        .build()));
     }
 
     /**
