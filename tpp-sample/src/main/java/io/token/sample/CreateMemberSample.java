@@ -17,36 +17,25 @@ public final class CreateMemberSample {
     /**
      * Creates and returns a new token member.
      *
+     * @param tokenClient token client
      * @return a new Member instance
      */
-    public static Member createMember() {
-        // Create the client, which communicates with
-        // the Token cloud.
-        try {
-            Path keys = Files.createDirectories(Paths.get("./keys"));
-            TokenClient tokenClient = TokenClient.builder()
-                    .withKeyStore(new UnsecuredFileSystemKeyStore(keys.toFile()))
-                    .connectTo(SANDBOX)
-                    .build();
+    public static Member createMember(TokenClient tokenClient) {
+        // An alias is a "human-readable" reference to a member.
+        // Here, we use a random domain. This works in test environments,
+        // but in production, an alias should be verified manually during the onboarding
+        // process.
+        // We use a random address because otherwise, if we ran a second
+        // time, Token would say the alias was already taken.
+        Alias alias = Alias.newBuilder()
+                .setType(Alias.Type.DOMAIN)
+                .setValue(randomAlphabetic(10).toLowerCase() + "+noverify.com")
+                .build();
 
-            // An alias is a "human-readable" reference to a member.
-            // Here, we use a random domain. This works in test environments,
-            // but in production, an alias should be verified manually during the onboarding
-            // process.
-            // We use a random address because otherwise, if we ran a second
-            // time, Token would say the alias was already taken.
-            Alias alias = Alias.newBuilder()
-                    .setType(Alias.Type.DOMAIN)
-                    .setValue(randomAlphabetic(10).toLowerCase() + "+noverify.com")
-                    .build();
+        Member newMember = tokenClient.createMemberBlocking(alias);
+        // let user recover member by verifying email if they lose keys
+        newMember.useDefaultRecoveryRule();
 
-            Member newMember = tokenClient.createMemberBlocking(alias);
-            // let user recover member by verifying email if they lose keys
-            newMember.useDefaultRecoveryRule();
-
-            return newMember;
-        } catch (IOException ioe) {
-            throw new RuntimeException(ioe);
-        }
+        return newMember;
     }
 }

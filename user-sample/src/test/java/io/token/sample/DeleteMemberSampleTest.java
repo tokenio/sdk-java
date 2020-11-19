@@ -20,7 +20,7 @@ public class DeleteMemberSampleTest {
             assertThat(tokenClient.getMemberBlocking(member.memberId()).memberId())
                     .isEqualTo(member.memberId());
 
-            member.deleteMemberBlocking();
+            DeleteMemberSample.deleteMember(member);
 
             assertThatExceptionOfType(StatusRuntimeException.class).isThrownBy(() ->
                     tokenClient.getMemberBlocking(member.memberId()));
