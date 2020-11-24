@@ -677,20 +677,31 @@ public class TokenClient implements Closeable {
      */
     public enum TokenCluster {
         PRODUCTION("api-grpc.token.io"),
-        INTEGRATION("api-grpc.int.token.io"),
+        BETA("api-grpc.token.io", "beta"),
         SANDBOX("api-grpc.sandbox.token.io"),
         STAGING("api-grpc.stg.token.io"),
         PERFORMANCE("api-grpc.perf.token.io"),
         DEVELOPMENT("api-grpc.dev.token.io");
 
         private final String url;
+        private final String authority;
 
         TokenCluster(String url) {
             this.url = url;
+            this.authority = null;
+        }
+
+        TokenCluster(String url, String authority) {
+            this.url = url;
+            this.authority = authority;
         }
 
         public String url() {
             return url;
+        }
+
+        public String authority() {
+            return authority;
         }
     }
 
@@ -707,6 +718,7 @@ public class TokenClient implements Closeable {
         protected boolean useSsl;
         protected TokenCluster tokenCluster;
         protected String hostName;
+        protected String authority;
         protected long timeoutMs;
         protected CryptoEngineFactory cryptoEngine;
         protected String devKey;
@@ -735,6 +747,17 @@ public class TokenClient implements Closeable {
         }
 
         /**
+         * Sets the authority of the Token Gateway Service to connect to.
+         *
+         * @param authority authority
+         * @return this builder instance
+         */
+        public T authority(String authority) {
+            this.authority = authority;
+            return (T) this;
+        }
+
+        /**
          * Sets the port of the Token Gateway Service to connect to.
          *
          * @param port port number
@@ -755,6 +778,7 @@ public class TokenClient implements Closeable {
         public T connectTo(TokenCluster cluster) {
             this.tokenCluster = cluster;
             this.hostName = cluster.url();
+            this.authority = cluster.authority();
             return (T) this;
         }
 
@@ -838,6 +862,7 @@ public class TokenClient implements Closeable {
                             .withTimeout(timeoutMs)
                             .withMetadata(headers)
                             .withClientSsl(sslConfig)
+                            .withAuthority(authority)
                             .build(),
                     cryptoEngine != null
                             ? cryptoEngine

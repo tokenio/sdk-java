@@ -201,8 +201,8 @@ public class Util {
         switch (cluster) {
             case PRODUCTION:
                 return "web-app.token.io";
-            case INTEGRATION:
-                return "web-app.int.token.io";
+            case BETA:
+                return "web-app.token.io/beta";
             case SANDBOX:
                 return "web-app.sandbox.token.io";
             case STAGING:
