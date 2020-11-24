@@ -201,8 +201,8 @@ public class Util {
         switch (cluster) {
             case PRODUCTION:
                 return "web-app.token.io";
-            case INTEGRATION:
-                return "web-app.int.token.io";
+            case BETA:
+                return "web-app.beta.token.io";
             case SANDBOX:
                 return "web-app.sandbox.token.io";
             case STAGING:
@@ -211,6 +211,10 @@ public class Util {
                 return "web-app.perf.token.io";
             case DEVELOPMENT:
                 return "web-app.dev.token.io";
+            case CUSTOM:
+                if (System.getenv("WEBAPP_URL") == "") {
+                    throw new IllegalArgumentException("Custom cluster configured but WEBAPP_URL is not set");
+                } else return System.getenv("WEBAPP_URL");
             default:
                 throw new IllegalArgumentException("Unrecognized cluster: " + cluster);
         }

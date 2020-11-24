@@ -677,11 +677,12 @@ public class TokenClient implements Closeable {
      */
     public enum TokenCluster {
         PRODUCTION("api-grpc.token.io"),
-        INTEGRATION("api-grpc.int.token.io"),
+        BETA("api-grpc.beta.token.io"),
         SANDBOX("api-grpc.sandbox.token.io"),
         STAGING("api-grpc.stg.token.io"),
         PERFORMANCE("api-grpc.perf.token.io"),
-        DEVELOPMENT("api-grpc.dev.token.io");
+        DEVELOPMENT("api-grpc.dev.token.io"),
+        CUSTOM("TOKEN_URL");
 
         private final String url;
 
@@ -690,7 +691,10 @@ public class TokenClient implements Closeable {
         }
 
         public String url() {
-            return url;
+            if (url == "TOKEN_URL")
+                return System.getenv("TOKEN_URL");
+            else
+                return url;
         }
     }
 
