@@ -47,6 +47,7 @@ import io.token.util.codec.ByteEncoding;
 
 import java.nio.charset.Charset;
 import java.security.SecureRandom;
+import java.util.Optional;
 import java.util.concurrent.ExecutionException;
 
 
@@ -201,8 +202,8 @@ public class Util {
         switch (cluster) {
             case PRODUCTION:
                 return "web-app.token.io";
-            case INTEGRATION:
-                return "web-app.int.token.io";
+            case BETA:
+                return "web-app.token.io/beta";
             case SANDBOX:
                 return "web-app.sandbox.token.io";
             case STAGING:
@@ -211,6 +212,9 @@ public class Util {
                 return "web-app.perf.token.io";
             case DEVELOPMENT:
                 return "web-app.dev.token.io";
+            case CUSTOM:
+                return Optional.ofNullable(System.getenv("TOKEN_WEBAPP_URL"))
+                        .orElseThrow(() -> new RuntimeException("TOKEN_WEBAPP_URL not found"));
             default:
                 throw new IllegalArgumentException("Unrecognized cluster: " + cluster);
         }
