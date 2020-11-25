@@ -71,6 +71,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
@@ -681,7 +682,10 @@ public class TokenClient implements Closeable {
         SANDBOX("api-grpc.sandbox.token.io"),
         STAGING("api-grpc.stg.token.io"),
         PERFORMANCE("api-grpc.perf.token.io"),
-        DEVELOPMENT("api-grpc.dev.token.io");
+        DEVELOPMENT("api-grpc.dev.token.io"),
+        CUSTOM(
+                System.getenv("TOKEN_GRPC_URL"),
+                System.getenv("TOKEN_GRPC_AUTHORITY"));
 
         private final String url;
         private final String authority;
@@ -697,7 +701,8 @@ public class TokenClient implements Closeable {
         }
 
         public String url() {
-            return url;
+            return Optional.ofNullable(url)
+                    .orElseThrow(() -> new RuntimeException("TOKEN_GRPC_URL not found"));
         }
 
         public String authority() {
