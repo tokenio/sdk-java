@@ -82,8 +82,9 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.Nullable;
 
 public class TokenClient extends io.token.TokenClient {
-    private static final String TOKEN_REQUEST_TEMPLATE =
+    private static final String TOKEN_REQUEST_TEMPLATE_LEGACY =
             "https://%s/app/request-token/%s?state=%s";
+    private static final String TOKEN_REQUEST_TEMPLATE = "https://%s/app/request-token/%s";
 
     /**
      * Creates an instance of a Token SDK.
@@ -543,14 +544,16 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token
-     * or pass in a state.
+     * Generate a Token request URL from a request ID.
      *
      * @param requestId request id
      * @return token request url
      */
     public Observable<String> generateTokenRequestUrl(String requestId) {
-        return generateTokenRequestUrl(requestId, "", "");
+        return Observable.just(String.format(
+                TOKEN_REQUEST_TEMPLATE,
+                getWebAppUrl(tokenCluster),
+                requestId));
     }
 
     /**
@@ -582,7 +585,8 @@ public class TokenClient extends io.token.TokenClient {
             String csrfToken) {
         String csrfTokenHash = hashString(csrfToken);
         TokenRequestState tokenRequestState = TokenRequestState.create(csrfTokenHash, state);
-        return Observable.just(String.format(TOKEN_REQUEST_TEMPLATE,
+        return Observable.just(String.format(
+                TOKEN_REQUEST_TEMPLATE_LEGACY,
                 getWebAppUrl(tokenCluster),
                 requestId,
                 urlEncode(tokenRequestState.serialize())));
