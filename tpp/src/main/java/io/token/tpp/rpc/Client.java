@@ -657,19 +657,25 @@ public final class Client extends io.token.rpc.Client {
      * Initiate authorization process with the source bank, for an existing token request.
      *
      * @param tokenRequestId token request ID
+     * @param credentials user credentials
      * @param customerTrackingMetadata customer tracking metadata
      * @return initiation response
      */
     public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
             String tokenRequestId,
+            Map<String, String> credentials,
             Optional<CustomerTrackingMetadata> customerTrackingMetadata) {
+        InitiateBankAuthorizationRequest.Builder builder = InitiateBankAuthorizationRequest
+                .newBuilder()
+                .setTokenRequestId(tokenRequestId);
+        if (!credentials.isEmpty()) {
+            builder.putAllCredentials(credentials);
+        }
         return toObservable(gateway
                 .withAuthentication(customerTrackingMetadata
                         .map(this::authenticationContext)
                         .orElseGet(this::authenticationContext))
-                .initiateBankAuthorization(InitiateBankAuthorizationRequest.newBuilder()
-                        .setTokenRequestId(tokenRequestId)
-                        .build()));
+                .initiateBankAuthorization(builder.build()));
     }
 
     /**
