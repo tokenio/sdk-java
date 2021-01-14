@@ -203,7 +203,7 @@ public class Util {
             case PRODUCTION:
                 return "web-app.token.io";
             case BETA:
-                return "web-app.token.io/beta";
+                return "web-app.beta.token.io";
             case SANDBOX:
                 return "web-app.sandbox.token.io";
             case STAGING:
