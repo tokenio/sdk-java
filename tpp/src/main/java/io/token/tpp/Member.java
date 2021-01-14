@@ -56,6 +56,7 @@ import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
 import io.token.proto.gateway.Gateway.InitiateBankAuthorizationResponse;
 import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.tokenrequest.TokenRequest;
+import io.token.tokenrequest.TokenRequestResult;
 import io.token.tpp.rpc.Client;
 
 import java.util.List;
@@ -878,6 +879,26 @@ public class Member extends io.token.Member implements Representable {
             String tokenRequestId,
             List<TransferDestination> transferDestinations) {
         setTokenRequestTransferDestinations(tokenRequestId, transferDestinations).blockingAwait();
+    }
+
+    /**
+     * Get the token request result based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
+        return client.getTokenRequestResult(tokenRequestId);
+    }
+
+    /**
+     * Get the token request result based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public TokenRequestResult getTokenRequestResultBlocking(String tokenRequestId) {
+        return client.getTokenRequestResult(tokenRequestId).blockingSingle();
     }
 
     /**
