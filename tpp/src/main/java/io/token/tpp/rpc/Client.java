@@ -29,7 +29,6 @@ import static io.token.util.Util.toObservable;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
