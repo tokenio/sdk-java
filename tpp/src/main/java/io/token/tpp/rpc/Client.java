@@ -97,6 +97,7 @@ import io.token.proto.gateway.Gateway.VerifyEidasResponse;
 import io.token.rpc.GatewayProvider;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
+import io.token.tokenrequest.TokenRequestResult;
 
 import java.util.List;
 import java.util.Map;
@@ -274,6 +275,23 @@ public final class Client extends io.token.rpc.Client {
                                 .setTokenRequestId(tokenRequestId)
                                 .addAllTransferDestinations(transferDestinations)
                                 .build()));
+    }
+
+    /**
+     * Get the token request result based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public Observable<TokenRequestResult> getTokenRequestResult(String tokenRequestId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getTokenRequestResult(Gateway.GetTokenRequestResultRequest.newBuilder()
+                        .setTokenRequestId(tokenRequestId)
+                        .build()))
+                .map(response -> TokenRequestResult.create(
+                        response.getTokenId(),
+                        response.getSignature()));
     }
 
     /**
