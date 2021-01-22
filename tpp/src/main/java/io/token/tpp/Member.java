@@ -59,6 +59,7 @@ import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
 import io.token.tpp.rpc.Client;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -1274,13 +1275,47 @@ public class Member extends io.token.Member implements Representable {
      * Initiate authorization process with the source bank, for an existing token request.
      *
      * @param tokenRequestId token request ID
+     * @param credentials user credentials
+     * @param trackingMetadata customer tracking metadata
+     * @return initiation response
+     */
+    public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
+            String tokenRequestId,
+            Map<String, String> credentials,
+            CustomerTrackingMetadata trackingMetadata) {
+        return client.initiateBankAuthorization(
+                tokenRequestId,
+                credentials,
+                Optional.of(trackingMetadata));
+    }
+
+    /**
+     * Initiate authorization process with the source bank, for an existing token request.
+     *
+     * @param tokenRequestId token request ID
+     * @param credentials user credentials
+     * @return initiation response
+     */
+    public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
+            String tokenRequestId,
+            Map<String, String> credentials) {
+        return client.initiateBankAuthorization(
+                tokenRequestId,
+                credentials,
+                Optional.empty());
+    }
+
+    /**
+     * Initiate authorization process with the source bank, for an existing token request.
+     *
+     * @param tokenRequestId token request ID
      * @param trackingMetadata customer tracking metadata
      * @return initiation response
      */
     public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
             String tokenRequestId,
             CustomerTrackingMetadata trackingMetadata) {
-        return client.initiateBankAuthorization(tokenRequestId, Optional.of(trackingMetadata));
+        return initiateBankAuthorization(tokenRequestId, Collections.emptyMap(), trackingMetadata);
     }
 
     /**
@@ -1291,7 +1326,36 @@ public class Member extends io.token.Member implements Representable {
      */
     public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
             String tokenRequestId) {
-        return client.initiateBankAuthorization(tokenRequestId, Optional.empty());
+        return initiateBankAuthorization(tokenRequestId, Collections.emptyMap());
+    }
+
+    /**
+     * Initiate authorization process with the source bank, for an existing token request.
+     *
+     * @param tokenRequestId token request ID
+     * @param credentials user credentials
+     * @param trackingMetadata customer tracking metadata
+     * @return initiation response
+     */
+    public InitiateBankAuthorizationResponse initiateBankAuthorizationBlocking(
+            String tokenRequestId,
+            Map<String, String> credentials,
+            CustomerTrackingMetadata trackingMetadata) {
+        return initiateBankAuthorization(tokenRequestId, credentials, trackingMetadata)
+                .blockingSingle();
+    }
+
+    /**
+     * Initiate authorization process with the source bank, for an existing token request.
+     *
+     * @param tokenRequestId token request ID
+     * @param credentials user credentials
+     * @return initiation response
+     */
+    public InitiateBankAuthorizationResponse initiateBankAuthorizationBlocking(
+            String tokenRequestId,
+            Map<String, String> credentials) {
+        return initiateBankAuthorization(tokenRequestId, credentials).blockingSingle();
     }
 
     /**
