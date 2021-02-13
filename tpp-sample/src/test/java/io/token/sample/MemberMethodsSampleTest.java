@@ -33,7 +33,6 @@ public class MemberMethodsSampleTest {
             Profile profile = MemberMethodsSample.profiles(member);
 
             assertThat(profile.getDisplayNameFirst()).isNotEmpty();
-            assertThat(profile.getDisplayNameLast()).isNotEmpty();
         }
     }
 }
