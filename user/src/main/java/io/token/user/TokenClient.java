@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -157,22 +157,19 @@ public class TokenClient extends io.token.TokenClient {
                                            @Nullable final String recoveryAgent,
                                            @Nullable final String realmId) {
         return createMemberImpl(alias, PERSONAL, null, recoveryAgent, realmId)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        CryptoEngine crypto = cryptoFactory.create(mem.memberId());
-                        final Client client = ClientFactory.authenticated(
-                                channel,
-                                mem.memberId(),
-                                crypto);
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster(),
-                                browserFactory);
-                    }
+                .map(mem -> {
+                    CryptoEngine crypto = cryptoFactory.create(mem.memberId());
+                    final Client client = ClientFactory.authenticated(
+                            channel,
+                            mem.memberId(),
+                            crypto);
+                    return new Member(
+                            mem.memberId(),
+                            mem.partnerId(),
+                            mem.realmId(),
+                            client,
+                            mem.getTokenCluster(),
+                            browserFactory);
                 });
     }
 
@@ -241,18 +238,13 @@ public class TokenClient extends io.token.TokenClient {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return setUpMemberImpl(alias, memberId, null)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster(),
-                                browserFactory);
-                    }
-                });
+                .map(mem -> new Member(
+                        mem.memberId(),
+                        mem.partnerId(),
+                        mem.realmId(),
+                        client,
+                        mem.getTokenCluster(),
+                        browserFactory));
     }
 
     /**
@@ -265,18 +257,13 @@ public class TokenClient extends io.token.TokenClient {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return getMemberImpl(memberId, client)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster(),
-                                browserFactory);
-                    }
-                });
+                .map(mem -> new Member(
+                        mem.memberId(),
+                        mem.partnerId(),
+                        mem.realmId(),
+                        client,
+                        mem.getTokenCluster(),
+                        browserFactory));
     }
 
     /**
@@ -304,21 +291,18 @@ public class TokenClient extends io.token.TokenClient {
             SecurityProtos.Key privilegedKey,
             final CryptoEngine cryptoEngine) {
         return completeRecoveryImpl(memberId, recoveryOperations, privilegedKey, cryptoEngine)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        final Client client = ClientFactory.authenticated(
-                                channel,
-                                mem.memberId(),
-                                cryptoEngine);
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster(),
-                                browserFactory);
-                    }
+                .map(mem -> {
+                    final Client client = ClientFactory.authenticated(
+                            channel,
+                            mem.memberId(),
+                            cryptoEngine);
+                    return new Member(
+                            mem.memberId(),
+                            mem.partnerId(),
+                            mem.realmId(),
+                            client,
+                            mem.getTokenCluster(),
+                            browserFactory);
                 });
     }
 
@@ -355,21 +339,18 @@ public class TokenClient extends io.token.TokenClient {
             String code,
             final CryptoEngine cryptoEngine) {
         return completeRecoveryWithDefaultRuleImpl(memberId, verificationId, code, cryptoEngine)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        final Client client = ClientFactory.authenticated(
-                                channel,
-                                mem.memberId(),
-                                cryptoEngine);
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster(),
-                                browserFactory);
-                    }
+                .map(mem -> {
+                    final Client client = ClientFactory.authenticated(
+                            channel,
+                            mem.memberId(),
+                            cryptoEngine);
+                    return new Member(
+                            mem.memberId(),
+                            mem.partnerId(),
+                            mem.realmId(),
+                            client,
+                            mem.getTokenCluster(),
+                            browserFactory);
                 });
     }
 
@@ -403,16 +384,14 @@ public class TokenClient extends io.token.TokenClient {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .getMemberId(alias)
-                .map(new Function<String, DeviceInfo>() {
-                    public DeviceInfo apply(String memberId) {
-                        CryptoEngine crypto = cryptoFactory.create(memberId);
-                        return new DeviceInfo(
-                                memberId,
-                                asList(
-                                        crypto.generateKey(PRIVILEGED),
-                                        crypto.generateKey(STANDARD),
-                                        crypto.generateKey(LOW)));
-                    }
+                .map(memberId -> {
+                    CryptoEngine crypto = cryptoFactory.create(memberId);
+                    return new DeviceInfo(
+                            memberId,
+                            asList(
+                                    crypto.generateKey(PRIVILEGED),
+                                    crypto.generateKey(STANDARD),
+                                    crypto.generateKey(LOW)));
                 });
     }
 

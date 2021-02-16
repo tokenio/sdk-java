@@ -37,7 +37,7 @@ public class PollNotificationsSampleTest {
                                     .setMemberId(payee.memberId()))
                     .build();
 
-            TransferTokenBuilder builder = payer.createTransferToken(100.00, "EUR")
+            TransferTokenBuilder builder = payer.createTransferTokenBuilder(100.00, "EUR")
                     .setAccountId(account.id())
                     .setToAlias(payeeAlias)
                     .addDestination(tokenDestination);

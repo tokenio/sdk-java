@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -79,20 +79,6 @@ public abstract class TokenRequest {
      */
     public static AccessBuilder accessTokenRequestBuilder(AccountResourceList list) {
         return new AccessBuilder(list);
-    }
-
-    /**
-     * Create a Builder instance for a funds confirmation request.
-     *
-     * @param bankId bank ID
-     * @param account the user's account
-     * @return Builder instance
-     * @deprecated use the builder with AccountIdentifier instead
-     */
-    public static AccessBuilder fundsConfirmationRequestBuilder(
-            String bankId,
-            BankAccount account) {
-        return fundsConfirmationRequestBuilder(bankId, account, Optional.empty());
     }
 
     /**
@@ -514,19 +500,6 @@ public abstract class TokenRequest {
         public TransferBuilder addDestination(TransferDestination destination) {
             this.requestPayload.getTransferBodyBuilder().getInstructionsBuilder()
                     .addTransferDestinations(destination);
-            return this;
-        }
-
-        /**
-         * Adds a transfer destination to a transfer token request.
-         *
-         * @param destination destination
-         * @return builder
-         */
-        @Deprecated
-        public TransferBuilder addDestination(TransferEndpoint destination) {
-            this.requestPayload.getTransferBodyBuilder()
-                    .addDestinations(destination);
             return this;
         }
 

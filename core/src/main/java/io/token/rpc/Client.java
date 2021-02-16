@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -313,11 +313,7 @@ public class Client {
                 .getAccounts(GetAccountsRequest
                         .newBuilder()
                         .build()))
-                .map(new Function<GetAccountsResponse, List<Account>>() {
-                    public List<Account> apply(GetAccountsResponse response) {
-                        return response.getAccountsList();
-                    }
-                });
+                .map(GetAccountsResponse::getAccountsList);
     }
 
     /**

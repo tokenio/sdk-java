@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,6 +25,7 @@ package io.token.user.rpc;
 import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
 
+import com.google.common.base.Strings;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.reactivex.functions.Function;
@@ -52,6 +53,7 @@ import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
 import io.token.user.NotifyResult;
 
+import java.util.Optional;
 import javax.annotation.Nullable;
 
 /**
@@ -81,11 +83,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                         .newBuilder()
                         .setBlobId(blobId)
                         .build()))
-                .map(new Function<GetBlobResponse, BlobProtos.Blob>() {
-                    public BlobProtos.Blob apply(GetBlobResponse response) {
-                        return response.getBlob();
-                    }
-                });
+                .map(GetBlobResponse::getBlob);
     }
 
     /**
@@ -103,11 +101,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                                 .setAddKey(addKey)
                                 .build())
                         .build()))
-                .map(new Function<Gateway.NotifyResponse, NotifyStatus>() {
-                    public NotifyStatus apply(Gateway.NotifyResponse response) {
-                        return response.getStatus();
-                    }
-                });
+                .map(Gateway.NotifyResponse::getStatus);
     }
 
     /**
@@ -121,11 +115,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 RequestTransferRequest.newBuilder()
                         .setTokenPayload(tokenPayload)
                         .build()))
-                .map(new Function<RequestTransferResponse, NotifyStatus>() {
-                    public NotifyStatus apply(RequestTransferResponse response) {
-                        return response.getStatus();
-                    }
-                });
+                .map(RequestTransferResponse::getStatus);
     }
 
     /**
@@ -153,16 +143,9 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
         }
 
         return toObservable(gateway.triggerCreateAndEndorseTokenNotification(builder.build()))
-                .map(new Function<
-                        TriggerCreateAndEndorseTokenNotificationResponse,
-                        NotifyResult>() {
-                    public NotifyResult apply(
-                            TriggerCreateAndEndorseTokenNotificationResponse response) {
-                        return NotifyResult.create(
-                                response.getNotificationId(),
-                                response.getStatus());
-                    }
-                });
+                .map(response -> NotifyResult.create(
+                        response.getNotificationId(),
+                        response.getStatus()));
     }
 
     /**
@@ -176,11 +159,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 InvalidateNotificationRequest.newBuilder()
                         .setNotificationId(notificationId)
                         .build()))
-                .map(new Function<InvalidateNotificationResponse, NotifyStatus>() {
-                    public NotifyStatus apply(InvalidateNotificationResponse response) {
-                        return response.getStatus();
-                    }
-                });
+                .map(InvalidateNotificationResponse::getStatus);
     }
 
     /**
@@ -194,14 +173,10 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 .getTokenRequestResult(Gateway.GetTokenRequestResultRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()))
-                .map(new Function<GetTokenRequestResultResponse, TokenRequestResult>() {
-                    @Override
-                    public TokenRequestResult apply(GetTokenRequestResultResponse response)  {
-                        return TokenRequestResult.create(
-                                response.getTokenId(),
-                                response.getSignature());
-                    }
-                });
+                .map(response -> TokenRequestResult.create(
+                        response.getTokenId(),
+                        Optional.ofNullable(Strings.emptyToNull(response.getTransferId())),
+                        response.getSignature()));
     }
 
     /**
@@ -216,15 +191,10 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 .newBuilder()
                 .setRequestId(tokenRequestId)
                 .build()))
-                .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
-                    @Override
-                    public TokenRequest apply(RetrieveTokenRequestResponse response) {
-                        return TokenRequest
-                                .fromProtos(
-                                        response.getTokenRequest().getRequestPayload(),
-                                        response.getTokenRequest().getRequestOptions());
-                    }
-                });
+                .map(response -> TokenRequest
+                        .fromProtos(
+                                response.getTokenRequest().getRequestPayload(),
+                                response.getTokenRequest().getRequestOptions()));
     }
 
     /**

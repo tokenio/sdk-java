@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -200,11 +200,7 @@ public class TokenClient implements Closeable {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .createMemberId(memberType, null, partnerId, realmId)
-                .flatMap(new Function<String, Observable<Member>>() {
-                    public Observable<Member> apply(String memberId) {
-                        return setUpMemberImpl(alias, memberId, recoveryAgent);
-                    }
-                });
+                .flatMap(memberId -> setUpMemberImpl(alias, memberId, recoveryAgent));
     }
 
     /**
@@ -229,42 +225,36 @@ public class TokenClient implements Closeable {
         final UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         // TODO(RD-3727): we probably should not set recovery agent for realmed members at all
         return (agent == null ? unauthenticated.getDefaultAgent() : Observable.just(agent))
-                .flatMap(new Function<String, Observable<MemberProtos.Member>>() {
-                    public Observable<MemberProtos.Member> apply(String agentId) {
-                        CryptoEngine crypto = cryptoFactory.create(memberId);
-                        List<MemberOperation> operations = new ArrayList<>();
-                        operations.add(
-                                toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
-                        operations.add(
-                                toAddKeyOperation(crypto.generateKey(STANDARD)));
-                        operations.add(
-                                toAddKeyOperation(crypto.generateKey(LOW)));
-                        operations.add(toRecoveryAgentOperation(agentId));
+                .flatMap(agentId -> {
+                    CryptoEngine crypto = cryptoFactory.create(memberId);
+                    List<MemberOperation> operations = new ArrayList<>();
+                    operations.add(
+                            toAddKeyOperation(crypto.generateKey(PRIVILEGED)));
+                    operations.add(
+                            toAddKeyOperation(crypto.generateKey(STANDARD)));
+                    operations.add(
+                            toAddKeyOperation(crypto.generateKey(LOW)));
+                    operations.add(toRecoveryAgentOperation(agentId));
 
-                        if (alias != null) {
-                            operations.add(toAddAliasOperation(alias));
-                        }
-                        List<MemberOperationMetadata> metadata = alias == null
-                                ? Collections.<MemberOperationMetadata>emptyList()
-                                : singletonList(toAddAliasOperationMetadata(alias));
-                        Signer signer = crypto.createSigner(PRIVILEGED);
-                        return unauthenticated.createMember(
-                                memberId,
-                                operations,
-                                metadata,
-                                signer);
+                    if (alias != null) {
+                        operations.add(toAddAliasOperation(alias));
                     }
+                    List<MemberOperationMetadata> metadata = alias == null
+                            ? Collections.emptyList()
+                            : singletonList(toAddAliasOperationMetadata(alias));
+                    Signer signer = crypto.createSigner(PRIVILEGED);
+                    return unauthenticated.createMember(
+                            memberId,
+                            operations,
+                            metadata,
+                            signer);
                 })
-                .flatMap(new Function<MemberProtos.Member, Observable<Member>>() {
-                    public Observable<Member> apply(MemberProtos.Member member) {
-                        return Observable.just(new Member(
-                                member.getId(),
-                                member.getPartnerId(),
-                                member.getRealmId(),
-                                null,
-                                tokenCluster));
-                    }
-                });
+                .flatMap(member -> Observable.just(new Member(
+                        member.getId(),
+                        member.getPartnerId(),
+                        member.getRealmId(),
+                        null,
+                        tokenCluster)));
     }
 
     /**
@@ -280,16 +270,12 @@ public class TokenClient implements Closeable {
     protected Observable<Member> getMemberImpl(final String memberId, final Client client) {
         return client
                 .getMember(memberId)
-                .map(new Function<MemberProtos.Member, Member>() {
-                    public Member apply(MemberProtos.Member member) {
-                        return new Member(
-                                member.getId(),
-                                member.getPartnerId(),
-                                member.getRealmId(),
-                                null,
-                                tokenCluster);
-                    }
-                });
+                .map(member -> new Member(
+                        member.getId(),
+                        member.getPartnerId(),
+                        member.getRealmId(),
+                        null,
+                        tokenCluster));
     }
 
     /**
@@ -312,16 +298,12 @@ public class TokenClient implements Closeable {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .completeRecovery(memberId, recoveryOperations, privilegedKey, cryptoEngine)
-                .map(new Function<MemberProtos.Member, Member>() {
-                    public Member apply(MemberProtos.Member member) {
-                        return new Member(
-                                member.getId(),
-                                member.getPartnerId(),
-                                member.getRealmId(),
-                                null,
-                                tokenCluster);
-                    }
-                });
+                .map(member -> new Member(
+                        member.getId(),
+                        member.getPartnerId(),
+                        member.getRealmId(),
+                        null,
+                        tokenCluster));
     }
 
     /**
@@ -344,16 +326,12 @@ public class TokenClient implements Closeable {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
         return unauthenticated
                 .completeRecoveryWithDefaultRule(memberId, verificationId, code, cryptoEngine)
-                .map(new Function<MemberProtos.Member, Member>() {
-                    public Member apply(MemberProtos.Member member) {
-                        return new Member(
-                                member.getId(),
-                                member.getPartnerId(),
-                                member.getRealmId(),
-                                null,
-                                tokenCluster);
-                    }
-                });
+                .map(member -> new Member(
+                        member.getId(),
+                        member.getPartnerId(),
+                        member.getRealmId(),
+                        null,
+                        tokenCluster));
     }
 
     /**
@@ -529,7 +507,10 @@ public class TokenClient implements Closeable {
      *     (case insensitive).
      * @param bankFeatures If specified, return banks who meet the bank features requirement.
      * @return a list of banks
+     * @deprecated Use {@link UnauthenticatedClient#getBanks(List, String, List, Integer, Integer,
+     * String, List, BankFeatures)} instead
      */
+    @Deprecated
     public Observable<List<Bank>> getBanks(
             @Nullable List<String> bankIds,
             @Nullable String search,

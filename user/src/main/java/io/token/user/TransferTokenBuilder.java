@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,19 +22,14 @@
 
 package io.token.user;
 
-import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.BANK;
-import static io.token.proto.common.account.AccountProtos.BankAccount.AccountCase.TOKEN;
 import static io.token.proto.common.token.TokenProtos.TokenPayload.BodyCase.TRANSFER;
 import static io.token.proto.common.token.TokenProtos.TokenRequestPayload.RequestBodyCase.TRANSFER_BODY;
 import static io.token.util.Util.generateNonce;
 
-import io.reactivex.Observable;
 import io.token.proto.common.account.AccountProtos.BankAccount;
-import io.token.proto.common.account.AccountProtos.BankAccount.AccountCase;
 import io.token.proto.common.alias.AliasProtos.Alias;
 import io.token.proto.common.providerspecific.ProviderSpecific.ProviderTransferMetadata;
 import io.token.proto.common.token.TokenProtos.ActingAs;
-import io.token.proto.common.token.TokenProtos.Token;
 import io.token.proto.common.token.TokenProtos.TokenMember;
 import io.token.proto.common.token.TokenProtos.TokenPayload;
 import io.token.proto.common.token.TokenProtos.TokenRequest;
@@ -44,7 +39,6 @@ import io.token.proto.common.transferinstructions.TransferInstructionsProtos.Tra
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferInstructions;
 
-import java.util.Arrays;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -298,20 +292,6 @@ public final class TransferTokenBuilder {
      * @param destination destination
      * @return builder
      */
-    @Deprecated
-    public TransferTokenBuilder addDestination(TransferEndpoint destination) {
-        payload.getTransferBuilder()
-                .getInstructionsBuilder()
-                .addDestinations(destination);
-        return this;
-    }
-
-    /**
-     * Adds a transfer destination.
-     *
-     * @param destination destination
-     * @return builder
-     */
     public TransferTokenBuilder addDestination(TransferDestination destination) {
         payload.getTransferBuilder()
                 .getInstructionsBuilder()
@@ -491,44 +471,5 @@ public final class TransferTokenBuilder {
             payload.setRefId(generateNonce());
         }
         return payload.build();
-    }
-
-    /**
-     * DEPRECATED: Use {@link Member#prepareTransferToken(TransferTokenBuilder)} and
-     * {@link Member#createToken(TokenPayload, List)} instead.
-     *
-     * <p>Executes the request asynchronously.
-     *
-     * @return Token
-     */
-    @Deprecated
-    public Observable<Token> execute() {
-        AccountCase sourceCase =
-                payload.getTransfer().getInstructions().getSource().getAccount().getAccountCase();
-        if (!Arrays.asList(TOKEN, BANK).contains(sourceCase)) {
-            throw new IllegalArgumentException("No source on token");
-        }
-
-        if (payload.getRefId().isEmpty()) {
-            logger.warn("refId is not set. A random ID will be used.");
-            payload.setRefId(generateNonce());
-        }
-
-        return member.createTransferToken(
-                payload.build(),
-                tokenRequestId != null ? tokenRequestId : "");
-    }
-
-    /**
-     * DEPRECATED: Use {@link Member#prepareTransferToken(TransferTokenBuilder)} and
-     * {@link Member#createToken(TokenPayload, List)} instead.
-     *
-     * <p>Executes the request, creating a token.
-     *
-     * @return Token
-     */
-    @Deprecated
-    public Token executeBlocking() {
-        return execute().blockingSingle();
     }
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -182,21 +182,18 @@ public class TokenClient extends io.token.TokenClient {
             @Nullable final String partnerId,
             @Nullable final String realmId) {
         return createMemberImpl(alias, BUSINESS, partnerId, null, realmId)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        CryptoEngine crypto = cryptoFactory.create(mem.memberId());
-                        final Client client = ClientFactory.authenticated(
-                                channel,
-                                mem.memberId(),
-                                crypto);
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster());
-                    }
+                .map(mem -> {
+                    CryptoEngine crypto = cryptoFactory.create(mem.memberId());
+                    final Client client = ClientFactory.authenticated(
+                            channel,
+                            mem.memberId(),
+                            crypto);
+                    return new Member(
+                            mem.memberId(),
+                            mem.partnerId(),
+                            mem.realmId(),
+                            client,
+                            mem.getTokenCluster());
                 });
     }
 
@@ -265,17 +262,12 @@ public class TokenClient extends io.token.TokenClient {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return setUpMemberImpl(alias, memberId, null)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster());
-                    }
-                });
+                .map(mem -> new Member(
+                        mem.memberId(),
+                        mem.partnerId(),
+                        mem.realmId(),
+                        client,
+                        mem.getTokenCluster()));
     }
 
     /**
@@ -288,17 +280,12 @@ public class TokenClient extends io.token.TokenClient {
         CryptoEngine crypto = cryptoFactory.create(memberId);
         final Client client = ClientFactory.authenticated(channel, memberId, crypto);
         return getMemberImpl(memberId, client)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster());
-                    }
-                });
+                .map(mem -> new Member(
+                        mem.memberId(),
+                        mem.partnerId(),
+                        mem.realmId(),
+                        client,
+                        mem.getTokenCluster()));
     }
 
     /**
@@ -326,20 +313,17 @@ public class TokenClient extends io.token.TokenClient {
             SecurityProtos.Key privilegedKey,
             final CryptoEngine cryptoEngine) {
         return completeRecoveryImpl(memberId, recoveryOperations, privilegedKey, cryptoEngine)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        final Client client = ClientFactory.authenticated(
-                                channel,
-                                mem.memberId(),
-                                cryptoEngine);
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster());
-                    }
+                .map(mem -> {
+                    final Client client = ClientFactory.authenticated(
+                            channel,
+                            mem.memberId(),
+                            cryptoEngine);
+                    return new Member(
+                            mem.memberId(),
+                            mem.partnerId(),
+                            mem.realmId(),
+                            client,
+                            mem.getTokenCluster());
                 });
     }
 
@@ -376,20 +360,17 @@ public class TokenClient extends io.token.TokenClient {
             String code,
             final CryptoEngine cryptoEngine) {
         return completeRecoveryWithDefaultRuleImpl(memberId, verificationId, code, cryptoEngine)
-                .map(new Function<io.token.Member, Member>() {
-                    @Override
-                    public Member apply(io.token.Member mem) {
-                        final Client client = ClientFactory.authenticated(
-                                channel,
-                                mem.memberId(),
-                                cryptoEngine);
-                        return new Member(
-                                mem.memberId(),
-                                mem.partnerId(),
-                                mem.realmId(),
-                                client,
-                                mem.getTokenCluster());
-                    }
+                .map(mem -> {
+                    final Client client = ClientFactory.authenticated(
+                            channel,
+                            mem.memberId(),
+                            cryptoEngine);
+                    return new Member(
+                            mem.memberId(),
+                            mem.partnerId(),
+                            mem.realmId(),
+                            client,
+                            mem.getTokenCluster());
                 });
     }
 
@@ -557,42 +538,6 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token.
-     *
-     * @param requestId request id
-     * @param state state
-     * @return token request url
-     */
-    @Deprecated // set state on the TokenRequest builder
-    public Observable<String> generateTokenRequestUrl(
-            String requestId,
-            String state) {
-        return generateTokenRequestUrl(requestId, state, "");
-    }
-
-    /**
-     * Generate a Token request URL from a request ID, a state, and a CSRF token.
-     *
-     * @param requestId request id
-     * @param state state
-     * @param csrfToken csrf token
-     * @return token request url
-     */
-    @Deprecated // set state and csrf token on the TokenRequest builder
-    public Observable<String> generateTokenRequestUrl(
-            String requestId,
-            String state,
-            String csrfToken) {
-        String csrfTokenHash = hashString(csrfToken);
-        TokenRequestState tokenRequestState = TokenRequestState.create(csrfTokenHash, state);
-        return Observable.just(String.format(
-                TOKEN_REQUEST_TEMPLATE_LEGACY,
-                getWebAppUrl(tokenCluster),
-                requestId,
-                urlEncode(tokenRequestState.serialize())));
-    }
-
-    /**
      * Generate a Token request URL from a request ID, and state. This does not set a CSRF token
      * or pass in a state.
      *
@@ -604,53 +549,14 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Generate a Token request URL from a request ID, and state. This does not set a CSRF token.
-     *
-     * @param requestId request id
-     * @param state state
-     * @return token request url
-     */
-    @Deprecated // set state on the TokenRequest builder
-    public String generateTokenRequestUrlBlocking(String requestId, String state) {
-        return generateTokenRequestUrl(requestId, state).blockingSingle();
-    }
-
-    /**
-     * Generate a Token request URL from a request ID, a state, and a CSRF token.
-     *
-     * @param requestId request id
-     * @param state state
-     * @param csrfToken csrf token
-     * @return token request url
-     */
-    @Deprecated // set state and csrf token on the TokenRequest builder
-    public String generateTokenRequestUrlBlocking(
-            String requestId,
-            String state,
-            String csrfToken) {
-        return generateTokenRequestUrl(requestId, state, csrfToken).blockingSingle();
-    }
-
-    /**
-     * Parse the token request callback URL to extract the state and the token ID. This assumes
-     * that no CSRF token was set.
-     *
-     * @param callbackUrl token request callback url
-     * @return TokenRequestCallback object containing the token id and the original state
-     */
-    @Deprecated // should use the CSRF token
-    public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(final String callbackUrl) {
-        return parseTokenRequestCallbackUrl(callbackUrl, "");
-    }
-
-    /**
-     * Parse the token request callback URL to extract the state and the token ID. Check the
-     * CSRF token against the initial request and verify the signature.
+     * Deprecated: The callback will contain request-id only. tokenId and state
+     * will be removed.
      *
      * @param callbackUrl token request callback url
      * @param csrfToken csrfToken
      * @return TokenRequestCallback object containing the token id and the original state
      */
+    @Deprecated
     public Observable<TokenRequestCallback> parseTokenRequestCallbackUrl(
             final String callbackUrl,
             final String csrfToken) {
@@ -678,25 +584,14 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Parse the token request callback URL to extract the state and the token ID. This assumes
-     * that no CSRF token was set.
-     *
-     * @param callbackUrl token request callback url
-     * @return TokenRequestCallback object containing the token id and the original state
-     */
-    @Deprecated // should use the CSRF token
-    public TokenRequestCallback parseTokenRequestCallbackUrlBlocking(final String callbackUrl) {
-        return parseTokenRequestCallbackUrl(callbackUrl).blockingSingle();
-    }
-
-    /**
-     * Parse the token request callback URL to extract the state and the token ID. Check the
-     * CSRF token against the initial request and verify the signature.
+     * Deprecated: The callback will contain request-id only. tokenId and state
+     * will be removed.
      *
      * @param callbackUrl token request callback url
      * @param csrfToken csrfToken
      * @return TokenRequestCallback object containing the token id and the original state
      */
+    @Deprecated
     public TokenRequestCallback parseTokenRequestCallbackUrlBlocking(
             final String callbackUrl,
             final String csrfToken) {
@@ -704,56 +599,41 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Parse the token request callback parameters to extract the state and the token ID.
-     * This assumes that no CSRF token was set.
-     *
-     * @param callbackParams callback parameter map
-     * @return TokenRequestCallback object containing the token ID and the original state
-     */
-    @Deprecated // should use the CSRF token
-    public Observable<TokenRequestCallback> parseTokenRequestCallbackParams(
-            Map<String, String> callbackParams) {
-        return parseTokenRequestCallbackParams(callbackParams, "");
-    }
-
-    /**
-     * Parse the token request callback parameters to extract the state and the token ID. Check the
-     * CSRF token against the initial request and verify the signature.
+     * Deprecated: The callback will contain request-id only. tokenId and state
+     * will be removed.
      *
      * @param callbackParams callback parameter map
      * @param csrfToken CSRF token
      * @return TokenRequestCallback object containing the token ID and the original state
      */
+    @Deprecated
     public Observable<TokenRequestCallback> parseTokenRequestCallbackParams(
             final Map<String, String> callbackParams,
             final String csrfToken) {
         UnauthenticatedClient unauthenticated = ClientFactory.unauthenticated(channel);
-        return unauthenticated.getTokenMember().map(new Function<MemberProtos.Member,
-                TokenRequestCallback>() {
-            @Override
-            public TokenRequestCallback apply(MemberProtos.Member tokenMember) throws Exception {
-                TokenRequestCallbackParameters params = TokenRequestCallbackParameters
-                        .create(callbackParams);
+        return unauthenticated.getTokenMember()
+                .map(tokenMember -> {
+                    TokenRequestCallbackParameters params = TokenRequestCallbackParameters
+                            .create(callbackParams);
 
-                // check that CSRF token hashes match
-                TokenRequestState state = TokenRequestState.parse(params.getSerializedState());
-                if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
-                    throw new InvalidStateException(csrfToken);
-                }
+                    // check that CSRF token hashes match
+                    TokenRequestState state = TokenRequestState.parse(params.getSerializedState());
+                    if (!state.getCsrfTokenHash().equals(hashString(csrfToken))) {
+                        throw new InvalidStateException(csrfToken);
+                    }
 
-                verifySignature(
-                        tokenMember,
-                        TokenProtos.TokenRequestStatePayload.newBuilder()
-                                .setTokenId(params.getTokenId())
-                                .setState(urlEncode(params.getSerializedState()))
-                                .build(),
-                        params.getSignature());
+                    verifySignature(
+                            tokenMember,
+                            TokenProtos.TokenRequestStatePayload.newBuilder()
+                                    .setTokenId(params.getTokenId())
+                                    .setState(urlEncode(params.getSerializedState()))
+                                    .build(),
+                            params.getSignature());
 
-                return TokenRequestCallback.create(
-                        params.getTokenId(),
-                        state.getInnerState());
-            }
-        });
+                    return TokenRequestCallback.create(
+                            params.getTokenId(),
+                            state.getInnerState());
+                });
     }
 
     /**
@@ -769,19 +649,6 @@ public class TokenClient extends io.token.TokenClient {
     }
 
     /**
-     * Parse the token request callback parameters to extract the state and the token ID.
-     * This assumes that no CSRF token was set.
-     *
-     * @param callbackParams callback parameter map
-     * @return TokenRequestCallback object containing the token ID and the original state
-     */
-    @Deprecated // should use the CSRF token
-    public TokenRequestCallback parseTokenRequestCallbackParamsBlocking(
-            Map<String, String> callbackParams) {
-        return parseTokenRequestCallbackParams(callbackParams, "").blockingSingle();
-    }
-
-    /**
      * Parse the token request callback parameters to extract the state and the token ID. Check the
      * CSRF token against the initial request and verify the signature.
      *
@@ -789,6 +656,7 @@ public class TokenClient extends io.token.TokenClient {
      * @param csrfToken CSRF token
      * @return TokenRequestCallback object containing the token ID and the original state
      */
+    @Deprecated
     public TokenRequestCallback parseTokenRequestCallbackParamsBlocking(
             final Map<String, String> callbackParams,
             final String csrfToken) {

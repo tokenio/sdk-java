@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -27,6 +27,7 @@ import static io.token.proto.common.token.TokenProtos.TokenSignature.Action.CANC
 import static io.token.rpc.util.Converters.toCompletable;
 import static io.token.util.Util.toObservable;
 
+import com.google.common.base.Strings;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
 import io.token.proto.PagedList;
@@ -291,6 +292,7 @@ public final class Client extends io.token.rpc.Client {
                         .build()))
                 .map(response -> TokenRequestResult.create(
                         response.getTokenId(),
+                        Optional.ofNullable(Strings.emptyToNull(response.getTransferId())),
                         response.getSignature()));
     }
 

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -105,11 +105,7 @@ public class UnauthenticatedClient {
                         .newBuilder()
                         .setAlias(alias)
                         .build()))
-                .map(new Function<ResolveAliasResponse, TokenMember>() {
-                    public TokenMember apply(ResolveAliasResponse response) {
-                        return response.getMember();
-                    }
-                });
+                .map(ResolveAliasResponse::getMember);
     }
 
     /**
@@ -123,13 +119,11 @@ public class UnauthenticatedClient {
                 gateway.resolveAlias(ResolveAliasRequest.newBuilder()
                         .setAlias(alias)
                         .build()))
-                .map(new Function<ResolveAliasResponse, String>() {
-                    public String apply(ResolveAliasResponse response) {
-                        if (response.hasMember()) {
-                            return response.getMember().getId();
-                        } else {
-                            throw new MemberNotFoundException(alias);
-                        }
+                .map(response -> {
+                    if (response.hasMember()) {
+                        return response.getMember().getId();
+                    } else {
+                        throw new MemberNotFoundException(alias);
                     }
                 });
     }
@@ -156,11 +150,7 @@ public class UnauthenticatedClient {
                         .setPartnerId(nullToEmpty(partnerId))
                         .setRealmId(nullToEmpty(realmId))
                         .build()))
-                        .map(new Function<CreateMemberResponse, String>() {
-                            public String apply(CreateMemberResponse response) {
-                                return response.getMemberId();
-                            }
-                        });
+                        .map(CreateMemberResponse::getMemberId);
     }
 
     /**
@@ -188,11 +178,7 @@ public class UnauthenticatedClient {
                         .setSignature(signer.sign(update.build())))
                 .addAllMetadata(metadata)
                 .build()))
-                .map(new Function<UpdateMemberResponse, Member>() {
-                    public Member apply(UpdateMemberResponse response) {
-                        return response.getMember();
-                    }
-                });
+                .map(UpdateMemberResponse::getMember);
     }
 
     /**
@@ -206,11 +192,7 @@ public class UnauthenticatedClient {
                 .beginRecovery(BeginRecoveryRequest.newBuilder()
                         .setAlias(AliasHasher.normalize(alias))
                         .build()))
-                .map(new Function<BeginRecoveryResponse, String>() {
-                    public String apply(BeginRecoveryResponse response) {
-                        return response.getVerificationId();
-                    }
-                });
+                .map(BeginRecoveryResponse::getVerificationId);
     }
 
     /**
@@ -226,15 +208,11 @@ public class UnauthenticatedClient {
         return toObservable(gateway.getMember(GetMemberRequest.newBuilder()
                 .setMemberId(memberId)
                 .build()))
-                .map(new Function<GetMemberResponse, Authorization>() {
-                    public Authorization apply(GetMemberResponse response) {
-                        return Authorization.newBuilder()
-                                .setMemberId(memberId)
-                                .setMemberKey(privilegedKey)
-                                .setPrevHash(response.getMember().getLastHash())
-                                .build();
-                    }
-                });
+                .map(response -> Authorization.newBuilder()
+                        .setMemberId(memberId)
+                        .setMemberKey(privilegedKey)
+                        .setPrevHash(response.getMember().getLastHash())
+                        .build());
     }
 
     /**
@@ -261,35 +239,24 @@ public class UnauthenticatedClient {
         return toObservable(gateway.getMember(GetMemberRequest.newBuilder()
                 .setMemberId(memberId)
                 .build()))
-                .map(new Function<GetMemberResponse, MemberUpdate>() {
-                    public MemberUpdate apply(GetMemberResponse response) {
-                        return MemberUpdate.newBuilder()
-                                .setMemberId(memberId)
-                                .setPrevHash(response.getMember().getLastHash())
-                                .addAllOperations(operations)
-                                .addAllOperations(toMemberOperations(
-                                        privilegedKey,
-                                        standardKey,
-                                        lowKey))
-                                .build();
-                    }
-                })
-                .flatMap(new Function<MemberUpdate, Observable<Member>>() {
-                    public Observable<Member> apply(MemberUpdate memberUpdate) {
-                        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                .map(response -> MemberUpdate.newBuilder()
+                        .setMemberId(memberId)
+                        .setPrevHash(response.getMember().getLastHash())
+                        .addAllOperations(operations)
+                        .addAllOperations(toMemberOperations(
+                                privilegedKey,
+                                standardKey,
+                                lowKey))
+                        .build())
+                .flatMap(memberUpdate -> toObservable(gateway
+                        .updateMember(UpdateMemberRequest.newBuilder()
                                 .setUpdate(memberUpdate)
                                 .setUpdateSignature(Signature.newBuilder()
                                         .setKeyId(signer.getKeyId())
                                         .setMemberId(memberId)
                                         .setSignature(signer.sign(memberUpdate)))
                                 .build()))
-                                .map(new Function<UpdateMemberResponse, Member>() {
-                                    public Member apply(UpdateMemberResponse response) {
-                                        return response.getMember();
-                                    }
-                                });
-                    }
-                });
+                        .map(UpdateMemberResponse::getMember));
     }
 
     /**
@@ -316,44 +283,29 @@ public class UnauthenticatedClient {
                         .setCode(code)
                         .setKey(privilegedKey)
                         .build()))
-                .flatMap(new Function<CompleteRecoveryResponse, Observable<MemberUpdate>>() {
-                    public Observable<MemberUpdate> apply(final CompleteRecoveryResponse res) {
-                        return toObservable(gateway
-                                .getMember(GetMemberRequest.newBuilder()
-                                        .setMemberId(memberId)
-                                        .build()))
-                                .map(new Function<GetMemberResponse, MemberUpdate>() {
-                                    public MemberUpdate apply(GetMemberResponse memberRes) {
-                                        return MemberUpdate.newBuilder()
-                                                .setPrevHash(memberRes.getMember().getLastHash())
-                                                .setMemberId(memberId)
-                                                .addOperations(MemberOperation.newBuilder()
-                                                        .setRecover(res.getRecoveryEntry()))
-                                                .addAllOperations(toMemberOperations(
-                                                        privilegedKey,
-                                                        standardKey,
-                                                        lowKey))
-                                                .build();
-                                    }
-                                });
-                    }
-                })
-                .flatMap(new Function<MemberUpdate, Observable<Member>>() {
-                    public Observable<Member> apply(MemberUpdate memberUpdate) {
-                        return toObservable(gateway.updateMember(UpdateMemberRequest.newBuilder()
+                .flatMap(res -> toObservable(gateway
+                        .getMember(GetMemberRequest.newBuilder()
+                                .setMemberId(memberId)
+                                .build()))
+                        .map(memberRes -> MemberUpdate.newBuilder()
+                                .setPrevHash(memberRes.getMember().getLastHash())
+                                .setMemberId(memberId)
+                                .addOperations(MemberOperation.newBuilder()
+                                        .setRecover(res.getRecoveryEntry()))
+                                .addAllOperations(toMemberOperations(
+                                        privilegedKey,
+                                        standardKey,
+                                        lowKey))
+                                .build()))
+                .flatMap(memberUpdate -> toObservable(gateway
+                        .updateMember(UpdateMemberRequest.newBuilder()
                                 .setUpdate(memberUpdate)
                                 .setUpdateSignature(Signature.newBuilder()
                                         .setKeyId(signer.getKeyId())
                                         .setMemberId(memberId)
                                         .setSignature(signer.sign(memberUpdate)))
                                 .build()))
-                                .map(new Function<UpdateMemberResponse, Member>() {
-                                    public Member apply(UpdateMemberResponse response) {
-                                        return response.getMember();
-                                    }
-                                });
-                    }
-                });
+                        .map(UpdateMemberResponse::getMember));
     }
 
     /**
@@ -374,13 +326,11 @@ public class UnauthenticatedClient {
                 .setCode(code)
                 .setKey(privilegedKey)
                 .build()))
-                .map(new Function<CompleteRecoveryResponse, MemberRecoveryOperation>() {
-                    public MemberRecoveryOperation apply(CompleteRecoveryResponse response) {
-                        if (response.getStatus() != SUCCESS) {
-                            throw new VerificationException(response.getStatus());
-                        }
-                        return response.getRecoveryEntry();
+                .map(response -> {
+                    if (response.getStatus() != SUCCESS) {
+                        throw new VerificationException(response.getStatus());
                     }
+                    return response.getRecoveryEntry();
                 });
     }
 
@@ -402,10 +352,7 @@ public class UnauthenticatedClient {
      *     (case insensitive).
      * @param bankFeatures If specified, return banks who meet the bank features requirement.
      * @return a list of banks
-     * @deprecated Use {@link UnauthenticatedClient#getBanks(List, String, List, Integer, Integer,
-     * String, List, BankFeatures)} instead
      */
-    @Deprecated
     public Observable<List<Bank>> getBanks(
             @Nullable List<String> bankIds,
             @Nullable String search,
@@ -500,11 +447,7 @@ public class UnauthenticatedClient {
             request.setFilter(filter);
         }
         return toObservable(gateway.getBanksCountries(request.build()))
-                .map(new Function<GetBanksCountriesResponse, List<String>>() {
-                    public List<String> apply(GetBanksCountriesResponse response) {
-                        return response.getCountriesList();
-                    }
-                });
+                .map(GetBanksCountriesResponse::getCountriesList);
     }
 
     /**
@@ -521,12 +464,7 @@ public class UnauthenticatedClient {
                                 .setValue("token.io")
                                 .build())
                         .build()))
-                .map(new Function<ResolveAliasResponse, String>() {
-                    @Override
-                    public String apply(ResolveAliasResponse response) {
-                        return response.getMember().getId();
-                    }
-                });
+                .map(response -> response.getMember().getId());
     }
 
     private List<MemberOperation> toMemberOperations(Key... keys) {

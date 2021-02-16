@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -360,52 +360,6 @@ public final class Client extends io.token.rpc.Client {
                 .withAuthentication(authenticationContext())
                 .createToken(request.build()))
                 .map(CreateTokenResponse::getToken);
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param payload transfer token payload
-     * @return transfer token returned by the server
-     */
-    @Deprecated
-    public Observable<Token> createTransferToken(TokenPayload payload) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .createTransferToken(CreateTransferTokenRequest
-                        .newBuilder()
-                        .setPayload(payload)
-                        .build()))
-                .map(response -> {
-                    if (response.getStatus() != TransferTokenStatus.SUCCESS) {
-                        throw new TransferTokenException(response.getStatus());
-                    }
-                    return response.getToken();
-                });
-    }
-
-    /**
-     * Creates a new transfer token.
-     *
-     * @param payload transfer token payload
-     * @param tokenRequestId token request id
-     * @return transfer token returned by the server
-     */
-    @Deprecated
-    public Observable<Token> createTransferToken(TokenPayload payload, String tokenRequestId) {
-        return toObservable(gateway
-                .withAuthentication(authenticationContext())
-                .createTransferToken(CreateTransferTokenRequest
-                        .newBuilder()
-                        .setPayload(payload)
-                        .setTokenRequestId(tokenRequestId)
-                        .build()))
-                .map(response -> {
-                    if (response.getStatus() != TransferTokenStatus.SUCCESS) {
-                        throw new TransferTokenException(response.getStatus());
-                    }
-                    return response.getToken();
-                });
     }
 
     /**
