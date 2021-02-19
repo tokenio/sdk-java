@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -25,13 +25,21 @@ package io.token.tokenrequest;
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.security.SecurityProtos.Signature;
 
+import java.util.Optional;
+
 @AutoValue
 public abstract class TokenRequestResult {
-    public static TokenRequestResult create(String tokenId, Signature signature) {
-        return new AutoValue_TokenRequestResult(tokenId, signature);
+    public static TokenRequestResult create(
+            String tokenId,
+            Optional<String> transferId,
+            Signature signature) {
+        return new AutoValue_TokenRequestResult(tokenId, transferId, signature);
     }
 
     public abstract String getTokenId();
 
+    public abstract Optional<String> getTransferId();
+
+    @Deprecated
     public abstract Signature getSignature();
 }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -135,11 +135,7 @@ public class Member {
     public Observable<String> lastHash() {
         return client
                 .getMember(memberId)
-                .map(new Function<MemberProtos.Member, String>() {
-                    public String apply(MemberProtos.Member member) {
-                        return member.getLastHash();
-                    }
-                });
+                .map(MemberProtos.Member::getLastHash);
     }
 
     /**
@@ -158,13 +154,11 @@ public class Member {
      */
     public Observable<Alias> firstAlias() {
         return client.getAliases()
-                .map(new Function<List<Alias>, Alias>() {
-                    public Alias apply(List<Alias> aliases) {
-                        if (aliases.isEmpty()) {
-                            throw new NoAliasesFoundException(memberId());
-                        } else {
-                            return aliases.get(0);
-                        }
+                .map(aliases -> {
+                    if (aliases.isEmpty()) {
+                        throw new NoAliasesFoundException(memberId());
+                    } else {
+                        return aliases.get(0);
                     }
                 });
     }
@@ -203,12 +197,7 @@ public class Member {
      */
     public Observable<List<Key>> getKeys() {
         return client.getMember(memberId())
-                .map(new Function<MemberProtos.Member, List<Key>>() {
-                    @Override
-                    public List<Key> apply(MemberProtos.Member member) {
-                        return member.getKeysList();
-                    }
-                });
+                .map(MemberProtos.Member::getKeysList);
     }
 
     /**
@@ -228,15 +217,12 @@ public class Member {
     protected Observable<List<Account>> getAccountsImpl() {
         return client
                 .getAccounts()
-                .map(new Function<List<AccountProtos.Account>, List<Account>>() {
-                    @Override
-                    public List<Account> apply(List<AccountProtos.Account> accounts) {
-                        List<Account> result = new LinkedList<>();
-                        for (AccountProtos.Account account : accounts) {
-                            result.add(new Account(Member.this, account, client));
-                        }
-                        return result;
+                .map(accounts -> {
+                    List<Account> result = new LinkedList<>();
+                    for (AccountProtos.Account account : accounts) {
+                        result.add(new Account(Member.this, account, client));
                     }
+                    return result;
                 });
     }
 
@@ -249,11 +235,7 @@ public class Member {
     protected Observable<Account> getAccountImpl(String accountId) {
         return client
                 .getAccount(accountId)
-                .map(new Function<AccountProtos.Account, Account>() {
-                    public Account apply(AccountProtos.Account account) {
-                        return new Account(Member.this, account, client);
-                    }
-                });
+                .map(account -> new Account(Member.this, account, client));
     }
 
     /**
@@ -305,15 +287,11 @@ public class Member {
         }
         return client
                 .getMember(memberId())
-                .flatMapCompletable(new Function<MemberProtos.Member, Completable>() {
-                    public Completable apply(MemberProtos.Member latest) {
-                        return fromObservable(client
-                                .updateMember(
-                                        latest,
-                                        operations,
-                                        metadata));
-                    }
-                });
+                .flatMapCompletable(latest -> fromObservable(client
+                        .updateMember(
+                                latest,
+                                operations,
+                                metadata)));
     }
 
     /**
@@ -354,16 +332,12 @@ public class Member {
     public Observable<MemberProtos.Member> addRecoveryRule(final RecoveryRule recoveryRule) {
         return client
                 .getMember(memberId())
-                .flatMap(new Function<MemberProtos.Member, Observable<MemberProtos.Member>>() {
-                    @Override
-                    public Observable<MemberProtos.Member> apply(MemberProtos.Member member) {
-                        return client.updateMember(
-                                member,
-                                singletonList(MemberOperation.newBuilder()
-                                        .setRecoveryRules(MemberRecoveryRulesOperation.newBuilder()
-                                                .setRecoveryRule(recoveryRule)).build()));
-                    }
-                });
+                .flatMap(member -> client.updateMember(
+                        member,
+                        singletonList(MemberOperation.newBuilder()
+                                .setRecoveryRules(MemberRecoveryRulesOperation.newBuilder()
+                                        .setRecoveryRule(recoveryRule))
+                                .build())));
     }
 
     /**
@@ -489,14 +463,10 @@ public class Member {
         }
         return client
                 .getMember(memberId())
-                .flatMapCompletable(new Function<MemberProtos.Member, Completable>() {
-                    public Completable apply(MemberProtos.Member latest) {
-                        return fromObservable(client
-                                .updateMember(
-                                        latest,
-                                        operations));
-                    }
-                });
+                .flatMapCompletable(latest -> fromObservable(client
+                        .updateMember(
+                                latest,
+                                operations)));
     }
 
     /**
@@ -1036,23 +1006,14 @@ public class Member {
     private Completable updateKeys(final List<MemberOperation> operations) {
         return client
                 .getMember(memberId())
-                .flatMapCompletable(new Function<MemberProtos.Member, Completable>() {
-                    public Completable apply(MemberProtos.Member latest) {
-                        return fromObservable(client
-                                .updateMember(
-                                        latest,
-                                        operations));
-                    }
-                });
+                .flatMapCompletable(latest -> fromObservable(client
+                        .updateMember(
+                                latest,
+                                operations)));
     }
 
     private Observable<Account> toAccount(Observable<AccountProtos.Account> account) {
         return account
-                .map(new Function<AccountProtos.Account, Account>() {
-                    @Override
-                    public Account apply(AccountProtos.Account account) {
-                        return new Account(Member.this, account, client);
-                    }
-                });
+                .map(acc -> new Account(Member.this, acc, client));
     }
 }

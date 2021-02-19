@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -96,12 +96,7 @@ public class Account extends io.token.Account {
      * @return account current balance
      */
     public Observable<Money> getCurrentBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
-            @Override
-            public Money apply(Balance balance) {
-                return balance.getCurrent();
-            }
-        });
+        return client.getBalance(account.getId(), keyLevel).map(Balance::getCurrent);
     }
 
     /**
@@ -121,12 +116,7 @@ public class Account extends io.token.Account {
      * @return account available balance
      */
     public Observable<Money> getAvailableBalance(Key.Level keyLevel) {
-        return client.getBalance(account.getId(), keyLevel).map(new Function<Balance, Money>() {
-            @Override
-            public Money apply(Balance balance) {
-                return balance.getAvailable();
-            }
-        });
+        return client.getBalance(account.getId(), keyLevel).map(Balance::getAvailable);
     }
 
     /**

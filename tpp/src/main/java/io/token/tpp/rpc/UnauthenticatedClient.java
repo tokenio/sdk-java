@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2020 Token, Inc.
+ * Copyright (c) 2021 Token, Inc.
  * <p>
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -23,14 +23,13 @@
 package io.token.tpp.rpc;
 
 import static io.token.proto.common.security.SecurityProtos.Key.Level.LOW;
-import static io.token.proto.common.security.SecurityProtos.Key.Level.PRIVILEGED;
 import static io.token.proto.common.security.SecurityProtos.Key.Level.STANDARD;
 import static io.token.tpp.util.Util.TOKEN;
 import static io.token.util.Util.toObservable;
 import static java.util.stream.Collectors.toList;
 
+import com.google.common.base.Strings;
 import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 import io.token.proto.common.eidas.EidasProtos.EidasRecoveryPayload;
 import io.token.proto.common.eidas.EidasProtos.RegisterWithEidasPayload;
 import io.token.proto.common.member.MemberProtos;
@@ -41,10 +40,8 @@ import io.token.proto.common.security.SecurityProtos;
 import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
-import io.token.proto.gateway.Gateway.GetTokenRequestResultResponse;
 import io.token.proto.gateway.Gateway.RegisterWithEidasRequest;
 import io.token.proto.gateway.Gateway.RegisterWithEidasResponse;
-import io.token.proto.gateway.Gateway.RetrieveTokenRequestResponse;
 import io.token.proto.gateway.GatewayServiceGrpc.GatewayServiceFutureStub;
 import io.token.rpc.util.Converters;
 import io.token.security.CryptoEngine;
@@ -52,6 +49,7 @@ import io.token.security.Signer;
 import io.token.tokenrequest.TokenRequest;
 import io.token.tokenrequest.TokenRequestResult;
 
+import java.util.Optional;
 import java.util.stream.Stream;
 
 
@@ -82,11 +80,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 .toObservable(gateway.getMember(GetMemberRequest.newBuilder()
                         .setMemberId(memberId)
                         .build()))
-                .map(new Function<GetMemberResponse, Member>() {
-                    public Member apply(GetMemberResponse response) {
-                        return response.getMember();
-                    }
-                });
+                .map(GetMemberResponse::getMember);
     }
 
     /**
@@ -95,13 +89,7 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
      * @return token member
      */
     public Observable<Member> getTokenMember() {
-        return getMemberId(TOKEN).flatMap(
-                new Function<String, Observable<Member>>() {
-                    @Override
-                    public Observable<Member> apply(String memberId) {
-                        return getMember(memberId);
-                    }
-                });
+        return getMemberId(TOKEN).flatMap(this::getMember);
     }
 
     /**
@@ -115,14 +103,10 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 .getTokenRequestResult(Gateway.GetTokenRequestResultRequest.newBuilder()
                         .setTokenRequestId(tokenRequestId)
                         .build()))
-                .map(new Function<GetTokenRequestResultResponse, TokenRequestResult>() {
-                    @Override
-                    public TokenRequestResult apply(GetTokenRequestResultResponse response)  {
-                        return TokenRequestResult.create(
-                                response.getTokenId(),
-                                response.getSignature());
-                    }
-                });
+                .map(response -> TokenRequestResult.create(
+                        response.getTokenId(),
+                        Optional.ofNullable(Strings.emptyToNull(response.getTransferId())),
+                        response.getSignature()));
     }
 
     /**
@@ -137,15 +121,10 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 .newBuilder()
                 .setRequestId(tokenRequestId)
                 .build()))
-                .map(new Function<RetrieveTokenRequestResponse, TokenRequest>() {
-                    @Override
-                    public TokenRequest apply(RetrieveTokenRequestResponse response) {
-                        return TokenRequest
-                                .fromProtos(
-                                        response.getTokenRequest().getRequestPayload(),
-                                        response.getTokenRequest().getRequestOptions());
-                    }
-                });
+                .map(response -> TokenRequest
+                        .fromProtos(
+                                response.getTokenRequest().getRequestPayload(),
+                                response.getTokenRequest().getRequestOptions()));
     }
 
     /**

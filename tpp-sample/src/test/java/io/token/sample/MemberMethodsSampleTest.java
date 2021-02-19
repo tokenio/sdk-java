@@ -12,6 +12,7 @@ import io.token.security.TokenCryptoEngine;
 import io.token.tpp.Member;
 import io.token.tpp.TokenClient;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 public class MemberMethodsSampleTest {
@@ -27,6 +28,7 @@ public class MemberMethodsSampleTest {
     }
 
     @Test
+    @Ignore // TODO(PLT-1624) use new profile API
     public void profilesTest() {
         try (TokenClient tokenClient = createClient()) {
             Member member = tokenClient.createMemberBlocking(randomAlias());
