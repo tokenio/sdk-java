@@ -293,6 +293,8 @@ public final class Client extends io.token.rpc.Client {
                 .map(response -> TokenRequestResult.create(
                         response.getTokenId(),
                         Optional.ofNullable(Strings.emptyToNull(response.getTransferId())),
+                        Optional.ofNullable(Strings.emptyToNull(
+                                response.getStandingOrderSubmissionId())),
                         response.getSignature()));
     }
 

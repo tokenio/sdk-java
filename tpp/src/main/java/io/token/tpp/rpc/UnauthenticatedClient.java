@@ -106,6 +106,8 @@ public final class UnauthenticatedClient extends io.token.rpc.UnauthenticatedCli
                 .map(response -> TokenRequestResult.create(
                         response.getTokenId(),
                         Optional.ofNullable(Strings.emptyToNull(response.getTransferId())),
+                        Optional.ofNullable(Strings.emptyToNull(
+                                response.getStandingOrderSubmissionId())),
                         response.getSignature()));
     }
 

@@ -420,6 +420,16 @@ public class Member extends io.token.Member implements Representable {
     /**
      * Redeems a transfer token.
      *
+     * @param tokenId token ID
+     * @return transfer record
+     */
+    public Transfer redeemTokenBlocking(String tokenId) {
+        return redeemToken(tokenId).blockingSingle();
+    }
+
+    /**
+     * Redeems a transfer token.
+     *
      * @param token transfer token to redeem
      * @return transfer record
      */
