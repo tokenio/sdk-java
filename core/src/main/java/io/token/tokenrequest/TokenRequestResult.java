@@ -29,16 +29,32 @@ import java.util.Optional;
 
 @AutoValue
 public abstract class TokenRequestResult {
+    /**
+     * Creates an instance of TokenRequestResult.
+     *
+     * @param tokenId token ID
+     * @param transferId transfer ID
+     * @param standingOrderSubmissionId standing order submission ID
+     * @param signature signature
+     * @return TokenRequestResult
+     */
     public static TokenRequestResult create(
             String tokenId,
             Optional<String> transferId,
+            Optional<String> standingOrderSubmissionId,
             Signature signature) {
-        return new AutoValue_TokenRequestResult(tokenId, transferId, signature);
+        return new AutoValue_TokenRequestResult(
+                tokenId,
+                transferId,
+                standingOrderSubmissionId,
+                signature);
     }
 
     public abstract String getTokenId();
 
     public abstract Optional<String> getTransferId();
+
+    public abstract Optional<String> getStandingOrderSubmissionId();
 
     @Deprecated
     public abstract Signature getSignature();
