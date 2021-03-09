@@ -387,24 +387,32 @@ public class Member extends io.token.Member implements Representable {
             @Nullable String description,
             @Nullable TransferDestination destination,
             @Nullable String refId) {
+        TokenProtos.TransferBody tokenBody = token.getPayload().getTransfer();
         TransferProtos.TransferPayload.Builder payload = TransferProtos.TransferPayload.newBuilder()
-                .setTokenId(token.getId())
-                .setDescription(token
-                        .getPayload()
-                        .getDescription());
+                .setTokenId(token.getId());
 
         if (destination != null) {
             payload.addTransferDestinations(destination);
         }
+
         if (amount != null) {
             payload.getAmountBuilder().setValue(Double.toString(amount));
+        } else {
+            payload.getAmountBuilder().setValue(tokenBody.getLifetimeAmount());
         }
+
         if (currency != null) {
             payload.getAmountBuilder().setCurrency(currency);
+        } else {
+            payload.getAmountBuilder().setCurrency(tokenBody.getCurrency());
         }
+
         if (description != null) {
             payload.setDescription(description);
+        } else {
+            payload.setDescription(token.getPayload().getDescription());
         }
+
         if (refId != null) {
             payload.setRefId(refId);
         } else if (!token.getPayload().getRefId().isEmpty() && amount == null) {
