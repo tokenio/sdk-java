@@ -86,8 +86,8 @@ import io.token.proto.gateway.Gateway.InitiateBankAuthorizationResponse;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackRequest;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackResponse;
 import io.token.proto.gateway.Gateway.RemoveRedirectUrlsRequest;
+import io.token.proto.gateway.Gateway.SetProfileNameRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
-import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetTokenRequestTransferDestinationsRequest;
 import io.token.proto.gateway.Gateway.SetWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
@@ -129,18 +129,17 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
-     * Replaces a member's public profile.
+     * Replaces a member's profile name.
      *
-     * @param profile Profile to set
-     * @return observable that completes when request handled
+     * @param profileName profile name
+     * @return completable that completes when request handled
      */
-    public Observable<Profile> setProfile(Profile profile) {
-        return toObservable(gateway
+    public Completable setProfileName(String profileName) {
+        return toCompletable(gateway
                 .withAuthentication(authenticationContext())
-                .setProfile(SetProfileRequest.newBuilder()
-                        .setProfile(profile)
-                        .build()))
-                .map(Gateway.SetProfileResponse::getProfile);
+                .setProfileName(SetProfileNameRequest.newBuilder()
+                        .setProfileName(profileName)
+                        .build()));
     }
 
     /**

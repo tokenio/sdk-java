@@ -85,9 +85,8 @@ public class EidasMethodsSampleTest {
                     .blockingSingle();
             assertThat(eidasInfo.getCertificate()).isEqualTo(newCertificate);
             assertThat(eidasInfo.getStatus()).isEqualTo(CERTIFICATE_VALID);
-            assertThat(memberWithNewCertificate
-                    .getProfileBlocking(memberWithNewCertificate.memberId())
-                    .getDisplayNameFirst()).isEqualTo(pspSubjectName);
+            assertThat(memberWithNewCertificate.getProfileNameBlocking(
+                    memberWithNewCertificate.memberId())).isEqualTo(pspSubjectName);
         }
     }
 
@@ -109,9 +108,8 @@ public class EidasMethodsSampleTest {
             assertThat(verifiedAliases.size()).isEqualTo(1);
             assertThat(verifiedAliases.get(0).getValue()).isEqualTo(authNumber);
             assertThat(verifiedAliases.get(0).getType()).isEqualTo(EIDAS);
-            assertThat(recoveredMember
-                    .getProfileBlocking(recoveredMember.memberId())
-                    .getDisplayNameFirst()).isEqualTo(pspSubjectName);
+            assertThat(recoveredMember.getProfileNameBlocking(recoveredMember.memberId()))
+                    .isEqualTo(pspSubjectName);
         }
     }
 
@@ -127,9 +125,7 @@ public class EidasMethodsSampleTest {
                     .getCertificateSerialNumber()
                     .toString());
             assertThat(member.aliases().blockingSingle().get(0).getValue()).isEqualTo(authNumber);
-            assertThat(member
-                    .getProfileBlocking(member.memberId())
-                    .getDisplayNameFirst()).isEqualTo(pspSubjectName);
+            assertThat(member.getProfileNameBlocking(member.memberId())).isEqualTo(pspSubjectName);
         }
     }
 
@@ -147,9 +143,7 @@ public class EidasMethodsSampleTest {
                     .getCertificateSerialNumber()
                     .toString());
             assertThat(member.aliases().blockingSingle().get(0).getValue()).isEqualTo(authNumber);
-            assertThat(member
-                    .getProfileBlocking(member.memberId())
-                    .getDisplayNameFirst()).isEqualTo(pspSubjectName);
+            assertThat(member.getProfileNameBlocking(member.memberId())).isEqualTo(pspSubjectName);
         }
     }
 

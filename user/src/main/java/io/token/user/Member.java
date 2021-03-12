@@ -1456,23 +1456,22 @@ public class Member extends io.token.Member {
     }
 
     /**
-     * Replaces auth'd member's public profile.
+     * Replaces auth'd member's profile name.
      *
-     * @param profile profile to set
+     * @param profileName profile name to set
      * @return updated profile
      */
-    public Observable<Profile> setProfile(Profile profile) {
-        return client.setProfile(profile);
+    public Completable setProfileName(String profileName) {
+        return client.setProfileName(profileName);
     }
 
     /**
-     * Replaces the authenticated member's public profile.
+     * Replaces the authenticated member's profile namex.
      *
-     * @param profile Profile to set
-     * @return updated profile
+     * @param profileName profile name
      */
-    public Profile setProfileBlocking(Profile profile) {
-        return setProfile(profile).blockingSingle();
+    public void setProfileNameBlocking(String profileName) {
+        setProfileName(profileName).blockingAwait();
     }
 
     /**

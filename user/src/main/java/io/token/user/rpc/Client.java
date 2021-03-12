@@ -142,18 +142,17 @@ public final class Client extends io.token.rpc.Client {
     }
 
     /**
-     * Replaces a member's public profile.
+     * Replaces a member's profile name.
      *
-     * @param profile Profile to set
-     * @return observable that completes when request handled
+     * @param profileName profile name to set
+     * @return completable that completes when request handled
      */
-    public Observable<Profile> setProfile(Profile profile) {
-        return toObservable(gateway
+    public Completable setProfileName(String profileName) {
+        return toCompletable(gateway
                 .withAuthentication(authenticationContext())
-                .setProfile(SetProfileRequest.newBuilder()
-                        .setProfile(profile)
-                        .build()))
-                .map(SetProfileResponse::getProfile);
+                .setProfileName(Gateway.SetProfileNameRequest.newBuilder()
+                        .setProfileName(profileName)
+                        .build()));
     }
 
     /**

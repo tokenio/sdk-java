@@ -620,6 +620,26 @@ public class Member {
     }
 
     /**
+     * Gets a member's profile name.
+     *
+     * @param memberId member ID of member whose profile name we want
+     * @return their profile name
+     */
+    public Observable<String> getProfileName(String memberId) {
+        return client.getProfileName(memberId);
+    }
+
+    /**
+     * Gets a member's profile name.
+     *
+     * @param memberId member ID of member whose profile we want
+     * @return their profile name
+     */
+    public String getProfileNameBlocking(String memberId) {
+        return getProfileName(memberId).blockingSingle();
+    }
+
+    /**
      * Gets a member's public profile picture.
      *
      * @param memberId member ID of member whose profile we want

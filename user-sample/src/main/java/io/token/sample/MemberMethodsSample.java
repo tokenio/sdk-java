@@ -83,20 +83,24 @@ public class MemberMethodsSample {
     }
 
     /**
-     * Sets a profile name and picture.
+     * Sets a profile picture.
      *
      * @param member member
      * @return profile
      */
-    public static Profile profiles(Member member) {
-        Profile name = Profile.newBuilder()
-                .setDisplayNameFirst("Tycho")
-                .setDisplayNameLast("Nestoris")
-                .build();
-        member.setProfileBlocking(name);
+    public static Profile profilePicture(Member member) {
         member.setProfilePictureBlocking("image/jpeg", PICTURE);
+        return member.getProfileBlocking(member.memberId());
+    }
 
-        Profile profile = member.getProfileBlocking(member.memberId());
-        return profile;
+    /**
+     * Sets a profile name.
+     *
+     * @param member member
+     * @return profile name
+     */
+    public static String profileName(Member member) {
+        member.setProfileNameBlocking("Tycho Nestoris");
+        return member.getProfileNameBlocking(member.memberId());
     }
 }
