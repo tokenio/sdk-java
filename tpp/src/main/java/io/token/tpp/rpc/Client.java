@@ -88,6 +88,7 @@ import io.token.proto.gateway.Gateway.OnBankAuthCallbackResponse;
 import io.token.proto.gateway.Gateway.RemoveRedirectUrlsRequest;
 import io.token.proto.gateway.Gateway.SetProfileNameRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
+import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetTokenRequestTransferDestinationsRequest;
 import io.token.proto.gateway.Gateway.SetWebhookConfigRequest;
 import io.token.proto.gateway.Gateway.StoreTokenRequestRequest;
@@ -126,6 +127,23 @@ public final class Client extends io.token.rpc.Client {
             CryptoEngine crypto,
             GatewayProvider gateway) {
         super(memberId, crypto, gateway);
+    }
+
+    /**
+     * Replaces a member's public profile.
+     *
+     * @param profile Profile to set
+     * @return observable that completes when request handled
+     * @deprecated use {@link Client#setProfileName(String)}
+     */
+    @Deprecated
+    public Observable<Profile> setProfile(Profile profile) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfile(SetProfileRequest.newBuilder()
+                        .setProfile(profile)
+                        .build()))
+                .map(Gateway.SetProfileResponse::getProfile);
     }
 
     /**

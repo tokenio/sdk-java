@@ -1456,6 +1456,30 @@ public class Member extends io.token.Member {
     }
 
     /**
+     * Replaces auth'd member's public profile.
+     *
+     * @param profile profile to set
+     * @return updated profile
+     * @deprecated use {@link Member#setProfileName(String)}
+     */
+    @Deprecated
+    public Observable<Profile> setProfile(Profile profile) {
+        return client.setProfile(profile);
+    }
+
+    /**
+     * Replaces the authenticated member's public profile.
+     *
+     * @param profile Profile to set
+     * @return updated profile
+     * @deprecated use {@link Member#setProfileNameBlocking(String)} (String)}
+     */
+    @Deprecated
+    public Profile setProfileBlocking(Profile profile) {
+        return setProfile(profile).blockingSingle();
+    }
+
+    /**
      * Replaces auth'd member's profile name.
      *
      * @param profileName profile name to set

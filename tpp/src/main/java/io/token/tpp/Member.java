@@ -36,6 +36,7 @@ import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Blob;
 import io.token.proto.common.blob.BlobProtos.Blob.Payload;
 import io.token.proto.common.eidas.EidasProtos.VerifyEidasPayload;
+import io.token.proto.common.member.MemberProtos;
 import io.token.proto.common.notification.NotificationProtos.NotifyStatus;
 import io.token.proto.common.security.SecurityProtos.CustomerTrackingMetadata;
 import io.token.proto.common.submission.SubmissionProtos.StandingOrderSubmission;
@@ -107,6 +108,30 @@ public class Member extends io.token.Member implements Representable {
      */
     public void setProfileNameBlocking(String profileName) {
         setProfileName(profileName).blockingAwait();
+    }
+
+    /**
+     * Replaces auth'd member's public profile.
+     *
+     * @param profile profile to set
+     * @return updated profile
+     * @deprecated use {@link Member#setProfileName(String)}
+     */
+    @Deprecated
+    public Observable<MemberProtos.Profile> setProfile(MemberProtos.Profile profile) {
+        return client.setProfile(profile);
+    }
+
+    /**
+     * Replaces the authenticated member's public profile.
+     *
+     * @param profile Profile to set
+     * @return updated profile
+     * @deprecated use {@link Member#setProfileNameBlocking(String)} (String)}
+     */
+    @Deprecated
+    public MemberProtos.Profile setProfileBlocking(MemberProtos.Profile profile) {
+        return setProfile(profile).blockingSingle();
     }
 
     /**
