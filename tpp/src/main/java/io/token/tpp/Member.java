@@ -31,7 +31,6 @@ import com.google.common.collect.Lists;
 import com.google.protobuf.ByteString;
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 import io.token.TokenClient.TokenCluster;
 import io.token.proto.PagedList;
 import io.token.proto.common.blob.BlobProtos.Blob;
@@ -48,9 +47,7 @@ import io.token.proto.common.transfer.TransferProtos;
 import io.token.proto.common.transfer.TransferProtos.BulkTransfer;
 import io.token.proto.common.transfer.TransferProtos.Transfer;
 import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferDestination;
-import io.token.proto.common.transferinstructions.TransferInstructionsProtos.TransferEndpoint;
 import io.token.proto.common.webhook.WebhookProtos.Webhook.Config;
-import io.token.proto.gateway.Gateway;
 import io.token.proto.gateway.Gateway.GetEidasCertificateStatusResponse;
 import io.token.proto.gateway.Gateway.GetEidasVerificationStatusResponse;
 import io.token.proto.gateway.Gateway.InitiateBankAuthorizationResponse;
@@ -95,11 +92,32 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
+     * Replaces auth'd member's profile name.
+     *
+     * @param profileName profile name to be set
+     * @return completable that indicates whether the operation finished or had an error
+     */
+    public Completable setProfileName(String profileName) {
+        return client.setProfileName(profileName);
+    }
+
+    /**
+     * Replaces the authenticated member's profile namex.
+     *
+     * @param profileName profile name
+     */
+    public void setProfileNameBlocking(String profileName) {
+        setProfileName(profileName).blockingAwait();
+    }
+
+    /**
      * Replaces auth'd member's public profile.
      *
      * @param profile profile to set
      * @return updated profile
+     * @deprecated use {@link Member#setProfileName(String)}
      */
+    @Deprecated
     public Observable<MemberProtos.Profile> setProfile(MemberProtos.Profile profile) {
         return client.setProfile(profile);
     }
@@ -109,7 +127,9 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param profile Profile to set
      * @return updated profile
+     * @deprecated use {@link Member#setProfileNameBlocking(String)} (String)}
      */
+    @Deprecated
     public MemberProtos.Profile setProfileBlocking(MemberProtos.Profile profile) {
         return setProfile(profile).blockingSingle();
     }

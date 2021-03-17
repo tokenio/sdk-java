@@ -33,7 +33,6 @@ import static io.token.util.Util.toObservable;
 
 import io.reactivex.Completable;
 import io.reactivex.Observable;
-import io.reactivex.functions.Function;
 import io.token.exceptions.BankAuthorizationRequiredException;
 import io.token.exceptions.RequestException;
 import io.token.exceptions.StepUpRequiredException;
@@ -83,6 +82,8 @@ import io.token.proto.gateway.Gateway.GetDefaultAgentRequest;
 import io.token.proto.gateway.Gateway.GetDefaultAgentResponse;
 import io.token.proto.gateway.Gateway.GetMemberRequest;
 import io.token.proto.gateway.Gateway.GetMemberResponse;
+import io.token.proto.gateway.Gateway.GetProfileNameRequest;
+import io.token.proto.gateway.Gateway.GetProfileNameResponse;
 import io.token.proto.gateway.Gateway.GetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.GetProfilePictureResponse;
 import io.token.proto.gateway.Gateway.GetProfileRequest;
@@ -102,8 +103,6 @@ import io.token.proto.gateway.Gateway.UpdateMemberResponse;
 import io.token.proto.gateway.Gateway.VerifyAliasRequest;
 import io.token.security.CryptoEngine;
 import io.token.security.Signer;
-import io.token.security.crypto.CryptoRegistry;
-import io.token.security.crypto.CryptoType;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -250,6 +249,21 @@ public class Client {
                         .setMemberId(memberId)
                         .build()))
                 .map(GetProfileResponse::getProfile);
+    }
+
+    /**
+     * Gets a member's profile name.
+     *
+     * @param memberId member Id whose profile we want
+     * @return their profile name
+     */
+    public Observable<String> getProfileName(String memberId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getProfileName(GetProfileNameRequest.newBuilder()
+                        .setMemberId(memberId)
+                        .build()))
+                .map(GetProfileNameResponse::getProfileName);
     }
 
     /**

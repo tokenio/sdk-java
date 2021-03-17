@@ -146,7 +146,9 @@ public final class Client extends io.token.rpc.Client {
      *
      * @param profile Profile to set
      * @return observable that completes when request handled
+     * @deprecated use {@link Client#setProfileName(String)}
      */
+    @Deprecated
     public Observable<Profile> setProfile(Profile profile) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
@@ -154,6 +156,20 @@ public final class Client extends io.token.rpc.Client {
                         .setProfile(profile)
                         .build()))
                 .map(SetProfileResponse::getProfile);
+    }
+
+    /**
+     * Replaces a member's profile name.
+     *
+     * @param profileName profile name to set
+     * @return completable that completes when request handled
+     */
+    public Completable setProfileName(String profileName) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfileName(Gateway.SetProfileNameRequest.newBuilder()
+                        .setProfileName(profileName)
+                        .build()));
     }
 
     /**

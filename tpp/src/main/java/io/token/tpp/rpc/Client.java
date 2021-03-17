@@ -86,6 +86,7 @@ import io.token.proto.gateway.Gateway.InitiateBankAuthorizationResponse;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackRequest;
 import io.token.proto.gateway.Gateway.OnBankAuthCallbackResponse;
 import io.token.proto.gateway.Gateway.RemoveRedirectUrlsRequest;
+import io.token.proto.gateway.Gateway.SetProfileNameRequest;
 import io.token.proto.gateway.Gateway.SetProfilePictureRequest;
 import io.token.proto.gateway.Gateway.SetProfileRequest;
 import io.token.proto.gateway.Gateway.SetTokenRequestTransferDestinationsRequest;
@@ -133,7 +134,9 @@ public final class Client extends io.token.rpc.Client {
      *
      * @param profile Profile to set
      * @return observable that completes when request handled
+     * @deprecated use {@link Client#setProfileName(String)}
      */
+    @Deprecated
     public Observable<Profile> setProfile(Profile profile) {
         return toObservable(gateway
                 .withAuthentication(authenticationContext())
@@ -141,6 +144,20 @@ public final class Client extends io.token.rpc.Client {
                         .setProfile(profile)
                         .build()))
                 .map(Gateway.SetProfileResponse::getProfile);
+    }
+
+    /**
+     * Replaces a member's profile name.
+     *
+     * @param profileName profile name
+     * @return completable that completes when request handled
+     */
+    public Completable setProfileName(String profileName) {
+        return toCompletable(gateway
+                .withAuthentication(authenticationContext())
+                .setProfileName(SetProfileNameRequest.newBuilder()
+                        .setProfileName(profileName)
+                        .build()));
     }
 
     /**

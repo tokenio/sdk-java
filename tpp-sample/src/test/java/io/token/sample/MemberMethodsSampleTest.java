@@ -28,13 +28,22 @@ public class MemberMethodsSampleTest {
     }
 
     @Test
-    @Ignore // TODO(PLT-1624) use new profile API
-    public void profilesTest() {
+    public void profileNameTest() {
+        try (TokenClient tokenClient = createClient()) {
+            Member member = tokenClient.createMemberBlocking(randomAlias());
+            String profileName = MemberMethodsSample.profileName(member);
+
+            assertThat(profileName).isNotEmpty();
+        }
+    }
+
+    @Test
+    public void profilePictureTest() {
         try (TokenClient tokenClient = createClient()) {
             Member member = tokenClient.createMemberBlocking(randomAlias());
             Profile profile = MemberMethodsSample.profiles(member);
 
-            assertThat(profile.getDisplayNameFirst()).isNotEmpty();
+            assertThat(profile.getOriginalPictureId()).isNotEmpty();
         }
     }
 }
