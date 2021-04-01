@@ -657,12 +657,14 @@ public final class Client extends io.token.rpc.Client {
      * @param bankId bank ID
      * @param tokenRequestId token request ID
      * @param customerTrackingMetadata customer tracking metadata
+     * @param consentAccepted if user/payer accepted the consent
      * @return url
      */
     public Observable<String> getBankAuthUrl(
             String bankId,
             String tokenRequestId,
-            Optional<CustomerTrackingMetadata> customerTrackingMetadata) {
+            Optional<CustomerTrackingMetadata> customerTrackingMetadata,
+            boolean consentAccepted) {
         return toObservable(gateway
                 .withAuthentication(customerTrackingMetadata
                         .map(this::authenticationContext)
@@ -670,6 +672,7 @@ public final class Client extends io.token.rpc.Client {
                 .getBankAuthUrl(GetBankAuthUrlRequest.newBuilder()
                         .setBankId(bankId)
                         .setTokenRequestId(tokenRequestId)
+                        .setConsentAccepted(consentAccepted)
                         .build()))
                 .map(GetBankAuthUrlResponse::getUrl);
     }
@@ -680,15 +683,18 @@ public final class Client extends io.token.rpc.Client {
      * @param tokenRequestId token request ID
      * @param credentials user credentials
      * @param customerTrackingMetadata customer tracking metadata
+     * @param consentAccepted if user/payer accepted the consent
      * @return initiation response
      */
     public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
             String tokenRequestId,
             Map<String, String> credentials,
-            Optional<CustomerTrackingMetadata> customerTrackingMetadata) {
+            Optional<CustomerTrackingMetadata> customerTrackingMetadata,
+            boolean consentAccepted) {
         InitiateBankAuthorizationRequest.Builder builder = InitiateBankAuthorizationRequest
                 .newBuilder()
-                .setTokenRequestId(tokenRequestId);
+                .setTokenRequestId(tokenRequestId)
+                .setConsentAccepted(consentAccepted);
         if (!credentials.isEmpty()) {
             builder.putAllCredentials(credentials);
         }

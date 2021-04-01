@@ -1081,16 +1081,19 @@ public class Member extends io.token.Member implements Representable {
      * @param tokenRequestId token request ID
      * @param credentials user credentials
      * @param trackingMetadata customer tracking metadata
+     * @param consentAccepted if user/payer accepted the consent
      * @return initiation response
      */
     public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
             String tokenRequestId,
             Map<String, String> credentials,
-            CustomerTrackingMetadata trackingMetadata) {
+            CustomerTrackingMetadata trackingMetadata,
+            boolean consentAccepted) {
         return client.initiateBankAuthorization(
                 tokenRequestId,
                 credentials,
-                Optional.of(trackingMetadata));
+                Optional.of(trackingMetadata),
+                consentAccepted);
     }
 
     /**
@@ -1098,15 +1101,18 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param tokenRequestId token request ID
      * @param credentials user credentials
+     * @param consentAccepted if user/payer accepted the consent
      * @return initiation response
      */
     public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
             String tokenRequestId,
-            Map<String, String> credentials) {
+            Map<String, String> credentials,
+            boolean consentAccepted) {
         return client.initiateBankAuthorization(
                 tokenRequestId,
                 credentials,
-                Optional.empty());
+                Optional.empty(),
+                consentAccepted);
     }
 
     /**
@@ -1114,23 +1120,30 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param tokenRequestId token request ID
      * @param trackingMetadata customer tracking metadata
+     * @param consentAccepted if user/payer accepted the consent
      * @return initiation response
      */
     public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
             String tokenRequestId,
-            CustomerTrackingMetadata trackingMetadata) {
-        return initiateBankAuthorization(tokenRequestId, Collections.emptyMap(), trackingMetadata);
+            CustomerTrackingMetadata trackingMetadata,
+            boolean consentAccepted) {
+        return initiateBankAuthorization(
+                tokenRequestId,
+                Collections.emptyMap(),
+                trackingMetadata,
+                consentAccepted);
     }
 
     /**
      * Initiate authorization process with the source bank, for an existing token request.
      *
      * @param tokenRequestId token request ID
+     * @param consentAccepted if user/payer accepted the consent
      * @return initiation response
      */
     public Observable<InitiateBankAuthorizationResponse> initiateBankAuthorization(
-            String tokenRequestId) {
-        return initiateBankAuthorization(tokenRequestId, Collections.emptyMap());
+            String tokenRequestId, boolean consentAccepted) {
+        return initiateBankAuthorization(tokenRequestId, Collections.emptyMap(), consentAccepted);
     }
 
     /**
@@ -1139,13 +1152,19 @@ public class Member extends io.token.Member implements Representable {
      * @param tokenRequestId token request ID
      * @param credentials user credentials
      * @param trackingMetadata customer tracking metadata
+     * @param consentAccepted if user/payer accepted the consent
      * @return initiation response
      */
     public InitiateBankAuthorizationResponse initiateBankAuthorizationBlocking(
             String tokenRequestId,
             Map<String, String> credentials,
-            CustomerTrackingMetadata trackingMetadata) {
-        return initiateBankAuthorization(tokenRequestId, credentials, trackingMetadata)
+            CustomerTrackingMetadata trackingMetadata,
+            boolean consentAccepted) {
+        return initiateBankAuthorization(
+                tokenRequestId,
+                credentials,
+                trackingMetadata,
+                consentAccepted)
                 .blockingSingle();
     }
 
@@ -1154,12 +1173,17 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param tokenRequestId token request ID
      * @param credentials user credentials
+     * @param consentAccepted if user/payer accepted the consent
      * @return initiation response
      */
     public InitiateBankAuthorizationResponse initiateBankAuthorizationBlocking(
             String tokenRequestId,
-            Map<String, String> credentials) {
-        return initiateBankAuthorization(tokenRequestId, credentials).blockingSingle();
+            Map<String, String> credentials,
+            boolean consentAccepted) {
+        return initiateBankAuthorization(
+                tokenRequestId,
+                credentials,
+                consentAccepted).blockingSingle();
     }
 
     /**
@@ -1167,23 +1191,30 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param tokenRequestId token request ID
      * @param trackingMetadata customer tracking metadata
+     * @param consentAccepted if user/payer accepted the consent
      * @return initiation response
      */
     public InitiateBankAuthorizationResponse initiateBankAuthorizationBlocking(
             String tokenRequestId,
-            CustomerTrackingMetadata trackingMetadata) {
-        return initiateBankAuthorization(tokenRequestId, trackingMetadata).blockingSingle();
+            CustomerTrackingMetadata trackingMetadata,
+            boolean consentAccepted) {
+        return initiateBankAuthorization(
+                tokenRequestId,
+                trackingMetadata,
+                consentAccepted).blockingSingle();
     }
 
     /**
      * Initiate authorization process with the source bank, for an existing token request.
      *
      * @param tokenRequestId token request ID
+     * @param consentAccepted if user/payer accepted the consent
      * @return initiation response
      */
     public InitiateBankAuthorizationResponse initiateBankAuthorizationBlocking(
-            String tokenRequestId) {
-        return initiateBankAuthorization(tokenRequestId).blockingSingle();
+            String tokenRequestId,
+            boolean consentAccepted) {
+        return initiateBankAuthorization(tokenRequestId, consentAccepted).blockingSingle();
     }
 
     /**
@@ -1191,10 +1222,13 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param bankId bank ID
      * @param tokenRequestId token request ID
+     * @param consentAccepted if user/payer accepted the consent
      * @return url
      */
-    public Observable<String> getBankAuthUrl(String bankId, String tokenRequestId) {
-        return client.getBankAuthUrl(bankId, tokenRequestId, Optional.empty());
+    public Observable<String> getBankAuthUrl(String bankId,
+                                             String tokenRequestId,
+                                             boolean consentAccepted) {
+        return client.getBankAuthUrl(bankId, tokenRequestId, Optional.empty(), consentAccepted);
     }
 
     /**
@@ -1203,13 +1237,19 @@ public class Member extends io.token.Member implements Representable {
      * @param bankId bank ID
      * @param tokenRequestId token request ID
      * @param customerTrackingMetadata tracking metadata of the end user
+     * @param consentAccepted if user/payer accepted the consent
      * @return url
      */
     public Observable<String> getBankAuthUrl(
             String bankId,
             String tokenRequestId,
-            CustomerTrackingMetadata customerTrackingMetadata) {
-        return client.getBankAuthUrl(bankId, tokenRequestId, Optional.of(customerTrackingMetadata));
+            CustomerTrackingMetadata customerTrackingMetadata,
+            boolean consentAccepted) {
+        return client.getBankAuthUrl(
+                bankId,
+                tokenRequestId,
+                Optional.of(customerTrackingMetadata),
+                consentAccepted);
     }
 
     /**
@@ -1217,10 +1257,13 @@ public class Member extends io.token.Member implements Representable {
      *
      * @param bankId bank ID
      * @param tokenRequestId token request ID
+     * @param consentAccepted if user/payer accepted the consent
      * @return url
      */
-    public String getBankAuthUrlBlocking(String bankId, String tokenRequestId) {
-        return getBankAuthUrl(bankId, tokenRequestId).blockingSingle();
+    public String getBankAuthUrlBlocking(String bankId,
+                                         String tokenRequestId,
+                                         boolean consentAccepted) {
+        return getBankAuthUrl(bankId, tokenRequestId, consentAccepted).blockingSingle();
     }
 
     /**
@@ -1229,13 +1272,19 @@ public class Member extends io.token.Member implements Representable {
      * @param bankId bank ID
      * @param tokenRequestId token request ID
      * @param customerTrackingMetadata tracking metadata of the end user
+     * @param consentAccepted if user/payer accepted the consent
      * @return url
      */
     public String getBankAuthUrlBlocking(
             String bankId,
             String tokenRequestId,
-            CustomerTrackingMetadata customerTrackingMetadata) {
-        return getBankAuthUrl(bankId, tokenRequestId, customerTrackingMetadata).blockingSingle();
+            CustomerTrackingMetadata customerTrackingMetadata,
+            boolean consentAccepted) {
+        return getBankAuthUrl(
+                bankId,
+                tokenRequestId,
+                customerTrackingMetadata,
+                consentAccepted).blockingSingle();
     }
 
     /**
