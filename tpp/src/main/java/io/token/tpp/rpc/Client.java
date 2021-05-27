@@ -74,6 +74,7 @@ import io.token.proto.gateway.Gateway.GetRedirectUrlsRequest;
 import io.token.proto.gateway.Gateway.GetRedirectUrlsResponse;
 import io.token.proto.gateway.Gateway.GetStandingOrderSubmissionsRequest;
 import io.token.proto.gateway.Gateway.GetTokenRequest;
+import io.token.proto.gateway.Gateway.GetTokenRequestResultWithStatusRequest;
 import io.token.proto.gateway.Gateway.GetTokenResponse;
 import io.token.proto.gateway.Gateway.GetTokensRequest;
 import io.token.proto.gateway.Gateway.GetTransferRequest;
@@ -313,6 +314,29 @@ public final class Client extends io.token.rpc.Client {
                         Optional.ofNullable(Strings.emptyToNull(
                                 response.getStandingOrderSubmissionId())),
                         response.getSignature()));
+    }
+
+    /**
+     * Get the token request result with status based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public Observable<TokenRequestResult> getTokenRequestResultWithStatus(String tokenRequestId) {
+        return toObservable(gateway
+                .withAuthentication(authenticationContext())
+                .getTokenRequestResultWithStatus(GetTokenRequestResultWithStatusRequest
+                        .newBuilder()
+                        .setTokenRequestId(tokenRequestId)
+                        .build()))
+                .map(response -> TokenRequestResult.create(
+                        response.getTokenId(),
+                        Optional.ofNullable(Strings.emptyToNull(response.getTransferId())),
+                        Optional.ofNullable(Strings.emptyToNull(
+                                response.getStandingOrderSubmissionId())),
+                        response.getSignature(),
+                        response.getStatus(),
+                        response.getStatusReasonInformation()));
     }
 
     /**
