@@ -92,15 +92,15 @@ dependencies {
         exclude group: 'org.checkerframework' //, module: 'checker'
         exclude group: 'io.token.proto.extensions'
     }
-    compile('io.token.proto.extensions:tokenio-proto-extensions:1.0.3') {
+    compile('io.token.proto.extensions:tokenio-proto-extensions:1.0.4') {
         exclude group: 'com.google.guava', module: 'guava'
     }
 
     implementation 'com.android.support:appcompat-v7:26.1.0'
     testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'org.assertj:assertj-core:3.8.0'
-    androidTestImplementation 'com.android.support.test:runner:1.0.1'
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
+    androidTestImplementation 'org.assertj:assertj-core:3.13.2'
+    androidTestImplementation 'com.android.support.test:runner:1.0.2'
+    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
 
 task sourceJar(type: Jar) {
@@ -144,10 +144,11 @@ publishing {
     }
 }
 
-apply plugin: 'signing'
-signing {
-    required { project.hasProperty('signing.keyId') }
-    sign configurations.archives
+if (project.hasProperty("signing.keyId")) {
+    apply plugin: 'signing'
+    signing {
+        sign configurations.archives
+    }
 }
 
 apply from: 'https://raw.githubusercontent.com/sky-uk/gradle-maven-plugin/master/gradle-mavenizer.gradle'
