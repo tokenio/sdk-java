@@ -687,6 +687,26 @@ public class Member extends io.token.Member implements Representable {
     }
 
     /**
+     * Get the token request result with status based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public Observable<TokenRequestResult> getTokenRequestResultWithStatus(String tokenRequestId) {
+        return client.getTokenRequestResultWithStatus(tokenRequestId);
+    }
+
+    /**
+     * Get the token request result with status based on a token's tokenRequestId.
+     *
+     * @param tokenRequestId token request id
+     * @return token request result
+     */
+    public TokenRequestResult getTokenRequestResultWithStatusBlocking(String tokenRequestId) {
+        return client.getTokenRequestResultWithStatus(tokenRequestId).blockingSingle();
+    }
+
+    /**
      * Get the token request result based on a token's tokenRequestId.
      *
      * @param tokenRequestId token request id

@@ -22,13 +22,43 @@
 
 package io.token.tokenrequest;
 
+import static java.util.Optional.empty;
+
 import com.google.auto.value.AutoValue;
 import io.token.proto.common.security.SecurityProtos.Signature;
 
+import io.token.proto.common.token.TokenProtos.TokenRequestResultStatus;
 import java.util.Optional;
 
 @AutoValue
 public abstract class TokenRequestResult {
+    /**
+     * Creates an instance of TokenRequestResult.
+     *
+     * @param tokenId token ID
+     * @param transferId transfer ID
+     * @param standingOrderSubmissionId standing order submission ID
+     * @param signature signature
+     * @param status status
+     * @param statusReasonInformation status reason information
+     * @return TokenRequestResult
+     */
+    public static TokenRequestResult create(
+            String tokenId,
+            Optional<String> transferId,
+            Optional<String> standingOrderSubmissionId,
+            Signature signature,
+            TokenRequestResultStatus status,
+            String statusReasonInformation) {
+        return new AutoValue_TokenRequestResult(
+                tokenId,
+                transferId,
+                standingOrderSubmissionId,
+                signature,
+                Optional.of(status),
+                Optional.of(statusReasonInformation));
+    }
+
     /**
      * Creates an instance of TokenRequestResult.
      *
@@ -47,7 +77,9 @@ public abstract class TokenRequestResult {
                 tokenId,
                 transferId,
                 standingOrderSubmissionId,
-                signature);
+                signature,
+                empty(),
+                empty());
     }
 
     public abstract String getTokenId();
@@ -58,4 +90,8 @@ public abstract class TokenRequestResult {
 
     @Deprecated
     public abstract Signature getSignature();
+
+    public abstract Optional<TokenRequestResultStatus> getStatus();
+
+    public abstract Optional<String> getStatusReasonInformation();
 }
