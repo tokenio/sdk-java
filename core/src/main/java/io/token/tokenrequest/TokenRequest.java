@@ -625,6 +625,19 @@ public abstract class TokenRequest {
                     .build();
             return this;
         }
+
+        /**
+         * Optional. Sets whether the refund account should be returned.
+         *
+         * @param returnRefundAccount whether  the refund account should be returned
+         * @return builder
+         */
+        public TransferBuilder setReturnRefundAccount(boolean returnRefundAccount) {
+            this.requestPayload.getTransferBodyBuilder()
+                    .setReturnRefundAccount(returnRefundAccount)
+                    .build();
+            return this;
+        }
     }
 
     public static class BulkTransferBuilder extends Builder<BulkTransferBuilder> {
@@ -843,6 +856,19 @@ public abstract class TokenRequest {
                     .getInstructionsBuilder()
                     .getMetadataBuilder()
                     .setPurposeCode(purposeCode);
+            return this;
+        }
+
+        /**
+         * Optional. Sets whether the refund account should be returned.
+         *
+         * @param returnRefundAccount whether  the refund account should be returned
+         * @return builder
+         */
+        public StandingOrderBuilder setReturnRefundAccount(boolean returnRefundAccount) {
+            this.requestPayload.getStandingOrderBodyBuilder()
+                    .setReturnRefundAccount(returnRefundAccount)
+                    .build();
             return this;
         }
     }
