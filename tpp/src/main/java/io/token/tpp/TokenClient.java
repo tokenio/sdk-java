@@ -436,9 +436,9 @@ public class TokenClient extends io.token.TokenClient {
      * member.getEidasVerificationStatus call with the verification id returned by this call.
      *
      * @param payload payload with eIDAS certificate and bank id
-     * @param signature payload signed with the private key corresponding to the certificate
+     * @param signature payload signed with the private key corresponding to the certificate
      *      public key
-     * @return member id, registered key id and id of the certificate verification request
+     * @return member id, registered key id and id of the certificate verification request
      */
     public Observable<RegisterWithEidasResponse> registerWithEidas(
             RegisterWithEidasPayload payload,
